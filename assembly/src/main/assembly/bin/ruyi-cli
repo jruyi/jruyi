@@ -1,0 +1,27 @@
+#!/bin/sh
+# -------------------------------------------------------------------------
+# JRuyi CLI Client
+# -------------------------------------------------------------------------
+
+JRUYI_HOME="`dirname $0`"
+JRUYI_HOME="`dirname $JRUYI_HOME`"
+PROGNAME="`basename $0`"
+
+if [ "x$JAVA_HOME" = "x" ]; then
+	JAVA="java"
+else
+	JAVA="$JAVA_HOME/bin/java"
+fi
+
+# JPDA options. Uncomment and modify as appropriate to enable remote debugging.
+# JAVA_OPTS="$JAVA_OPTS -Xrunjdwp:transport=dt_socket,address=8010,server=y,suspend=y"
+
+# Set JRuyi home dir
+JAVA_OPTS="$JAVA_OPTS -Djruyi.home.dir=$JRUYI_HOME"
+
+# Set program name
+JAVA_OPTS="$JAVA_OPTS -Dprogram.name=$PROGNAME"
+
+EXE_JAR="$JRUYI_HOME/main/jruyi-cli-${jruyi-cli.version}.jar"
+
+"$JAVA" $JAVA_OPTS -jar "$EXE_JAR" "$@"

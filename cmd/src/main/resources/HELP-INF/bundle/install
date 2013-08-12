@@ -1,0 +1,3 @@
+Usage: bundle:install <bundle-url> ...
+
+Install bundles from the specified locations.

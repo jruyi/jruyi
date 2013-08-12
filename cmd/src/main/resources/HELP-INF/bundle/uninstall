@@ -1,0 +1,3 @@
+Usage: bundle:uninstall <bundle-id | bundle-url> ...
+
+Uninstall the specified bundles.

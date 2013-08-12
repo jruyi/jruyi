@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+
+	    http://www.apache.org/licenses/LICENSE-2.0
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.jruyi</groupId>
+	<artifactId>jruyi-api</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+
+	<name>JRuyi API</name>
+	<description>JRuyi API</description>
+	<url>http://www.jruyi.org/</url>
+	<organization>
+		<name>JRuyi.org</name>
+		<url>http://www.jruyi.org/</url>
+	</organization>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<scm>
+		<connection>scm:git:https://github.com/jruyi/jruyi.git</connection>
+		<url>scm:git:https://github.com/jruyi/jruyi.git</url>
+		<developerConnection>scm:git:https://github.com/jruyi/jruyi.git</developerConnection>
+	</scm>
+
+	<distributionManagement>
+		<repository>
+			<id>repo</id>
+			<url>http://repo.jruyi.org/maven/releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>snapshot-repo</id>
+			<url>http://repo.jruyi.org/maven/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+	<properties>
+		<org.jruyi.cmd.version>1.0</org.jruyi.cmd.version>
+		<org.jruyi.common.version>1.0</org.jruyi.common.version>
+		<org.jruyi.io.version>1.0</org.jruyi.io.version>
+		<org.jruyi.me.version>1.0</org.jruyi.me.version>
+		<org.jruyi.system.version>1.0</org.jruyi.system.version>
+		<org.jruyi.timeoutadmin.version>1.0</org.jruyi.timeoutadmin.version>
+		<org.jruyi.workshop.version>1.0</org.jruyi.workshop.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.core</artifactId>
+			<version>4.3.1</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<encoding>UTF-8</encoding>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.9.1</version>
+				<configuration>
+					<encoding>UTF-8</encoding>
+					<excludePackageNames>org.jruyi.system.main:*.internal.*</excludePackageNames>
+					<doctitle>${project.name} ${project.version}</doctitle>
+					<windowtitle>${project.name} ${project.version}</windowtitle>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<excludes>
+						<exclude>**/internal/**</exclude>
+					</excludes>
+					<archive>
+						<addMavenDescriptor>false</addMavenDescriptor>
+						<manifest>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

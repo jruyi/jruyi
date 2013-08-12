@@ -1,0 +1,21 @@
+Usage: obr:repos <action> [<repository-file-url> ...]
+
+Manage OSGi bundle repositories.
+
+action:
+
+    add       Add a repository file to the set of repository files for which
+              the Repository Admin service provides access.  The repository
+              file is represented as a URL.  If the repository file URL is
+              already in the Repository Admin's set of repository files, the
+              request is treated like a reload operation.
+
+    list      List all the URLs to the repository files used by the Repository
+              Admin.
+
+    refresh   Remove a repository file from the set of repository files for
+              which the Repository Admin service provides access, and then add
+              it again.
+
+    remove    Remove a repository file from the set of repository files for
+              which the Repository Admin service provides access.

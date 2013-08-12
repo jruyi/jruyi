@@ -1,0 +1,10 @@
+Usage: io:stop <service-id> [options]
+
+Stop the specified IO service with the specified options if present.
+
+options:
+    It's an integer value defined by each kind of IO services.
+
+    For jruyi.io.tcpserver,
+        0    Stop the IO service with closing all the existing connections
+        1    Stop the IO service without closing the existing connections

@@ -1,0 +1,7 @@
+Usage: scr:enable <component-id>
+
+Enable the given component if not already enabled.  If the component is already
+destroyed or enabled, this command has no effect.
+
+'component-id' may be either the ID of a component or the component's name.  The
+component name must be used for disabled components.

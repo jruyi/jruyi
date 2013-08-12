@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+
+	    http://www.apache.org/licenses/LICENSE-2.0
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+-->
+
+<assembly
+	xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+	<id>bin</id>
+	<formats>
+		<format>tar.bz2</format>
+		<format>zip</format>
+	</formats>
+	<dependencySets>
+		<dependencySet>
+			<outputDirectory>main</outputDirectory>
+			<outputFileNameMapping>${artifact.artifactId}-${artifact.baseVersion}.${artifact.extension}</outputFileNameMapping>
+			<unpack>false</unpack>
+			<useTransitiveDependencies>false</useTransitiveDependencies>
+			<includes>
+				<include>${project.groupId}:jruyi-launcher</include>
+				<include>${project.groupId}:jruyi-cli</include>
+			</includes>
+		</dependencySet>
+		<dependencySet>
+			<outputDirectory>lib</outputDirectory>
+			<outputFileNameMapping>${artifact.artifactId}-${artifact.baseVersion}.${artifact.extension}</outputFileNameMapping>
+			<unpack>false</unpack>
+			<useTransitiveDependencies>false</useTransitiveDependencies>
+			<includes>
+				<include>commons-cli:commons-cli</include>
+				<include>jline:jline</include>
+				<include>org.slf4j:slf4j-api</include>
+				<include>ch.qos.logback:logback-core</include>
+				<include>ch.qos.logback:logback-classic</include>
+				<include>${project.groupId}:jruyi-system</include>
+			</includes>
+		</dependencySet>
+		<dependencySet>
+			<outputDirectory>bundles</outputDirectory>
+			<outputFileNameMapping>${artifact.artifactId}-${artifact.baseVersion}.${artifact.extension}</outputFileNameMapping>
+			<unpack>false</unpack>
+			<useTransitiveDependencies>false</useTransitiveDependencies>
+			<includes>
+				<include>org.apache.felix:org.apache.felix.framework</include>
+				<include>${project.groupId}:org.jruyi.osgi.log</include>
+				<include>org.apache.felix:org.apache.felix.metatype</include>
+				<include>org.apache.felix:org.apache.felix.configadmin</include>
+				<include>org.apache.felix:org.apache.felix.scr</include>
+				<include>${project.groupId}:org.jruyi.common</include>
+				<include>${project.groupId}:org.jruyi.workshop</include>
+				<include>${project.groupId}:org.jruyi.timeoutadmin</include>
+				<include>${project.groupId}:org.jruyi.me</include>
+				<include>${project.groupId}:org.jruyi.io</include>
+				<include>org.apache.felix:org.apache.felix.gogo.runtime</include>
+				<include>org.apache.felix:org.apache.felix.bundlerepository</include>
+				<include>${project.groupId}:org.jruyi.cmd</include>
+				<include>${project.groupId}:org.jruyi.clid</include>
+			</includes>
+		</dependencySet>
+	</dependencySets>
+	<fileSets>
+		<fileSet>
+			<directory>..</directory>
+			<outputDirectory>/</outputDirectory>
+			<lineEnding>keep</lineEnding>
+			<includes>
+				<include>LICENSE</include>
+				<include>NOTICE</include>
+			</includes>
+		</fileSet>
+		<fileSet>
+			<directory>src/main/assembly/bin</directory>
+			<outputDirectory>bin</outputDirectory>
+			<lineEnding>keep</lineEnding>
+			<filtered>true</filtered>
+			<includes>
+				<include>*.bat</include>
+			</includes>
+		</fileSet>
+		<fileSet>
+			<directory>src/main/assembly/bin</directory>
+			<outputDirectory>bin</outputDirectory>
+			<lineEnding>keep</lineEnding>
+			<filtered>true</filtered>
+			<excludes>
+				<exclude>*.bat</exclude>
+			</excludes>
+			<fileMode>755</fileMode>
+		</fileSet>
+		<fileSet>
+			<directory>src/main/assembly/conf</directory>
+			<outputDirectory>inst/default/conf</outputDirectory>
+			<lineEnding>keep</lineEnding>
+			<filtered>true</filtered>
+			<includes>
+				<include>bootstrap.xml</include>
+			</includes>
+		</fileSet>
+		<fileSet>
+			<directory>src/main/assembly/conf</directory>
+			<outputDirectory>inst/default/conf</outputDirectory>
+			<lineEnding>keep</lineEnding>
+			<excludes>
+				<exclude>bootstrap.xml</exclude>
+			</excludes>
+		</fileSet>
+	</fileSets>
+</assembly>

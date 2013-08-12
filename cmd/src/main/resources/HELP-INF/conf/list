@@ -1,0 +1,8 @@
+Usage1: conf:list <pid>
+
+Print the specified configuration.
+
+Usage2: conf:list [filter]
+
+List all the configurations matching the filter, if present, otherwise list all
+the configurations.

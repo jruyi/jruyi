@@ -1,0 +1,7 @@
+Usage: jruyi:grep [OPTION]... <PATTERN>
+
+Search for PATTERN in standard input.
+
+Options:
+    -i, --ignore-case       ignore case distinctions
+    -v, --invert-match      select non-matching lines

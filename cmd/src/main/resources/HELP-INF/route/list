@@ -1,0 +1,4 @@
+Usage: route:list [<from> [to]]
+
+Print the routing rule whose source endpoint is 'from' and destination endpoint
+is 'to', if present.  Otherwise, print the whole routing table.

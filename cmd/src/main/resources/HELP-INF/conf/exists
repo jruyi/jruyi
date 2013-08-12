@@ -1,0 +1,7 @@
+Usage1: conf:exists <pid>
+
+Test if the specified configuration exists.
+
+Usage2: conf:exists <filter>
+
+Test if there are any configurations matching the filter.

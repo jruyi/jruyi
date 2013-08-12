@@ -1,0 +1,7 @@
+Usage1: conf:create <pid> [<name>=<value>] ...
+
+Create a configuration with the specified pid.
+
+Usage2: conf:create <factory-pid> [<name>=<value>] ...
+
+Create a factory configuration with the specified factory-pid.

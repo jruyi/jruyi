@@ -1,0 +1,3 @@
+Usage: bundle:stop <bundle-id | bundle-url> ...
+
+Stop the specified bundles.

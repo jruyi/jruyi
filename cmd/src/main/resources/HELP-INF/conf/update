@@ -1,0 +1,12 @@
+Usage1: conf:update <pid> [name[=<value>]] ...
+
+Update the specified configuration with the specified properties.
+A property can be deleted by giving only name without '=<value>'.
+A property can be set to empty by giving 'name=' with no value.
+
+Usage2: conf:update <filter> [name[=<value>]] ...
+
+Update all the configurations matching the specified filter with the specified
+properties.
+A property can be deleted by giving only name without '=<value>'.
+A property can be set to empty by giving 'name=' with no value.

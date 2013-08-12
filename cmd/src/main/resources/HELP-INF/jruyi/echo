@@ -1,0 +1,3 @@
+Usage: jruyi:echo <message>
+
+Echo the specified message with variables substituted.

@@ -1,0 +1,3 @@
+Usage: bundle:inspect <bundle-id | bundle-url>
+
+Print details of the specified bundle.

@@ -1,0 +1,4 @@
+Usage: bundle:refresh [bundle-id | bundle-url] ...
+
+Refresh the specified bundle(s) if present. Otherwise, refresh those bundles
+dependent on removal pending bundles.

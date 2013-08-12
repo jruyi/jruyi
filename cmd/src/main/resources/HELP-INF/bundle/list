@@ -1,0 +1,3 @@
+Usage: bundle:list
+
+List all the installed bundles.

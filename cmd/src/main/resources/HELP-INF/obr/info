@@ -1,0 +1,5 @@
+Usage: obr:info <bundle-name | bundle-symbolic-name>[@<version>] ...
+
+Display the meta-data for the specified bundles.  If a bundle's name contains
+spaces, then it must be surrounded by quotes.  It is also possible to specify
+a precise version if more than one version exists.

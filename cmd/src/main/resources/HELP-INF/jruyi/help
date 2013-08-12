@@ -1,0 +1,4 @@
+Usage: jruyi:help [command]
+
+Print the details of a specific command, if present, otherwise print a list of
+available commands.

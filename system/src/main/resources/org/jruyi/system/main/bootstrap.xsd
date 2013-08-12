@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+
+		http://www.apache.org/licenses/LICENSE-2.0
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+-->
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			targetNamespace="http://www.jruyi.org/schema/jruyi/bootstrap/1.0"
+			xmlns="http://www.jruyi.org/schema/jruyi/bootstrap/1.0"
+			elementFormDefault="qualified">
+
+	<xsd:complexType name="Tproperty">
+		<xsd:simpleContent>
+			<xsd:extension base="xsd:normalizedString">
+				<xsd:attribute name="name" type="xsd:NMTOKENS" use="required"/>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="Tlocal">
+		<xsd:sequence>
+			<xsd:element name="property" type="Tproperty" maxOccurs="unbounded" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="Tsystem">
+		<xsd:sequence>
+			<xsd:element name="property" type="Tproperty" maxOccurs="unbounded" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="Tframework">
+		<xsd:sequence>
+			<xsd:element name="property" type="Tproperty" maxOccurs="unbounded" minOccurs="0"/>
+		</xsd:sequence>
+		<xsd:attribute name="url" type="xsd:token" use="required"/>
+		<xsd:attribute name="startLevel" type="xsd:positiveInteger" default="12"/>
+		<xsd:attribute name="initialBundleStartLevel" type="xsd:positiveInteger" default="8"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="Tbundle1">
+		<xsd:sequence>
+			<xsd:element name="property" type="Tproperty" maxOccurs="unbounded" minOccurs="0"/>
+		</xsd:sequence>
+		<xsd:attribute name="url" type="xsd:token" use="required"/>
+		<xsd:attribute name="startLevel" type="xsd:positiveInteger" default="6"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="Tbundle2">
+		<xsd:sequence>
+			<xsd:element name="property" type="Tproperty" maxOccurs="unbounded" minOccurs="0"/>
+		</xsd:sequence>
+		<xsd:attribute name="url" type="xsd:token" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="Tbundles">
+		<xsd:sequence>
+			<xsd:element name="bundle" type="Tbundle2" maxOccurs="unbounded" minOccurs="1"/>
+		</xsd:sequence>
+		<xsd:attribute name="startLevel" type="xsd:positiveInteger" use="required"/>
+	</xsd:complexType>
+
+	<xsd:element name="bootstrap">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="local" type="Tlocal" maxOccurs="1" minOccurs="0"/>
+				<xsd:element name="system" type="Tsystem" maxOccurs="1" minOccurs="0"/>
+				<xsd:element name="framework" type="Tframework" maxOccurs="1" minOccurs="1"/>
+				<xsd:choice maxOccurs="unbounded" minOccurs="0">
+					<xsd:element name="bundle" type="Tbundle1"/>
+					<xsd:element name="bundles" type="Tbundles"/>
+				</xsd:choice>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+
+</xsd:schema>

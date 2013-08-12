@@ -1,0 +1,7 @@
+Usage: route:set <from> <to> [filter]
+
+Create or update a routing rule.
+
+A message sent by "from" will be routed to "to" when its properties match the
+"filter" if specified.  Otherwise, all the messages sent by "from" will be
+routed to "to".

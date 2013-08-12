@@ -1,0 +1,5 @@
+Usage: obr:list [bundle-name | bundle-symbolic-name]
+
+List bundles available in the bundle repository.  If no arguments are given,
+then all available bundles are listed, otherwise the arguments are concatenated
+with spaces and used as a substring filter on the bundle name/symbolic-name.

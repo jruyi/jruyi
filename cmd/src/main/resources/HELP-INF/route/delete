@@ -1,0 +1,4 @@
+Usage: route:delete <from> [to]
+
+Delete routing rules whose source endpoint is 'from', and destination endpoint
+is 'to' if specified.

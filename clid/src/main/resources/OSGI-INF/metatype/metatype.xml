@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+
+	    http://www.apache.org/licenses/LICENSE-2.0
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+-->
+
+<MetaData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.osgi.org/xmlns/metatype/v1.1.0"
+	xsi:schemaLocation="http://www.osgi.org/xmlns/metatype/v1.1.0 http://www.osgi.org/xmlns/metatype/v1.1.0/metatype.xsd">
+
+	<OCD id="clid" name="CLI Daemon">
+		<AD id="bindAddr" name="Bind Address" type="String" default="localhost"/>
+		<AD id="port" name="Port" type="Integer" min="0" max="65535" default="6060"/>
+		<AD id="buffer.target" name="Filter for Selecting Buffer Factory" type="String" required="false"/>
+		<AD id="sessionIdleTimeout" name="Session Idle Timeout" type="Integer" min="-1" default="300"/>
+		<AD id="debug" name="Debug" type="Boolean" default="false"/>
+	</OCD>
+
+	<Designate pid="jruyi.clid">
+		<Object ocdref="clid"/>
+	</Designate>
+
+</MetaData>

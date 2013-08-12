@@ -1,0 +1,8 @@
+Usage1: conf:delete <pid>
+
+Delete the specified configuration.
+
+Usage2: conf:delete <filter>
+
+Delete all the configurations matching the filter, if present, otherwise delete
+all the configurations.

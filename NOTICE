@@ -1,0 +1,42 @@
+JRuyi
+Copyright 2011-2013 JRuyi.org
+
+This product includes software developed at
+The OSGi Alliance (http://www.osgi.org/).
+Licensed under the Apache License 2.0.
+
+This product includes software(SLF4J) developed at
+The Quality Open Software (http://www.qos.ch/).
+Licensed under the MIT License.
+
+This product includes software(Logback) developed at
+The Quality Open Software (http://www.qos.ch/).
+Licensed under the EPL.
+
+This product includes software(JLine) developed at
+JLine (http://jline.github.io/jline2/).
+Licensed under the BSD License.
+
+This product includes software(Commons CLI) developed at
+The Apache Software Foundation (http://www.apache.org/).
+Licensed under the Apache License 2.0.
+
+This product includes software(Felix Framework) developed at
+The Apache Software Foundation (http://www.apache.org/).
+Licensed under the Apache License 2.0.
+
+This product includes software(Felix Service Component Runtime) developed at
+The Apache Software Foundation (http://www.apache.org/).
+Licensed under the Apache License 2.0.
+
+This product includes software(Felix Configuration Admin Service) developed at
+The Apache Software Foundation (http://www.apache.org/).
+Licensed under the Apache License 2.0.
+
+This product includes software(Felix Metatype Service) developed at
+The Apache Software Foundation (http://www.apache.org/).
+Licensed under the Apache License 2.0.
+
+This product includes software(Felix Gogo Runtime) developed at
+The Apache Software Foundation (http://www.apache.org/).
+Licensed under the Apache License 2.0.
