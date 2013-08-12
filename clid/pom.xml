@@ -44,13 +44,24 @@
 		<developerConnection>scm:git:https://github.com/jruyi/jruyi.git</developerConnection>
 	</scm>
 
+	<repositories>
+		<repository>
+			<id>jruyi-repo</id>
+			<url>http://repo.jruyi.org/maven/releases</url>
+		</repository>
+		<repository>
+			<id>jruyi-snapshot-repo</id>
+			<url>http://repo.jruyi.org/maven/snapshots</url>
+		</repository>
+	</repositories>
+
 	<distributionManagement>
 		<repository>
-			<id>repo</id>
+			<id>jruyi-repo</id>
 			<url>http://repo.jruyi.org/maven/releases</url>
 		</repository>
 		<snapshotRepository>
-			<id>snapshot-repo</id>
+			<id>jruyi-snapshot-repo</id>
 			<url>http://repo.jruyi.org/maven/snapshots</url>
 		</snapshotRepository>
 	</distributionManagement>
