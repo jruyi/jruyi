@@ -20,7 +20,7 @@
 
 	<groupId>org.jruyi</groupId>
 	<artifactId>org.jruyi.osgi.log</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<packaging>bundle</packaging>
 
 	<name>JRuyi OSGi Log Service</name>
@@ -88,7 +88,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>jruyi-api</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
+			<version>1.0.0</version>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
