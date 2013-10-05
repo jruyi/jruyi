@@ -83,10 +83,10 @@ final class UdpServerChannel extends AbstractCodec<SocketAddress> implements
 
 			channel.receive(in);
 			server.getChannelAdmin().onReadRequired(this);
-		} catch (Exception e) {
+		} catch (Throwable t) {
 			c_logger.error(
 					StrUtil.buildString(server, " failed to receive message"),
-					e);
+					t);
 			close();
 		}
 	}
@@ -128,7 +128,7 @@ final class UdpServerChannel extends AbstractCodec<SocketAddress> implements
 	public void register(Selector selector, int ops) {
 		try {
 			m_selectionKey = m_datagramChannel.register(selector, ops, this);
-		} catch (Exception e) {
+		} catch (Throwable t) {
 			// Ignore
 		}
 	}
@@ -138,7 +138,7 @@ final class UdpServerChannel extends AbstractCodec<SocketAddress> implements
 		SelectionKey selectionKey = m_selectionKey;
 		try {
 			selectionKey.interestOps(selectionKey.interestOps() | ops);
-		} catch (Exception e) {
+		} catch (Throwable t) {
 			// Ignore
 		}
 	}

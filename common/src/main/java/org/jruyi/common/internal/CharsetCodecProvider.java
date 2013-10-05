@@ -85,7 +85,7 @@ public final class CharsetCodecProvider implements IFactory {
 
 				out.setLength(bb.position());
 			} catch (CharacterCodingException e) {
-				throw new Error(e);
+				throw new RuntimeException(e);
 			} finally {
 				releaseEncoder(ce);
 			}
@@ -120,7 +120,7 @@ public final class CharsetCodecProvider implements IFactory {
 
 				out.setLength(bb.position());
 			} catch (CharacterCodingException e) {
-				throw new Error(e);
+				throw new RuntimeException(e);
 			} finally {
 				releaseEncoder(ce);
 			}
@@ -148,7 +148,7 @@ public final class CharsetCodecProvider implements IFactory {
 
 				out.setLength(bb.position());
 			} catch (CharacterCodingException e) {
-				throw new Error(e);
+				throw new RuntimeException(e);
 			} finally {
 				releaseEncoder(ce);
 			}
@@ -185,7 +185,7 @@ public final class CharsetCodecProvider implements IFactory {
 				return out.toBytes();
 
 			} catch (CharacterCodingException e) {
-				throw new Error(e);
+				throw new RuntimeException(e);
 			} finally {
 				out.close();
 				releaseEncoder(ce);
@@ -216,7 +216,7 @@ public final class CharsetCodecProvider implements IFactory {
 				return out.toBytes();
 
 			} catch (CharacterCodingException e) {
-				throw new Error(e);
+				throw new RuntimeException(e);
 			} finally {
 				out.close();
 				releaseEncoder(ce);
@@ -270,7 +270,7 @@ public final class CharsetCodecProvider implements IFactory {
 
 				out.setLength(cb.position());
 			} catch (CharacterCodingException e) {
-				throw new Error(e);
+				throw new RuntimeException(e);
 			} finally {
 				releaseDecoder(cd);
 			}
@@ -305,7 +305,7 @@ public final class CharsetCodecProvider implements IFactory {
 
 				out.setLength(cb.position());
 			} catch (CharacterCodingException e) {
-				throw new Error(e);
+				throw new RuntimeException(e);
 			} finally {
 				releaseDecoder(cd);
 			}
@@ -333,7 +333,7 @@ public final class CharsetCodecProvider implements IFactory {
 
 				out.setLength(cb.position());
 			} catch (CharacterCodingException e) {
-				throw new Error(e);
+				throw new RuntimeException(e);
 			} finally {
 				releaseDecoder(cd);
 			}
@@ -370,7 +370,7 @@ public final class CharsetCodecProvider implements IFactory {
 				return out.toCharArray();
 
 			} catch (CharacterCodingException e) {
-				throw new Error(e);
+				throw new RuntimeException(e);
 			} finally {
 				out.close();
 				releaseDecoder(cd);
@@ -401,7 +401,7 @@ public final class CharsetCodecProvider implements IFactory {
 				return out.toCharArray();
 
 			} catch (CharacterCodingException e) {
-				throw new Error(e);
+				throw new RuntimeException(e);
 			} finally {
 				out.close();
 				releaseDecoder(cd);
@@ -439,7 +439,7 @@ public final class CharsetCodecProvider implements IFactory {
 				return out.toString();
 
 			} catch (CharacterCodingException e) {
-				throw new Error(e);
+				throw new RuntimeException(e);
 			} finally {
 				out.close();
 				releaseDecoder(cd);
@@ -470,7 +470,7 @@ public final class CharsetCodecProvider implements IFactory {
 				return out.toString();
 
 			} catch (CharacterCodingException e) {
-				throw new Error(e);
+				throw new RuntimeException(e);
 			} finally {
 				out.close();
 				releaseDecoder(cd);
@@ -537,7 +537,7 @@ public final class CharsetCodecProvider implements IFactory {
 
 				out.setLength(bb.position());
 			} catch (CharacterCodingException e) {
-				throw new Error(e);
+				throw new RuntimeException(e);
 			} finally {
 				builder.close();
 				releaseEncoder(ce);
@@ -620,7 +620,7 @@ public final class CharsetCodecProvider implements IFactory {
 
 				out.setLength(cb.position());
 			} catch (CharacterCodingException e) {
-				throw new Error(e);
+				throw new RuntimeException(e);
 			} finally {
 				builder.close();
 				releaseDecoder(cd);

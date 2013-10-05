@@ -141,9 +141,9 @@ class Endpoint implements IProducer, IConsumer, IDumpable {
 		message.to(null);
 		try {
 			getConsumer().onMessage(message);
-		} catch (Exception e) {
+		} catch (Throwable t) {
 			c_logger.error(StrUtil.buildString(this,
-					" failed to consume message: ", message), e);
+					" failed to consume message: ", message), t);
 		}
 	}
 
@@ -205,10 +205,10 @@ class Endpoint implements IProducer, IConsumer, IDumpable {
 				if (!handler.postHandle(message))
 					return false;
 			}
-		} catch (Exception e) {
+		} catch (Throwable t) {
 			// TODO: notify?
 			c_logger.error(StrUtil.buildString(this,
-					" unexpected error on post-handling"), e);
+					" unexpected error on post-handling"), t);
 			return false;
 		}
 
@@ -222,10 +222,10 @@ class Endpoint implements IProducer, IConsumer, IDumpable {
 				if (!handler.preHandle(message))
 					return false;
 			}
-		} catch (Exception e) {
+		} catch (Throwable t) {
 			// TODO: notify?
 			c_logger.error(StrUtil.buildString(this,
-					" unexpected error on pre-handling"), e);
+					" unexpected error on pre-handling"), t);
 			return false;
 		}
 

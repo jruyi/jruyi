@@ -112,8 +112,8 @@ final class SslCodec extends AbstractCodec<IBuffer> {
 				unit = units.get(i);
 				unit.size(array[i].position() - unit.start());
 			}
-		} catch (Exception e) {
-			throw new RuntimeException(e);
+		} catch (Throwable t) {
+			throw new RuntimeException(t);
 		} finally {
 			if (builder != null)
 				builder.close();
@@ -217,8 +217,8 @@ final class SslCodec extends AbstractCodec<IBuffer> {
 
 			m_wrapResult = result;
 			return 0;
-		} catch (Exception e) {
-			throw new RuntimeException(e);
+		} catch (Throwable t) {
+			throw new RuntimeException(t);
 		} finally {
 			if (builder != null)
 				builder.close();

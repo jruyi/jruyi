@@ -20,7 +20,7 @@
 
 	<groupId>org.jruyi</groupId>
 	<artifactId>org.jruyi.timeoutadmin</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 
 	<name>JRuyi Timeout Admin Service</name>

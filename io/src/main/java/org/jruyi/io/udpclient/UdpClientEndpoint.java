@@ -90,7 +90,7 @@ public final class UdpClientEndpoint extends SessionListener implements
 		ss.setSessionListener(this);
 		try {
 			ss.start();
-		} catch (Exception e) {
+		} catch (Throwable t) {
 			// ignore
 		}
 		m_udpClient = udpClient;

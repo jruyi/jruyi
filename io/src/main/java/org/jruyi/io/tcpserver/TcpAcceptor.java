@@ -109,15 +109,15 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 								socketChannel);
 						worker.run(channel.onAccept());
 					} catch (ClosedChannelException e) {
-					} catch (Exception e) {
+					} catch (Throwable t) {
 						c_logger.error(StrUtil.buildString(server,
-								" failed to accept"), e);
+								" failed to accept"), t);
 					}
 				}
 			}
 		} catch (ClosedSelectorException e) {
-		} catch (Exception e) {
-			c_logger.error("TcpAcceptor Error", e);
+		} catch (Throwable t) {
+			c_logger.error("TcpAcceptor Error", t);
 
 			// disable itself
 			m_context.disableComponent(m_name);
@@ -161,8 +161,8 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 
 		try {
 			m_selector.close();
-		} catch (Exception e) {
-			c_logger.error("Failed to close the selector", e);
+		} catch (Throwable t) {
+			c_logger.error("Failed to close the selector", t);
 		}
 		m_selector = null;
 
