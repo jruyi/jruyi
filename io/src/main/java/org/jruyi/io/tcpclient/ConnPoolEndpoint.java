@@ -156,7 +156,7 @@ public final class ConnPoolEndpoint extends SessionListener implements
 		ss.setSessionListener(this);
 		try {
 			ss.start();
-		} catch (Exception e) {
+		} catch (Throwable t) {
 			// ignore
 		}
 		m_connPool = connPool;

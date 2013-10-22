@@ -90,9 +90,9 @@ final class Processor extends Endpoint {
 
 		try {
 			send(message);
-		} catch (Exception e) {
+		} catch (Throwable t) {
 			c_logger.error(StrUtil.buildString(this,
-					" failed to enqueue message: ", message), e);
+					" failed to enqueue message: ", message), t);
 		}
 	}
 

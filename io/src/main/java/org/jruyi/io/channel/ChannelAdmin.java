@@ -82,8 +82,8 @@ public final class ChannelAdmin implements IChannelAdmin {
 			if (m_selector != null) {
 				try {
 					m_selector.close();
-				} catch (Exception e) {
-					c_logger.error("Failed to close the selector", e);
+				} catch (Throwable t) {
+					c_logger.error("Failed to close the selector", t);
 				}
 				m_selector = null;
 			}
@@ -144,9 +144,9 @@ public final class ChannelAdmin implements IChannelAdmin {
 							}
 						} catch (RejectedExecutionException e) {
 						} catch (CancelledKeyException e) {
-						} catch (Exception e) {
+						} catch (Throwable t) {
 							c_logger.warn(StrUtil.buildString(
-									currentThread.getName(), ": ", channel), e);
+									currentThread.getName(), ": ", channel), t);
 						}
 					}
 				}
@@ -207,8 +207,8 @@ public final class ChannelAdmin implements IChannelAdmin {
 				try {
 					channel.interestOps(SelectionKey.OP_READ);
 				} catch (CancelledKeyException e) {
-				} catch (Exception e) {
-					channel.onException(e);
+				} catch (Throwable t) {
+					channel.onException(t);
 				}
 			}
 		}
@@ -220,8 +220,8 @@ public final class ChannelAdmin implements IChannelAdmin {
 				try {
 					channel.interestOps(SelectionKey.OP_WRITE);
 				} catch (CancelledKeyException e) {
-				} catch (Exception e) {
-					channel.onException(e);
+				} catch (Throwable t) {
+					channel.onException(t);
 				}
 			}
 		}

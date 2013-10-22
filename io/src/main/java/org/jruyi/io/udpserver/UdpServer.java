@@ -318,7 +318,7 @@ public final class UdpServer extends Service implements IChannelService,
 		} catch (Exception e) {
 			try {
 				datagramChannel.close();
-			} catch (Exception e2) {
+			} catch (Throwable t) {
 			}
 			c_logger.error(StrUtil.buildString(this, " failed to start"), e);
 			m_datagramChannel = null;
@@ -339,9 +339,9 @@ public final class UdpServer extends Service implements IChannelService,
 
 		try {
 			m_datagramChannel.close();
-		} catch (Exception e) {
+		} catch (Throwable t) {
 			c_logger.error(StrUtil.buildString(this,
-					" failed to close DatagramChannel"), e);
+					" failed to close DatagramChannel"), t);
 		}
 
 		final WriteLock writeLock = m_lock.writeLock();

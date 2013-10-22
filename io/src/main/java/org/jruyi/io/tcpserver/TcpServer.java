@@ -315,7 +315,7 @@ public final class TcpServer extends Service implements IChannelService,
 		} catch (Exception e) {
 			try {
 				ssc.close();
-			} catch (Exception e2) {
+			} catch (Throwable t) {
 			}
 			c_logger.error(StrUtil.buildString(this, " failed to start"), e);
 			m_ssc = null;
@@ -334,9 +334,9 @@ public final class TcpServer extends Service implements IChannelService,
 
 		try {
 			m_ssc.close();
-		} catch (Exception e) {
+		} catch (Throwable t) {
 			c_logger.error(StrUtil.buildString(this,
-					" failed to close ServerSocketChannel"), e);
+					" failed to close ServerSocketChannel"), t);
 		}
 		m_ssc = null;
 

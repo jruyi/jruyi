@@ -222,10 +222,10 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 					} else
 						break;
 				}
-			} catch (Exception e) {
+			} catch (Throwable t) {
 				in.close();
 				if (!channel.isClosed())
-					channel.onException(e);
+					channel.onException(t);
 				return;
 			}
 
@@ -237,8 +237,8 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 					cs.getChannelAdmin().onReadRequired(channel);
 				else
 					channel.close();
-			} catch (Exception e) {
-				channel.onException(e);
+			} catch (Throwable t) {
+				channel.onException(t);
 			}
 		}
 	}
@@ -293,12 +293,12 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 					data = null;
 					arg.close();
 				} while ((arg = poll()) != null);
-			} catch (Exception e) {
+			} catch (Throwable t) {
 				if (data != null)
 					data.close();
 
 				if (!channel.isClosed())
-					channel.onException(e);
+					channel.onException(t);
 			}
 		}
 
@@ -456,8 +456,8 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			Channel channel = (Channel) event.getSubject();
 			try {
 				channel.channelService().onChannelIdleTimedOut(channel);
-			} catch (Exception e) {
-				channel.onException(e);
+			} catch (Throwable t) {
+				channel.onException(t);
 			}
 		}
 	}
@@ -471,8 +471,8 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			Channel channel = (Channel) event.getSubject();
 			try {
 				channel.channelService().onChannelConnectTimedOut(channel);
-			} catch (Exception e) {
-				channel.onException(e);
+			} catch (Throwable t) {
+				channel.onException(t);
 			}
 		}
 	}
@@ -486,8 +486,8 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			Channel channel = (Channel) event.getSubject();
 			try {
 				channel.channelService().onChannelReadTimedOut(channel);
-			} catch (Exception e) {
-				channel.onException(e);
+			} catch (Throwable t) {
+				channel.onException(t);
 			}
 		}
 	}
@@ -521,8 +521,8 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 			ca.onRegisterRequired(this);
 
-		} catch (Exception e) {
-			onException(e);
+		} catch (Throwable t) {
+			onException(t);
 		}
 	}
 
@@ -590,8 +590,8 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 			IFilter[] filters = channelService().getFilterChain();
 			m_writeThread.write(msg, filters, filters.length);
-		} catch (Exception e) {
-			onException(e);
+		} catch (Throwable t) {
+			onException(t);
 		}
 	}
 
@@ -613,8 +613,8 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 		try {
 			onClose();
-		} catch (Exception e) {
-			onException(e);
+		} catch (Throwable t) {
+			onException(t);
 		}
 
 		ITimeoutNotifier tn = m_timeoutNotifier;
@@ -627,8 +627,8 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 		try {
 			m_channelService.onChannelClosed(this);
-		} catch (RuntimeException e) {
-			c_logger.error("Unexpected Error", e);
+		} catch (Throwable t) {
+			c_logger.error("Unexpected Error", t);
 		}
 	}
 
@@ -701,7 +701,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 	public final void register(Selector selector, int ops) {
 		try {
 			m_selectionKey = selectableChannel().register(selector, ops, this);
-		} catch (Exception e) {
+		} catch (Throwable t) {
 			// Ignore
 		}
 	}
@@ -711,7 +711,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 		SelectionKey selectionKey = m_selectionKey;
 		try {
 			selectionKey.interestOps(selectionKey.interestOps() | ops);
-		} catch (Exception e) {
+		} catch (Throwable t) {
 			// Ignore
 		}
 	}
@@ -733,8 +733,8 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 					scheduleConnectTimeout(timeout);
 				ca.onConnectRequired(this);
 			}
-		} catch (Exception e) {
-			onException(e);
+		} catch (Throwable t) {
+			onException(t);
 		}
 	}
 
@@ -763,8 +763,8 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			if (onReadIn(in))
 				return;
 			close();
-		} catch (Exception e) {
-			onException(e);
+		} catch (Throwable t) {
+			onException(t);
 		}
 	}
 
@@ -772,7 +772,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 	public final void onException(Throwable t) {
 		try {
 			m_channelService.onChannelException(this, t);
-		} catch (RuntimeException e) {
+		} catch (Throwable e) {
 			c_logger.error(StrUtil.buildString("Unexpected Error: ", this), e);
 		}
 	}
@@ -946,8 +946,8 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 				ca.onRegisterRequired(this);
 			else
 				ca.onReadRequired(this);
-		} catch (Exception e) {
-			onException(e);
+		} catch (Throwable t) {
+			onException(t);
 		}
 	}
 

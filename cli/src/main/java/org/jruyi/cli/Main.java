@@ -66,8 +66,8 @@ public final class Main {
 		public void run() {
 			try {
 				INST.shutdown();
-			} catch (Exception e) {
-				e.printStackTrace();
+			} catch (Throwable t) {
+				t.printStackTrace();
 			}
 		}
 	}
@@ -89,8 +89,8 @@ public final class Main {
 			INST.start();
 
 		} catch (InterruptedException e) {
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (Throwable t) {
+			t.printStackTrace();
 		} finally {
 			INST.shutdown();
 		}
@@ -100,7 +100,7 @@ public final class Main {
 		m_session.close();
 	}
 
-	private static void init() throws Exception {
+	private static void init() throws Throwable {
 		ClassLoader classLoader = Main.class.getClassLoader();
 		Method addUrl = URLClassLoader.class.getDeclaredMethod("addURL",
 				URL.class);
@@ -116,7 +116,7 @@ public final class Main {
 			addUrl.setAccessible(false);
 	}
 
-	private static File[] getLibJars() throws Exception {
+	private static File[] getLibJars() throws Throwable {
 		File homeDir;
 		String temp = System.getProperty("jruyi.home.dir");
 		if (temp == null) {
@@ -136,7 +136,7 @@ public final class Main {
 		return new File(homeDir, "lib").listFiles(new JarFileFilter());
 	}
 
-	private void start() throws Exception {
+	private void start() throws Throwable {
 		ConsoleReader reader = new ConsoleReader();
 		try {
 			Session session = m_session;
@@ -173,7 +173,7 @@ public final class Main {
 	}
 
 	// Exit if false is returned.
-	private boolean processCommandLines(String[] args) throws Exception {
+	private boolean processCommandLines(String[] args) throws Throwable {
 
 		Options options = new Options();
 		options.addOption("?", "help", false, null);
@@ -253,7 +253,7 @@ public final class Main {
 		System.out.println();
 	}
 
-	private void run(String command) throws Exception {
+	private void run(String command) throws Throwable {
 		m_status = -1;
 		Session session = m_session;
 		Writer writer = null;
@@ -272,7 +272,7 @@ public final class Main {
 		}
 	}
 
-	private void run(String[] scripts) throws Exception {
+	private void run(String[] scripts) throws Throwable {
 		m_status = -1;
 		Session session = m_session;
 		session.open(m_host, m_port, m_timeout);
@@ -282,9 +282,9 @@ public final class Main {
 
 			if (scripts == null || scripts.length < 1)
 				return;
-		} catch (Exception e) {
+		} catch (Throwable t) {
 			session.close();
-			throw e;
+			throw t;
 		}
 
 		OutputStreamWriter writer = new OutputStreamWriter(System.out, "UTF-8");
