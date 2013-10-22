@@ -20,7 +20,7 @@
 
 	<groupId>org.jruyi</groupId>
 	<artifactId>jruyi</artifactId>
-	<version>1.0.0</version>
+	<version>1.1.0-SNAPSHOT</version>
 
 	<name>JRuyi Assembly</name>
 	<description>A framework for easily developing efficient and scalable network applications</description>
@@ -81,7 +81,7 @@
 
 		<!-- JRuyi Artifacts -->
 		<jruyi-cli.version>1.0.0</jruyi-cli.version>
-		<jruyi-launcher.version>1.0.0</jruyi-launcher.version>
+		<jruyi-launcher.version>1.1.0-SNAPSHOT</jruyi-launcher.version>
 		<jruyi-system.version>${project.version}</jruyi-system.version>
 		<org.jruyi.osgi.log.version>1.0.0</org.jruyi.osgi.log.version>
 		<org.jruyi.common.version>1.0.0</org.jruyi.common.version>

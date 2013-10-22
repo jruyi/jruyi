@@ -38,15 +38,20 @@ import org.osgi.framework.Constants;
 public final class Main {
 
 	private static final String LOGBACK_CONF = "logback.configurationFile";
-	private static Object s_ruyi;
+	private Object m_ruyi;
 
-	private Main() {
+	static final class MainHolder {
+
+		static final Main INST = new Main();
+	}
+
+	Main() {
 	}
 
 	public static void main(String[] args) {
 
 		try {
-			init();
+			MainHolder.INST.init(args);
 
 			if (args.length > 0 && !processCommandLines(args))
 				return;
@@ -56,48 +61,30 @@ public final class Main {
 
 			Runtime.getRuntime().addShutdownHook(new ShutdownHook());
 
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (Throwable t) {
+			t.printStackTrace();
 			return;
 		}
 
-		try {
-			s_ruyi.getClass().getMethod("startAndWait").invoke(s_ruyi);
-		} catch (Exception e) {
-			e.printStackTrace();
-			stop();
-		}
+		MainHolder.INST.start();
 	}
 
 	public static void start(String[] args) {
 		try {
-			init();
-		} catch (Exception e) {
-			e.printStackTrace();
+			MainHolder.INST.init(args);
+		} catch (Throwable t) {
+			t.printStackTrace();
 			return;
 		}
 
-		try {
-			s_ruyi.getClass().getMethod("startAndWait").invoke(s_ruyi);
-		} catch (Exception e) {
-			e.printStackTrace();
-			stop();
-		}
+		MainHolder.INST.start();
 	}
 
 	public static void stop(String[] args) {
-		stop();
+		MainHolder.INST.stop();
 	}
 
-	private static void stop() {
-		try {
-			s_ruyi.getClass().getMethod("stop").invoke(s_ruyi);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	private static void init() throws Exception {
+	public void init(String[] args) throws Exception {
 		ClassLoader classLoader = Main.class.getClassLoader();
 		if (!(classLoader instanceof URLClassLoader))
 			classLoader = new URLClassLoader(new URL[0], classLoader);
@@ -139,7 +126,27 @@ public final class Main {
 				String.class).invoke(ruyi, JRUYI_INST_CONF_URL);
 		System.setProperty(LOGBACK_CONF, instConfUrl + "logback.xml");
 
-		s_ruyi = ruyi;
+		m_ruyi = ruyi;
+	}
+
+	public void start() {
+		try {
+			m_ruyi.getClass().getMethod("startAndWait").invoke(m_ruyi);
+		} catch (Throwable t) {
+			t.printStackTrace();
+			MainHolder.INST.stop();
+		}
+	}
+
+	public void stop() {
+		try {
+			m_ruyi.getClass().getMethod("stop").invoke(m_ruyi);
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+	}
+
+	public void destroy() {
 	}
 
 	private static File[] getLibJars() throws Exception {
@@ -184,7 +191,7 @@ public final class Main {
 				printHelp();
 				return false;
 			} else if (opt.equals("v")) {
-				printVersion();
+				MainHolder.INST.printVersion();
 				return false;
 			} else if (opt.equals("D")) {
 				handleSystemProps(option.getValues());
@@ -213,23 +220,6 @@ public final class Main {
 		System.out.println();
 	}
 
-	private static void printVersion() throws Exception {
-		Object ruyi = s_ruyi;
-		Method getProperty = ruyi.getClass().getMethod("getProperty",
-				String.class);
-
-		System.out.print("JRuyi Version: ");
-		System.out.println(getProperty.invoke(ruyi, JRUYI_VERSION));
-
-		System.out.print("JRuyi Vendor: ");
-		System.out.println(getProperty.invoke(ruyi, JRUYI_VENDOR));
-
-		System.out.print("JRuyi URL: ");
-		System.out.println(getProperty.invoke(ruyi, JRUYI_URL));
-
-		System.out.println();
-	}
-
 	private static void handleSystemProps(String[] args) {
 		for (String arg : args) {
 			String name = null;
@@ -244,5 +234,22 @@ public final class Main {
 			}
 			System.setProperty(name, value);
 		}
+	}
+
+	private void printVersion() throws Exception {
+		Object ruyi = m_ruyi;
+		Method getProperty = ruyi.getClass().getMethod("getProperty",
+				String.class);
+
+		System.out.print("JRuyi Version: ");
+		System.out.println(getProperty.invoke(ruyi, JRUYI_VERSION));
+
+		System.out.print("JRuyi Vendor: ");
+		System.out.println(getProperty.invoke(ruyi, JRUYI_VENDOR));
+
+		System.out.print("JRuyi URL: ");
+		System.out.println(getProperty.invoke(ruyi, JRUYI_URL));
+
+		System.out.println();
 	}
 }
