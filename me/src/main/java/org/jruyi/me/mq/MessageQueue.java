@@ -326,9 +326,9 @@ public final class MessageQueue implements ITimeoutListener {
 					m_worker.run(message);
 				}
 			}
-		} catch (Exception e) {
+		} catch (Throwable t) {
 			c_logger.error(StrUtil.buildString("Endpoint[", dst,
-					"] failed to consume: ", message), e);
+					"] failed to consume: ", message), t);
 			message.close();
 		}
 	}

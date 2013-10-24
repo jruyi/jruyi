@@ -20,7 +20,7 @@
 
 	<groupId>org.jruyi</groupId>
 	<artifactId>jruyi</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 
 	<name>JRuyi Assembly</name>
 	<description>A framework for easily developing efficient and scalable network applications</description>
@@ -80,15 +80,15 @@
 		<org.apache.felix.bundlerepository.version>1.6.6</org.apache.felix.bundlerepository.version>
 
 		<!-- JRuyi Artifacts -->
-		<jruyi-cli.version>1.0.0</jruyi-cli.version>
+		<jruyi-cli.version>1.0.1</jruyi-cli.version>
 		<jruyi-launcher.version>1.0.0</jruyi-launcher.version>
 		<jruyi-system.version>${project.version}</jruyi-system.version>
 		<org.jruyi.osgi.log.version>1.0.0</org.jruyi.osgi.log.version>
-		<org.jruyi.common.version>1.0.0</org.jruyi.common.version>
+		<org.jruyi.common.version>1.0.1</org.jruyi.common.version>
 		<org.jruyi.workshop.version>1.0.0</org.jruyi.workshop.version>
-		<org.jruyi.timeoutadmin.version>1.0.0</org.jruyi.timeoutadmin.version>
-		<org.jruyi.me.version>1.0.0</org.jruyi.me.version>
-		<org.jruyi.io.version>1.0.0</org.jruyi.io.version>
+		<org.jruyi.timeoutadmin.version>1.0.1</org.jruyi.timeoutadmin.version>
+		<org.jruyi.me.version>1.0.1</org.jruyi.me.version>
+		<org.jruyi.io.version>1.0.1</org.jruyi.io.version>
 		<org.jruyi.cmd.version>1.0.0</org.jruyi.cmd.version>
 		<org.jruyi.clid.version>1.0.0</org.jruyi.clid.version>
 	</properties>

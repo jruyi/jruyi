@@ -144,21 +144,21 @@ public final class Session {
 		if (m_socket != null) {
 			try {
 				m_socket.close();
-			} catch (Exception e) {
+			} catch (Throwable t) {
 			}
 			m_socket = null;
 		}
 		if (m_out != null) {
 			try {
 				m_out.close();
-			} catch (Exception e) {
+			} catch (Throwable t) {
 			}
 			m_out = null;
 		}
 		if (m_in != null) {
 			try {
 				m_in.close();
-			} catch (Exception e) {
+			} catch (Throwable t) {
 			}
 			m_in = null;
 		}
