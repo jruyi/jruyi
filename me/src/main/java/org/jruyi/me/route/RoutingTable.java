@@ -30,7 +30,7 @@ import org.osgi.framework.BundleContext;
 @Component(name = "jruyi.me.route", policy = ConfigurationPolicy.IGNORE, createPid = false)
 public final class RoutingTable implements IRoutingTable, IRouterManager {
 
-	private static final String ROUTINGTABLE_DIR = "org.jruyi.me.routingtable.dir";
+	private static final String ROUTINGTABLE_DIR = "jruyi.me.routingtable.dir";
 	private static final String DEFAULT_ROUTINGTABLE_LOCATION = "routingtable";
 	private ConcurrentHashMap<String, Router> m_routers;
 
