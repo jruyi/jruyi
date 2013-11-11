@@ -16,7 +16,6 @@ package org.jruyi.launcher;
 import static org.jruyi.system.Constants.JRUYI_HOME_DIR;
 import static org.jruyi.system.Constants.JRUYI_INST_CONF_URL;
 import static org.jruyi.system.Constants.JRUYI_INST_NAME;
-import static org.jruyi.system.Constants.JRUYI_URL;
 import static org.jruyi.system.Constants.JRUYI_VENDOR;
 import static org.jruyi.system.Constants.JRUYI_VERSION;
 
@@ -37,6 +36,7 @@ import org.osgi.framework.Constants;
 
 public final class Main {
 
+	private static final String RUYI_PROPERTY = "property";
 	private static final String LOGBACK_CONF = "logback.configurationFile";
 	private static Object s_ruyi;
 
@@ -135,7 +135,7 @@ public final class Main {
 		Class<?> clazz = classLoader.loadClass("org.jruyi.system.main.Ruyi");
 		Object ruyi = clazz.getMethod("getInstance").invoke(null);
 		clazz.getMethod("setProperties", Map.class).invoke(ruyi, props);
-		String instConfUrl = (String) clazz.getMethod("getProperty",
+		String instConfUrl = (String) clazz.getMethod(RUYI_PROPERTY,
 				String.class).invoke(ruyi, JRUYI_INST_CONF_URL);
 		System.setProperty(LOGBACK_CONF, instConfUrl + "logback.xml");
 
@@ -215,17 +215,14 @@ public final class Main {
 
 	private static void printVersion() throws Exception {
 		Object ruyi = s_ruyi;
-		Method getProperty = ruyi.getClass().getMethod("getProperty",
-				String.class);
+		Method property = ruyi.getClass()
+				.getMethod(RUYI_PROPERTY, String.class);
 
-		System.out.print("JRuyi Version: ");
-		System.out.println(getProperty.invoke(ruyi, JRUYI_VERSION));
+		System.out.print("JRuyi version: ");
+		System.out.println(property.invoke(ruyi, JRUYI_VERSION));
 
-		System.out.print("JRuyi Vendor: ");
-		System.out.println(getProperty.invoke(ruyi, JRUYI_VENDOR));
-
-		System.out.print("JRuyi URL: ");
-		System.out.println(getProperty.invoke(ruyi, JRUYI_URL));
+		System.out.print("JRuyi vendor: ");
+		System.out.println(property.invoke(ruyi, JRUYI_VENDOR));
 
 		System.out.println();
 	}
