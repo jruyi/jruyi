@@ -92,8 +92,12 @@ public final class Ruyi {
 		initialize();
 	}
 
-	public String getProperty(String name) {
-		return m_properties.get(name);
+	public String property(String name) {
+		String value = m_properties.get(name);
+		if (value != null)
+			return value;
+
+		return System.getProperty(name);
 	}
 
 	public void start() throws Exception {
@@ -315,13 +319,5 @@ public final class Ruyi {
 			throws MalformedURLException {
 		String str = property(key);
 		return (str == null) ? new URL(context, spec) : new URL(spec);
-	}
-
-	private String property(String name) {
-		String value = m_properties.get(name);
-		if (value != null)
-			return value;
-
-		return System.getProperty(name);
 	}
 }
