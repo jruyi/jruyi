@@ -80,8 +80,8 @@
 		<org.apache.felix.bundlerepository.version>1.6.6</org.apache.felix.bundlerepository.version>
 
 		<!-- JRuyi Artifacts -->
-		<jruyi-launcher.version>1.1.0-SNAPSHOT</jruyi-launcher.version>
 		<jruyi-cli.version>1.0.1</jruyi-cli.version>
+		<jruyi-launcher.version>1.1.0-SNAPSHOT</jruyi-launcher.version>
 		<jruyi-system.version>${project.version}</jruyi-system.version>
 		<org.jruyi.osgi.log.version>1.0.0</org.jruyi.osgi.log.version>
 		<org.jruyi.common.version>1.0.1</org.jruyi.common.version>
