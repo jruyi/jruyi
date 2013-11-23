@@ -68,7 +68,6 @@
 				<include>${project.groupId}:org.jruyi.me</include>
 				<include>${project.groupId}:org.jruyi.io</include>
 				<include>org.apache.felix:org.apache.felix.gogo.runtime</include>
-				<include>org.apache.felix:org.apache.felix.bundlerepository</include>
 				<include>${project.groupId}:org.jruyi.cmd</include>
 				<include>${project.groupId}:org.jruyi.clid</include>
 			</includes>
