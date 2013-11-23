@@ -23,9 +23,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.jruyi.common.Service;
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.IBufferFactory;
@@ -44,23 +41,15 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Component(componentAbstract = true)
 public abstract class AbstractTcpClient extends Service implements
 		IChannelService, ISessionService {
 
 	private static final Logger c_logger = LoggerFactory
 			.getLogger(AbstractTcpClient.class);
 	private String m_caption;
-
-	@Reference(name = "channelAdmin")
 	private IChannelAdmin m_ca;
-
-	@Reference(name = "filterManager")
 	private IFilterManager m_fm;
-
-	@Reference(name = "buffer", policy = ReferencePolicy.DYNAMIC, bind = "bindBufferFactory", unbind = "unbindBufferFactory")
 	private IBufferFactory m_bf;
-
 	private IFilter[] m_filters;
 	private boolean m_closed = true;
 	private ISessionListener m_listener;
@@ -206,8 +195,7 @@ public abstract class AbstractTcpClient extends Service implements
 		TcpClientConf newConf = configuration();
 		updateFilters(oldConf, newConf);
 
-		return oldConf
-				.isMandatoryChanged(newConf, getMandatoryPropsAccessors());
+		return oldConf.isMandatoryChanged(newConf);
 	}
 
 	@Override

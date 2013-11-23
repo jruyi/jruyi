@@ -372,8 +372,7 @@ public final class TcpServer extends Service implements IChannelService,
 		Configuration oldConf = m_conf;
 		updateConf(newConf);
 
-		return oldConf.isMandatoryChanged(newConf,
-				Configuration.getMandatoryPropsAccessors());
+		return oldConf.isMandatoryChanged(newConf);
 	}
 
 	protected void bindChannelAdmin(IChannelAdmin ca) {

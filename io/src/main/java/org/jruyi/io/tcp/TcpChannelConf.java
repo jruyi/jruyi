@@ -13,7 +13,6 @@
  */
 package org.jruyi.io.tcp;
 
-import java.lang.reflect.Method;
 import java.util.Map;
 
 import org.jruyi.common.StrUtil;
@@ -152,20 +151,5 @@ public class TcpChannelConf {
 
 	public final Integer[] performancePreferences() {
 		return m_performancePreferences;
-	}
-
-	public final boolean isMandatoryChanged(TcpChannelConf newConf,
-			Method[] mProps) throws Exception {
-		for (Method m : mProps) {
-			Object v1 = m.invoke(this);
-			Object v2 = m.invoke(newConf);
-			if (v1 == v2)
-				continue;
-
-			if (!(v1 == null ? v2.equals(v1) : v1.equals(v2)))
-				return true;
-		}
-
-		return false;
 	}
 }

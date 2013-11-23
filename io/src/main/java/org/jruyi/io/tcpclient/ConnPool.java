@@ -19,17 +19,22 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferencePolicy;
+import org.apache.felix.scr.annotations.References;
 import org.apache.felix.scr.annotations.Service;
 import org.jruyi.common.ArgList;
 import org.jruyi.common.BiListNode;
 import org.jruyi.common.IArgList;
 import org.jruyi.common.IService;
 import org.jruyi.common.StrUtil;
+import org.jruyi.io.IBufferFactory;
 import org.jruyi.io.ISession;
 import org.jruyi.io.ISessionListener;
 import org.jruyi.io.IoConstants;
 import org.jruyi.io.channel.IChannel;
+import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.common.SyncQueue;
+import org.jruyi.io.filter.IFilterManager;
 import org.jruyi.workshop.IRunnable;
 import org.jruyi.workshop.IWorker;
 import org.slf4j.Logger;
@@ -37,6 +42,10 @@ import org.slf4j.LoggerFactory;
 
 @Service(IService.class)
 @Component(name = IoConstants.CN_TCPCLIENT_CONNPOOL_FACTORY, factory = "tcpclient.connpool", createPid = false, specVersion = "1.1.0")
+@References({
+		@Reference(name = "channelAdmin", referenceInterface = IChannelAdmin.class),
+		@Reference(name = "filterManager", referenceInterface = IFilterManager.class),
+		@Reference(name = "buffer", referenceInterface = IBufferFactory.class, policy = ReferencePolicy.DYNAMIC, bind = "bindBufferFactory", unbind = "unbindBufferFactory") })
 public final class ConnPool extends AbstractTcpClient implements IRunnable {
 
 	private static final Logger c_logger = LoggerFactory
