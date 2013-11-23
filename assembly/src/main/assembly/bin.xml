@@ -28,6 +28,7 @@
 			<outputDirectory>main</outputDirectory>
 			<outputFileNameMapping>${artifact.artifactId}-${artifact.baseVersion}.${artifact.extension}</outputFileNameMapping>
 			<unpack>false</unpack>
+			<useProjectArtifact>false</useProjectArtifact>
 			<useTransitiveDependencies>false</useTransitiveDependencies>
 			<includes>
 				<include>${project.groupId}:jruyi-launcher</include>
@@ -38,6 +39,7 @@
 			<outputDirectory>lib</outputDirectory>
 			<outputFileNameMapping>${artifact.artifactId}-${artifact.baseVersion}.${artifact.extension}</outputFileNameMapping>
 			<unpack>false</unpack>
+			<useProjectArtifact>false</useProjectArtifact>
 			<useTransitiveDependencies>false</useTransitiveDependencies>
 			<includes>
 				<include>commons-cli:commons-cli</include>
@@ -52,6 +54,7 @@
 			<outputDirectory>bundles</outputDirectory>
 			<outputFileNameMapping>${artifact.artifactId}-${artifact.baseVersion}.${artifact.extension}</outputFileNameMapping>
 			<unpack>false</unpack>
+			<useProjectArtifact>false</useProjectArtifact>
 			<useTransitiveDependencies>false</useTransitiveDependencies>
 			<includes>
 				<include>org.apache.felix:org.apache.felix.framework</include>
