@@ -77,7 +77,6 @@
 		<org.apache.felix.metatype.version>1.0.6</org.apache.felix.metatype.version>
 		<org.apache.felix.scr.version>1.6.2</org.apache.felix.scr.version>
 		<org.apache.felix.gogo.runtime.version>0.10.0</org.apache.felix.gogo.runtime.version>
-		<org.apache.felix.bundlerepository.version>1.6.6</org.apache.felix.bundlerepository.version>
 
 		<!-- JRuyi Artifacts -->
 		<jruyi-cli.version>1.0.1</jruyi-cli.version>
@@ -88,7 +87,7 @@
 		<org.jruyi.workshop.version>1.0.0</org.jruyi.workshop.version>
 		<org.jruyi.timeoutadmin.version>1.0.1</org.jruyi.timeoutadmin.version>
 		<org.jruyi.me.version>1.0.1</org.jruyi.me.version>
-		<org.jruyi.io.version>1.0.1</org.jruyi.io.version>
+		<org.jruyi.io.version>1.1.0-SNAPSHOT</org.jruyi.io.version>
 		<org.jruyi.cmd.version>1.0.0</org.jruyi.cmd.version>
 		<org.jruyi.clid.version>1.0.0</org.jruyi.clid.version>
 	</properties>
@@ -152,12 +151,6 @@
 			<groupId>org.apache.felix</groupId>
 			<artifactId>org.apache.felix.gogo.runtime</artifactId>
 			<version>${org.apache.felix.gogo.runtime.version}</version>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.felix</groupId>
-			<artifactId>org.apache.felix.bundlerepository</artifactId>
-			<version>${org.apache.felix.bundlerepository.version}</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
@@ -244,6 +237,13 @@
 				<version>2.6</version>
 				<configuration>
 					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<skipIfEmpty>true</skipIfEmpty>
 				</configuration>
 			</plugin>
 			<plugin>

@@ -15,11 +15,12 @@ package org.jruyi.io.tcpclient;
 
 import java.lang.reflect.Method;
 import java.util.Map;
+
 import org.jruyi.io.tcp.TcpChannelConf;
 
 class TcpClientConf extends TcpChannelConf {
 
-	private static final String[] M_PROPS = {"addr", "port"};
+	private static final String[] M_PROPS = { "addr", "port" };
 	private static final Method[] c_mProps;
 	private Integer m_connectTimeout;
 	private Integer m_readTimeout;
@@ -70,5 +71,20 @@ class TcpClientConf extends TcpChannelConf {
 
 	public final void readTimeout(Integer readTimeout) {
 		m_readTimeout = readTimeout == null ? 10 : readTimeout;
+	}
+
+	public final boolean isMandatoryChanged(TcpClientConf newConf)
+			throws Exception {
+		for (Method m : c_mProps) {
+			Object v1 = m.invoke(this);
+			Object v2 = m.invoke(newConf);
+			if (v1 == v2)
+				continue;
+
+			if (!(v1 == null ? v2.equals(v1) : v1.equals(v2)))
+				return true;
+		}
+
+		return false;
 	}
 }

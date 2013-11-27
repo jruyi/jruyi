@@ -20,7 +20,7 @@
 	xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
 	<id>bin</id>
 	<formats>
-		<format>tar.bz2</format>
+		<format>tar.gz</format>
 		<format>zip</format>
 	</formats>
 	<dependencySets>
@@ -28,6 +28,7 @@
 			<outputDirectory>main</outputDirectory>
 			<outputFileNameMapping>${artifact.artifactId}-${artifact.baseVersion}.${artifact.extension}</outputFileNameMapping>
 			<unpack>false</unpack>
+			<useProjectArtifact>false</useProjectArtifact>
 			<useTransitiveDependencies>false</useTransitiveDependencies>
 			<includes>
 				<include>${project.groupId}:jruyi-launcher</include>
@@ -38,6 +39,7 @@
 			<outputDirectory>lib</outputDirectory>
 			<outputFileNameMapping>${artifact.artifactId}-${artifact.baseVersion}.${artifact.extension}</outputFileNameMapping>
 			<unpack>false</unpack>
+			<useProjectArtifact>false</useProjectArtifact>
 			<useTransitiveDependencies>false</useTransitiveDependencies>
 			<includes>
 				<include>commons-cli:commons-cli</include>
@@ -52,6 +54,7 @@
 			<outputDirectory>bundles</outputDirectory>
 			<outputFileNameMapping>${artifact.artifactId}-${artifact.baseVersion}.${artifact.extension}</outputFileNameMapping>
 			<unpack>false</unpack>
+			<useProjectArtifact>false</useProjectArtifact>
 			<useTransitiveDependencies>false</useTransitiveDependencies>
 			<includes>
 				<include>org.apache.felix:org.apache.felix.framework</include>
@@ -65,7 +68,6 @@
 				<include>${project.groupId}:org.jruyi.me</include>
 				<include>${project.groupId}:org.jruyi.io</include>
 				<include>org.apache.felix:org.apache.felix.gogo.runtime</include>
-				<include>org.apache.felix:org.apache.felix.bundlerepository</include>
 				<include>${project.groupId}:org.jruyi.cmd</include>
 				<include>${project.groupId}:org.jruyi.clid</include>
 			</includes>
