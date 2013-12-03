@@ -37,7 +37,7 @@ public final class Message implements Runnable, IMessage, IRoutable,
 
 	private static final Logger c_logger = LoggerFactory
 			.getLogger(Message.class);
-	private static final String NULL = "null";
+	private static final String NULL = "jruyi.me.endpoint.null";
 	private static final IThreadLocalCache<Message> c_cache = ThreadLocalCache
 			.weakLinkedCache();
 	private static final AtomicLong c_counter = new AtomicLong(0L);
@@ -179,7 +179,7 @@ public final class Message implements Runnable, IMessage, IRoutable,
 
 	@Override
 	public boolean isToNull() {
-		return m_to == (Object) NULL;
+		return m_to == NULL;
 	}
 
 	@Override
