@@ -118,7 +118,7 @@ public final class Route {
 		if (args.length < 1)
 			routeSet.clear();
 		else
-			routeSet.removeRoute(args[1]);
+			routeSet.removeRoute(args[0]);
 
 		routeSet.save();
 	}
