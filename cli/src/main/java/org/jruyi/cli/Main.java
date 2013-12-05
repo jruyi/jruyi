@@ -83,11 +83,16 @@ public final class Main {
 				System.exit(INST.m_status);
 				return;
 			}
+		} catch (Throwable t) {
+			t.printStackTrace();
+			System.exit(1);
+			return;
+		}
 
+		try {
 			Runtime.getRuntime().addShutdownHook(new ShutdownHook());
 
 			INST.start();
-
 		} catch (InterruptedException e) {
 		} catch (Throwable t) {
 			t.printStackTrace();
