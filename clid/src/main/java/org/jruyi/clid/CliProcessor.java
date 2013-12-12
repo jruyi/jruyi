@@ -43,6 +43,7 @@ import org.jruyi.io.IoConstants;
 import org.jruyi.io.SessionListener;
 import org.jruyi.system.Constants;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentFactory;
 import org.osgi.service.component.ComponentInstance;
@@ -72,6 +73,8 @@ public final class CliProcessor extends SessionListener implements IFilter {
 
 	private static final String P_BIND_ADDR = "bindAddr";
 	private static final String P_PORT = "port";
+
+	private static final byte COLON = ':';
 
 	@Property(intValue = 300)
 	private static final String P_SESSION_IDLE_TIMEOUT = "sessionIdleTimeout";
@@ -131,6 +134,9 @@ public final class CliProcessor extends SessionListener implements IFilter {
 		IBuffer msg = session.createBuffer();
 		bs.buffer(msg);
 		bs.write(m_welcome);
+		bs.write(ClidConstants.CR[0]);
+		bs.write(ClidConstants.LF[0]);
+		writeCommands(bs);
 		bs.writeOut(System.getProperty(Constants.JRUYI_INST_NAME) + "> ");
 	}
 
@@ -350,5 +356,37 @@ public final class CliProcessor extends SessionListener implements IFilter {
 		}
 
 		return i;
+	}
+
+	private void writeCommands(BufferStream bs) {
+		ServiceReference<?>[] references;
+		try {
+			references = m_context.getAllServiceReferences(null, "(&("
+					+ CommandProcessor.COMMAND_SCOPE + "=*)(!("
+					+ CommandProcessor.COMMAND_SCOPE + "=builtin)))");
+		} catch (Throwable t) {
+			// should never go here
+			c_logger.error("Failed to get commands", t);
+			return;
+		}
+
+		for (ServiceReference<?> reference : references) {
+			String scope = String.valueOf(reference
+					.getProperty(CommandProcessor.COMMAND_SCOPE));
+			Object v = reference.getProperty(CommandProcessor.COMMAND_FUNCTION);
+			if (v instanceof String[]) {
+				String[] funcs = (String[]) v;
+				for (String func : funcs)
+					writeCommand(bs, scope, func);
+			} else
+				writeCommand(bs, scope, String.valueOf(v));
+		}
+	}
+
+	private static void writeCommand(BufferStream bs, String scope, String func) {
+		bs.write(scope);
+		bs.write(COLON);
+		bs.write(func);
+		bs.write(ClidConstants.LF[0]);
 	}
 }

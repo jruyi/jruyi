@@ -14,18 +14,10 @@
 package org.jruyi.cli;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FilenameFilter;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
-
-import jline.TerminalFactory;
-import jline.console.ConsoleReader;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -34,17 +26,11 @@ import org.apache.commons.cli.PosixParser;
 
 public final class Main {
 
-	public static final Main INST = new Main();
-	private static final int BUFFER_LEN = 1024 * 8;
-	private final Session m_session = new Session();
-	private String m_host = "localhost";
-	private int m_port = 6060;
-	private int m_timeout;
-	private int m_status;
+	static final Main INST = new Main();
 
 	static final class JarFileFilter implements FilenameFilter {
 
-		private static String[] LIBS = { "commons-cli", "jline" };
+		private static final String[] LIBS = { "commons-cli", "jline" };
 
 		@Override
 		public boolean accept(File dir, String name) {
@@ -65,7 +51,7 @@ public final class Main {
 		@Override
 		public void run() {
 			try {
-				INST.shutdown();
+				RuyiCli.INST.shutdown();
 			} catch (Throwable t) {
 				t.printStackTrace();
 			}
@@ -80,7 +66,7 @@ public final class Main {
 			init();
 
 			if (args.length > 0 && !INST.processCommandLines(args)) {
-				System.exit(INST.m_status);
+				System.exit(RuyiCli.INST.status());
 				return;
 			}
 		} catch (Throwable t) {
@@ -91,18 +77,13 @@ public final class Main {
 
 		try {
 			Runtime.getRuntime().addShutdownHook(new ShutdownHook());
-
-			INST.start();
+			RuyiCli.INST.start();
 		} catch (InterruptedException e) {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		} finally {
-			INST.shutdown();
+			RuyiCli.INST.shutdown();
 		}
-	}
-
-	void shutdown() {
-		m_session.close();
 	}
 
 	private static void init() throws Throwable {
@@ -141,42 +122,6 @@ public final class Main {
 		return new File(homeDir, "lib").listFiles(new JarFileFilter());
 	}
 
-	private void start() throws Throwable {
-		ConsoleReader reader = new ConsoleReader();
-		try {
-			Session session = m_session;
-			session.open(m_host, m_port, m_timeout);
-
-			String welcome;
-			StringWriter sw = new StringWriter(256);
-			try {
-				session.recv(sw);
-				welcome = sw.toString();
-			} finally {
-				sw.close();
-			}
-
-			int i = welcome.lastIndexOf('\n') + 1;
-			String prompt = welcome.substring(i);
-			welcome = welcome.substring(0, i);
-
-			reader.setPrompt(prompt);
-
-			Writer writer = reader.getOutput();
-			writer.write(welcome);
-
-			String cmdLine;
-			do {
-				cmdLine = reader.readLine();
-				if (cmdLine == null || cmdLine.equalsIgnoreCase("quit")
-						|| cmdLine.equalsIgnoreCase("exit"))
-					break;
-			} while (session.send(cmdLine, writer));
-		} finally {
-			TerminalFactory.get().restore();
-		}
-	}
-
 	// Exit if false is returned.
 	private boolean processCommandLines(String[] args) throws Throwable {
 
@@ -198,21 +143,21 @@ public final class Main {
 			} else if (opt.equals("h")) {
 				String v = option.getValue();
 				if (v != null)
-					m_host = v;
+					RuyiCli.INST.host(v);
 			} else if (opt.equals("p")) {
 				String v = option.getValue();
 				if (v != null)
-					m_port = Integer.parseInt(v);
+					RuyiCli.INST.port(Integer.parseInt(v));
 			} else if (opt.equals("t")) {
 				String v = option.getValue();
 				if (v != null)
-					m_timeout = Integer.parseInt(v) * 1000;
+					RuyiCli.INST.timeout(Integer.parseInt(v) * 1000);
 			} else if (opt.equals("f")) {
 				args = line.getArgs();
 				if (args == null || args.length < 1)
 					System.out.println("Please specify SCRIPT.");
 				else
-					run(args);
+					RuyiCli.INST.run(args);
 
 				return false;
 			} else
@@ -233,7 +178,7 @@ public final class Main {
 			command = builder.toString();
 		}
 
-		run(command);
+		RuyiCli.INST.run(command);
 		return false;
 	}
 
@@ -256,94 +201,5 @@ public final class Main {
 		System.out
 				.println("    -f, --file                execute ruyi script file");
 		System.out.println();
-	}
-
-	private void run(String command) throws Throwable {
-		m_status = -1;
-		Session session = m_session;
-		Writer writer = null;
-		session.open(m_host, m_port, m_timeout);
-		try {
-			if (!session.recv(null))
-				return;
-			writer = new OutputStreamWriter(System.out, "UTF-8");
-			if (!session.send(command, writer))
-				return;
-			m_status = session.status();
-		} finally {
-			session.close();
-			if (writer != null)
-				writer.close();
-		}
-	}
-
-	private void run(String[] scripts) throws Throwable {
-		m_status = -1;
-		Session session = m_session;
-		session.open(m_host, m_port, m_timeout);
-		try {
-			if (!session.recv(null))
-				return;
-
-			if (scripts == null || scripts.length < 1)
-				return;
-		} catch (Throwable t) {
-			session.close();
-			throw t;
-		}
-
-		OutputStreamWriter writer = new OutputStreamWriter(System.out, "UTF-8");
-		try {
-			StringBuilder builder = new StringBuilder(128);
-			byte[] buffer = new byte[BUFFER_LEN];
-			for (String name : scripts) {
-				File script = new File(name);
-				if (!script.exists())
-					throw new Exception("File Not Found: " + name);
-
-				if (!script.isFile())
-					throw new Exception("Invalid script file: " + name);
-
-				int length = (int) script.length();
-				if (length < 1)
-					continue;
-
-				String preScript = builder.append("'0'='").append(name)
-						.append("'").toString();
-				builder.setLength(0);
-				if (!session.send(preScript, null))
-					return;
-
-				session.writeLength(length);
-				InputStream in = new FileInputStream(script);
-				try {
-					int offset = 0;
-					for (;;) {
-						int n = in.read(buffer, offset, BUFFER_LEN - offset);
-						offset += n;
-						length -= n;
-						if (length < 1) {
-							session.writeChunk(buffer, 0, offset);
-							break;
-						}
-						if (offset >= BUFFER_LEN) {
-							session.writeChunk(buffer, 0, BUFFER_LEN);
-							offset = 0;
-						}
-					}
-				} finally {
-					in.close();
-				}
-
-				session.flush();
-				session.recv(writer);
-				if (session.status() != 0)
-					break;
-			}
-			m_status = session.status();
-		} finally {
-			session.close();
-			writer.close();
-		}
 	}
 }
