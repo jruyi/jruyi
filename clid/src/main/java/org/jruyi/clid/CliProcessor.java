@@ -123,21 +123,22 @@ public final class CliProcessor extends SessionListener implements IFilter {
 
 	@Override
 	public void onSessionOpened(ISession session) {
-		BufferStream bs = new BufferStream(
-				(ISessionService) m_tcpServer.getInstance(), session);
-		PrintStream out = new PrintStream(bs, true);
-		CommandSession cs = m_cp.createSession(null, out, out);
+		ISessionService ss = (ISessionService) m_tcpServer.getInstance();
+		OutBufferStream outBufferStream = new OutBufferStream(ss, session);
+		ErrBufferStream errBufferStream = new ErrBufferStream(outBufferStream);
+		PrintStream out = new PrintStream(outBufferStream, true);
+		PrintStream err = new PrintStream(errBufferStream, true);
+		CommandSession cs = m_cp.createSession(null, out, err);
 		cs.put(SCOPE, "builtin:*");
 
-		session.deposit(this, new Context(cs, bs));
+		session.deposit(this, new Context(cs, errBufferStream));
 
-		IBuffer msg = session.createBuffer();
-		bs.buffer(msg);
-		bs.write(m_welcome);
-		bs.write(ClidConstants.CR[0]);
-		bs.write(ClidConstants.LF[0]);
-		writeCommands(bs);
-		bs.writeOut(System.getProperty(Constants.JRUYI_INST_NAME) + "> ");
+		outBufferStream.write(m_welcome);
+		outBufferStream.write(ClidConstants.CR[0]);
+		outBufferStream.write(ClidConstants.LF[0]);
+		writeCommands(outBufferStream);
+		outBufferStream.writeOut(System.getProperty(Constants.JRUYI_INST_NAME)
+				+ "> ");
 	}
 
 	@Override
@@ -150,22 +151,27 @@ public final class CliProcessor extends SessionListener implements IFilter {
 	@Override
 	public void onMessageReceived(ISession session, Object message) {
 		IBuffer buffer = (IBuffer) message;
-		String cmdline = buffer.remaining() > 0 ? buffer.read(Codec.utf_8())
-				: null;
-		buffer.drain();
+		String cmdline;
+		try {
+			cmdline = buffer.remaining() > 0 ? buffer.read(Codec.utf_8())
+					: null;
+		} finally {
+			buffer.close();
+		}
 
 		Context context = (Context) session.inquiry(this);
 		CommandSession cs = context.commandSession();
-		BufferStream bs = context.bufferStream();
+		ErrBufferStream err = context.errBufferStream();
+		OutBufferStream out = err.outBufferStream();
+		out.reset();
 
 		int status = 0;
-		bs.buffer(buffer);
 		if (cmdline != null) {
 			cmdline = filterProps(cmdline, cs, m_context);
 			try {
 				Object result = cs.execute(cmdline);
-				if (result != null && !buffer.isClosed() && buffer.isEmpty())
-					bs.write(String.valueOf(result));
+				if (result != null)
+					out.write(String.valueOf(result));
 			} catch (Throwable t) {
 				c_logger.warn(cmdline, t);
 				status = 1;
@@ -184,10 +190,10 @@ public final class CliProcessor extends SessionListener implements IFilter {
 						}
 					}
 				}
-				bs.write(msg);
+				err.write(msg);
 			}
 		}
-		bs.writeOut(status);
+		out.writeOut(status);
 	}
 
 	protected void bindCommandProcessor(CommandProcessor cp) {
@@ -358,7 +364,7 @@ public final class CliProcessor extends SessionListener implements IFilter {
 		return i;
 	}
 
-	private void writeCommands(BufferStream bs) {
+	private void writeCommands(OutBufferStream bs) {
 		ServiceReference<?>[] references;
 		try {
 			references = m_context.getAllServiceReferences(null, "(&("
@@ -383,7 +389,8 @@ public final class CliProcessor extends SessionListener implements IFilter {
 		}
 	}
 
-	private static void writeCommand(BufferStream bs, String scope, String func) {
+	private static void writeCommand(OutBufferStream bs, String scope,
+			String func) {
 		bs.write(scope);
 		bs.write(COLON);
 		bs.write(func);

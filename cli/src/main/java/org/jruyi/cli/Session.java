@@ -25,18 +25,22 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 
-public final class Session {
+import jline.console.ConsoleReader;
 
+public final class Session implements Runnable {
+
+	private final byte[] m_lenBuf = new byte[4];
 	private final byte[] m_bytes = new byte[8 * 1024];
 	private final char[] m_chars = new char[8 * 1024];
 	private final CharBuffer m_cb = CharBuffer.wrap(m_chars);
 	private final ByteBuffer m_bb = ByteBuffer.wrap(m_bytes);
 	private final CharsetDecoder m_decoder = Charset.forName("UTF-8")
 			.newDecoder();
-	private Socket m_socket;
+	private volatile Socket m_socket;
 	private int m_status;
 	private InputStream m_in;
 	private OutputStream m_out;
+	private ConsoleReader m_console;
 
 	public void open(String host, int port, int timeout) throws Exception {
 		close();
@@ -49,7 +53,7 @@ public final class Session {
 	}
 
 	public void writeLength(int n) throws Exception {
-		byte[] bytes = m_bytes;
+		byte[] bytes = m_lenBuf;
 		int i = bytes.length - 1;
 		bytes[i] = (byte) (n & 0x7F);
 		while ((n >>= 7) > 0)
@@ -68,13 +72,25 @@ public final class Session {
 		m_out.flush();
 	}
 
+	public synchronized void await() throws InterruptedException {
+		wait();
+	}
+
+	public synchronized void signal() {
+		notify();
+	}
+
 	public boolean recv(Writer writer) throws Exception {
 		int len = 0;
-		while ((len = readLength()) > 0) {
+		for (;;) {
+			len = readLength();
 			if (len < 0) {
-				closeOnEof();
+				closeOnEof(writer);
 				return false;
 			}
+
+			if (len == 0)
+				break;
 
 			InputStream in = m_in;
 			ByteBuffer bb = m_bb;
@@ -88,7 +104,7 @@ public final class Session {
 			int offset = 0;
 			while (len > 0) {
 				if ((n = in.read(bytes, offset, n)) < 0) {
-					closeOnEof();
+					closeOnEof(writer);
 					return false;
 				}
 
@@ -125,15 +141,32 @@ public final class Session {
 		return true;
 	}
 
-	public boolean send(String msg, Writer writer) throws Exception {
-		msg = msg.trim();
-		byte[] bytes = msg.getBytes(m_decoder.charset());
-		writeLength(bytes.length);
-		OutputStream out = m_out;
-		out.write(bytes);
-		out.flush();
+	public boolean send(String msg) throws Exception {
+		try {
+			msg = msg.trim();
+			byte[] bytes = msg.getBytes(m_decoder.charset());
+			writeLength(bytes.length);
+			OutputStream out = m_out;
+			out.write(bytes);
+			out.flush();
+			return true;
+		} catch (Exception e) {
+			if (!isClosed())
+				throw e;
+			return false;
+		}
+	}
 
-		return recv(writer);
+	public boolean send(String msg, Writer writer) throws Exception {
+		if (!send(msg))
+			return false;
+		try {
+			return recv(writer);
+		} catch (Exception e) {
+			if (!isClosed())
+				throw e;
+			return false;
+		}
 	}
 
 	public int status() {
@@ -141,27 +174,53 @@ public final class Session {
 	}
 
 	public void close() {
-		if (m_socket != null) {
-			try {
-				m_socket.close();
-			} catch (Throwable t) {
-			}
+		final Socket socket = m_socket;
+		final OutputStream out = m_out;
+		final InputStream in = m_in;
+		if (socket != null) {
 			m_socket = null;
-		}
-		if (m_out != null) {
 			try {
-				m_out.close();
+				socket.close();
 			} catch (Throwable t) {
 			}
+		}
+		if (out != null) {
 			m_out = null;
-		}
-		if (m_in != null) {
 			try {
-				m_in.close();
+				out.close();
 			} catch (Throwable t) {
 			}
-			m_in = null;
 		}
+		if (in != null) {
+			m_in = null;
+			try {
+				in.close();
+			} catch (Throwable t) {
+			}
+		}
+	}
+
+	@Override
+	public void run() {
+		final ConsoleReader console = m_console;
+		final Writer writer = console.getOutput();
+		try {
+			while (recv(writer))
+				signal();
+		} catch (Throwable t) {
+			if (!isClosed())
+				t.printStackTrace();
+		} finally {
+			signal();
+		}
+	}
+
+	public void console(ConsoleReader console) {
+		m_console = console;
+	}
+
+	public boolean isClosed() {
+		return m_socket == null;
 	}
 
 	private int readStatus() throws Exception {
@@ -194,9 +253,9 @@ public final class Session {
 		return n;
 	}
 
-	private void closeOnEof() throws Exception {
+	private void closeOnEof(Writer writer) throws Exception {
 		close();
-		System.err.println();
-		System.err.println("Remote peer closed the connection.");
+		if (writer != null)
+			writer.write("\nRemote peer closed the connection.\n");
 	}
 }

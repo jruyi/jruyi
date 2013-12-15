@@ -51,7 +51,7 @@ public final class Main {
 		@Override
 		public void run() {
 			try {
-				RuyiCli.INST.shutdown();
+				RuyiCli.INST.close();
 			} catch (Throwable t) {
 				t.printStackTrace();
 			}
@@ -65,11 +65,14 @@ public final class Main {
 		try {
 			init();
 
+			RuyiCli.INST.open();
+
 			if (args.length > 0 && !INST.processCommandLines(args)) {
 				System.exit(RuyiCli.INST.status());
 				return;
 			}
 		} catch (Throwable t) {
+			RuyiCli.INST.close();
 			t.printStackTrace();
 			System.exit(1);
 			return;
@@ -82,7 +85,7 @@ public final class Main {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		} finally {
-			RuyiCli.INST.shutdown();
+			RuyiCli.INST.close();
 		}
 	}
 

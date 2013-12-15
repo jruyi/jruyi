@@ -14,13 +14,13 @@
 package org.jruyi.cli;
 
 import java.io.File;
+import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.HashSet;
 
-import jline.TerminalFactory;
 import jline.console.ConsoleReader;
 import jline.console.completer.ArgumentCompleter;
 import jline.console.completer.FileNameCompleter;
@@ -30,11 +30,13 @@ public final class RuyiCli {
 
 	static final RuyiCli INST = new RuyiCli();
 	private static final int BUFFER_LEN = 1024 * 8;
-	private final Session m_session = new Session();
+	private static final String JRUYI_PREFIX = "jruyi:";
+	private Session m_session;
 	private String m_host = "localhost";
 	private int m_port = 6060;
 	private int m_timeout;
 	private int m_status;
+	private ConsoleReader m_console;
 
 	private RuyiCli() {
 	}
@@ -55,23 +57,44 @@ public final class RuyiCli {
 		m_timeout = timeout;
 	}
 
-	void shutdown() {
-		m_session.close();
+	void open() throws Exception {
+		m_session = new Session();
+		m_console = new ConsoleReader(null, new FileInputStream(
+				FileDescriptor.in), System.out, null, "UTF-8");
+	}
+
+	void close() {
+		if (m_session != null) {
+			m_session.close();
+			m_session = null;
+		}
+
+		if (m_console != null) {
+			m_console.shutdown();
+			m_console = null;
+		}
 	}
 
 	void start() throws Throwable {
-		ConsoleReader reader = new ConsoleReader();
+		Thread thread = null;
+		final ConsoleReader reader = m_console;
+		final Session session = m_session;
 		try {
-			Session session = m_session;
 			session.open(m_host, m_port, m_timeout);
 
 			String welcome;
-			StringWriter sw = new StringWriter(256);
+			StringWriter sw = new StringWriter(512);
 			try {
 				session.recv(sw);
 				welcome = sw.toString();
 			} finally {
 				sw.close();
+			}
+
+			Writer writer = reader.getOutput();
+			if (session.isClosed()) {
+				writer.write(welcome);
+				return;
 			}
 
 			int i = welcome.lastIndexOf('\n');
@@ -84,11 +107,14 @@ public final class RuyiCli {
 
 			addCompleter(reader, commandStr);
 
-			Writer writer = reader.getOutput();
 			writer.write(welcome);
 
+			session.console(reader);
+			thread = new Thread(session);
+			thread.start();
+
 			String cmdLine;
-			do {
+			for (;;) {
 				cmdLine = reader.readLine();
 				if (cmdLine == null)
 					break;
@@ -96,28 +122,33 @@ public final class RuyiCli {
 				if (cmdLine.equalsIgnoreCase("quit")
 						|| cmdLine.equalsIgnoreCase("exit"))
 					break;
-			} while (session.send(cmdLine, writer));
+
+				if (!session.send(cmdLine))
+					break;
+
+				session.await();
+			}
 		} finally {
-			TerminalFactory.get().restore();
+			if (thread != null) {
+				session.close();
+				thread.join(30 * 1000);
+			}
 		}
 	}
 
 	void run(String command) throws Throwable {
 		m_status = -1;
 		Session session = m_session;
-		Writer writer = null;
 		session.open(m_host, m_port, m_timeout);
 		try {
 			if (!session.recv(null))
 				return;
-			writer = new OutputStreamWriter(System.out, "UTF-8");
+			Writer writer = m_console.getOutput();
 			if (!session.send(command, writer))
 				return;
 			m_status = session.status();
 		} finally {
 			session.close();
-			if (writer != null)
-				writer.close();
 		}
 	}
 
@@ -136,7 +167,7 @@ public final class RuyiCli {
 			throw t;
 		}
 
-		OutputStreamWriter writer = new OutputStreamWriter(System.out, "UTF-8");
+		Writer writer = m_console.getOutput();
 		try {
 			StringBuilder builder = new StringBuilder(128);
 			byte[] buffer = new byte[BUFFER_LEN];
@@ -193,12 +224,19 @@ public final class RuyiCli {
 
 	private static void addCompleter(ConsoleReader reader, String commandStr) {
 		String[] commands = commandStr.split("\n");
-		String[] localCommands = new String[] { "quit", "exit" };
+		HashSet<String> cmdSet = new HashSet<String>();
+		int n = JRUYI_PREFIX.length();
+		for (String command : commands) {
+			if (command.startsWith(JRUYI_PREFIX))
+				cmdSet.add(command.substring(n));
+		}
+		cmdSet.add("quit");
+		cmdSet.add("exit");
 
 		reader.addCompleter(new StringsCompleter(commands));
 		ArgumentCompleter completer = new ArgumentCompleter(
-				new WhitespaceArgumentDelimiter(), new StringsCompleter(
-						localCommands), new FileNameCompleter());
+				new WhitespaceArgumentDelimiter(),
+				new StringsCompleter(cmdSet), new FileNameCompleter());
 		completer.setStrict(false);
 		reader.addCompleter(completer);
 	}

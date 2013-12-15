@@ -18,18 +18,18 @@ import org.apache.felix.service.command.CommandSession;
 final class Context {
 
 	private final CommandSession m_cs;
-	private final BufferStream m_bs;
+	private final ErrBufferStream m_err;
 
-	public Context(CommandSession cs, BufferStream bs) {
+	public Context(CommandSession cs, ErrBufferStream err) {
 		m_cs = cs;
-		m_bs = bs;
+		m_err = err;
 	}
 
 	public CommandSession commandSession() {
 		return m_cs;
 	}
 
-	public BufferStream bufferStream() {
-		return m_bs;
+	public ErrBufferStream errBufferStream() {
+		return m_err;
 	}
 }

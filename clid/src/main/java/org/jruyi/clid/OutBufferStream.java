@@ -21,7 +21,7 @@ import org.jruyi.io.ISession;
 import org.jruyi.io.ISessionService;
 import org.jruyi.io.IntCodec;
 
-final class BufferStream extends OutputStream {
+final class OutBufferStream extends OutputStream {
 
 	private static final byte[] CR = { '\r' };
 	private static final byte[] LF = { '\n' };
@@ -29,15 +29,15 @@ final class BufferStream extends OutputStream {
 	private final ISessionService m_ss;
 	private final ISession m_session;
 	private IBuffer m_buffer;
+	private volatile boolean m_closed;
 
-	public BufferStream(ISessionService ss, ISession session) {
+	public OutBufferStream(ISessionService ss, ISession session) {
 		m_ss = ss;
 		m_session = session;
 	}
 
-	public void buffer(IBuffer buffer) {
-		buffer.reserveHead(HEAD_RESERVE_SIZE);
-		m_buffer = buffer;
+	public void reset() {
+		m_closed = false;
 	}
 
 	@Override
@@ -52,8 +52,7 @@ final class BufferStream extends OutputStream {
 			if (buffer == null || buffer.isEmpty())
 				return;
 
-			m_buffer = buffer.newBuffer();
-			m_buffer.reserveHead(HEAD_RESERVE_SIZE);
+			m_buffer = null;
 
 			prependLength(buffer);
 		}
@@ -62,48 +61,52 @@ final class BufferStream extends OutputStream {
 
 	public void write(String str) {
 		synchronized (this) {
-			final IBuffer buffer = m_buffer;
-			if (buffer != null)
-				buffer.write(str, Codec.utf_8());
+			if (isClosed())
+				return;
+
+			buffer().write(str, Codec.utf_8());
 		}
 	}
 
 	@Override
 	public void write(byte[] b, int off, int len) {
 		synchronized (this) {
-			final IBuffer buffer = m_buffer;
-			if (buffer != null)
-				buffer.write(b, off, len, Codec.byteArray());
+			if (isClosed())
+				return;
+
+			buffer().write(b, off, len, Codec.byteArray());
 		}
 	}
 
 	@Override
 	public void write(byte[] b) {
 		synchronized (this) {
-			final IBuffer buffer = m_buffer;
-			if (buffer != null)
-				buffer.write(b, Codec.byteArray());
+			if (isClosed())
+				return;
+
+			buffer().write(b, Codec.byteArray());
 		}
 	}
 
 	@Override
 	public void write(int b) {
 		synchronized (this) {
-			final IBuffer buffer = m_buffer;
-			if (buffer != null)
-				buffer.write((byte) b);
+			if (isClosed())
+				return;
+
+			buffer().write((byte) b);
 		}
 	}
 
 	public void writeOut(int status) {
 		IBuffer out;
 		synchronized (this) {
-			out = m_buffer;
-			if (out == null)
+			if (isClosed())
 				return;
 
-			m_buffer = null;
+			m_closed = true;
 
+			out = detachBuffer();
 			if (!out.isEmpty() && !out.endsWith(CR) && !out.endsWith(LF)) {
 				out.write(CR[0]);
 				out.write(LF[0]);
@@ -123,12 +126,12 @@ final class BufferStream extends OutputStream {
 	public void writeOut(String prompt) {
 		IBuffer out;
 		synchronized (this) {
-			out = m_buffer;
-			if (out == null)
+			if (isClosed())
 				return;
 
-			m_buffer = null;
+			m_closed = true;
 
+			out = detachBuffer();
 			if (!out.isEmpty() && !out.endsWith(CR) && !out.endsWith(LF)) {
 				out.write(CR[0]);
 				out.write(LF[0]);
@@ -153,5 +156,31 @@ final class BufferStream extends OutputStream {
 		buffer.prepend((byte) (n & 0x7F));
 		while ((n >>= 7) > 0)
 			buffer.prepend((byte) ((n & 0x7F) | 0x80));
+	}
+
+	boolean isClosed() {
+		return m_closed;
+	}
+
+	IBuffer buffer() {
+		IBuffer buffer = m_buffer;
+		if (buffer == null) {
+			buffer = m_session.createBuffer();
+			buffer.reserveHead(HEAD_RESERVE_SIZE);
+			m_buffer = buffer;
+		}
+
+		return buffer;
+	}
+
+	private IBuffer detachBuffer() {
+		IBuffer buffer = m_buffer;
+		if (buffer == null) {
+			buffer = m_session.createBuffer();
+			buffer.reserveHead(HEAD_RESERVE_SIZE);
+		} else
+			m_buffer = null;
+
+		return buffer;
 	}
 }
