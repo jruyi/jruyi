@@ -24,6 +24,7 @@
 		<AD id="buffer.target" name="Filter for Selecting Buffer Factory" type="String" required="false"/>
 		<AD id="sessionIdleTimeout" name="Session Idle Timeout" type="Integer" min="-1" default="300"/>
 		<AD id="debug" name="Debug" type="Boolean" default="false"/>
+		<AD id="flushThreshold" name="Flush Threshold" type="Integer" default="4096"/>
 	</OCD>
 
 	<Designate pid="jruyi.clid">

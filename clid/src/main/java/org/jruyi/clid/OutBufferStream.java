@@ -20,20 +20,47 @@ import org.jruyi.io.IBuffer;
 import org.jruyi.io.ISession;
 import org.jruyi.io.ISessionService;
 import org.jruyi.io.IntCodec;
+import org.jruyi.timeoutadmin.ITimeoutEvent;
+import org.jruyi.timeoutadmin.ITimeoutListener;
+import org.jruyi.timeoutadmin.ITimeoutNotifier;
 
-final class OutBufferStream extends OutputStream {
+final class OutBufferStream extends OutputStream implements ITimeoutListener {
 
 	private static final byte[] CR = { '\r' };
 	private static final byte[] LF = { '\n' };
 	private static final int HEAD_RESERVE_SIZE = 4;
+	private static final int DELAY_SECS = 1;
+	private static int s_flushThreshold = 4096;
 	private final ISessionService m_ss;
 	private final ISession m_session;
+	private final ITimeoutNotifier m_tn;
 	private IBuffer m_buffer;
 	private volatile boolean m_closed;
 
-	public OutBufferStream(ISessionService ss, ISession session) {
+	public OutBufferStream(ISessionService ss, ISession session,
+			ITimeoutNotifier tn) {
 		m_ss = ss;
 		m_session = session;
+		m_tn = tn;
+		tn.setListener(this);
+	}
+
+	public static void flushThreshold(int flushThreshold) {
+		s_flushThreshold = flushThreshold;
+	}
+
+	@Override
+	public void onTimeout(ITimeoutEvent event) {
+		final IBuffer buffer;
+		synchronized (this) {
+			buffer = m_buffer;
+			if (buffer == null || buffer.isEmpty())
+				return;
+
+			m_buffer = null;
+			prependLength(buffer);
+		}
+		m_ss.write(m_session, buffer);
 	}
 
 	public void reset() {
@@ -42,6 +69,8 @@ final class OutBufferStream extends OutputStream {
 
 	@Override
 	public void close() {
+		m_closed = true;
+		m_tn.close();
 	}
 
 	@Override
@@ -51,6 +80,15 @@ final class OutBufferStream extends OutputStream {
 			buffer = m_buffer;
 			if (buffer == null || buffer.isEmpty())
 				return;
+
+			if (buffer.size() >= s_flushThreshold)
+				m_tn.cancel();
+			else {
+				final ITimeoutNotifier tn = m_tn;
+				tn.reset();
+				if (tn.schedule(DELAY_SECS))
+					return;
+			}
 
 			m_buffer = null;
 
@@ -105,6 +143,7 @@ final class OutBufferStream extends OutputStream {
 				return;
 
 			m_closed = true;
+			m_tn.cancel();
 
 			out = detachBuffer();
 			if (!out.isEmpty() && !out.endsWith(CR) && !out.endsWith(LF)) {
@@ -130,6 +169,7 @@ final class OutBufferStream extends OutputStream {
 				return;
 
 			m_closed = true;
+			m_tn.cancel();
 
 			out = detachBuffer();
 			if (!out.isEmpty() && !out.endsWith(CR) && !out.endsWith(LF)) {

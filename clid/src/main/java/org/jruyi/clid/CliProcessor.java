@@ -42,6 +42,8 @@ import org.jruyi.io.ISessionService;
 import org.jruyi.io.IoConstants;
 import org.jruyi.io.SessionListener;
 import org.jruyi.system.Constants;
+import org.jruyi.timeoutadmin.ITimeoutAdmin;
+import org.jruyi.timeoutadmin.ITimeoutNotifier;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
@@ -82,8 +84,14 @@ public final class CliProcessor extends SessionListener implements IFilter {
 	@Property(boolValue = false)
 	private static final String P_DEBUG = "debug";
 
+	@Property(intValue = 4096)
+	private static final String P_FLUSH_THRESHOLD = "flushThreshold";
+
 	@Reference(name = "commandProcessor")
 	private CommandProcessor m_cp;
+
+	@Reference(name = "timeoutAdmin")
+	private ITimeoutAdmin m_ta;
 
 	private BundleContext m_context;
 	private ComponentInstance m_tcpServer;
@@ -124,7 +132,8 @@ public final class CliProcessor extends SessionListener implements IFilter {
 	@Override
 	public void onSessionOpened(ISession session) {
 		ISessionService ss = (ISessionService) m_tcpServer.getInstance();
-		OutBufferStream outBufferStream = new OutBufferStream(ss, session);
+		ITimeoutNotifier tn = m_ta.createNotifier(null);
+		OutBufferStream outBufferStream = new OutBufferStream(ss, session, tn);
 		ErrBufferStream errBufferStream = new ErrBufferStream(outBufferStream);
 		PrintStream out = new PrintStream(outBufferStream, true);
 		PrintStream err = new PrintStream(errBufferStream, true);
@@ -144,8 +153,11 @@ public final class CliProcessor extends SessionListener implements IFilter {
 	@Override
 	public void onSessionClosed(ISession session) {
 		Context context = (Context) session.withdraw(this);
-		if (context != null)
-			context.commandSession().close();
+		if (context != null) {
+			CommandSession cs = context.commandSession();
+			cs.getConsole().close();
+			cs.close();
+		}
 	}
 
 	@Override
@@ -204,10 +216,21 @@ public final class CliProcessor extends SessionListener implements IFilter {
 		m_cp = null;
 	}
 
+	protected void bindTimeoutAdmin(ITimeoutAdmin ta) {
+		m_ta = ta;
+	}
+
+	protected void unbindTimeoutAdmin(ITimeoutAdmin ta) {
+		m_ta = null;
+	}
+
 	@Modified
 	protected void modified(Map<String, ?> properties) throws Exception {
 		ISessionService inst = (ISessionService) m_tcpServer.getInstance();
 		inst.update(normalizeConf(properties));
+
+		OutBufferStream.flushThreshold((Integer) properties
+				.get(P_FLUSH_THRESHOLD));
 	}
 
 	protected void activate(ComponentContext context, Map<String, ?> properties)
@@ -216,6 +239,9 @@ public final class CliProcessor extends SessionListener implements IFilter {
 		BundleContext bundleContext = context.getBundleContext();
 		loadBrandingInfo(context.getBundleContext().getProperty(BRANDING_URL),
 				bundleContext);
+
+		OutBufferStream.flushThreshold((Integer) properties
+				.get(P_FLUSH_THRESHOLD));
 
 		Properties conf = normalizeConf(properties);
 		if (conf.get(P_BIND_ADDR) == null) {
