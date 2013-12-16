@@ -13,9 +13,10 @@
  */
 package org.jruyi.io.msglog;
 
-import java.util.Dictionary;
-
-import org.jruyi.common.Properties;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.ConfigurationPolicy;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.Filter;
 import org.jruyi.io.IFilter;
@@ -25,6 +26,9 @@ import org.jruyi.io.IoConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Service(IFilter.class)
+@Component(name = IoConstants.FID_MSGLOG, policy = ConfigurationPolicy.IGNORE, createPid = false)
+@Property(name = IoConstants.FILTER_ID, value = IoConstants.FID_MSGLOG)
 public final class MsgLogFilter extends Filter {
 
 	private static final Logger c_logger = LoggerFactory
@@ -32,12 +36,6 @@ public final class MsgLogFilter extends Filter {
 
 	public static String[] getInterfaces() {
 		return new String[] { IFilter.class.getName() };
-	}
-
-	public static Dictionary<String, ?> getProperties() {
-		Properties properties = new Properties();
-		properties.put(IoConstants.FILTER_ID, IoConstants.FID_MSGLOG);
-		return properties;
 	}
 
 	@Override

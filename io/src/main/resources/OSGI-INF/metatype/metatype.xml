@@ -98,30 +98,6 @@
 		<AD id="performancePreferences" name="Performance Preferences" type="Integer" cardinality="3" required="false"/>
 	</OCD>
 
-	<!-- 
-	<OCD id="tcpClient" name="TCP Client">
-		<AD id="jruyi.me.endpoint.id" name="Endpoint ID" type="String" required="true"/>
-		<AD id="jruyi.me.endpoint.prehandlers" name="Endpoint PreHandlers" type="String" cardinality="65535" required="false"/>
-		<AD id="jruyi.me.endpoint.posthandlers" name="Endpoint PostHandlers" type="String" cardinality="65535" required="false"/>
-		<AD id="buffer.target" name="Filter for Selecting Buffer Factory" type="String" required="false"/>
-		<AD id="addr" name="Host Address" type="String" required="true"/>
-		<AD id="port" name="Port" type="Integer" min="0" max="65535" required="true"/>
-		<AD id="readThreshold" name="Read Threshold" type="Integer" min="0" default="0"/>
-		<AD id="connectTimeout" name="Connect Timeout" type="Integer" min="-1" default="10"/>
-		<AD id="readTimeout" name="Read Timeout" type="Integer" min="-1" default="10"/>
-		<AD id="filters" name="Filter Chain" type="String" cardinality="65535" required="false"/>
-		<AD id="reuseAddr" name="Reuse Address" type="Boolean" default="false"/>
-		<AD id="keepAlive" name="Keep Alive" type="Boolean" required="false"/>
-		<AD id="soLinger" name="Linger" type="Integer" min="0" required="false"/>
-		<AD id="recvBufSize" name="Receive Buffer Size" type="Integer" min="1" required="false"/>
-		<AD id="sendBufSize" name="Send Buffer Size" type="Integer" min="1" required="false"/>
-		<AD id="tcpNoDelay" name="TCP No Delay" type="Boolean" required="false"/>
-		<AD id="trafficClass" name="Traffic Class" type="Integer" min="0" max="255" required="false"/>
-		<AD id="oobInline" name="OOBInline" type="Boolean" required="false"/>
-		<AD id="performancePreferences" name="Performance Preferences" type="Integer" cardinality="3" required="false"/>
-	</OCD>
-	-->
-
 	<OCD id="udpServer" name="UDP Server">
 		<AD id="jruyi.me.endpoint.id" name="Endpoint ID" type="String" required="true"/>
 		<AD id="jruyi.me.endpoint.lazy" name="Endpoint Lazy Loading" type="Boolean" required="false"/>
