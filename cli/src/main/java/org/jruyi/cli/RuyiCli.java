@@ -118,7 +118,11 @@ public final class RuyiCli {
 				cmdLine = reader.readLine();
 				if (cmdLine == null)
 					break;
+
 				cmdLine = cmdLine.trim();
+				if (cmdLine.isEmpty())
+					continue;
+
 				if (cmdLine.equalsIgnoreCase("quit")
 						|| cmdLine.equalsIgnoreCase("exit"))
 					break;
@@ -137,6 +141,9 @@ public final class RuyiCli {
 	}
 
 	void run(String command) throws Throwable {
+		if (command == null || (command = command.trim()).isEmpty())
+			return;
+
 		m_status = -1;
 		Session session = m_session;
 		session.open(m_host, m_port, m_timeout);
