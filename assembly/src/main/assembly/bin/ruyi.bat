@@ -29,7 +29,7 @@ rem Add -server to the JVM options, if supported.
 if not errorlevel == 1 (set JAVA_OPTS=-server %JAVA_OPTS%)
 
 rem JPDA options. Uncomment and modify as appropriate to enable remote debugging.
-set JAVA_OPTS=-Xdebug -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n %JAVA_OPTS%
+rem set JAVA_OPTS=-Xdebug -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n %JAVA_OPTS%
 
 rem Set JRuyi home dir
 set JAVA_OPTS=%JAVA_OPTS% "-Djruyi.home.dir=%JRUYI_HOME%"
