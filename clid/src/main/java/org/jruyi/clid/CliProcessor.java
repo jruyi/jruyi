@@ -78,13 +78,12 @@ public final class CliProcessor extends SessionListener implements IFilter {
 
 	private static final byte COLON = ':';
 
+	private static final String[] FILTERS = { "jruyi.clid.filter" };
+
 	@Property(intValue = 300)
 	private static final String P_SESSION_IDLE_TIMEOUT = "sessionIdleTimeout";
 
-	@Property(boolValue = false)
-	private static final String P_DEBUG = "debug";
-
-	@Property(intValue = 4096)
+	@Property(intValue = 7168)
 	private static final String P_FLUSH_THRESHOLD = "flushThreshold";
 
 	@Reference(name = "commandProcessor")
@@ -296,11 +295,8 @@ public final class CliProcessor extends SessionListener implements IFilter {
 			conf.putAll(properties);
 
 		conf.put(IoConstants.SERVICE_ID, SERVICE_ID);
-		String[] filters = (Boolean) conf.get(P_DEBUG) ? new String[] {
-				"jruyi.clid.filter", "jruyi.io.msglog.filter" }
-				: new String[] { "jruyi.clid.filter" };
 		conf.put("initCapacityOfChannelMap", 8);
-		conf.put("filters", filters);
+		conf.put("filters", FILTERS);
 		conf.put("reuseAddr", Boolean.TRUE);
 		return conf;
 	}

@@ -30,7 +30,7 @@ final class OutBufferStream extends OutputStream implements ITimeoutListener {
 	private static final byte[] LF = { '\n' };
 	private static final int HEAD_RESERVE_SIZE = 4;
 	private static final int DELAY_SECS = 1;
-	private static int s_flushThreshold = 4096;
+	private static int s_flushThreshold = 7168;
 	private final ISessionService m_ss;
 	private final ISession m_session;
 	private final ITimeoutNotifier m_tn;

@@ -89,7 +89,7 @@
 		<org.jruyi.me.version>1.1.0-SNAPSHOT</org.jruyi.me.version>
 		<org.jruyi.io.version>1.0.2</org.jruyi.io.version>
 		<org.jruyi.cmd.version>1.0.0</org.jruyi.cmd.version>
-		<org.jruyi.clid.version>1.0.1</org.jruyi.clid.version>
+		<org.jruyi.clid.version>1.1.0-SNAPSHOT</org.jruyi.clid.version>
 	</properties>
 
 	<dependencies>
