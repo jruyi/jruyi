@@ -79,7 +79,7 @@
 		<org.apache.felix.gogo.runtime.version>0.10.0</org.apache.felix.gogo.runtime.version>
 
 		<!-- JRuyi Artifacts -->
-		<jruyi-cli.version>1.0.2</jruyi-cli.version>
+		<jruyi-cli.version>1.1.0-SNAPSHOT</jruyi-cli.version>
 		<jruyi-launcher.version>1.0.2</jruyi-launcher.version>
 		<jruyi-system.version>${project.version}</jruyi-system.version>
 		<org.jruyi.osgi.log.version>1.0.0</org.jruyi.osgi.log.version>

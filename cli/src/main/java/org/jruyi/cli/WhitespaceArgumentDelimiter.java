@@ -18,9 +18,21 @@ import jline.console.completer.ArgumentCompleter.AbstractArgumentDelimiter;
 public final class WhitespaceArgumentDelimiter extends
 		AbstractArgumentDelimiter {
 
+	private static final CharSequence FILE_URL_PREFIX = "file:";
+	private static final int LEN = FILE_URL_PREFIX.length();
+
 	@Override
 	public boolean isDelimiterChar(final CharSequence buffer, final int pos) {
 		char c = buffer.charAt(pos);
-		return Character.isWhitespace(c) || c == ':';
+		if (Character.isWhitespace(c))
+			return true;
+
+		int end = pos + 1;
+		int start = end - LEN;
+		if (start < 0)
+			return false;
+
+		return (FILE_URL_PREFIX.equals(buffer.subSequence(start, end)) && (start == 0 || Character
+				.isWhitespace(buffer.charAt(start - 1))));
 	}
 }

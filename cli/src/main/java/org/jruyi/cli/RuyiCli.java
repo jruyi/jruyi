@@ -59,8 +59,11 @@ public final class RuyiCli {
 
 	void open() throws Exception {
 		m_session = new Session();
-		m_console = new ConsoleReader(null, new FileInputStream(
-				FileDescriptor.in), System.out, null, "UTF-8");
+		final ConsoleReader console = new ConsoleReader(null,
+				new FileInputStream(FileDescriptor.in), System.out, null,
+				"UTF-8");
+		console.setPaginationEnabled(true);
+		m_console = console;
 	}
 
 	void close() {
@@ -117,6 +120,9 @@ public final class RuyiCli {
 			for (;;) {
 				cmdLine = reader.readLine();
 				if (cmdLine == null)
+					break;
+
+				if (session.isClosed())
 					break;
 
 				cmdLine = cmdLine.trim();
