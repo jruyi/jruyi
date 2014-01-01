@@ -179,7 +179,7 @@ public final class Worker implements IWorker, IDumpable {
 	private static int getCorePoolSize(Map<String, ?> properties) {
 		Object v = properties.get(P_CORE_POOLSIZE);
 		if (v == null)
-			return Runtime.getRuntime().availableProcessors() + 1;
+			return Runtime.getRuntime().availableProcessors() << 1;
 		else
 			return (Integer) v;
 	}
