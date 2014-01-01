@@ -13,15 +13,13 @@
  */
 package org.jruyi.io.channel;
 
-import org.jruyi.timeoutadmin.ITimeoutNotifier;
+import java.nio.channels.Selector;
 
-public interface IChannelAdmin {
+public interface ISelector {
 
-	public void onRegisterRequired(ISelectableChannel channel);
+	public Selector selector();
 
-	public void onConnectRequired(ISelectableChannel channel);
+	public void onReadRequired(ISelectableChannel channel);
 
-	public void onWrite(ISelectableChannel channel);
-
-	public ITimeoutNotifier createTimeoutNotifier(ISelectableChannel channel);
+	public void onWriteRequired(ISelectableChannel channel);
 }

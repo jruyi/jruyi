@@ -14,9 +14,9 @@
 	limitations under the License.
 -->
 
-<MetaData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="http://www.osgi.org/xmlns/metatype/v1.1.0"
-	xsi:schemaLocation="http://www.osgi.org/xmlns/metatype/v1.1.0 http://www.osgi.org/xmlns/metatype/v1.1.0/metatype.xsd">
+<metatype:MetaData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:metatype="http://www.osgi.org/xmlns/metatype/v1.2.0"
+	xsi:schemaLocation="http://www.osgi.org/xmlns/metatype/v1.2.0 http://www.osgi.org/xmlns/metatype/v1.2.0/metatype.xsd">
 
 	<OCD id="clid" name="CLI Daemon">
 		<AD id="bindAddr" name="Bind Address" type="String" default="localhost"/>
@@ -30,4 +30,4 @@
 		<Object ocdref="clid"/>
 	</Designate>
 
-</MetaData>
+</metatype:MetaData>

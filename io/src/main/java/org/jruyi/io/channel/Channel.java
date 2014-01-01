@@ -18,7 +18,6 @@ import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.ScatteringByteChannel;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
 import java.util.IdentityHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -46,7 +45,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 	private static final Logger c_logger = LoggerFactory
 			.getLogger(Channel.class);
-	private static final AtomicLong c_idSeed = new AtomicLong(0L);
+	private static final AtomicLong c_sequence = new AtomicLong(0L);
 	private Long m_id;
 	private final IChannelService m_channelService;
 	private final ReentrantLock m_lock;
@@ -54,6 +53,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 	private IdentityHashMap<Object, Object> m_storage;
 	private Object m_attachment;
 	private volatile boolean m_closed;
+	private ISelector m_selector;
 	private SelectionKey m_selectionKey;
 	private ITimeoutNotifier m_timeoutNotifier;
 	private ReadThread m_readThread;
@@ -234,7 +234,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 					channel.close();
 					channel.onReadIn(in);
 				} else if (channel.onReadIn(in))
-					cs.getChannelAdmin().onReadRequired(channel);
+					channel.onReadRequired();
 				else
 					channel.close();
 			} catch (Throwable t) {
@@ -280,7 +280,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 					while (data.remaining() > 0) {
 						if (data.writeOut(gbc) == 0) {
-							cs.getChannelAdmin().onWriteRequired(channel);
+							channel.onWriteRequired();
 							m_data = data;
 							return;
 						}
@@ -307,7 +307,8 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			if (put(out))
 				return;
 
-			run();
+			final Channel channel = m_channel;
+			channel.channelService().getChannelAdmin().onWrite(channel);
 		}
 
 		void clear() {
@@ -504,7 +505,8 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 	public void run() {
 		IChannelService channelService = m_channelService;
 		try {
-			m_id = c_idSeed.incrementAndGet();
+			generateId();
+
 			m_attributes = new ConcurrentHashMap<String, Object>();
 			m_storage = new IdentityHashMap<Object, Object>();
 
@@ -524,6 +526,16 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 		} catch (Throwable t) {
 			onException(t);
 		}
+	}
+
+	@Override
+	public final void onReadRequired() {
+		m_selector.onReadRequired(this);
+	}
+
+	@Override
+	public final void onWriteRequired() {
+		m_selector.onWriteRequired(this);
 	}
 
 	@Override
@@ -698,9 +710,11 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 	}
 
 	@Override
-	public final void register(Selector selector, int ops) {
+	public final void register(ISelector selector, int ops) {
 		try {
-			m_selectionKey = selectableChannel().register(selector, ops, this);
+			m_selectionKey = selectableChannel().register(selector.selector(),
+					ops, this);
+			m_selector = selector;
 		} catch (Throwable t) {
 			// Ignore
 		}
@@ -719,7 +733,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 	@Override
 	public final void connect(int timeout) {
 		try {
-			m_id = c_idSeed.incrementAndGet();
+			generateId();
 
 			m_attributes = new ConcurrentHashMap<String, Object>();
 			m_storage = new IdentityHashMap<Object, Object>();
@@ -945,7 +959,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			if (requireRegister)
 				ca.onRegisterRequired(this);
 			else
-				ca.onReadRequired(this);
+				onReadRequired();
 		} catch (Throwable t) {
 			onException(t);
 		}
@@ -975,5 +989,9 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 	private void createReadThread() {
 		if (m_readThread == null)
 			m_readThread = new ReadThread(this);
+	}
+
+	private final void generateId() {
+		m_id = c_sequence.incrementAndGet();
 	}
 }

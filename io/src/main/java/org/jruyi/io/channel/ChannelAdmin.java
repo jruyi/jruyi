@@ -24,6 +24,7 @@ import java.util.concurrent.RejectedExecutionException;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.common.SyncPutQueue;
@@ -40,15 +41,15 @@ public final class ChannelAdmin implements IChannelAdmin {
 	private static final Logger c_logger = LoggerFactory
 			.getLogger(ChannelAdmin.class);
 	private SelectorThread[] m_sts;
-	private int m_mask;
+	private int m_count;
 
-	@Reference(name = "worker")
+	@Reference(name = "worker", policy = ReferencePolicy.DYNAMIC, target = "(threadPrefix=Worker)")
 	private IWorker m_worker;
 
-	@Reference(name = "timeoutAdmin")
+	@Reference(name = "timeoutAdmin", policy = ReferencePolicy.DYNAMIC)
 	private ITimeoutAdmin m_tm;
 
-	final class SelectorThread implements Runnable {
+	final class SelectorThread implements Runnable, ISelector {
 
 		private SyncPutQueue<ISelectableChannel> m_registerQueue;
 		private SyncPutQueue<ISelectableChannel> m_connectQueue;
@@ -174,30 +175,35 @@ public final class ChannelAdmin implements IChannelAdmin {
 			m_selector.wakeup();
 		}
 
+		@Override
+		public Selector selector() {
+			return m_selector;
+		}
+
+		@Override
 		public void onReadRequired(ISelectableChannel channel) {
 			m_readQueue.put(channel);
 			m_selector.wakeup();
 		}
 
+		@Override
 		public void onWriteRequired(ISelectableChannel channel) {
 			m_writeQueue.put(channel);
 			m_selector.wakeup();
 		}
 
 		private void procRegister() {
+			final SyncPutQueue<ISelectableChannel> registerQueue = m_registerQueue;
 			ISelectableChannel channel;
-			SyncPutQueue<ISelectableChannel> registerQueue = m_registerQueue;
-			Selector selector = m_selector;
 			while ((channel = registerQueue.poll()) != null)
-				channel.register(selector, SelectionKey.OP_READ);
+				channel.register(this, SelectionKey.OP_READ);
 		}
 
 		private void procConnect() {
+			final SyncPutQueue<ISelectableChannel> connectQueue = m_connectQueue;
 			ISelectableChannel channel;
-			SyncPutQueue<ISelectableChannel> connectQueue = m_connectQueue;
-			Selector selector = m_selector;
 			while ((channel = connectQueue.poll()) != null)
-				channel.register(selector, SelectionKey.OP_CONNECT);
+				channel.register(this, SelectionKey.OP_CONNECT);
 		}
 
 		private void procRead() {
@@ -238,13 +244,8 @@ public final class ChannelAdmin implements IChannelAdmin {
 	}
 
 	@Override
-	public void onReadRequired(ISelectableChannel channel) {
-		getSelectorThread(channel).onReadRequired(channel);
-	}
-
-	@Override
-	public void onWriteRequired(ISelectableChannel channel) {
-		getSelectorThread(channel).onWriteRequired(channel);
+	public void onWrite(ISelectableChannel channel) {
+		m_worker.run(channel.onWrite());
 	}
 
 	@Override
@@ -252,34 +253,42 @@ public final class ChannelAdmin implements IChannelAdmin {
 		return m_tm.createNotifier(channel);
 	}
 
-	protected void bindWorker(IWorker worker) {
+	protected synchronized void bindWorker(IWorker worker) {
 		m_worker = worker;
 	}
 
-	protected void unbindWorker(IWorker worker) {
-		m_worker = null;
+	protected synchronized void unbindWorker(IWorker worker) {
+		if (m_worker == worker)
+			m_worker = null;
 	}
 
-	protected void bindTimeoutAdmin(ITimeoutAdmin tm) {
+	protected synchronized void bindTimeoutAdmin(ITimeoutAdmin tm) {
 		m_tm = tm;
 	}
 
-	protected void unbindTimeoutAdmin(ITimeoutAdmin tm) {
-		m_tm = null;
+	protected synchronized void unbindTimeoutAdmin(ITimeoutAdmin tm) {
+		if (m_tm == tm)
+			m_tm = null;
 	}
 
 	protected void activate(Map<String, ?> properties) throws Exception {
 		c_logger.info("Activating ChannelAdmin...");
 
-		Integer numberOfSelectorThreads = (Integer) properties
+		Object numberOfSelectorThreads = properties
 				.get("numberOfSelectorThreads");
-		int i = numberOfSelectorThreads == null || numberOfSelectorThreads < 1 ? Runtime
-				.getRuntime().availableProcessors() : numberOfSelectorThreads;
-		int count = 1;
-		while (i > count)
-			count <<= 1;
-		SelectorThread[] sts = new SelectorThread[count];
-		for (i = 0; i < count; ++i) {
+		int count;
+		if (numberOfSelectorThreads == null) {
+			int i = Runtime.getRuntime().availableProcessors();
+			count = 0;
+			while ((i >>>= 1) > 0)
+				++count;
+			if (count < 1)
+				count = 1;
+		} else
+			count = (Integer) numberOfSelectorThreads;
+
+		final SelectorThread[] sts = new SelectorThread[count];
+		for (int i = 0; i < count; ++i) {
 			SelectorThread st = new SelectorThread();
 			try {
 				st.open(i);
@@ -289,11 +298,10 @@ public final class ChannelAdmin implements IChannelAdmin {
 					sts[--i].close();
 				throw e;
 			}
-
 			sts[i] = st;
 		}
 
-		m_mask = count - 1;
+		m_count = count;
 		m_sts = sts;
 
 		c_logger.info("ChannelAdmin activated");
@@ -302,7 +310,7 @@ public final class ChannelAdmin implements IChannelAdmin {
 	protected void deactivate() {
 		c_logger.info("Deactivating ChannelAdmin...");
 
-		SelectorThread[] sts = m_sts;
+		final SelectorThread[] sts = m_sts;
 		m_sts = null;
 		for (SelectorThread st : sts)
 			st.close();
@@ -310,11 +318,7 @@ public final class ChannelAdmin implements IChannelAdmin {
 		c_logger.info("ChannelAdmin deactivated");
 	}
 
-	IWorker getWorker() {
-		return m_worker;
-	}
-
 	private SelectorThread getSelectorThread(ISelectableChannel channel) {
-		return m_sts[channel.id().intValue() & m_mask];
+		return m_sts[channel.id().intValue() % m_count];
 	}
 }

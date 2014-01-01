@@ -24,7 +24,6 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.ConfigurationPolicy;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.jruyi.common.StrUtil;
@@ -38,7 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Service(ITcpAcceptor.class)
-@Component(name = "jruyi.io.tcpserver.tcpacceptor", policy = ConfigurationPolicy.IGNORE, createPid = false)
+@Component(name = "jruyi.io.tcpserver.tcpacceptor", createPid = false)
 public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 
 	private static final Logger c_logger = LoggerFactory
@@ -49,7 +48,7 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 	private SyncPutQueue<TcpServer> m_queue;
 	private ComponentContext m_context;
 
-	@Reference(name = "worker")
+	@Reference(name = "worker", target = "(threadPrefix=Worker)")
 	private IWorker m_worker;
 
 	@Override
@@ -62,7 +61,7 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 
 	@Override
 	public void run() {
-		IWorker worker = m_worker;
+		final IWorker worker = m_worker;
 		SyncPutQueue<TcpServer> queue = m_queue;
 		Selector selector = m_selector;
 		Thread currentThread = Thread.currentThread();

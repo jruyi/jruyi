@@ -26,6 +26,10 @@ public interface IChannel extends ISession, ISelectableChannel {
 
 	public void write(Object data);
 
+	public void onReadRequired();
+
+	public void onWriteRequired();
+
 	public boolean scheduleIdleTimeout(int timeout);
 
 	public boolean scheduleConnectTimeout(int timeout);

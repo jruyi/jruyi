@@ -52,7 +52,7 @@ public final class TimeoutAdmin implements Runnable, ITimeoutAdmin {
 	private ReentrantLock[] m_locks;
 	private Thread m_thread;
 
-	@Reference(name = "worker", policy = ReferencePolicy.DYNAMIC)
+	@Reference(name = "worker", policy = ReferencePolicy.DYNAMIC, target = "(threadPrefix=Worker)")
 	private IWorker m_worker;
 
 	@Override
@@ -87,11 +87,11 @@ public final class TimeoutAdmin implements Runnable, ITimeoutAdmin {
 		}
 	}
 
-	protected void bindWorker(IWorker worker) {
+	protected synchronized void bindWorker(IWorker worker) {
 		m_worker = worker;
 	}
 
-	protected void unbindWorker(IWorker worker) {
+	protected synchronized void unbindWorker(IWorker worker) {
 		if (m_worker == worker)
 			m_worker = null;
 	}

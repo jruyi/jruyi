@@ -20,7 +20,7 @@
 
 	<groupId>org.jruyi</groupId>
 	<artifactId>org.jruyi.io</artifactId>
-	<version>1.0.2</version>
+	<version>1.0.3-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 
 	<name>JRuyi IO</name>
@@ -169,7 +169,6 @@
 					<instructions>
 						<Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
 						<Export-Package>org.jruyi.io</Export-Package>
-						<Bundle-RequiredExecutionEnvironment>JavaSE-1.6</Bundle-RequiredExecutionEnvironment>
 					</instructions>
 				</configuration>
 			</plugin>

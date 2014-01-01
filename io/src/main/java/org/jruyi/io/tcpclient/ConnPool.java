@@ -52,7 +52,7 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 			.getLogger(ConnPool.class);
 	private Configuration m_conf;
 
-	@Reference(name = "worker")
+	@Reference(name = "worker", policy = ReferencePolicy.DYNAMIC, target = "(threadPrefix=Worker)")
 	private IWorker m_worker;
 
 	private final SyncQueue<Object> m_msgs;
@@ -339,11 +339,11 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 		channel.write(args.arg(1));
 	}
 
-	protected void bindWorker(IWorker worker) {
+	protected synchronized void bindWorker(IWorker worker) {
 		m_worker = worker;
 	}
 
-	protected void unbindWorker(IWorker worker) {
+	protected synchronized void unbindWorker(IWorker worker) {
 		if (m_worker == worker)
 			m_worker = null;
 	}

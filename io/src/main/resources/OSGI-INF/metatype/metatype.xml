@@ -14,8 +14,8 @@
 	limitations under the License.
 -->
 
-<MetaData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="http://www.osgi.org/xmlns/metatype/v1.2.0"
+<metatype:MetaData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:metatype="http://www.osgi.org/xmlns/metatype/v1.2.0"
 	xsi:schemaLocation="http://www.osgi.org/xmlns/metatype/v1.2.0 http://www.osgi.org/xmlns/metatype/v1.2.0/metatype.xsd">
 
 	<OCD id="buffer" name="Buffer Factory" description="The factory to create buffers">
@@ -24,6 +24,11 @@
 
 	<OCD id="channelAdmin" name="Channel Admin">
 		<AD id="numberOfSelectorThreads" name="Number Of Selector Threads" type="Integer" required="false" min="1"/>
+		<AD id="worker.target" name="Filter for Selecting Workshop" type="String" required="false" default="(threadPrefix=Worker)"/>
+	</OCD>
+
+	<OCD id="tcpAcceptor" name="TCP Acceptor">
+		<AD id="worker.target" name="Filter for Selecting Workshop" type="String" required="false" default="(threadPrefix=Worker)"/>
 	</OCD>
 
 	<OCD id="tcpServer" name="TCP Server">
@@ -78,6 +83,7 @@
 		<AD id="jruyi.me.endpoint.prehandlers" name="Endpoint PreHandlers" type="String" cardinality="65535" required="false"/>
 		<AD id="jruyi.me.endpoint.posthandlers" name="Endpoint PostHandlers" type="String" cardinality="65535" required="false"/>
 		<AD id="buffer.target" name="Filter for Selecting Buffer Factory" type="String" required="false"/>
+		<AD id="worker.target" name="Filter for Selecting Workshop" type="String" required="false" default="(threadPrefix=Worker)"/>
 		<AD id="addr" name="Host Address" type="String" required="true"/>
 		<AD id="port" name="Port" type="Integer" min="0" max="65535" required="true"/>
 		<AD id="readThreshold" name="Read Threshold" type="Integer" min="0" default="0"/>
@@ -176,6 +182,10 @@
 		<Object ocdref="channelAdmin"/>
 	</Designate>
 
+	<Designate pid="jruyi.io.tcpserver.tcpacceptor">
+		<Object ocdref="tcpAcceptor"/>
+	</Designate>
+
 	<Designate factoryPid="jruyi.io.tcpserver">
 		<Object ocdref="tcpServer"/>
 	</Designate>
@@ -208,4 +218,4 @@
 		<Object ocdref="sslFileKeyStore"/>
 	</Designate>
 
-</MetaData>
+</metatype:MetaData>

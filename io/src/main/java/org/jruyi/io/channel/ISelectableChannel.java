@@ -13,8 +13,6 @@
  */
 package org.jruyi.io.channel;
 
-import java.nio.channels.Selector;
-
 import org.jruyi.common.ICloseable;
 
 public interface ISelectableChannel extends ICloseable {
@@ -22,7 +20,7 @@ public interface ISelectableChannel extends ICloseable {
 	public Long id();
 
 	public void onConnect();
-	
+
 	public Runnable onRead();
 
 	public Runnable onWrite();
@@ -31,5 +29,5 @@ public interface ISelectableChannel extends ICloseable {
 
 	public void interestOps(int ops);
 
-	public void register(Selector selector, int ops);
+	public void register(ISelector selector, int ops);
 }

@@ -78,13 +78,13 @@ public final class MessageQueue implements ITimeoutListener {
 	private IServiceHolderManager<IPreHandler> m_preHandlerManager;
 	private IServiceHolderManager<IPostHandler> m_postHandlerManager;
 
-	@Reference(name = "routerManager")
+	@Reference(name = "routerManager", policy = ReferencePolicy.DYNAMIC)
 	private IRouterManager m_rm;
 
-	@Reference(name = "worker")
+	@Reference(name = "worker", policy = ReferencePolicy.DYNAMIC, target = "(threadPrefix=Worker)")
 	private IWorker m_worker;
 
-	@Reference(name = "timeoutAdmin")
+	@Reference(name = "timeoutAdmin", policy = ReferencePolicy.DYNAMIC)
 	private ITimeoutAdmin m_ta;
 
 	private ComponentContext m_context;
@@ -134,28 +134,31 @@ public final class MessageQueue implements ITimeoutListener {
 		msg.close();
 	}
 
-	protected void bindRouterManager(IRouterManager rm) {
+	protected synchronized void bindRouterManager(IRouterManager rm) {
 		m_rm = rm;
 	}
 
-	protected void unbindRouterManager(IRouterManager rm) {
-		m_rm = null;
+	protected synchronized void unbindRouterManager(IRouterManager rm) {
+		if (m_rm == rm)
+			m_rm = null;
 	}
 
-	protected void bindWorker(IWorker worker) {
+	protected synchronized void bindWorker(IWorker worker) {
 		m_worker = worker;
 	}
 
-	protected void unbindWorker(IWorker worker) {
-		m_worker = null;
+	protected synchronized void unbindWorker(IWorker worker) {
+		if (m_worker == worker)
+			m_worker = null;
 	}
 
-	protected void bindTimeoutAdmin(ITimeoutAdmin ta) {
+	protected synchronized void bindTimeoutAdmin(ITimeoutAdmin ta) {
 		m_ta = ta;
 	}
 
-	protected void unbindTimeoutAdmin(ITimeoutAdmin ta) {
-		m_ta = null;
+	protected synchronized void unbindTimeoutAdmin(ITimeoutAdmin ta) {
+		if (m_ta == ta)
+			m_ta = null;
 	}
 
 	protected synchronized void bindEndpoint(

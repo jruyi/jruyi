@@ -19,7 +19,6 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
 
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.AbstractCodec;
@@ -29,6 +28,7 @@ import org.jruyi.io.IUnitChain;
 import org.jruyi.io.buffer.Util;
 import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.ISelectableChannel;
+import org.jruyi.io.channel.ISelector;
 import org.jruyi.io.udp.UdpChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,7 +82,7 @@ final class UdpServerChannel extends AbstractCodec<SocketAddress> implements
 			}
 
 			channel.receive(in);
-			server.getChannelAdmin().onReadRequired(this);
+			channel.onReadRequired();
 		} catch (Throwable t) {
 			c_logger.error(
 					StrUtil.buildString(server, " failed to receive message"),
@@ -125,9 +125,9 @@ final class UdpServerChannel extends AbstractCodec<SocketAddress> implements
 	}
 
 	@Override
-	public void register(Selector selector, int ops) {
+	public void register(ISelector selector, int ops) {
 		try {
-			m_selectionKey = m_datagramChannel.register(selector, ops, this);
+			m_selectionKey = m_datagramChannel.register(selector.selector(), ops, this);
 		} catch (Throwable t) {
 			// Ignore
 		}

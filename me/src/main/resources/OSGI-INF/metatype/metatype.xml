@@ -14,16 +14,17 @@
 	limitations under the License.
 -->
 
-<MetaData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="http://www.osgi.org/xmlns/metatype/v1.1.0"
-	xsi:schemaLocation="http://www.osgi.org/xmlns/metatype/v1.1.0 http://www.osgi.org/xmlns/metatype/v1.1.0/metatype.xsd">
+<metatype:MetaData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:metatype="http://www.osgi.org/xmlns/metatype/v1.2.0"
+	xsi:schemaLocation="http://www.osgi.org/xmlns/metatype/v1.2.0 http://www.osgi.org/xmlns/metatype/v1.2.0/metatype.xsd">
 
 	<OCD id="mq" name="Message Queue">
 		<AD id="msgTimeout" name="Message Timeout" type="Integer" default="10" />
+		<AD id="worker.target" name="Filter for Selecting Workshop" type="String" required="false" default="(threadPrefix=Worker)"/>
 	</OCD>
 
 	<Designate pid="jruyi.me.mq">
 		<Object ocdref="mq" />
 	</Designate>
 
-</MetaData>
+</metatype:MetaData>
