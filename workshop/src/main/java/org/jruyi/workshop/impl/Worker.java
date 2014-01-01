@@ -14,6 +14,9 @@
 package org.jruyi.workshop.impl;
 
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -22,30 +25,35 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.jruyi.common.IArgList;
+import org.jruyi.common.IDumpable;
 import org.jruyi.common.StrUtil;
+import org.jruyi.common.StringBuilder;
 import org.jruyi.workshop.IRunnable;
 import org.jruyi.workshop.IWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Service
+@Service(IWorker.class)
 @Component(name = "jruyi.workshop", createPid = false)
-public final class Worker implements IWorker {
+public final class Worker implements IWorker, IDumpable {
 
 	private static final Logger c_logger = LoggerFactory
 			.getLogger(Worker.class);
 
-	@Property(intValue = 10)
+	private static final String DEFAULT_THREAD_PREFIX = "Worker";
+
+	@Property(value = DEFAULT_THREAD_PREFIX)
+	private static final String P_THREAD_PREFIX = "threadPrefix";
 	private static final String P_CORE_POOLSIZE = "corePoolSize";
-	@Property(intValue = 200)
 	private static final String P_MAX_POOLSIZE = "maxPoolSize";
 	@Property(intValue = 10)
 	private static final String P_KEEPALIVE_TIME = "keepAliveTime";
-	@Property(intValue = 2000)
+	@Property(intValue = 6000)
 	private static final String P_QUEUE_CAPACITY = "queueCapacity";
 	@Property(intValue = 300)
 	private static final String P_TERM_WAITTIME = "terminationWaitTime";
 
+	private String m_threadPrefix;
 	private ThreadPoolExecutor m_executor;
 	private int m_queueCapacity;
 	private int m_terminationWaitTime = 300;
@@ -60,35 +68,40 @@ public final class Worker implements IWorker {
 		m_executor.execute(Task.get(job, argList));
 	}
 
+	@Override
+	public void dump(StringBuilder builder) {
+		final ThreadPoolExecutor executor = m_executor;
+		builder.append("{" + P_CORE_POOLSIZE + "=")
+				.append(executor.getCorePoolSize())
+				.append(", " + P_MAX_POOLSIZE + "=")
+				.append(executor.getMaximumPoolSize())
+				.append(", " + P_KEEPALIVE_TIME + "=")
+				.append(executor.getKeepAliveTime(TimeUnit.SECONDS))
+				.append("s" + ", " + P_QUEUE_CAPACITY + "=")
+				.append(m_queueCapacity).append(", " + P_TERM_WAITTIME + "=")
+				.append(m_terminationWaitTime).append("s}");
+	}
+
 	@Modified
 	protected void modified(Map<String, ?> properties) throws Exception {
-		int corePoolSize = (Integer) properties.get(P_CORE_POOLSIZE);
-		int maxPoolSize = (Integer) properties.get(P_MAX_POOLSIZE);
-		int keepAliveTime = (Integer) properties.get(P_KEEPALIVE_TIME);
-		int queueCapacity = (Integer) properties.get(P_QUEUE_CAPACITY);
-		int terminationWaitTime = (Integer) properties.get(P_TERM_WAITTIME);
+		final int keepAliveTime = getKeepAliveTime(properties);
+		final int corePoolSize = getCorePoolSize(properties);
+		final int maxPoolSize = getMaxPoolSize(properties, corePoolSize);
+		final int queueCapacity = (Integer) properties.get(P_QUEUE_CAPACITY);
+		final int terminationWaitTime = (Integer) properties
+				.get(P_TERM_WAITTIME);
+		final String threadPrefix = getThreadPrefix(properties);
 
-		if (corePoolSize < 1)
-			throw new Exception("Property[" + P_CORE_POOLSIZE
-					+ "] has to be positive");
-
-		if (maxPoolSize < corePoolSize)
-			throw new Exception("Property[" + P_MAX_POOLSIZE
-					+ "] cannot be less than Property[" + P_CORE_POOLSIZE + "]");
-
-		if (keepAliveTime < 0)
-			throw new Exception("Property[" + P_KEEPALIVE_TIME
-					+ "] has to be non-negative");
-
-		ThreadPoolExecutor executor = m_executor;
-		int oldQueueCapacity = m_queueCapacity;
+		final ThreadPoolExecutor executor = m_executor;
+		final int oldQueueCapacity = m_queueCapacity;
 		if (queueCapacity != oldQueueCapacity
 				&& (queueCapacity >= 0 || oldQueueCapacity >= 0)) {
-			m_executor = new BlockingThreadPoolExecutor(corePoolSize,
-					maxPoolSize, keepAliveTime, queueCapacity);
+			m_executor = newExecutor(threadPrefix, corePoolSize, maxPoolSize,
+					keepAliveTime, queueCapacity);
 			m_queueCapacity = queueCapacity;
 			executor.shutdown();
 		} else {
+			threadPrefix(threadPrefix);
 			if (corePoolSize > executor.getMaximumPoolSize()) {
 				executor.setMaximumPoolSize(maxPoolSize);
 				executor.setCorePoolSize(corePoolSize);
@@ -101,52 +114,33 @@ public final class Worker implements IWorker {
 
 		m_terminationWaitTime = terminationWaitTime;
 
-		c_logger.info(StrUtil.buildString("ThreadPool was updated - {"
-				+ P_CORE_POOLSIZE + "=", corePoolSize, ", " + P_MAX_POOLSIZE
-				+ "=", maxPoolSize, ", " + P_KEEPALIVE_TIME + "=",
-				keepAliveTime, "s" + ", " + P_QUEUE_CAPACITY + "=",
-				queueCapacity, ", " + P_TERM_WAITTIME + "=",
-				terminationWaitTime, "s}"));
+		c_logger.info(getLog(" was updated - ", this));
 	}
 
 	protected void activate(Map<String, ?> properties) throws Exception {
-		c_logger.info("Activating Workshop...");
 
-		int corePoolSize = (Integer) properties.get(P_CORE_POOLSIZE);
-		int maxPoolSize = (Integer) properties.get(P_MAX_POOLSIZE);
-		int keepAliveTime = (Integer) properties.get(P_KEEPALIVE_TIME);
-		int queueCapacity = (Integer) properties.get(P_QUEUE_CAPACITY);
-		int terminationWaitTime = (Integer) properties.get(P_TERM_WAITTIME);
+		final String threadPrefix = getThreadPrefix(properties);
 
-		if (corePoolSize < 1)
-			throw new Exception("Property[" + P_CORE_POOLSIZE
-					+ "] has to be positive");
+		c_logger.info(getLog("Activating "));
 
-		if (maxPoolSize < corePoolSize)
-			throw new Exception("Property[" + P_MAX_POOLSIZE
-					+ "] cannot be less than Property[" + P_CORE_POOLSIZE + "]");
+		final int keepAliveTime = getKeepAliveTime(properties);
+		final int corePoolSize = getCorePoolSize(properties);
+		final int maxPoolSize = getMaxPoolSize(properties, corePoolSize);
+		final int queueCapacity = (Integer) properties.get(P_QUEUE_CAPACITY);
+		final int terminationWaitTime = (Integer) properties
+				.get(P_TERM_WAITTIME);
 
-		if (keepAliveTime < 0)
-			throw new Exception("Property[" + P_KEEPALIVE_TIME
-					+ "] has to be non-negative");
-
-		m_executor = new BlockingThreadPoolExecutor(corePoolSize, maxPoolSize,
+		m_executor = newExecutor(threadPrefix, corePoolSize, maxPoolSize,
 				keepAliveTime, queueCapacity);
 		m_queueCapacity = queueCapacity;
 		m_terminationWaitTime = terminationWaitTime;
 
-		c_logger.info(StrUtil.buildString("ThreadPool was created - {"
-				+ P_CORE_POOLSIZE + "=", corePoolSize, ", " + P_MAX_POOLSIZE
-				+ "=", maxPoolSize, ", " + P_KEEPALIVE_TIME + "=",
-				keepAliveTime, "s" + ", " + P_QUEUE_CAPACITY + "=",
-				queueCapacity, ", " + P_TERM_WAITTIME + "=",
-				terminationWaitTime, "s}"));
-
-		c_logger.info("Workshop activated");
+		c_logger.info(getLog(" was activated - ", this));
 	}
 
 	protected void deactivate() {
-		c_logger.info("Deactivating Workshop...");
+
+		c_logger.info(getLog("Deactivating "));
 
 		try {
 			m_executor.shutdown();
@@ -155,6 +149,8 @@ public final class Worker implements IWorker {
 				c_logger.debug("Executor terminated");
 			else
 				c_logger.debug("Executor was time out");
+
+			c_logger.info(getLog(" was deactivated - ", this));
 		} catch (InterruptedException e) {
 			c_logger.warn("Going here is abnormal");
 		} catch (Exception e) {
@@ -162,7 +158,80 @@ public final class Worker implements IWorker {
 		} finally {
 			m_executor = null;
 		}
+	}
 
-		c_logger.info("Workshop deactivated");
+	private static ThreadPoolExecutor newExecutor(String name,
+			int corePoolSize, int maxPoolSize, long keepAliveTime,
+			int queueCapacity) {
+		return new ThreadPoolExecutor(
+				corePoolSize,
+				maxPoolSize,
+				keepAliveTime,
+				TimeUnit.SECONDS,
+				queueCapacity < 0 ? new LinkedBlockingQueue<Runnable>()
+						: (queueCapacity > 0 ? new ArrayBlockingQueue<Runnable>(
+								queueCapacity)
+								: new SynchronousQueue<Runnable>()),
+				new PooledThreadFactory(name),
+				new ThreadPoolExecutor.CallerRunsPolicy());
+	}
+
+	private static int getCorePoolSize(Map<String, ?> properties) {
+		Object v = properties.get(P_CORE_POOLSIZE);
+		if (v == null)
+			return Runtime.getRuntime().availableProcessors() + 1;
+		else
+			return (Integer) v;
+	}
+
+	private static int getMaxPoolSize(Map<String, ?> properties,
+			int corePoolSize) throws Exception {
+		Object v = properties.get(P_MAX_POOLSIZE);
+		if (v == null) {
+			int maxPoolSize = corePoolSize << 1;
+			if (maxPoolSize < 1 || maxPoolSize >= 500)
+				maxPoolSize = corePoolSize;
+			return maxPoolSize;
+		}
+
+		int maxPoolSize = (Integer) v;
+		if (maxPoolSize < corePoolSize)
+			throw new Exception("Property[" + P_MAX_POOLSIZE
+					+ "] cannot be less than Property[" + P_CORE_POOLSIZE + "]");
+
+		return maxPoolSize;
+	}
+
+	private static int getKeepAliveTime(Map<String, ?> properties)
+			throws Exception {
+		int keepAliveTime = (Integer) properties.get(P_KEEPALIVE_TIME);
+		if (keepAliveTime < 0)
+			throw new Exception("Property[" + P_KEEPALIVE_TIME
+					+ "] has to be non-negative");
+		return keepAliveTime;
+	}
+
+	private String getThreadPrefix(Map<String, ?> properties) {
+		String threadPrefix = (String) properties.get(P_THREAD_PREFIX);
+		threadPrefix = threadPrefix.trim();
+		if (threadPrefix.isEmpty())
+			threadPrefix = DEFAULT_THREAD_PREFIX;
+		m_threadPrefix = threadPrefix;
+		return threadPrefix;
+	}
+
+	private String getLog(String arg0, Object arg1) {
+		return StrUtil.buildString("Workshop[" + P_THREAD_PREFIX + "=",
+				m_threadPrefix, "]", arg0, arg1);
+	}
+
+	private String getLog(String arg) {
+		return StrUtil.buildString(arg, "Workshop[" + P_THREAD_PREFIX + "=",
+				m_threadPrefix, "]...");
+	}
+
+	private void threadPrefix(String threadPrefix) {
+		((PooledThreadFactory) m_executor.getThreadFactory())
+				.threadPrefix(threadPrefix);
 	}
 }

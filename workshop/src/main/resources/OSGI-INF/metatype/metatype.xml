@@ -19,14 +19,15 @@
 	xsi:schemaLocation="http://www.osgi.org/xmlns/metatype/v1.1.0 http://www.osgi.org/xmlns/metatype/v1.1.0/metatype.xsd">
 
 	<OCD id="workshop" name="Workshop">
-		<AD id="corePoolSize" name="Core Pool Size" type="Integer" min="1" default="10"/>
-		<AD id="maxPoolSize" name="Maximum Pool Size" type="Integer" min="1" default="200"/>
+		<AD id="threadPrefix" name="Prefix of Thread Name" type="String" default="Worker"/>
+		<AD id="corePoolSize" name="Core Pool Size" type="Integer" min="1" required="false"/>
+		<AD id="maxPoolSize" name="Maximum Pool Size" type="Integer" min="1" required="false"/>
 		<AD id="keepAliveTime" name="Keep Alive Time" type="Integer" min="0" default="10"/>
-		<AD id="queueCapacity" name="Queue Capacity" type="Integer" default="3000"/>
+		<AD id="queueCapacity" name="Queue Capacity" type="Integer" default="6000"/>
 		<AD id="terminationWaitTime" name="Termination Wait Time" type="Integer" default="300"/>
 	</OCD>
 
-	<Designate pid="jruyi.workshop">
+	<Designate factoryPid="jruyi.workshop">
 		<Object ocdref="workshop"/>
 	</Designate>
 
