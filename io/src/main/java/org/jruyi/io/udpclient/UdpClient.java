@@ -60,7 +60,7 @@ public final class UdpClient extends Service implements IChannelService,
 	@Reference(name = "buffer", policy = ReferencePolicy.DYNAMIC, bind = "bindBufferFactory", unbind = "unbindBufferFactory")
 	private IBufferFactory m_bf;
 
-	private IFilter[] m_filters;
+	private IFilter<?, ?>[] m_filters;
 	private boolean m_closed = true;
 	private ISessionListener m_listener;
 	private volatile IChannel m_channel;
@@ -88,7 +88,7 @@ public final class UdpClient extends Service implements IChannelService,
 	}
 
 	@Override
-	public IFilter[] getFilterChain() {
+	public IFilter<?, ?>[] getFilterChain() {
 		return m_filters;
 	}
 

@@ -50,7 +50,7 @@ public abstract class AbstractTcpClient extends Service implements
 	private IChannelAdmin m_ca;
 	private IFilterManager m_fm;
 	private IBufferFactory m_bf;
-	private IFilter[] m_filters;
+	private IFilter<?, ?>[] m_filters;
 	private boolean m_closed = true;
 	private ISessionListener m_listener;
 	private ConcurrentHashMap<Object, IChannel> m_channels;
@@ -108,7 +108,7 @@ public abstract class AbstractTcpClient extends Service implements
 	}
 
 	@Override
-	public final IFilter[] getFilterChain() {
+	public final IFilter<?, ?>[] getFilterChain() {
 		return m_filters;
 	}
 

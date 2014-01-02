@@ -26,17 +26,20 @@ import org.osgi.framework.BundleContext;
 @Component(name = "jruyi.io.filter", policy = ConfigurationPolicy.IGNORE, createPid = false)
 public final class FilterManager implements IFilterManager {
 
-	private static final IFilter[] EMPTY = new IFilter[0];
+	private static final IFilter<?, ?>[] EMPTY = new IFilter[0];
+
+	@SuppressWarnings("rawtypes")
 	private IServiceHolderManager<IFilter> m_manager;
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
-	public IFilter[] getFilters(String[] filterIds) {
+	public IFilter<?, ?>[] getFilters(String[] filterIds) {
 		int n = filterIds.length;
 		if (n < 1)
 			return EMPTY;
 
 		final IServiceHolderManager<IFilter> manager = m_manager;
-		IFilter[] filters = new IFilter[n];
+		IFilter<?, ?>[] filters = new IFilter[n];
 		for (int i = 0; i < n; ++i)
 			filters[i] = new FilterDelegator(
 					manager.getServiceHolder(filterIds[i]));
@@ -46,13 +49,15 @@ public final class FilterManager implements IFilterManager {
 
 	@Override
 	public void ungetFilters(String[] filterIds) {
+		@SuppressWarnings("rawtypes")
 		final IServiceHolderManager<IFilter> manager = m_manager;
 		for (String filterId : filterIds)
 			manager.ungetServiceHolder(filterId);
 	}
 
 	protected void activate(BundleContext context) {
-		IServiceHolderManager<IFilter> manager = ServiceHolderManager
+		@SuppressWarnings("rawtypes")
+		final IServiceHolderManager<IFilter> manager = ServiceHolderManager
 				.newInstance(context, IFilter.class, IoConstants.FILTER_ID);
 		manager.open();
 		m_manager = manager;

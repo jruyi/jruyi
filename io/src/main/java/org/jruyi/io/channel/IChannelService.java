@@ -21,12 +21,12 @@ public interface IChannelService {
 	public Object getConfiguration();
 
 	public IChannelAdmin getChannelAdmin();
-	
+
 	public IBufferFactory getBufferFactory();
 
 	public int readThreshold();
 
-	public IFilter[] getFilterChain();
+	public IFilter<?, ?>[] getFilterChain();
 
 	public void onChannelOpened(IChannel channel);
 

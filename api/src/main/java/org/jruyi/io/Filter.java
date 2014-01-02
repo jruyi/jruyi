@@ -15,8 +15,15 @@ package org.jruyi.io;
 
 /**
  * This abstract class provides pass-through implementation of {@link IFilter}.
+ * 
+ * @see IFilter
+ * 
+ * @param <I>
+ *            the type of the in-bound message passed to {@link onMsgArrive}
+ * @param <O>
+ *            the type of the out-bound message passed to {@link onMsgDepart}
  */
-public abstract class Filter implements IFilter {
+public abstract class Filter<I, O> implements IFilter<I, O> {
 
 	/**
 	 * Returns the current length of the given {@code in} as the message
@@ -46,8 +53,7 @@ public abstract class Filter implements IFilter {
 	 * @return true
 	 */
 	@Override
-	public boolean onMsgArrive(ISession session, Object msg,
-			IFilterOutput output) {
+	public boolean onMsgArrive(ISession session, I msg, IFilterOutput output) {
 		output.add(msg);
 		return true;
 	}
@@ -65,8 +71,7 @@ public abstract class Filter implements IFilter {
 	 * @return true
 	 */
 	@Override
-	public boolean onMsgDepart(ISession session, Object msg,
-			IFilterOutput output) {
+	public boolean onMsgDepart(ISession session, O msg, IFilterOutput output) {
 		output.add(msg);
 		return true;
 	}

@@ -57,7 +57,8 @@ import org.slf4j.LoggerFactory;
 @Property(name = IoConstants.FILTER_ID, value = "jruyi.clid.filter")
 @Reference(name = CliProcessor.TCPSERVER, referenceInterface = ComponentFactory.class, target = "(component.name="
 		+ IoConstants.CN_TCPSERVER_FACTORY + ")", strategy = ReferenceStrategy.LOOKUP)
-public final class CliProcessor extends SessionListener implements IFilter {
+public final class CliProcessor extends SessionListener implements
+		IFilter<IBuffer, Object> {
 
 	public static final String TCPSERVER = "tcpserver";
 	public static final String SERVICE_ID = "jruyi.clid";
@@ -114,9 +115,9 @@ public final class CliProcessor extends SessionListener implements IFilter {
 	}
 
 	@Override
-	public boolean onMsgArrive(ISession session, Object msg,
+	public boolean onMsgArrive(ISession session, IBuffer msg,
 			IFilterOutput output) {
-		((IBuffer) msg).compact();
+		msg.compact();
 		output.add(msg);
 		return true;
 	}

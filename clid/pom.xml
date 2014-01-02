@@ -100,7 +100,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>jruyi-api</artifactId>
-			<version>1.0.0</version>
+			<version>1.1.0-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
@@ -155,7 +155,6 @@
 					<instructions>
 						<Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
 						<Export-Package>!*</Export-Package>
-						<Bundle-RequiredExecutionEnvironment>JavaSE-1.6</Bundle-RequiredExecutionEnvironment>
 					</instructions>
 				</configuration>
 			</plugin>

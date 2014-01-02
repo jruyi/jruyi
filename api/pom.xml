@@ -20,7 +20,7 @@
 
 	<groupId>org.jruyi</groupId>
 	<artifactId>jruyi-api</artifactId>
-	<version>1.0.0</version>
+	<version>1.1.0-SNAPSHOT</version>
 
 	<name>JRuyi API</name>
 	<description>JRuyi API</description>
@@ -68,7 +68,7 @@
 	<properties>
 		<org.jruyi.cmd.version>1.0</org.jruyi.cmd.version>
 		<org.jruyi.common.version>1.0</org.jruyi.common.version>
-		<org.jruyi.io.version>1.0</org.jruyi.io.version>
+		<org.jruyi.io.version>1.1</org.jruyi.io.version>
 		<org.jruyi.me.version>1.0</org.jruyi.me.version>
 		<org.jruyi.system.version>1.0</org.jruyi.system.version>
 		<org.jruyi.timeoutadmin.version>1.0</org.jruyi.timeoutadmin.version>

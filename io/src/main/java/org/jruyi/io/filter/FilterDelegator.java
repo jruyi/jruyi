@@ -20,12 +20,12 @@ import org.jruyi.io.IFilter;
 import org.jruyi.io.IFilterOutput;
 import org.jruyi.io.ISession;
 
-final class FilterDelegator implements IFilter {
+final class FilterDelegator<I, O> implements IFilter<I, O> {
 
-	private final IServiceHolder<IFilter> m_holder;
+	private final IServiceHolder<IFilter<I, O>> m_holder;
 	private final String m_caption;
 
-	FilterDelegator(IServiceHolder<IFilter> holder) {
+	FilterDelegator(IServiceHolder<IFilter<I, O>> holder) {
 		m_holder = holder;
 		m_caption = StrUtil.buildString("Filter[", holder.getId(), ']');
 	}
@@ -36,12 +36,14 @@ final class FilterDelegator implements IFilter {
 	}
 
 	@Override
-	public boolean onMsgArrive(ISession session, Object msg, IFilterOutput output) {
+	public boolean onMsgArrive(ISession session, I msg,
+			IFilterOutput output) {
 		return m_holder.getService().onMsgArrive(session, msg, output);
 	}
 
 	@Override
-	public boolean onMsgDepart(ISession session, Object msg, IFilterOutput output) {
+	public boolean onMsgDepart(ISession session, O msg,
+			IFilterOutput output) {
 		return m_holder.getService().onMsgDepart(session, msg, output);
 	}
 
@@ -50,7 +52,7 @@ final class FilterDelegator implements IFilter {
 		return m_caption;
 	}
 
-	IServiceHolder<IFilter> serviceHolder() {
+	IServiceHolder<IFilter<I, O>> serviceHolder() {
 		return m_holder;
 	}
 }

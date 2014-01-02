@@ -302,7 +302,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			}
 		}
 
-		void write(Object msg, IFilter[] filters, int filterCount) {
+		void write(Object msg, IFilter<?, ?>[] filters, int filterCount) {
 			IArgList out = ArgList.create(msg, filters, filterCount);
 			if (put(out))
 				return;
@@ -392,7 +392,9 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			Object msg = arg.arg(0);
 			int index = (Integer) arg.arg(2);
 			if (index > 0) {
-				IFilter[] filters = (IFilter[]) arg.arg(1);
+				@SuppressWarnings("unchecked")
+				IFilter<Object, Object>[] filters = (IFilter<Object, Object>[]) arg
+						.arg(1);
 				MsgArrayList inMsgs = MsgArrayList.get();
 				MsgArrayList outMsgs = MsgArrayList.get();
 				try {
@@ -600,7 +602,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			if (msg == null)
 				return;
 
-			IFilter[] filters = channelService().getFilterChain();
+			IFilter<?, ?>[] filters = channelService().getFilterChain();
 			m_writeThread.write(msg, filters, filters.length);
 		} catch (Throwable t) {
 			onException(t);
@@ -830,7 +832,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 		MsgArrayList inMsgs = MsgArrayList.get();
 		MsgArrayList outMsgs = MsgArrayList.get();
 		IChannelService cs = m_channelService;
-		IFilter[] filters = cs.getFilterChain();
+		IFilter<?, ?>[] filters = cs.getFilterChain();
 		try {
 			for (int k = 0, m = filters.length; k < m; ++k) {
 				if (in instanceof IBuffer) {
@@ -870,9 +872,9 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 	}
 
 	@SuppressWarnings("resource")
-	private boolean onAccumulate(int k, IFilter[] filters, MsgArrayList inMsgs,
-			MsgArrayList outMsgs, IBuffer in) {
-		IFilter filter = filters[k];
+	private boolean onAccumulate(int k, IFilter<?, ?>[] filters,
+			MsgArrayList inMsgs, MsgArrayList outMsgs, IBuffer in) {
+		IFilter<?, ?> filter = filters[k];
 		// mergeContext -start
 		int msgLen = 0;
 		FilterContext context = (FilterContext) withdraw(filter);
@@ -965,10 +967,13 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 		}
 	}
 
-	private boolean onMsgArrive(int index, IFilter[] filters,
+	private boolean onMsgArrive(int index, IFilter<?, ?>[] filters,
 			MsgArrayList outMsgs, Object msg) {
 		int size = outMsgs.size();
-		boolean ok = filters[index].onMsgArrive(this, msg, outMsgs);
+
+		@SuppressWarnings("unchecked")
+		boolean ok = ((IFilter<Object, ?>) filters[index]).onMsgArrive(this,
+				msg, outMsgs);
 		int n = outMsgs.size();
 		if (n == size || ok)
 			return ok;

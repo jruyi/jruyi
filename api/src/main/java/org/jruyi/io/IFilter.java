@@ -13,12 +13,19 @@
  */
 package org.jruyi.io;
 
-
 /**
  * A filter is in charge of splitting the incoming data into messages, and
  * performs filtering tasks on both incoming and outgoing messages.
+ * 
+ * @see IFilterOutput
+ * @see Filter
+ * 
+ * @param <I>
+ *            the type of the in-bound message passed to {@link onMsgArrive}
+ * @param <O>
+ *            the type of the out-bound message passed to {@link onMsgDepart}
  */
-public interface IFilter {
+public interface IFilter<I, O> {
 
 	/**
 	 * Indicates that more data is needed to parse out the length of a message.
@@ -73,8 +80,7 @@ public interface IFilter {
 	 *            filter chain
 	 * @return true if going to next filter otherwise false.
 	 */
-	public boolean onMsgArrive(ISession session, Object msg,
-			IFilterOutput output);
+	public boolean onMsgArrive(ISession session, I msg, IFilterOutput output);
 
 	/**
 	 * Filters the outgoing data. The filtered output is passed on to the
@@ -99,6 +105,5 @@ public interface IFilter {
 	 *            the filter chain
 	 * @return true if going to the previous filter otherwise false
 	 */
-	public boolean onMsgDepart(ISession session, Object msg,
-			IFilterOutput output);
+	public boolean onMsgDepart(ISession session, O msg, IFilterOutput output);
 }

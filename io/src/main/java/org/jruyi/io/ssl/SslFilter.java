@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
 @Service
 @Component(name = IoConstants.FID_SSL, createPid = false)
 @Property(name = IoConstants.FILTER_ID, value = IoConstants.FID_SSL)
-public final class SslFilter implements IFilter {
+public final class SslFilter implements IFilter<IBuffer, IBuffer> {
 
 	private static final Logger c_logger = LoggerFactory
 			.getLogger(SslFilter.class);
@@ -173,15 +173,8 @@ public final class SslFilter implements IFilter {
 	}
 
 	@Override
-	public boolean onMsgArrive(ISession session, Object msg,
+	public boolean onMsgArrive(ISession session, IBuffer netData,
 			IFilterOutput output) {
-		IBuffer netData;
-		try {
-			netData = (IBuffer) msg;
-		} catch (ClassCastException e) {
-			throw new RuntimeException(
-					"SSL filter only handles data of type IBuffer");
-		}
 
 		SslCodec sslCodec = (SslCodec) session.inquiry(SSL_CODEC);
 		if (sslCodec == null) {
@@ -238,16 +231,8 @@ public final class SslFilter implements IFilter {
 	}
 
 	@Override
-	public boolean onMsgDepart(ISession session, Object msg,
+	public boolean onMsgDepart(ISession session, IBuffer appData,
 			IFilterOutput output) {
-		IBuffer appData;
-		try {
-			appData = (IBuffer) msg;
-		} catch (ClassCastException e) {
-			throw new RuntimeException(
-					"SSL filter only handles data of type IBuffer");
-		}
-
 		SslCodec sslCodec = (SslCodec) session.inquiry(SSL_CODEC);
 		if (sslCodec == null) {
 			// client mode

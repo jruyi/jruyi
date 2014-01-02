@@ -28,7 +28,7 @@ import org.jruyi.io.IoConstants;
 @Service
 @Component(name = "jruyi.io.textline.filter", createPid = false, specVersion = "1.1.0")
 @Property(name = IoConstants.FILTER_ID, value = "jruyi.io.textline.filter")
-public final class TextLineFilter extends Filter {
+public final class TextLineFilter extends Filter<Object, Object> {
 
 	private byte[] m_lineTerminator;
 

@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 @Service(IFilter.class)
 @Component(name = IoConstants.FID_MSGLOG, policy = ConfigurationPolicy.IGNORE, createPid = false)
 @Property(name = IoConstants.FILTER_ID, value = IoConstants.FID_MSGLOG)
-public final class MsgLogFilter extends Filter {
+public final class MsgLogFilter extends Filter<Object, Object> {
 
 	private static final Logger c_logger = LoggerFactory
 			.getLogger(MsgLogFilter.class);

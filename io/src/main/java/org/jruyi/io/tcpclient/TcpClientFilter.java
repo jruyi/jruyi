@@ -27,7 +27,7 @@ import org.jruyi.me.IMessage;
 @Service(IFilter.class)
 @Component(name = IoConstants.FID_TCPCLIENT, policy = ConfigurationPolicy.IGNORE, createPid = false)
 @Property(name = IoConstants.FILTER_ID, value = IoConstants.FID_TCPCLIENT)
-public final class TcpClientFilter extends Filter {
+public final class TcpClientFilter extends Filter<Object, Object> {
 
 	@Override
 	public boolean onMsgArrive(ISession session, Object msg,
