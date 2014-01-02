@@ -25,7 +25,7 @@ final class ServiceHolder<T> implements IServiceHolder<T> {
 
 	private final String m_name;
 	private final BundleContext m_context;
-	private final PriorityQueue<ServiceReference> m_references;
+	private final PriorityQueue<ServiceReference<T>> m_references;
 	private final ReentrantLock m_lock;
 	private int m_count;
 	private T m_service;
@@ -33,10 +33,10 @@ final class ServiceHolder<T> implements IServiceHolder<T> {
 
 	static abstract class State {
 
-		<T> void add(ServiceHolder<T> holder, ServiceReference reference) {
+		<T> void add(ServiceHolder<T> holder, ServiceReference<T> reference) {
 		}
 
-		<T> void remove(ServiceHolder<T> holder, ServiceReference reference) {
+		<T> void remove(ServiceHolder<T> holder, ServiceReference<T> reference) {
 		}
 
 		<T> T activate(ServiceHolder<T> holder) {
@@ -61,7 +61,7 @@ final class ServiceHolder<T> implements IServiceHolder<T> {
 		}
 
 		@Override
-		<T> void add(ServiceHolder<T> holder, ServiceReference reference) {
+		<T> void add(ServiceHolder<T> holder, ServiceReference<T> reference) {
 			holder.addInternal(reference);
 			holder.changeState(Resolved.INST);
 		}
@@ -75,12 +75,12 @@ final class ServiceHolder<T> implements IServiceHolder<T> {
 		}
 
 		@Override
-		<T> void add(ServiceHolder<T> holder, ServiceReference reference) {
+		<T> void add(ServiceHolder<T> holder, ServiceReference<T> reference) {
 			holder.addInternal(reference);
 		}
 
 		@Override
-		<T> void remove(ServiceHolder<T> holder, ServiceReference reference) {
+		<T> void remove(ServiceHolder<T> holder, ServiceReference<T> reference) {
 			holder.removeInternal(reference);
 			if (holder.getServiceReference() == null)
 				holder.changeState(Unresolved.INST);
@@ -107,14 +107,14 @@ final class ServiceHolder<T> implements IServiceHolder<T> {
 		}
 
 		@Override
-		<T> void add(ServiceHolder<T> holder, ServiceReference reference) {
+		<T> void add(ServiceHolder<T> holder, ServiceReference<T> reference) {
 			holder.addInternal(reference);
 			if (holder.getServiceReference() == reference)
 				holder.changeState(Resolved.INST);
 		}
 
 		@Override
-		<T> void remove(ServiceHolder<T> holder, ServiceReference reference) {
+		<T> void remove(ServiceHolder<T> holder, ServiceReference<T> reference) {
 			if (holder.getServiceReference() == reference) {
 				holder.changeState(Resolved.INST);
 				holder.deactivateInternal();
@@ -145,7 +145,7 @@ final class ServiceHolder<T> implements IServiceHolder<T> {
 	ServiceHolder(String name, BundleContext context) {
 		m_name = name;
 		m_context = context;
-		m_references = new PriorityQueue<ServiceReference>(3);
+		m_references = new PriorityQueue<ServiceReference<T>>(3);
 		m_lock = new ReentrantLock();
 	}
 
@@ -167,7 +167,7 @@ final class ServiceHolder<T> implements IServiceHolder<T> {
 		return --m_count;
 	}
 
-	void add(ServiceReference reference) {
+	void add(ServiceReference<T> reference) {
 		final ReentrantLock lock = m_lock;
 		lock.lock();
 		try {
@@ -177,7 +177,7 @@ final class ServiceHolder<T> implements IServiceHolder<T> {
 		}
 	}
 
-	void remove(ServiceReference reference) {
+	void remove(ServiceReference<T> reference) {
 		final ReentrantLock lock = m_lock;
 		lock.lock();
 		try {
@@ -211,9 +211,8 @@ final class ServiceHolder<T> implements IServiceHolder<T> {
 		return m_service;
 	}
 
-	@SuppressWarnings("unchecked")
 	void activateInternal() {
-		m_service = (T) m_context.getService(m_references.peek());
+		m_service = m_context.getService(m_references.peek());
 	}
 
 	void deactivateInternal() {
@@ -221,15 +220,15 @@ final class ServiceHolder<T> implements IServiceHolder<T> {
 		m_service = null;
 	}
 
-	void addInternal(ServiceReference reference) {
+	void addInternal(ServiceReference<T> reference) {
 		m_references.add(reference);
 	}
 
-	void removeInternal(ServiceReference reference) {
+	void removeInternal(ServiceReference<T> reference) {
 		m_references.remove(reference);
 	}
 
-	ServiceReference getServiceReference() {
+	ServiceReference<T> getServiceReference() {
 		return m_references.peek();
 	}
 

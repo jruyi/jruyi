@@ -40,8 +40,8 @@ public final class ServiceHolderManagerProvider implements IFactory {
 		}
 	}
 
-	static final class ServiceHolderTracker<T> extends ServiceTracker implements
-			IServiceHolderManager<T> {
+	static final class ServiceHolderTracker<T> extends
+			ServiceTracker<T, NameHolder> implements IServiceHolderManager<T> {
 
 		private final String m_nameOfId;
 		private final ReentrantLock m_lock;
@@ -56,7 +56,7 @@ public final class ServiceHolderManagerProvider implements IFactory {
 		}
 
 		@Override
-		public Object addingService(ServiceReference reference) {
+		public NameHolder addingService(ServiceReference<T> reference) {
 			String name = getName(reference);
 			ServiceHolder<T> holder = getServiceHolder(name);
 			holder.add(reference);
@@ -64,8 +64,8 @@ public final class ServiceHolderManagerProvider implements IFactory {
 		}
 
 		@Override
-		public void modifiedService(ServiceReference reference, Object service) {
-			NameHolder nameHolder = (NameHolder) service;
+		public void modifiedService(ServiceReference<T> reference,
+				NameHolder nameHolder) {
 			String name = getName(reference);
 			if (nameHolder.m_name.equals(name))
 				return;
@@ -79,8 +79,9 @@ public final class ServiceHolderManagerProvider implements IFactory {
 		}
 
 		@Override
-		public void removedService(ServiceReference reference, Object service) {
-			String name = ((NameHolder) service).m_name;
+		public void removedService(ServiceReference<T> reference,
+				NameHolder nameHolder) {
+			String name = nameHolder.m_name;
 			ServiceHolder<T> holder = ungetServiceHolder(name);
 			holder.remove(reference);
 		}
@@ -126,7 +127,7 @@ public final class ServiceHolderManagerProvider implements IFactory {
 			}
 		}
 
-		private String getName(ServiceReference reference) {
+		private String getName(ServiceReference<T> reference) {
 			return reference.getProperty(m_nameOfId).toString();
 		}
 	}

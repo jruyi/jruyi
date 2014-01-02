@@ -18,15 +18,16 @@ import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.log.LogService;
 
-final class LogServiceFactory implements ServiceFactory {
+final class LogServiceFactory implements ServiceFactory<LogService> {
 
 	@Override
-	public LogService getService(Bundle bundle, ServiceRegistration registration) {
+	public LogService getService(Bundle bundle,
+			ServiceRegistration<LogService> registration) {
 		return new LogServiceImpl(bundle);
 	}
 
 	@Override
-	public void ungetService(Bundle bundle, ServiceRegistration registration,
-			Object service) {
+	public void ungetService(Bundle bundle,
+			ServiceRegistration<LogService> registration, LogService service) {
 	}
 }
