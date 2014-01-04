@@ -26,6 +26,7 @@ import org.jruyi.common.BiListNode;
 import org.jruyi.timeoutadmin.ITimeoutAdmin;
 import org.jruyi.timeoutadmin.ITimeoutNotifier;
 import org.jruyi.workshop.IWorkshop;
+import org.jruyi.workshop.WorkshopConstants;
 
 @Service(ITimeoutAdmin.class)
 @Component(name = "jruyi.timeoutadmin", createPid = false)
@@ -56,7 +57,7 @@ public final class TimeoutAdmin implements Runnable, ITimeoutAdmin {
 	private ReentrantLock[] m_locks;
 	private Thread m_thread;
 
-	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = "(threadPrefix=Worker)")
+	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
 	private IWorkshop m_workshop;
 
 	@Override

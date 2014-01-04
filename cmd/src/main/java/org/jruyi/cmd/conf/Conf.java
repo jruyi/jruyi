@@ -15,7 +15,6 @@ package org.jruyi.cmd.conf;
 
 import java.util.Dictionary;
 import java.util.Enumeration;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.ConfigurationPolicy;
@@ -29,8 +28,6 @@ import org.jruyi.cmd.internal.RuyiCmd;
 import org.jruyi.common.Properties;
 import org.jruyi.common.StrUtil;
 import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleEvent;
 import org.osgi.framework.Constants;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
@@ -39,12 +36,9 @@ import org.osgi.service.metatype.AttributeDefinition;
 import org.osgi.service.metatype.MetaTypeInformation;
 import org.osgi.service.metatype.MetaTypeService;
 import org.osgi.service.metatype.ObjectClassDefinition;
-import org.osgi.util.tracker.BundleTracker;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Service(Conf.class)
-@Component(name = "jruyi.cmd.conf", immediate = true, policy = ConfigurationPolicy.IGNORE, createPid = false)
+@Component(name = "jruyi.cmd.conf", policy = ConfigurationPolicy.IGNORE, createPid = false)
 @org.apache.felix.scr.annotations.Properties({
 		@Property(name = CommandProcessor.COMMAND_SCOPE, value = "conf"),
 		@Property(name = CommandProcessor.COMMAND_FUNCTION, value = { "create",
@@ -52,128 +46,16 @@ import org.slf4j.LoggerFactory;
 @Reference(name = "mts", referenceInterface = MetaTypeService.class, strategy = ReferenceStrategy.LOOKUP)
 public final class Conf {
 
-	private static final Logger c_logger = LoggerFactory.getLogger(Conf.class);
 	private static final String MASK = "****";
-	private OcdTracker m_tracker;
+
+	private static final int PID = 0x01;
+	private static final int FACTORYPID = 0x02;
+	private static final int BOTH = PID | FACTORYPID;
+
+	private ComponentContext m_context;
 
 	@Reference(name = "configurationAdmin")
 	private ConfigurationAdmin m_ca;
-
-	static final class IdsPair {
-
-		private String[] m_pids;
-		private String[] m_factoryIds;
-
-		void pids(String[] pids) {
-			m_pids = pids;
-		}
-
-		String[] pids() {
-			return m_pids;
-		}
-
-		void factoryPids(String[] factoryIds) {
-			m_factoryIds = factoryIds;
-		}
-
-		String[] factoryPids() {
-			return m_factoryIds;
-		}
-	}
-
-	static final class OcdTracker extends BundleTracker<IdsPair> {
-
-		private final ConcurrentHashMap<String, ObjectClassDefinition> m_pidOcds;
-		private final ConcurrentHashMap<String, ObjectClassDefinition> m_factoryPidOcds;
-		private final MetaTypeService m_mts;
-
-		public OcdTracker(BundleContext context, MetaTypeService mts) {
-			super(context, Bundle.INSTALLED | Bundle.RESOLVED | Bundle.STARTING
-					| Bundle.ACTIVE | Bundle.STOPPING, null);
-
-			m_pidOcds = new ConcurrentHashMap<String, ObjectClassDefinition>(
-					256);
-			m_factoryPidOcds = new ConcurrentHashMap<String, ObjectClassDefinition>(
-					256);
-			m_mts = mts;
-		}
-
-		@Override
-		public IdsPair addingBundle(Bundle bundle, BundleEvent event) {
-			IdsPair idsPair = new IdsPair();
-			setOcds(bundle, idsPair);
-
-			return idsPair;
-		}
-
-		@Override
-		public void modifiedBundle(Bundle bundle, BundleEvent event,
-				IdsPair idsPair) {
-			if (event.getType() != BundleEvent.UPDATED)
-				return;
-
-			unsetOcds(idsPair);
-			setOcds(bundle, idsPair);
-		}
-
-		@Override
-		public void removedBundle(Bundle bundle, BundleEvent event,
-				IdsPair idsPair) {
-			unsetOcds(idsPair);
-		}
-
-		ObjectClassDefinition pidOcd(String pid) {
-			return m_pidOcds.get(pid);
-		}
-
-		ObjectClassDefinition factoryPidOcd(String factoryPid) {
-			return m_factoryPidOcds.get(factoryPid);
-		}
-
-		private void setOcds(Bundle bundle, IdsPair idsPair) {
-			MetaTypeInformation mti = m_mts.getMetaTypeInformation(bundle);
-			if (mti == null)
-				return;
-
-			ConcurrentHashMap<String, ObjectClassDefinition> ocds = m_pidOcds;
-			String[] ids = mti.getPids();
-			for (String id : ids) {
-				if (ocds.putIfAbsent(id, mti.getObjectClassDefinition(id, null)) != null)
-					c_logger.error(StrUtil.buildString(
-							"ObjectClassDefinition for pid=", id,
-							" is not unique"));
-			}
-
-			idsPair.pids(ids);
-
-			ocds = m_factoryPidOcds;
-			ids = mti.getFactoryPids();
-			for (String id : ids) {
-				if (ocds.putIfAbsent(id, mti.getObjectClassDefinition(id, null)) != null)
-					c_logger.error(StrUtil.buildString(
-							"ObjectClassDefinition for factoryPid=", id,
-							" is not unique"));
-			}
-
-			idsPair.factoryPids(ids);
-		}
-
-		private void unsetOcds(IdsPair idsPair) {
-			ConcurrentHashMap<String, ObjectClassDefinition> ocds = m_pidOcds;
-			String[] ids = idsPair.pids();
-			if (ids != null) {
-				for (String id : ids)
-					ocds.remove(id);
-			}
-
-			ocds = m_factoryPidOcds;
-			ids = idsPair.factoryPids();
-			if (ids != null) {
-				for (String id : ids)
-					ocds.remove(id);
-			}
-		}
-	}
 
 	@Descriptor("Create a configuration")
 	public void create(@Descriptor("<pid|factoryPid>") String id,
@@ -193,20 +75,15 @@ public final class Conf {
 			props.put(arg.substring(0, i).trim(), arg.substring(i + 1).trim());
 		}
 
-		ObjectClassDefinition ocd = m_tracker.factoryPidOcd(id);
-		boolean factory = true;
-		if (ocd == null) {
-			ocd = m_tracker.pidOcd(id);
-			if (ocd == null)
-				throw new Exception("Metatype NOT Found: " + id);
-			factory = false;
-		}
+		boolean[] factory = new boolean[1];
+		ObjectClassDefinition ocd = getOcd(id, BOTH, factory);
+		if (ocd == null)
+			throw new Exception("Metatype NOT Found: " + id);
 
 		props = PropUtil.normalize(props, ocd);
 
-		Configuration conf = factory ? m_ca
-				.createFactoryConfiguration(id, null) : m_ca.getConfiguration(
-				id, null);
+		Configuration conf = factory[0] ? m_ca.createFactoryConfiguration(id,
+				null) : m_ca.getConfiguration(id, null);
 
 		conf.update(props);
 	}
@@ -243,9 +120,10 @@ public final class Conf {
 			}
 
 			if (modified) {
-				String id = conf.getFactoryPid();
-				ObjectClassDefinition ocd = id == null ? m_tracker.pidOcd(conf
-						.getPid()) : m_tracker.factoryPidOcd(id);
+				String factoryPid = conf.getFactoryPid();
+				ObjectClassDefinition ocd = factoryPid == null ? getOcd(
+						conf.getPid(), PID, null) : getOcd(factoryPid,
+						FACTORYPID, null);
 				props = PropUtil.normalize(props, ocd);
 				conf.update(props);
 			}
@@ -314,14 +192,11 @@ public final class Conf {
 	}
 
 	protected void activate(ComponentContext context) {
-		MetaTypeService mts = (MetaTypeService) context.locateService("mts");
-		m_tracker = new OcdTracker(context.getBundleContext(), mts);
-		m_tracker.open();
+		m_context = context;
 	}
 
 	protected void deactivate() {
-		m_tracker.close();
-		m_tracker = null;
+		m_context = null;
 	}
 
 	private static String normalizeFilter(String filter) {
@@ -336,12 +211,47 @@ public final class Conf {
 		return filter;
 	}
 
+	private ObjectClassDefinition getOcd(final String id, final int type,
+			boolean[] factory) {
+		final ComponentContext context = m_context;
+		final MetaTypeService mts = (MetaTypeService) context
+				.locateService("mts");
+
+		Bundle[] bundles = context.getBundleContext().getBundles();
+		for (Bundle bundle : bundles) {
+			MetaTypeInformation mti = mts.getMetaTypeInformation(bundle);
+			if (mti == null)
+				continue;
+
+			if ((type & FACTORYPID) != 0) {
+				String[] factoryPids = mti.getFactoryPids();
+				for (String factoryPid : factoryPids) {
+					if (factoryPid.equals(id)) {
+						if (factory != null)
+							factory[0] = true;
+						return mti.getObjectClassDefinition(id, null);
+					}
+				}
+			}
+
+			if ((type & PID) != 0) {
+				String[] pids = mti.getPids();
+				for (String pid : pids) {
+					if (pid.equals(id))
+						return mti.getObjectClassDefinition(id, null);
+				}
+			}
+		}
+
+		return null;
+	}
+
 	private void line(Configuration conf) {
 		Dictionary<String, ?> props = conf.getProperties();
 
 		String id = conf.getFactoryPid();
-		ObjectClassDefinition ocd = id != null ? m_tracker.factoryPidOcd(id)
-				: m_tracker.pidOcd(conf.getPid());
+		ObjectClassDefinition ocd = id == null ? getOcd(conf.getPid(), PID,
+				null) : getOcd(id, FACTORYPID, null);
 		if (ocd != null) {
 			AttributeDefinition[] ads = ocd
 					.getAttributeDefinitions(ObjectClassDefinition.ALL);
@@ -394,9 +304,9 @@ public final class Conf {
 		if (factoryPid != null) {
 			System.out.print("factoryPid: ");
 			System.out.println(factoryPid);
-			ocd = m_tracker.factoryPidOcd(factoryPid);
+			ocd = getOcd(factoryPid, FACTORYPID, null);
 		} else
-			ocd = m_tracker.pidOcd(pid);
+			ocd = getOcd(pid, PID, null);
 
 		System.out.print("bundleLocation: ");
 		System.out.println(conf.getBundleLocation());

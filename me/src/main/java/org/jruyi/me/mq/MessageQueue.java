@@ -45,6 +45,7 @@ import org.jruyi.timeoutadmin.ITimeoutEvent;
 import org.jruyi.timeoutadmin.ITimeoutListener;
 import org.jruyi.timeoutadmin.ITimeoutNotifier;
 import org.jruyi.workshop.IWorkshop;
+import org.jruyi.workshop.WorkshopConstants;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
@@ -81,7 +82,7 @@ public final class MessageQueue implements ITimeoutListener {
 	@Reference(name = "routerManager", policy = ReferencePolicy.DYNAMIC)
 	private IRouterManager m_rm;
 
-	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = "(threadPrefix=Worker)")
+	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
 	private IWorkshop m_workshop;
 
 	@Reference(name = "timeoutAdmin", policy = ReferencePolicy.DYNAMIC)

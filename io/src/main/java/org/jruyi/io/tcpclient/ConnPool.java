@@ -37,6 +37,7 @@ import org.jruyi.io.common.SyncQueue;
 import org.jruyi.io.filter.IFilterManager;
 import org.jruyi.workshop.IRunnable;
 import org.jruyi.workshop.IWorkshop;
+import org.jruyi.workshop.WorkshopConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +53,7 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 			.getLogger(ConnPool.class);
 	private Configuration m_conf;
 
-	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = "(threadPrefix=Worker)")
+	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
 	private IWorkshop m_workshop;
 
 	private final SyncQueue<Object> m_msgs;

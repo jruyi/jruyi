@@ -31,6 +31,7 @@ import org.jruyi.io.common.SyncPutQueue;
 import org.jruyi.timeoutadmin.ITimeoutAdmin;
 import org.jruyi.timeoutadmin.ITimeoutNotifier;
 import org.jruyi.workshop.IWorkshop;
+import org.jruyi.workshop.WorkshopConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +44,7 @@ public final class ChannelAdmin implements IChannelAdmin {
 	private SelectorThread[] m_sts;
 	private int m_count;
 
-	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = "(threadPrefix=Worker)")
+	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
 	private IWorkshop m_workshop;
 
 	@Reference(name = "timeoutAdmin", policy = ReferencePolicy.DYNAMIC)

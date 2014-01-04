@@ -31,6 +31,7 @@ import org.jruyi.io.common.StopThread;
 import org.jruyi.io.common.SyncPutQueue;
 import org.jruyi.io.tcp.TcpChannel;
 import org.jruyi.workshop.IWorkshop;
+import org.jruyi.workshop.WorkshopConstants;
 import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -48,7 +49,7 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 	private SyncPutQueue<TcpServer> m_queue;
 	private ComponentContext m_context;
 
-	@Reference(name = "workshop", target = "(threadPrefix=Worker)")
+	@Reference(name = "workshop", target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
 	private IWorkshop m_workshop;
 
 	@Override

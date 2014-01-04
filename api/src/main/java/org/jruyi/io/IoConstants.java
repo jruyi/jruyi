@@ -19,7 +19,7 @@ package org.jruyi.io;
 public final class IoConstants {
 
 	/**
-	 * The service property name of I/O service id;
+	 * The service property name of I/O service id.
 	 */
 	public static final String SERVICE_ID = "jruyi.io.service.id";
 	/**

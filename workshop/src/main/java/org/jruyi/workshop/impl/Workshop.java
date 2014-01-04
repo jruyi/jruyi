@@ -32,6 +32,7 @@ import org.jruyi.common.StringBuilder;
 import org.jruyi.workshop.IRunnable;
 import org.jruyi.workshop.IWorkshop;
 import org.jruyi.workshop.IWorkshopProfiler;
+import org.jruyi.workshop.WorkshopConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,16 +43,14 @@ public final class Workshop implements IWorkshop, IWorkshopProfiler, IDumpable {
 	private static final Logger c_logger = LoggerFactory
 			.getLogger(Workshop.class);
 
-	private static final String DEFAULT_THREAD_PREFIX = "Worker";
-
 	private static final String P_CORE_POOLSIZE = "corePoolSize";
 	private static final String P_MAX_POOLSIZE = "maxPoolSize";
 	@Property(intValue = 10)
 	private static final String P_KEEPALIVE_TIME = "keepAliveTime";
 	@Property(intValue = 6000)
 	private static final String P_QUEUE_CAPACITY = "queueCapacity";
-	@Property(value = DEFAULT_THREAD_PREFIX)
-	private static final String P_THREAD_PREFIX = "threadPrefix";
+	@Property(value = WorkshopConstants.DEFAULT_THREADPREFIX)
+	private static final String P_THREAD_PREFIX = WorkshopConstants.THREAD_PREFIX;
 	@Property(intValue = 300)
 	private static final String P_TERM_WAITTIME = "terminationWaitTime";
 
@@ -314,7 +313,7 @@ public final class Workshop implements IWorkshop, IWorkshopProfiler, IDumpable {
 		String threadPrefix = (String) properties.get(P_THREAD_PREFIX);
 		threadPrefix = threadPrefix.trim();
 		if (threadPrefix.isEmpty())
-			threadPrefix = DEFAULT_THREAD_PREFIX;
+			threadPrefix = WorkshopConstants.DEFAULT_THREADPREFIX;
 		m_threadPrefix = threadPrefix;
 		return threadPrefix;
 	}
