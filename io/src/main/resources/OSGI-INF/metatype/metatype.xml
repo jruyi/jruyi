@@ -24,11 +24,11 @@
 
 	<OCD id="channelAdmin" name="Channel Admin">
 		<AD id="numberOfSelectorThreads" name="Number Of Selector Threads" type="Integer" required="false" min="1"/>
-		<AD id="worker.target" name="Filter for Selecting Workshop" type="String" required="false" default="(threadPrefix=Worker)"/>
+		<AD id="workshop.target" name="Filter for Selecting Workshop" type="String" required="false" default="(threadPrefix=Worker)"/>
 	</OCD>
 
 	<OCD id="tcpAcceptor" name="TCP Acceptor">
-		<AD id="worker.target" name="Filter for Selecting Workshop" type="String" required="false" default="(threadPrefix=Worker)"/>
+		<AD id="workshop.target" name="Filter for Selecting Workshop" type="String" required="false" default="(threadPrefix=Worker)"/>
 	</OCD>
 
 	<OCD id="tcpServer" name="TCP Server">
@@ -83,7 +83,7 @@
 		<AD id="jruyi.me.endpoint.prehandlers" name="Endpoint PreHandlers" type="String" cardinality="65535" required="false"/>
 		<AD id="jruyi.me.endpoint.posthandlers" name="Endpoint PostHandlers" type="String" cardinality="65535" required="false"/>
 		<AD id="buffer.target" name="Filter for Selecting Buffer Factory" type="String" required="false"/>
-		<AD id="worker.target" name="Filter for Selecting Workshop" type="String" required="false" default="(threadPrefix=Worker)"/>
+		<AD id="workshop.target" name="Filter for Selecting Workshop" type="String" required="false" default="(threadPrefix=Worker)"/>
 		<AD id="addr" name="Host Address" type="String" required="true"/>
 		<AD id="port" name="Port" type="Integer" min="0" max="65535" required="true"/>
 		<AD id="readThreshold" name="Read Threshold" type="Integer" min="0" default="0"/>

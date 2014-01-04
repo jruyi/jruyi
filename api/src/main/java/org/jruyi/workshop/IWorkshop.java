@@ -19,8 +19,12 @@ import org.jruyi.common.IArgList;
 
 /**
  * Service for running jobs concurrently.
+ * 
+ * @see IRunnable
+ * @see IWorkshopProfiler
+ * @since 1.1
  */
-public interface IWorker {
+public interface IWorkshop {
 
 	/**
 	 * Assigns the given {@code job} to a worker thread to run at some time in
@@ -31,7 +35,7 @@ public interface IWorker {
 	 * @throws NullPointerException
 	 *             if the given {@code job} is null
 	 * @throws RejectedExecutionException
-	 *             if the worker is shutdown or the current thread is
+	 *             if the workshop is shutdown or the current thread is
 	 *             interrupted
 	 */
 	public void run(Runnable job);
@@ -47,7 +51,7 @@ public interface IWorker {
 	 * @throws NullPointerException
 	 *             if the given {@code job} is null
 	 * @throws RejectedExecutionException
-	 *             if the worker is shutdown or the current thread is
+	 *             if the workshop is shutdown or the current thread is
 	 *             interrupted
 	 */
 	public void run(IRunnable job, IArgList argList);

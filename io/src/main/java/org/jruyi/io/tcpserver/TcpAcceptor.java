@@ -30,7 +30,7 @@ import org.jruyi.common.StrUtil;
 import org.jruyi.io.common.StopThread;
 import org.jruyi.io.common.SyncPutQueue;
 import org.jruyi.io.tcp.TcpChannel;
-import org.jruyi.workshop.IWorker;
+import org.jruyi.workshop.IWorkshop;
 import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -48,8 +48,8 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 	private SyncPutQueue<TcpServer> m_queue;
 	private ComponentContext m_context;
 
-	@Reference(name = "worker", target = "(threadPrefix=Worker)")
-	private IWorker m_worker;
+	@Reference(name = "workshop", target = "(threadPrefix=Worker)")
+	private IWorkshop m_workshop;
 
 	@Override
 	public void doAccept(TcpServer server) throws Exception {
@@ -61,7 +61,7 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 
 	@Override
 	public void run() {
-		final IWorker worker = m_worker;
+		final IWorkshop workshop = m_workshop;
 		SyncPutQueue<TcpServer> queue = m_queue;
 		Selector selector = m_selector;
 		Thread currentThread = Thread.currentThread();
@@ -82,7 +82,7 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 						c_logger.error(StrUtil.buildString(
 								"Failed to register ", channel), e);
 						// stop tcp server
-						worker.run(new StopThread(server));
+						workshop.run(new StopThread(server));
 					}
 				}
 
@@ -106,7 +106,7 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 						@SuppressWarnings("resource")
 						TcpChannel channel = new TcpChannel(server,
 								socketChannel);
-						worker.run(channel.onAccept());
+						workshop.run(channel.onAccept());
 					} catch (ClosedChannelException e) {
 					} catch (Throwable t) {
 						c_logger.error(StrUtil.buildString(server,
@@ -123,12 +123,12 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 		}
 	}
 
-	protected void bindWorker(IWorker worker) {
-		m_worker = worker;
+	protected void bindWorkshop(IWorkshop workshop) {
+		m_workshop = workshop;
 	}
 
-	protected void unbindWorker(IWorker worker) {
-		m_worker = null;
+	protected void unbindWorkshop(IWorkshop workshop) {
+		m_workshop = null;
 	}
 
 	protected void activate(ComponentContext context, Map<String, ?> properties)

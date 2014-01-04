@@ -44,7 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Service(Conf.class)
-@Component(name = "jruyi.cmd.conf", policy = ConfigurationPolicy.IGNORE, createPid = false)
+@Component(name = "jruyi.cmd.conf", immediate = true, policy = ConfigurationPolicy.IGNORE, createPid = false)
 @org.apache.felix.scr.annotations.Properties({
 		@Property(name = CommandProcessor.COMMAND_SCOPE, value = "conf"),
 		@Property(name = CommandProcessor.COMMAND_FUNCTION, value = { "create",

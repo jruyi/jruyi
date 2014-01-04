@@ -30,7 +30,7 @@ import org.jruyi.common.StrUtil;
 import org.jruyi.io.common.SyncPutQueue;
 import org.jruyi.timeoutadmin.ITimeoutAdmin;
 import org.jruyi.timeoutadmin.ITimeoutNotifier;
-import org.jruyi.workshop.IWorker;
+import org.jruyi.workshop.IWorkshop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,8 +43,8 @@ public final class ChannelAdmin implements IChannelAdmin {
 	private SelectorThread[] m_sts;
 	private int m_count;
 
-	@Reference(name = "worker", policy = ReferencePolicy.DYNAMIC, target = "(threadPrefix=Worker)")
-	private IWorker m_worker;
+	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = "(threadPrefix=Worker)")
+	private IWorkshop m_workshop;
 
 	@Reference(name = "timeoutAdmin", policy = ReferencePolicy.DYNAMIC)
 	private ITimeoutAdmin m_tm;
@@ -101,7 +101,7 @@ public final class ChannelAdmin implements IChannelAdmin {
 
 			c_logger.info("{} started", currentThread.getName());
 
-			IWorker worker = m_worker;
+			final IWorkshop workshop = m_workshop;
 			Selector selector = m_selector;
 			try {
 				for (;;) {
@@ -134,13 +134,13 @@ public final class ChannelAdmin implements IChannelAdmin {
 								if (key.isReadable()) {
 									key.interestOps(key.interestOps()
 											& ~SelectionKey.OP_READ);
-									worker.run(channel.onRead());
+									workshop.run(channel.onRead());
 								}
 
 								if (key.isWritable()) {
 									key.interestOps(key.interestOps()
 											& ~SelectionKey.OP_WRITE);
-									worker.run(channel.onWrite());
+									workshop.run(channel.onWrite());
 								}
 							}
 						} catch (RejectedExecutionException e) {
@@ -245,7 +245,7 @@ public final class ChannelAdmin implements IChannelAdmin {
 
 	@Override
 	public void onWrite(ISelectableChannel channel) {
-		m_worker.run(channel.onWrite());
+		m_workshop.run(channel.onWrite());
 	}
 
 	@Override
@@ -253,13 +253,13 @@ public final class ChannelAdmin implements IChannelAdmin {
 		return m_tm.createNotifier(channel);
 	}
 
-	protected synchronized void bindWorker(IWorker worker) {
-		m_worker = worker;
+	protected synchronized void bindWorkshop(IWorkshop workshop) {
+		m_workshop = workshop;
 	}
 
-	protected synchronized void unbindWorker(IWorker worker) {
-		if (m_worker == worker)
-			m_worker = null;
+	protected synchronized void unbindWorkshop(IWorkshop workshop) {
+		if (m_workshop == workshop)
+			m_workshop = null;
 	}
 
 	protected synchronized void bindTimeoutAdmin(ITimeoutAdmin tm) {

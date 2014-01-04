@@ -1,0 +1,7 @@
+Usage: workshop:profiling <action> <workshop-profiler-id>
+
+Manages the specified profiler.
+
+action:
+    start   Start profiling the workshop bound to the specified profiler
+    stop    Stop profiling the workshop bound to the specified profiler

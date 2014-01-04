@@ -20,7 +20,7 @@
 
 	<OCD id="timeoutAdmin" name="Timeout Admin" description="A timer service">
 		<AD id="scale" name="Scale" type="Integer" default="1800" min="5" description="Number of slots"/>
-		<AD id="worker.target" name="Filter for Selecting Workshop" type="String" required="false" default="(threadPrefix=Worker)"/>
+		<AD id="workshop.target" name="Filter for Selecting Workshop" type="String" required="false" default="(threadPrefix=Worker)"/>
 	</OCD>
 
 	<Designate pid="jruyi.timeoutadmin">

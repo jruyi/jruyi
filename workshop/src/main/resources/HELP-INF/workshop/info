@@ -1,0 +1,3 @@
+Usage: workshop:info <workshop-profiler-id>
+
+Print the profiling statistics of the workshop bound to the specified profiler.

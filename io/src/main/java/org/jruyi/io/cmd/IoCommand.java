@@ -100,14 +100,12 @@ public final class IoCommand {
 			// Address
 			int n = 25 - addr.length() - port.length() - 1;
 			int x = n >> 1;
-			for (int i = 0; i < x; ++i)
-				System.out.print(' ');
+			printFill(' ', x);
 			System.out.print(addr);
 			System.out.print('.');
 			System.out.print(port);
 			x = n - x;
-			for (int i = 0; i < x; ++i)
-				System.out.print(' ');
+			printFill(' ', x);
 			// State
 			System.out.print(getState(service.state()));
 			// jruyi.io.service.id
@@ -204,5 +202,10 @@ public final class IoCommand {
 				.next();
 		IService service = context.getService(reference);
 		return service;
+	}
+
+	private static void printFill(char c, int count) {
+		while (--count >= 0)
+			System.out.print(c);
 	}
 }

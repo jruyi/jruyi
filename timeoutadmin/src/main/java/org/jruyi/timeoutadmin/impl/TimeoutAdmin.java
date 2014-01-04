@@ -25,18 +25,22 @@ import org.apache.felix.scr.annotations.Service;
 import org.jruyi.common.BiListNode;
 import org.jruyi.timeoutadmin.ITimeoutAdmin;
 import org.jruyi.timeoutadmin.ITimeoutNotifier;
-import org.jruyi.workshop.IWorker;
+import org.jruyi.workshop.IWorkshop;
 
 @Service(ITimeoutAdmin.class)
 @Component(name = "jruyi.timeoutadmin", createPid = false)
 public final class TimeoutAdmin implements Runnable, ITimeoutAdmin {
 
+	// 1 second
+	private static final long PERIOD = 1000L;
 	// 30 minutes.
 	private static final int DEFAULT_SCALE = 30 * 60;
 	private static final int DEFAULT_LOCK_NUM = 32;
 
 	@Property(intValue = DEFAULT_SCALE)
 	private static final String P_SCALE = "scale";
+
+	private static final Object DELAY = new Object();
 
 	// the maximum timeout in a single schedule
 	private int m_scale;
@@ -52,8 +56,8 @@ public final class TimeoutAdmin implements Runnable, ITimeoutAdmin {
 	private ReentrantLock[] m_locks;
 	private Thread m_thread;
 
-	@Reference(name = "worker", policy = ReferencePolicy.DYNAMIC, target = "(threadPrefix=Worker)")
-	private IWorker m_worker;
+	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = "(threadPrefix=Worker)")
+	private IWorkshop m_workshop;
 
 	@Override
 	public ITimeoutNotifier createNotifier(Object subject) {
@@ -63,37 +67,36 @@ public final class TimeoutAdmin implements Runnable, ITimeoutAdmin {
 	@Override
 	public void run() {
 		Thread thread = Thread.currentThread();
-		long nextExecutionTime = System.currentTimeMillis() + 1000L;
+		long nextExecutionTime = System.currentTimeMillis() + PERIOD;
 		try {
-			long waitTime = 0L;
+			long waitTime;
 			while (!thread.isInterrupted()) {
 				while ((waitTime = nextExecutionTime
 						- System.currentTimeMillis()) < 0) {
+					nextExecutionTime += PERIOD;
 					tick();
-					nextExecutionTime += 1000L;
 				}
 
 				if (waitTime > 0) {
-					synchronized (this) {
-						wait(waitTime);
+					synchronized (DELAY) {
+						DELAY.wait(waitTime);
 					}
 				}
 
-				nextExecutionTime = System.currentTimeMillis() + 1000L;
-
+				nextExecutionTime = System.currentTimeMillis() + PERIOD;
 				tick();
 			}
 		} catch (InterruptedException e) {
 		}
 	}
 
-	protected synchronized void bindWorker(IWorker worker) {
-		m_worker = worker;
+	protected synchronized void bindWorkshop(IWorkshop workshop) {
+		m_workshop = workshop;
 	}
 
-	protected synchronized void unbindWorker(IWorker worker) {
-		if (m_worker == worker)
-			m_worker = null;
+	protected synchronized void unbindWorkshop(IWorkshop workshop) {
+		if (m_workshop == workshop)
+			m_workshop = null;
 	}
 
 	@Activate
@@ -200,7 +203,7 @@ public final class TimeoutAdmin implements Runnable, ITimeoutAdmin {
 		final ReentrantLock lock = getLock(m_hand);
 		TimeoutEvent event = m_list.syncRemove(node, lock);
 
-		m_worker.run(event);
+		m_workshop.run(event);
 	}
 
 	void scheduleNextRound(TimeoutNotifier notifier) {

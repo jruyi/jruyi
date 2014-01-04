@@ -18,6 +18,8 @@ import org.jruyi.common.IArgList;
 /**
  * An {@code IRunnable} instance can be given to an {@code IWorker} service to
  * execute.
+ * 
+ * @see IWorkshop
  */
 public interface IRunnable {
 

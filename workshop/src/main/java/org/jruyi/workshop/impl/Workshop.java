@@ -19,6 +19,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
@@ -29,34 +30,133 @@ import org.jruyi.common.IDumpable;
 import org.jruyi.common.StrUtil;
 import org.jruyi.common.StringBuilder;
 import org.jruyi.workshop.IRunnable;
-import org.jruyi.workshop.IWorker;
+import org.jruyi.workshop.IWorkshop;
+import org.jruyi.workshop.IWorkshopProfiler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Service(IWorker.class)
+@Service({ IWorkshop.class, IWorkshopProfiler.class })
 @Component(name = "jruyi.workshop", createPid = false)
-public final class Worker implements IWorker, IDumpable {
+public final class Workshop implements IWorkshop, IWorkshopProfiler, IDumpable {
 
 	private static final Logger c_logger = LoggerFactory
-			.getLogger(Worker.class);
+			.getLogger(Workshop.class);
 
 	private static final String DEFAULT_THREAD_PREFIX = "Worker";
 
-	@Property(value = DEFAULT_THREAD_PREFIX)
-	private static final String P_THREAD_PREFIX = "threadPrefix";
 	private static final String P_CORE_POOLSIZE = "corePoolSize";
 	private static final String P_MAX_POOLSIZE = "maxPoolSize";
 	@Property(intValue = 10)
 	private static final String P_KEEPALIVE_TIME = "keepAliveTime";
 	@Property(intValue = 6000)
 	private static final String P_QUEUE_CAPACITY = "queueCapacity";
+	@Property(value = DEFAULT_THREAD_PREFIX)
+	private static final String P_THREAD_PREFIX = "threadPrefix";
 	@Property(intValue = 300)
 	private static final String P_TERM_WAITTIME = "terminationWaitTime";
 
+	private static final AtomicLong c_sequence = new AtomicLong();
+	private final long m_id = c_sequence.getAndIncrement();
+
 	private String m_threadPrefix;
-	private ThreadPoolExecutor m_executor;
+	private RuyiThreadPoolExecutor m_executor;
 	private int m_queueCapacity;
 	private int m_terminationWaitTime = 300;
+
+	@Override
+	public long getProfilerId() {
+		return m_id;
+	}
+
+	@Override
+	public int getCorePoolSize() {
+		return m_executor.getCorePoolSize();
+	}
+
+	@Override
+	public int getMaxPoolSize() {
+		return m_executor.getMaximumPoolSize();
+	}
+
+	@Override
+	public int getKeepAliveTime() {
+		return (int) m_executor.getKeepAliveTime(TimeUnit.SECONDS);
+	}
+
+	@Override
+	public int getQueueCapacity() {
+		return m_queueCapacity;
+	}
+
+	@Override
+	public int getCurrentPoolSize() {
+		return m_executor.getActiveCount();
+	}
+
+	@Override
+	public int getCurrentQueueLength() {
+		return m_executor.getQueue().size();
+	}
+
+	@Override
+	public long getNumberOfRequestsRetired() {
+		return m_executor.getNumberOfRequestsRetired();
+	}
+
+	@Override
+	public String getThreadPrefix() {
+		return m_threadPrefix;
+	}
+
+	@Override
+	public void startProfiling() {
+		m_executor.startProfiling();
+	}
+
+	@Override
+	public void stopProfiling() {
+		m_executor.stopProfiling();
+	}
+
+	@Override
+	public boolean isProfiling() {
+		return m_executor.isProfiling();
+	}
+
+	@Override
+	public double getRequestPerSecondRetirementRate() {
+		return m_executor.getRequestPerSecondRetirementRate();
+	}
+
+	@Override
+	public double getAverageServiceTime() {
+		return m_executor.getAverageServiceTime();
+	}
+
+	@Override
+	public double getAverageTimeWaitingInPool() {
+		return m_executor.getAverageTimeWaitingInPool();
+	}
+
+	@Override
+	public double getAverageResponseTime() {
+		return m_executor.getAverageResponseTime();
+	}
+
+	@Override
+	public double getEstimatedAverageNumberOfActiveRequests() {
+		return m_executor.getEstimatedAverageNumberOfActiveRequests();
+	}
+
+	@Override
+	public double getRatioOfDeadTimeToResponseTime() {
+		return m_executor.getRatioOfDeadTimeToResponseTime();
+	}
+
+	@Override
+	public double getRatioOfActiveRequestsToCoreCount() {
+		return m_executor.getRatioOfActiveRequestsToCoreCount();
+	}
 
 	@Override
 	public void run(Runnable job) {
@@ -118,7 +218,6 @@ public final class Worker implements IWorker, IDumpable {
 	}
 
 	protected void activate(Map<String, ?> properties) throws Exception {
-
 		final String threadPrefix = getThreadPrefix(properties);
 
 		c_logger.info(getLog("Activating "));
@@ -160,10 +259,10 @@ public final class Worker implements IWorker, IDumpable {
 		}
 	}
 
-	private static ThreadPoolExecutor newExecutor(String name,
+	private static RuyiThreadPoolExecutor newExecutor(String name,
 			int corePoolSize, int maxPoolSize, long keepAliveTime,
 			int queueCapacity) {
-		return new ThreadPoolExecutor(
+		return new RuyiThreadPoolExecutor(
 				corePoolSize,
 				maxPoolSize,
 				keepAliveTime,

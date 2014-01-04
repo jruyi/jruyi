@@ -36,7 +36,7 @@ import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.common.SyncQueue;
 import org.jruyi.io.filter.IFilterManager;
 import org.jruyi.workshop.IRunnable;
-import org.jruyi.workshop.IWorker;
+import org.jruyi.workshop.IWorkshop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,8 +52,8 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 			.getLogger(ConnPool.class);
 	private Configuration m_conf;
 
-	@Reference(name = "worker", policy = ReferencePolicy.DYNAMIC, target = "(threadPrefix=Worker)")
-	private IWorker m_worker;
+	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = "(threadPrefix=Worker)")
+	private IWorkshop m_workshop;
 
 	private final SyncQueue<Object> m_msgs;
 	private final ReentrantLock m_channelQueueLock;
@@ -172,7 +172,7 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 			// readTimeout == 0, means no response is expected
 			msg = poolChannelIfNoMsg(channel);
 			if (msg != null)
-				m_worker.run(this, ArgList.create(channel, msg));
+				m_workshop.run(this, ArgList.create(channel, msg));
 		}
 	}
 
@@ -339,13 +339,13 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 		channel.write(args.arg(1));
 	}
 
-	protected synchronized void bindWorker(IWorker worker) {
-		m_worker = worker;
+	protected synchronized void bindWorkshop(IWorkshop workshop) {
+		m_workshop = workshop;
 	}
 
-	protected synchronized void unbindWorker(IWorker worker) {
-		if (m_worker == worker)
-			m_worker = null;
+	protected synchronized void unbindWorkshop(IWorkshop workshop) {
+		if (m_workshop == workshop)
+			m_workshop = null;
 	}
 
 	@Override

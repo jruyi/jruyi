@@ -44,7 +44,7 @@ import org.jruyi.timeoutadmin.ITimeoutAdmin;
 import org.jruyi.timeoutadmin.ITimeoutEvent;
 import org.jruyi.timeoutadmin.ITimeoutListener;
 import org.jruyi.timeoutadmin.ITimeoutNotifier;
-import org.jruyi.workshop.IWorker;
+import org.jruyi.workshop.IWorkshop;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
@@ -81,8 +81,8 @@ public final class MessageQueue implements ITimeoutListener {
 	@Reference(name = "routerManager", policy = ReferencePolicy.DYNAMIC)
 	private IRouterManager m_rm;
 
-	@Reference(name = "worker", policy = ReferencePolicy.DYNAMIC, target = "(threadPrefix=Worker)")
-	private IWorker m_worker;
+	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = "(threadPrefix=Worker)")
+	private IWorkshop m_workshop;
 
 	@Reference(name = "timeoutAdmin", policy = ReferencePolicy.DYNAMIC)
 	private ITimeoutAdmin m_ta;
@@ -143,13 +143,13 @@ public final class MessageQueue implements ITimeoutListener {
 			m_rm = null;
 	}
 
-	protected synchronized void bindWorker(IWorker worker) {
-		m_worker = worker;
+	protected synchronized void bindWorkshop(IWorkshop workshop) {
+		m_workshop = workshop;
 	}
 
-	protected synchronized void unbindWorker(IWorker worker) {
-		if (m_worker == worker)
-			m_worker = null;
+	protected synchronized void unbindWorkshop(IWorkshop workshop) {
+		if (m_workshop == workshop)
+			m_workshop = null;
 	}
 
 	protected synchronized void bindTimeoutAdmin(ITimeoutAdmin ta) {
@@ -319,14 +319,14 @@ public final class MessageQueue implements ITimeoutListener {
 			Endpoint mqProxy = m_endpoints.get(dst);
 			if (mqProxy != null) {
 				message.setEndpoint(mqProxy);
-				m_worker.run(message);
+				m_workshop.run(message);
 			} else {
 				BiListNode<MsgNotifier> node = schedule(message);
 				mqProxy = m_endpoints.get(dst);
 				if (mqProxy != null && node.get().notifier().cancel()) {
 					removeNode(node);
 					message.setEndpoint(mqProxy);
-					m_worker.run(message);
+					m_workshop.run(message);
 				}
 			}
 		} catch (Throwable t) {
@@ -514,7 +514,7 @@ public final class MessageQueue implements ITimeoutListener {
 		if (head == null)
 			return;
 
-		final IWorker worker = m_worker;
+		final IWorkshop workshop = m_workshop;
 		final ReentrantLock lock = m_lock;
 		lock.lock();
 		try {
@@ -530,7 +530,7 @@ public final class MessageQueue implements ITimeoutListener {
 
 				Message msg = node.get().msg();
 				msg.setEndpoint(endpoint);
-				worker.run(msg);
+				workshop.run(msg);
 
 				node.close();
 				node = next;

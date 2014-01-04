@@ -24,7 +24,7 @@ public final class Util {
 	}
 
 	public static void printFill(char c, int count) {
-		while (count-- > 0)
+		while (--count >= 0)
 			System.out.print(c);
 	}
 }
