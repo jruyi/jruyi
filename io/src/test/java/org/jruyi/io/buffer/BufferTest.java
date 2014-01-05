@@ -26,43 +26,33 @@ import org.jruyi.io.IBuffer;
 import org.jruyi.io.IntCodec;
 import org.jruyi.io.LongCodec;
 import org.jruyi.io.ShortCodec;
-import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 public class BufferTest {
 
 	private static final String UNIT_CAPACITY = "unitCapacity";
-	private BufferFactory m_factory;
-	private Map<String, Object> m_props;
-
-	@DataProvider(name = "bytes")
-	public Object[][] createBytes() {
-		Random random = new Random();
-		int n = random.nextInt(155) + 100;
-		byte[] bytes = new byte[n];
-		for (int i = 0; i < n; ++i)
-			bytes[i] = (byte) i;
-		return new Object[][] { new Object[] { bytes } };
-	}
+	private static BufferFactory s_factory;
+	private static Map<String, Object> s_props;
 
 	@BeforeClass
-	public void setUp() {
+	public static void setUp() {
 		System.out.println("Testing Buffer...");
-		m_factory = new BufferFactory();
-		m_props = new HashMap<String, Object>();
-		m_props.put(UNIT_CAPACITY, 8192);
-		m_factory.modified(m_props);
+		s_factory = new BufferFactory();
+		s_props = new HashMap<String, Object>();
+		s_props.put(UNIT_CAPACITY, 8192);
+		s_factory.modified(s_props);
 	}
 
 	@AfterClass
-	public void tearDown() {
+	public static void tearDown() {
 	}
 
-	@Test(dataProvider = "bytes")
-	public void test_writeReadBytes(byte[] bytes) {
+	@Test
+	public void test_writeReadBytes() {
+		byte[] bytes = createBytes();
 		StringBuilder builder = StringBuilder.get();
 		String hexDump1;
 		String hexDump2;
@@ -89,7 +79,7 @@ public class BufferTest {
 
 				byte[] bytes2 = buffer.read(bytes.length, Codec.byteArray());
 
-				Assert.assertEquals(bytes2, bytes);
+				Assert.assertArrayEquals(bytes2, bytes);
 				Assert.assertEquals(buffer.remaining(), 0);
 			}
 		} finally {
@@ -97,8 +87,9 @@ public class BufferTest {
 		}
 	}
 
-	@Test(dataProvider = "bytes")
-	public void test_writeReadInt(byte[] bytes) {
+	@Test
+	public void test_writeReadInt() {
+		byte[] bytes = createBytes();
 		int v = new Random().nextInt();
 		int t = 0x12345678;
 		byte[] r1 = { 0x12, 0x34, 0x56, 0x78 };
@@ -136,15 +127,16 @@ public class BufferTest {
 				builder.close();
 				buffer.getBytes(n + 8);
 			}
-			Assert.assertEquals(result, r1);
+			Assert.assertArrayEquals(result, r1);
 
 			buffer.write(t, IntCodec.littleEndian());
-			Assert.assertEquals(buffer.read(Codec.byteArray()), r2);
+			Assert.assertArrayEquals(buffer.read(Codec.byteArray()), r2);
 		}
 	}
 
-	@Test(dataProvider = "bytes")
-	public void test_writeReadShort(byte[] bytes) {
+	@Test
+	public void test_writeReadShort() {
+		byte[] bytes = createBytes();
 		short v = (short) new Random().nextInt();
 		short t = 0x1234;
 		byte[] r1 = { 0x12, 0x34 };
@@ -187,15 +179,16 @@ public class BufferTest {
 			Assert.assertEquals(buffer.remaining(), 0);
 
 			buffer.write(t, ShortCodec.bigEndian());
-			Assert.assertEquals(buffer.read(Codec.byteArray()), r1);
+			Assert.assertArrayEquals(buffer.read(Codec.byteArray()), r1);
 
 			buffer.write(t, ShortCodec.littleEndian());
-			Assert.assertEquals(buffer.read(Codec.byteArray()), r2);
+			Assert.assertArrayEquals(buffer.read(Codec.byteArray()), r2);
 		}
 	}
 
-	@Test(dataProvider = "bytes")
-	public void test_writeReadLong(byte[] bytes) {
+	@Test
+	public void test_writeReadLong() {
+		byte[] bytes = createBytes();
 		long v = new Random().nextLong();
 		long t = 0x1234567890abcdefL;
 		byte[] r1 = { 0x12, 0x34, 0x56, 0x78, (byte) 0x90, (byte) 0xab,
@@ -228,10 +221,10 @@ public class BufferTest {
 			Assert.assertEquals(buffer.remaining(), 0);
 
 			buffer.write(t, LongCodec.bigEndian());
-			Assert.assertEquals(buffer.read(Codec.byteArray()), r1);
+			Assert.assertArrayEquals(buffer.read(Codec.byteArray()), r1);
 
 			buffer.write(t, LongCodec.littleEndian());
-			Assert.assertEquals(buffer.read(Codec.byteArray()), r2);
+			Assert.assertArrayEquals(buffer.read(Codec.byteArray()), r2);
 		}
 	}
 
@@ -269,8 +262,9 @@ public class BufferTest {
 		}
 	}
 
-	@Test(dataProvider = "bytes")
-	public void test_indexOf(byte[] bytes) {
+	@Test
+	public void test_indexOf() {
+		byte[] bytes = createBytes();
 		Random random = new Random();
 		int n = random.nextInt(bytes.length);
 		int len = random.nextInt(bytes.length - n);
@@ -329,8 +323,9 @@ public class BufferTest {
 		}
 	}
 
-	@Test(dataProvider = "bytes")
-	public void test_lastIndexOf(byte[] bytes) {
+	@Test
+	public void test_lastIndexOf() {
+		byte[] bytes = createBytes();
 		Random random = new Random();
 		int n = random.nextInt(bytes.length);
 		int len = random.nextInt(bytes.length - n);
@@ -388,8 +383,9 @@ public class BufferTest {
 		}
 	}
 
-	@Test(dataProvider = "bytes")
-	public void test_startsWith(byte[] bytes) {
+	@Test
+	public void test_startsWith() {
+		byte[] bytes = createBytes();
 		Random random = new Random();
 		int n = random.nextInt(bytes.length) + 1;
 		byte[] target = new byte[n];
@@ -412,8 +408,9 @@ public class BufferTest {
 		}
 	}
 
-	@Test(dataProvider = "bytes")
-	public void test_endsWith(byte[] bytes) {
+	@Test
+	public void test_endsWith() {
+		byte[] bytes = createBytes();
 		Random random = new Random();
 		int n = random.nextInt(bytes.length) + 1;
 		byte[] target = new byte[n];
@@ -435,8 +432,9 @@ public class BufferTest {
 		}
 	}
 
-	@Test(dataProvider = "bytes")
-	public void test_drainTo(byte[] bytes) {
+	@Test
+	public void test_drainTo() {
+		byte[] bytes = createBytes();
 		Random random = new Random();
 		int n = random.nextInt(bytes.length + 1) + 1;
 		BufferFactory factory = initializeFactory(n);
@@ -452,12 +450,13 @@ public class BufferTest {
 			byte[] results = dst.read(Codec.byteArray());
 
 			Assert.assertTrue(src.isEmpty());
-			Assert.assertEquals(bytes, results);
+			Assert.assertArrayEquals(bytes, results);
 		}
 	}
 
-	@Test(dataProvider = "bytes")
-	public void test_compareTo(byte[] bytes) {
+	@Test
+	public void test_compareTo() {
+		byte[] bytes = createBytes();
 		for (int i = 1; i < bytes.length + 2; ++i) {
 			BufferFactory factory = initializeFactory(i);
 			IBuffer thisBuf = factory.create();
@@ -482,10 +481,19 @@ public class BufferTest {
 		}
 	}
 
-	private BufferFactory initializeFactory(int unitCapacity) {
-		Map<String, Object> props = m_props;
+	private static byte[] createBytes() {
+		Random random = new Random();
+		int n = random.nextInt(155) + 100;
+		byte[] bytes = new byte[n];
+		for (int i = 0; i < n; ++i)
+			bytes[i] = (byte) i;
+		return bytes;
+	}
+
+	private static BufferFactory initializeFactory(int unitCapacity) {
+		Map<String, Object> props = s_props;
 		props.put(UNIT_CAPACITY, unitCapacity);
-		BufferFactory factory = m_factory;
+		BufferFactory factory = s_factory;
 		factory.modified(props);
 		return factory;
 	}
