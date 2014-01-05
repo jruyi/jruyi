@@ -129,7 +129,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 						try {
 							((Closeable) msg).close();
 						} catch (Throwable t) {
-							c_logger.error(StrUtil.buildString(
+							c_logger.error(StrUtil.join(
 									"Failed to close message: ", msg), t);
 						}
 					}
@@ -326,7 +326,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 							try {
 								((Closeable) msg).close();
 							} catch (Throwable t) {
-								c_logger.error(StrUtil.buildString(
+								c_logger.error(StrUtil.join(
 										"Failed to close message: ", msg), t);
 							}
 						}
@@ -426,8 +426,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 							}
 							outMsgs.size(0);
 						} catch (ClassCastException e) {
-							throw new RuntimeException(StrUtil.buildString(
-									filters[0],
+							throw new RuntimeException(StrUtil.join(filters[0],
 									"has to produce departure data of type ",
 									IBuffer.class.getName()));
 						}
@@ -440,7 +439,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 				try {
 					data = (IBuffer) msg;
 				} catch (ClassCastException e) {
-					throw new RuntimeException(StrUtil.buildString(
+					throw new RuntimeException(StrUtil.join(
 							"Departure data has to be of type",
 							IBuffer.class.getName()));
 				}
@@ -789,7 +788,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 		try {
 			m_channelService.onChannelException(this, t);
 		} catch (Throwable e) {
-			c_logger.error(StrUtil.buildString("Unexpected Error: ", this), e);
+			c_logger.error(StrUtil.join("Unexpected Error: ", this), e);
 		}
 	}
 

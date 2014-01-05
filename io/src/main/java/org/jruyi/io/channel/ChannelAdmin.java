@@ -147,19 +147,19 @@ public final class ChannelAdmin implements IChannelAdmin {
 						} catch (RejectedExecutionException e) {
 						} catch (CancelledKeyException e) {
 						} catch (Throwable t) {
-							c_logger.warn(StrUtil.buildString(
-									currentThread.getName(), ": ", channel), t);
+							c_logger.warn(StrUtil.join(currentThread.getName(),
+									": ", channel), t);
 						}
 					}
 				}
 			} catch (ClosedSelectorException e) {
-				c_logger.error(StrUtil.buildString(currentThread.getName(),
+				c_logger.error(StrUtil.join(currentThread.getName(),
 						": selector closed unexpectedly"), e);
 			} catch (IOException e) {
-				c_logger.error(StrUtil.buildString(currentThread.getName(),
+				c_logger.error(StrUtil.join(currentThread.getName(),
 						": selector error"), e);
 			} catch (Throwable t) {
-				c_logger.error(StrUtil.buildString(currentThread.getName(),
+				c_logger.error(StrUtil.join(currentThread.getName(),
 						": unexpected error"), t);
 			}
 

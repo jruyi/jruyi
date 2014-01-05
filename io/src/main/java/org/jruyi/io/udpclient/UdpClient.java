@@ -108,8 +108,7 @@ public final class UdpClient extends Service implements IChannelService,
 			}
 			m_channel = channel;
 		} catch (Throwable t) {
-			c_logger.error(StrUtil.buildString(channel, " Unexpected Error: "),
-					t);
+			c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
 		} finally {
 			readLock.unlock();
 		}
@@ -128,8 +127,7 @@ public final class UdpClient extends Service implements IChannelService,
 			if (listener != null)
 				listener.onSessionClosed(channel);
 		} catch (Throwable t) {
-			c_logger.error(StrUtil.buildString(channel, " Unexpected Error: "),
-					t);
+			c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
 		}
 	}
 
@@ -140,8 +138,7 @@ public final class UdpClient extends Service implements IChannelService,
 			if (listener != null)
 				listener.onMessageReceived(channel, msg);
 		} catch (Throwable t) {
-			c_logger.error(StrUtil.buildString(channel, " Unexpected Error: "),
-					t);
+			c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
 		}
 	}
 
@@ -152,8 +149,7 @@ public final class UdpClient extends Service implements IChannelService,
 			try {
 				listener.onMessageSent(channel, msg);
 			} catch (Throwable t) {
-				c_logger.error(
-						StrUtil.buildString(channel, " Unexpected Error: "), t);
+				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
 			}
 		}
 	}
@@ -161,15 +157,14 @@ public final class UdpClient extends Service implements IChannelService,
 	@Override
 	public void onChannelException(IChannel channel, Throwable t) {
 		try {
-			c_logger.error(StrUtil.buildString(this,
-					" got an error on sending/recving"), t);
+			c_logger.error(
+					StrUtil.join(this, " got an error on sending/recving"), t);
 
 			final ISessionListener listener = m_listener;
 			if (listener != null)
 				listener.onSessionException(channel, t);
 		} catch (Throwable e) {
-			c_logger.error(StrUtil.buildString(channel, " Unexpected Error: "),
-					e);
+			c_logger.error(StrUtil.join(channel, " Unexpected Error: "), e);
 		} finally {
 			channel.close();
 		}
@@ -214,16 +209,14 @@ public final class UdpClient extends Service implements IChannelService,
 			return;
 		}
 
-		c_logger.warn(StrUtil.buildString(this,
-				" failed to send(channel closed): ",
+		c_logger.warn(StrUtil.join(this, " failed to send(channel closed): ",
 				StrUtil.getLineSeparator(), msg));
 
 		if (msg instanceof Closeable) {
 			try {
 				((Closeable) msg).close();
 			} catch (Throwable t) {
-				c_logger.error(StrUtil.buildString(this,
-						" failed to close message: ",
+				c_logger.error(StrUtil.join(this, " failed to close message: ",
 						StrUtil.getLineSeparator(), msg), t);
 			}
 		}
@@ -247,16 +240,16 @@ public final class UdpClient extends Service implements IChannelService,
 
 	@Override
 	protected void startInternal() throws Exception {
-		c_logger.info(StrUtil.buildString("Starting ", this, "..."));
+		c_logger.info(StrUtil.join("Starting ", this, "..."));
 
 		m_closed = false;
 
-		c_logger.info(StrUtil.buildString(this, " started"));
+		c_logger.info(StrUtil.join(this, " started"));
 	}
 
 	@Override
 	protected void stopInternal() {
-		c_logger.info(StrUtil.buildString("Stopping ", this, "..."));
+		c_logger.info(StrUtil.join("Stopping ", this, "..."));
 
 		final WriteLock writeLock = m_lock.writeLock();
 		writeLock.lock();
@@ -270,7 +263,7 @@ public final class UdpClient extends Service implements IChannelService,
 		if (channel != null)
 			channel.close(); // m_channel will be set to null in method onClosed
 
-		c_logger.info(StrUtil.buildString(this, " stopped"));
+		c_logger.info(StrUtil.join(this, " stopped"));
 	}
 
 	protected void bindChannelAdmin(IChannelAdmin cm) {
@@ -301,7 +294,7 @@ public final class UdpClient extends Service implements IChannelService,
 	protected void activate(ComponentContext context, Map<String, ?> properties)
 			throws Exception {
 		String id = (String) properties.get(IoConstants.SERVICE_ID);
-		m_caption = StrUtil.buildString("UdpClient[", id, "]");
+		m_caption = StrUtil.join("UdpClient[", id, "]");
 
 		updateFilters(updateConf(properties), m_conf);
 	}

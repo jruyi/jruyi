@@ -327,8 +327,7 @@ public final class PropUtil {
 				return CHARACTER;
 			}
 
-			throw new RuntimeException(StrUtil.buildString("Unknown Type: ",
-					type));
+			throw new RuntimeException(StrUtil.join("Unknown Type: ", type));
 		}
 	}
 
@@ -340,7 +339,7 @@ public final class PropUtil {
 		AttributeDefinition[] ads = ocd
 				.getAttributeDefinitions(ObjectClassDefinition.REQUIRED);
 		if (ads != null && ads.length > 0 && props == null)
-			throw new RuntimeException(StrUtil.buildString("Property[",
+			throw new RuntimeException(StrUtil.join("Property[",
 					ads[0].getID(), "] is required"));
 
 		Properties conf = new Properties();
@@ -376,36 +375,36 @@ public final class PropUtil {
 				Object[] values = (Object[]) value;
 				if (values.length > 0) {
 					if (!type.checkType(values[0].getClass()))
-						throw new Exception(StrUtil.buildString("Property[",
-								id, "] should be of type: ", type));
+						throw new Exception(StrUtil.join("Property[", id,
+								"] should be of type: ", type));
 					for (Object obj : values) {
 						String message = ad.validate(String.valueOf(obj));
 						if (message != null && message.length() > 0)
-							throw new Exception(StrUtil.buildString(
-									"Error Property[", id, "]: ", message));
+							throw new Exception(StrUtil.join("Error Property[",
+									id, "]: ", message));
 					}
 				}
 			} else if (!Iterable.class.isAssignableFrom(clazz)) {
 				if (!type.checkType(clazz))
-					throw new Exception(StrUtil.buildString("Property[", id,
+					throw new Exception(StrUtil.join("Property[", id,
 							"] should be of type: ", type));
 				String message = ad.validate(String.valueOf(value));
 				if (message != null && message.length() > 0)
-					throw new Exception(StrUtil.buildString("Error Property[",
-							id, "]: ", message));
+					throw new Exception(StrUtil.join("Error Property[", id,
+							"]: ", message));
 			} else {
 				@SuppressWarnings("unchecked")
 				Iterator<Object> iter = ((Iterable<Object>) value).iterator();
 				for (int i = 0; iter.hasNext(); ++i) {
 					Object obj = iter.next();
 					if (!type.checkType(obj.getClass()))
-						throw new Exception(StrUtil.buildString("Property[",
-								id, "](", i, ") should be of type: ", type));
+						throw new Exception(StrUtil.join("Property[", id, "](",
+								i, ") should be of type: ", type));
 
 					String message = ad.validate(String.valueOf(obj));
 					if (message != null && message.length() > 0)
-						throw new Exception(StrUtil.buildString(
-								"Error Property[", id, "](", i, "): ", message));
+						throw new Exception(StrUtil.join("Error Property[", id,
+								"](", i, "): ", message));
 				}
 			}
 
@@ -455,8 +454,7 @@ public final class PropUtil {
 			else
 				conf.put(id, type.convertToVector(defaultValues));
 		} else if (required)
-			throw new Exception(StrUtil.buildString("Property[", id,
-					"] is required"));
+			throw new Exception(StrUtil.join("Property[", id, "] is required"));
 	}
 
 	private static String[] split(String value) {
@@ -535,7 +533,7 @@ public final class PropUtil {
 			throws Exception {
 		String message = ad.validate(value);
 		if (message != null && message.length() > 0)
-			throw new Exception(StrUtil.buildString("Error Property[", id,
-					"]: ", message));
+			throw new Exception(StrUtil.join("Error Property[", id, "]: ",
+					message));
 	}
 }

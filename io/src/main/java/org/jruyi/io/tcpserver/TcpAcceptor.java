@@ -80,8 +80,8 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 						channel.register(selector, SelectionKey.OP_ACCEPT,
 								server);
 					} catch (Exception e) {
-						c_logger.error(StrUtil.buildString(
-								"Failed to register ", channel), e);
+						c_logger.error(
+								StrUtil.join("Failed to register ", channel), e);
 						// stop tcp server
 						workshop.run(new StopThread(server));
 					}
@@ -110,8 +110,8 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 						workshop.run(channel.onAccept());
 					} catch (ClosedChannelException e) {
 					} catch (Throwable t) {
-						c_logger.error(StrUtil.buildString(server,
-								" failed to accept"), t);
+						c_logger.error(
+								StrUtil.join(server, " failed to accept"), t);
 					}
 				}
 			}

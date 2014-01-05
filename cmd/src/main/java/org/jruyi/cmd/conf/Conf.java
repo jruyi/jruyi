@@ -205,8 +205,8 @@ public final class Conf {
 
 		filter = filter.trim();
 		if (filter.charAt(0) != '(')
-			filter = StrUtil.buildString("(" + Constants.SERVICE_PID + "=",
-					filter, ')');
+			filter = StrUtil.join("(" + Constants.SERVICE_PID + "=", filter,
+					')');
 
 		return filter;
 	}

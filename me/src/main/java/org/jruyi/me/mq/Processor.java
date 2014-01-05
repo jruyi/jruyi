@@ -55,7 +55,7 @@ final class Processor extends Endpoint {
 
 				processor = endpoint.mq().locateService(endpoint.reference());
 				if (processor == null)
-					throw new RuntimeException(StrUtil.buildString(endpoint,
+					throw new RuntimeException(StrUtil.join(endpoint,
 							" is unavailable"));
 				endpoint.processor(processor);
 			} finally {
@@ -91,8 +91,9 @@ final class Processor extends Endpoint {
 		try {
 			send(message);
 		} catch (Throwable t) {
-			c_logger.error(StrUtil.buildString(this,
-					" failed to enqueue message: ", message), t);
+			c_logger.error(
+					StrUtil.join(this, " failed to enqueue message: ", message),
+					t);
 		}
 	}
 

@@ -27,7 +27,7 @@ final class FilterDelegator<I, O> implements IFilter<I, O> {
 
 	FilterDelegator(IServiceHolder<IFilter<I, O>> holder) {
 		m_holder = holder;
-		m_caption = StrUtil.buildString("Filter[", holder.getId(), ']');
+		m_caption = StrUtil.join("Filter[", holder.getId(), ']');
 	}
 
 	@Override
@@ -36,14 +36,12 @@ final class FilterDelegator<I, O> implements IFilter<I, O> {
 	}
 
 	@Override
-	public boolean onMsgArrive(ISession session, I msg,
-			IFilterOutput output) {
+	public boolean onMsgArrive(ISession session, I msg, IFilterOutput output) {
 		return m_holder.getService().onMsgArrive(session, msg, output);
 	}
 
 	@Override
-	public boolean onMsgDepart(ISession session, O msg,
-			IFilterOutput output) {
+	public boolean onMsgDepart(ISession session, O msg, IFilterOutput output) {
 		return m_holder.getService().onMsgDepart(session, msg, output);
 	}
 

@@ -84,8 +84,7 @@ final class UdpServerChannel extends AbstractCodec<SocketAddress> implements
 			channel.receive(in);
 			channel.onReadRequired();
 		} catch (Throwable t) {
-			c_logger.error(
-					StrUtil.buildString(server, " failed to receive message"),
+			c_logger.error(StrUtil.join(server, " failed to receive message"),
 					t);
 			close();
 		}
@@ -120,14 +119,15 @@ final class UdpServerChannel extends AbstractCodec<SocketAddress> implements
 
 	@Override
 	public void onException(Throwable t) {
-		c_logger.error(StrUtil.buildString(m_udpServer, " got an error"), t);
+		c_logger.error(StrUtil.join(m_udpServer, " got an error"), t);
 		close();
 	}
 
 	@Override
 	public void register(ISelector selector, int ops) {
 		try {
-			m_selectionKey = m_datagramChannel.register(selector.selector(), ops, this);
+			m_selectionKey = m_datagramChannel.register(selector.selector(),
+					ops, this);
 		} catch (Throwable t) {
 			// Ignore
 		}

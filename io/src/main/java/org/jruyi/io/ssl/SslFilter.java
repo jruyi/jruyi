@@ -222,7 +222,7 @@ public final class SslFilter implements IFilter<IBuffer, IBuffer> {
 			output.add(appBuf);
 			return !appBuf.isEmpty();
 		} catch (Throwable t) {
-			c_logger.error(StrUtil.buildString(session, " failed to unwrap"), t);
+			c_logger.error(StrUtil.join(session, " failed to unwrap"), t);
 			appBuf.close();
 			return false;
 		} finally {
@@ -270,7 +270,7 @@ public final class SslFilter implements IFilter<IBuffer, IBuffer> {
 			output.add(netBuf);
 			return true;
 		} catch (Throwable t) {
-			c_logger.error(StrUtil.buildString(session, " failed to wrap"), t);
+			c_logger.error(StrUtil.join(session, " failed to wrap"), t);
 			netBuf.close();
 			return false;
 		} finally {

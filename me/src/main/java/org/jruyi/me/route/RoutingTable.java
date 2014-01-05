@@ -92,10 +92,10 @@ public final class RoutingTable implements IRoutingTable, IRouterManager {
 		routeTableDir = routeTableDir.getCanonicalFile();
 		if (routeTableDir.exists()) {
 			if (!routeTableDir.isDirectory())
-				throw new Exception(StrUtil.buildString(routeTableDir,
+				throw new Exception(StrUtil.join(routeTableDir,
 						" is not a directory"));
 		} else if (!routeTableDir.mkdirs())
-			throw new Exception(StrUtil.buildString("Cannot create directory ",
+			throw new Exception(StrUtil.join("Cannot create directory ",
 					routeTableDir));
 
 		Router.setRoutingTableDir(routeTableDir);

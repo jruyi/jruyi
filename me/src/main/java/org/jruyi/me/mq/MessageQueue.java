@@ -131,7 +131,7 @@ public final class MessageQueue implements ITimeoutListener {
 		BiListNode<MsgNotifier> node = (BiListNode<MsgNotifier>) event
 				.getSubject();
 		Message msg = removeNode(node);
-		c_logger.warn(StrUtil.buildString("Message timed out:", msg));
+		c_logger.warn(StrUtil.join("Message timed out:", msg));
 		msg.close();
 	}
 
@@ -171,7 +171,7 @@ public final class MessageQueue implements ITimeoutListener {
 		Map<String, Endpoint> endpoints = m_endpoints;
 		Endpoint endpoint = endpoints.get(id);
 		if (endpoint != null) {
-			c_logger.error(StrUtil.buildString(endpoint,
+			c_logger.error(StrUtil.join(endpoint,
 					" has already been registered"));
 			return;
 		}
@@ -229,7 +229,7 @@ public final class MessageQueue implements ITimeoutListener {
 		Map<String, Endpoint> endpoints = m_endpoints;
 		Endpoint endpoint = endpoints.get(id);
 		if (endpoint != null) {
-			c_logger.error(StrUtil.buildString(endpoint,
+			c_logger.error(StrUtil.join(endpoint,
 					" has already been registered"));
 			return;
 		}
@@ -331,7 +331,7 @@ public final class MessageQueue implements ITimeoutListener {
 				}
 			}
 		} catch (Throwable t) {
-			c_logger.error(StrUtil.buildString("Endpoint[", dst,
+			c_logger.error(StrUtil.join("Endpoint[", dst,
 					"] failed to consume: ", message), t);
 			message.close();
 		}
@@ -389,7 +389,7 @@ public final class MessageQueue implements ITimeoutListener {
 	private String getId(ServiceReference<?> reference) {
 		String id = (String) reference.getProperty(MeConstants.EP_ID);
 		if (id == null) {
-			c_logger.error(StrUtil.buildString(
+			c_logger.error(StrUtil.join(
 					reference.getProperty(Constants.SERVICE_PID), ": Missing "
 							+ MeConstants.EP_ID));
 			return null;
@@ -397,7 +397,7 @@ public final class MessageQueue implements ITimeoutListener {
 
 		id = id.trim();
 		if (id.length() < 1) {
-			c_logger.error(StrUtil.buildString(
+			c_logger.error(StrUtil.join(
 					reference.getProperty(Constants.SERVICE_PID), ": Empty "
 							+ MeConstants.EP_ID));
 			return null;
@@ -433,13 +433,13 @@ public final class MessageQueue implements ITimeoutListener {
 		String id = getId(reference);
 		if (id == null) {
 			unregister(endpoint, reference);
-			c_logger.error(StrUtil.buildString(endpoint,
-					" is unregistered: Illegal " + MeConstants.EP_ID));
+			c_logger.error(StrUtil.join(endpoint, " is unregistered: Illegal "
+					+ MeConstants.EP_ID));
 		} else if (!endpoint.id().equals(id)) {
 			if (m_endpoints.containsKey(id)) {
 				unregister(endpoint, reference);
 				c_logger.error(StrUtil
-						.buildString(endpoint, " is unregistered: Existing "
+						.join(endpoint, " is unregistered: Existing "
 								+ MeConstants.EP_ID + "=", id));
 			} else {
 				String oldId = endpoint.id();
@@ -447,8 +447,8 @@ public final class MessageQueue implements ITimeoutListener {
 				m_endpoints.put(id, endpoint);
 				m_endpoints.remove(oldId);
 
-				c_logger.info(StrUtil.buildString(endpoint,
-						" is reregistered from ", oldId));
+				c_logger.info(StrUtil.join(endpoint, " is reregistered from ",
+						oldId));
 			}
 		}
 	}

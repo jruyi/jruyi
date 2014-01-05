@@ -117,8 +117,7 @@ public final class TcpServer extends Service implements IChannelService,
 			if (listener != null)
 				listener.onSessionIdleTimedOut(channel);
 		} catch (Throwable t) {
-			c_logger.error(StrUtil.buildString(channel, " Unexpected Error: "),
-					t);
+			c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
 		} finally {
 			channel.close();
 		}
@@ -137,14 +136,13 @@ public final class TcpServer extends Service implements IChannelService,
 	@Override
 	public void onChannelException(IChannel channel, Throwable t) {
 		try {
-			c_logger.error(StrUtil.buildString(channel, " got an error"), t);
+			c_logger.error(StrUtil.join(channel, " got an error"), t);
 
 			final ISessionListener listener = m_listener;
 			if (listener != null)
 				listener.onSessionException(channel, t);
 		} catch (Throwable e) {
-			c_logger.error(StrUtil.buildString(channel, " Unexpected Error: "),
-					e);
+			c_logger.error(StrUtil.join(channel, " Unexpected Error: "), e);
 		} finally {
 			channel.close();
 		}
@@ -169,8 +167,7 @@ public final class TcpServer extends Service implements IChannelService,
 
 			m_channels.put(id, channel);
 		} catch (Throwable t) {
-			c_logger.error(StrUtil.buildString(channel, " Unexpected Error: "),
-					t);
+			c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
 		} finally {
 			readLock.unlock();
 		}
@@ -197,8 +194,7 @@ public final class TcpServer extends Service implements IChannelService,
 			try {
 				listener.onSessionClosed(channel);
 			} catch (Throwable t) {
-				c_logger.error(
-						StrUtil.buildString(channel, " Unexpected Error: "), t);
+				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
 			}
 		}
 	}
@@ -214,8 +210,7 @@ public final class TcpServer extends Service implements IChannelService,
 			try {
 				listener.onMessageReceived(channel, msg);
 			} catch (Throwable t) {
-				c_logger.error(
-						StrUtil.buildString(channel, " Unexpected Error: "), t);
+				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
 			}
 		}
 	}
@@ -227,8 +222,7 @@ public final class TcpServer extends Service implements IChannelService,
 			try {
 				listener.onMessageSent(channel, msg);
 			} catch (Throwable t) {
-				c_logger.error(
-						StrUtil.buildString(channel, " Unexpected Error: "), t);
+				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
 			}
 		}
 	}
@@ -262,7 +256,7 @@ public final class TcpServer extends Service implements IChannelService,
 			return;
 		}
 
-		c_logger.warn(StrUtil.buildString(session,
+		c_logger.warn(StrUtil.join(session,
 				" failed to send(channel closed): ",
 				StrUtil.getLineSeparator(), msg));
 
@@ -270,7 +264,7 @@ public final class TcpServer extends Service implements IChannelService,
 			try {
 				((Closeable) msg).close();
 			} catch (Throwable t) {
-				c_logger.error(StrUtil.buildString(session,
+				c_logger.error(StrUtil.join(session,
 						" failed to close message: ",
 						StrUtil.getLineSeparator(), msg), t);
 			}
@@ -281,7 +275,7 @@ public final class TcpServer extends Service implements IChannelService,
 
 	@Override
 	protected void startInternal() throws Exception {
-		c_logger.info(StrUtil.buildString("Starting ", this, "..."));
+		c_logger.info(StrUtil.join("Starting ", this, "..."));
 
 		m_closed = false;
 
@@ -310,14 +304,14 @@ public final class TcpServer extends Service implements IChannelService,
 
 			m_acceptor.doAccept(this);
 
-			c_logger.info(StrUtil.buildString(this, " started, listening on ",
+			c_logger.info(StrUtil.join(this, " started, listening on ",
 					socket.getLocalSocketAddress()));
 		} catch (Exception e) {
 			try {
 				ssc.close();
 			} catch (Throwable t) {
 			}
-			c_logger.error(StrUtil.buildString(this, " failed to start"), e);
+			c_logger.error(StrUtil.join(this, " failed to start"), e);
 			m_ssc = null;
 			throw e;
 		}
@@ -330,13 +324,14 @@ public final class TcpServer extends Service implements IChannelService,
 
 	@Override
 	protected void stopInternal(int options) {
-		c_logger.info(StrUtil.buildString("Stopping ", this, "..."));
+		c_logger.info(StrUtil.join("Stopping ", this, "..."));
 
 		try {
 			m_ssc.close();
 		} catch (Throwable t) {
-			c_logger.error(StrUtil.buildString(this,
-					" failed to close ServerSocketChannel"), t);
+			c_logger.error(
+					StrUtil.join(this, " failed to close ServerSocketChannel"),
+					t);
 		}
 		m_ssc = null;
 
@@ -351,7 +346,7 @@ public final class TcpServer extends Service implements IChannelService,
 		if (options == 0)
 			closeChannels();
 
-		c_logger.info(StrUtil.buildString(this, " stopped"));
+		c_logger.info(StrUtil.join(this, " stopped"));
 	}
 
 	@Override
@@ -364,7 +359,7 @@ public final class TcpServer extends Service implements IChannelService,
 			throws Exception {
 
 		String id = (String) properties.get(IoConstants.SERVICE_ID);
-		m_caption = StrUtil.buildString("TcpServer[", id, "]");
+		m_caption = StrUtil.join("TcpServer[", id, "]");
 
 		Configuration newConf = new Configuration();
 		newConf.initialize(properties);
@@ -411,7 +406,7 @@ public final class TcpServer extends Service implements IChannelService,
 	protected void activate(ComponentContext context, Map<String, ?> properties)
 			throws Exception {
 		String id = (String) properties.get(IoConstants.SERVICE_ID);
-		m_caption = StrUtil.buildString("TcpServer[", id, "]");
+		m_caption = StrUtil.join("TcpServer[", id, "]");
 
 		Configuration conf = new Configuration();
 		conf.initialize(properties);

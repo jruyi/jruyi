@@ -195,7 +195,7 @@ final class Router implements IRouter {
 			File file = new File(s_routingTableDir, m_from);
 			if (size < 1) {
 				if (file.exists() && !file.delete())
-					throw new IOException(StrUtil.buildString(
+					throw new IOException(StrUtil.join(
 							"Failed to delete file: ", file.getCanonicalPath()));
 				return;
 			}

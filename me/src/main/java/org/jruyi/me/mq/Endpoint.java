@@ -66,8 +66,7 @@ class Endpoint implements IProducer, IConsumer, IDumpable {
 				if (msg.to() == null) {
 					IRoute entry = endpoint.router().route(msg);
 					if (entry == null) {
-						c_logger.warn(StrUtil.buildString("Route Not Found:",
-								msg));
+						c_logger.warn(StrUtil.join("Route Not Found:", msg));
 						msg.close();
 						return;
 					}
@@ -142,8 +141,9 @@ class Endpoint implements IProducer, IConsumer, IDumpable {
 		try {
 			getConsumer().onMessage(message);
 		} catch (Throwable t) {
-			c_logger.error(StrUtil.buildString(this,
-					" failed to consume message: ", message), t);
+			c_logger.error(
+					StrUtil.join(this, " failed to consume message: ", message),
+					t);
 		}
 	}
 
@@ -153,8 +153,8 @@ class Endpoint implements IProducer, IConsumer, IDumpable {
 
 	@Override
 	public void onMessage(IMessage message) {
-		c_logger.error(StrUtil.buildString(this, " doesn't consume message: ",
-				message));
+		c_logger.error(StrUtil
+				.join(this, " doesn't consume message: ", message));
 		message.close();
 	}
 
@@ -207,8 +207,8 @@ class Endpoint implements IProducer, IConsumer, IDumpable {
 			}
 		} catch (Throwable t) {
 			// TODO: notify?
-			c_logger.error(StrUtil.buildString(this,
-					" unexpected error on post-handling"), t);
+			c_logger.error(
+					StrUtil.join(this, " unexpected error on post-handling"), t);
 			return false;
 		}
 
@@ -224,8 +224,8 @@ class Endpoint implements IProducer, IConsumer, IDumpable {
 			}
 		} catch (Throwable t) {
 			// TODO: notify?
-			c_logger.error(StrUtil.buildString(this,
-					" unexpected error on pre-handling"), t);
+			c_logger.error(
+					StrUtil.join(this, " unexpected error on pre-handling"), t);
 			return false;
 		}
 

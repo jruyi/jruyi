@@ -54,7 +54,7 @@ final class LazyEndpoint extends Endpoint {
 				IEndpoint original = endpoint.mq().locateService(
 						endpoint.reference());
 				if (original == null)
-					throw new RuntimeException(StrUtil.buildString(endpoint,
+					throw new RuntimeException(StrUtil.join(endpoint,
 							" is unavailable"));
 				original.producer(endpoint);
 				if (original instanceof IService) {

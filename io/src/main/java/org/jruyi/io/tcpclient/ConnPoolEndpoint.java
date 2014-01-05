@@ -68,8 +68,8 @@ public final class ConnPoolEndpoint extends SessionListener implements
 	public void onMessage(IMessage message) {
 		Object attachment = message.attachment();
 		if (attachment == null) {
-			c_logger.warn(StrUtil.buildString(this,
-					" consumes a null message: ", message));
+			c_logger.warn(StrUtil.join(this, " consumes a null message: ",
+					message));
 
 			message.close();
 			return;
@@ -90,19 +90,19 @@ public final class ConnPoolEndpoint extends SessionListener implements
 			msg = session.detach();
 
 		if (msg == null)
-			c_logger.error(StrUtil.buildString(session, " got an error"), t);
+			c_logger.error(StrUtil.join(session, " got an error"), t);
 		else {
 			c_logger.error(
-					StrUtil.buildString(session, " got an error: ",
+					StrUtil.join(session, " got an error: ",
 							StrUtil.getLineSeparator(), msg), t);
 
 			if (msg instanceof Closeable) {
 				try {
 					((Closeable) msg).close();
 				} catch (Throwable e) {
-					c_logger.error(StrUtil.buildString(session,
-							"Failed to close: ", StrUtil.getLineSeparator(),
-							msg), e);
+					c_logger.error(
+							StrUtil.join(session, "Failed to close: ",
+									StrUtil.getLineSeparator(), msg), e);
 				}
 			}
 		}
@@ -111,15 +111,16 @@ public final class ConnPoolEndpoint extends SessionListener implements
 	@Override
 	public void onSessionConnectTimedOut(ISession session) {
 		Object msg = session.detach();
-		c_logger.warn(StrUtil.buildString(session, ": CONNECT_TIMEOUT, ",
+		c_logger.warn(StrUtil.join(session, ": CONNECT_TIMEOUT, ",
 				StrUtil.getLineSeparator(), msg));
 
 		if (msg instanceof Closeable) {
 			try {
 				((Closeable) msg).close();
 			} catch (Throwable t) {
-				c_logger.error(StrUtil.buildString(session,
-						"Failed to close message: ", msg), t);
+				c_logger.error(
+						StrUtil.join(session, "Failed to close message: ", msg),
+						t);
 			}
 		}
 	}
@@ -127,14 +128,14 @@ public final class ConnPoolEndpoint extends SessionListener implements
 	@Override
 	public void onSessionReadTimedOut(ISession session) {
 		Object msg = session.withdraw(IoConstants.FID_TCPCLIENT);
-		c_logger.warn(StrUtil.buildString(session, ": READ_TIMEOUT, ",
+		c_logger.warn(StrUtil.join(session, ": READ_TIMEOUT, ",
 				StrUtil.getLineSeparator(), msg));
 
 		if (msg instanceof Closeable) {
 			try {
 				((Closeable) msg).close();
 			} catch (Throwable t) {
-				c_logger.error(StrUtil.buildString(session,
+				c_logger.error(StrUtil.join(session,
 						"Failed to close message: ",
 						StrUtil.getLineSeparator(), msg), t);
 			}

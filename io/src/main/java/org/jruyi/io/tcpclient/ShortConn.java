@@ -60,8 +60,7 @@ public final class ShortConn extends AbstractTcpClient {
 			try {
 				listener.onMessageSent(channel, msg);
 			} catch (Throwable t) {
-				c_logger.error(
-						StrUtil.buildString(channel, " Unexpected Error: "), t);
+				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
 			}
 		}
 		int timeout = m_conf.readTimeout();
@@ -83,15 +82,14 @@ public final class ShortConn extends AbstractTcpClient {
 					listener.onMessageReceived(channel, msg);
 				} catch (Throwable t) {
 					c_logger.error(
-							StrUtil.buildString(channel, " Unexpected Error: "),
-							t);
+							StrUtil.join(channel, " Unexpected Error: "), t);
 				}
 			}
 		} else if (msg instanceof Closeable) {
 			try {
 				((Closeable) msg).close();
 			} catch (Throwable t) {
-				c_logger.error(StrUtil.buildString(channel,
+				c_logger.error(StrUtil.join(channel,
 						"Failed to close message: ",
 						StrUtil.getLineSeparator(), msg), t);
 			}
@@ -106,8 +104,7 @@ public final class ShortConn extends AbstractTcpClient {
 			try {
 				listener.onSessionException(channel, t);
 			} catch (Throwable e) {
-				c_logger.error(
-						StrUtil.buildString(channel, " Unexpected Error: "), e);
+				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), e);
 			}
 		}
 	}
@@ -125,8 +122,7 @@ public final class ShortConn extends AbstractTcpClient {
 			try {
 				listener.onSessionConnectTimedOut(channel);
 			} catch (Throwable t) {
-				c_logger.error(
-						StrUtil.buildString(channel, " Unexpected Error: "), t);
+				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
 			}
 		}
 	}
@@ -139,8 +135,7 @@ public final class ShortConn extends AbstractTcpClient {
 			try {
 				listener.onSessionReadTimedOut(channel);
 			} catch (Throwable t) {
-				c_logger.error(
-						StrUtil.buildString(channel, " Unexpected Error: "), t);
+				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
 			}
 		}
 	}
@@ -152,20 +147,20 @@ public final class ShortConn extends AbstractTcpClient {
 
 	@Override
 	public void startInternal() {
-		c_logger.info(StrUtil.buildString("Starting ", this, "..."));
+		c_logger.info(StrUtil.join("Starting ", this, "..."));
 
 		super.startInternal();
 
-		c_logger.info(StrUtil.buildString(this, " started"));
+		c_logger.info(StrUtil.join(this, " started"));
 	}
 
 	@Override
 	public void stopInternal() {
-		c_logger.info(StrUtil.buildString("Stopping ", this, "..."));
+		c_logger.info(StrUtil.join("Stopping ", this, "..."));
 
 		super.stopInternal();
 
-		c_logger.info(StrUtil.buildString(this, " stopped"));
+		c_logger.info(StrUtil.join(this, " stopped"));
 	}
 
 	@Override

@@ -89,14 +89,14 @@ public abstract class AbstractTcpClient extends Service implements
 			return;
 		}
 
-		c_logger.warn(StrUtil.buildString(session,
+		c_logger.warn(StrUtil.join(session,
 				" failed to send(channel closed): ", msg));
 
 		if (msg instanceof Closeable) {
 			try {
 				((Closeable) msg).close();
 			} catch (Throwable t) {
-				c_logger.error(StrUtil.buildString(session,
+				c_logger.error(StrUtil.join(session,
 						" failed to close message: ", msg), t);
 			}
 		}
@@ -138,19 +138,19 @@ public abstract class AbstractTcpClient extends Service implements
 		try {
 			Object attachment = channel.detach();
 			if (attachment != null) {
-				c_logger.error(StrUtil.buildString(channel, " got an error: ",
-						attachment), t);
+				c_logger.error(
+						StrUtil.join(channel, " got an error: ", attachment), t);
 
 				if (attachment instanceof Closeable) {
 					try {
 						((Closeable) attachment).close();
 					} catch (Throwable e) {
-						c_logger.error(StrUtil.buildString(channel,
+						c_logger.error(StrUtil.join(channel,
 								"Failed to close: ", attachment), e);
 					}
 				}
 			} else
-				c_logger.error(StrUtil.buildString(channel, " got an error"), t);
+				c_logger.error(StrUtil.join(channel, " got an error"), t);
 		} finally {
 			channel.close();
 		}
@@ -250,7 +250,7 @@ public abstract class AbstractTcpClient extends Service implements
 			throws Exception {
 		String id = (String) properties.get(IoConstants.SERVICE_ID);
 
-		m_caption = StrUtil.buildString("TcpClient[", id, "]");
+		m_caption = StrUtil.join("TcpClient[", id, "]");
 		updateFilters(updateConf(properties), configuration());
 	}
 

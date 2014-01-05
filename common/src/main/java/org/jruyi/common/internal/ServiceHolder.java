@@ -40,12 +40,12 @@ final class ServiceHolder<T> implements IServiceHolder<T> {
 		}
 
 		<T> T activate(ServiceHolder<T> holder) {
-			throw new RuntimeException(StrUtil.buildString(holder.getId(),
+			throw new RuntimeException(StrUtil.join(holder.getId(),
 					" is unavailable"));
 		}
 
 		<T> T getService(ServiceHolder<T> holder) {
-			throw new RuntimeException(StrUtil.buildString(holder.getId(),
+			throw new RuntimeException(StrUtil.join(holder.getId(),
 					" is unavailable"));
 		}
 

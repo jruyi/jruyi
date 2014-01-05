@@ -112,7 +112,7 @@ public final class ServiceHolderManagerProvider implements IFactory {
 			try {
 				ServiceHolder<T> holder = holders.get(name);
 				if (holder == null)
-					throw new RuntimeException(StrUtil.buildString(
+					throw new RuntimeException(StrUtil.join(
 							"Unexpected ungetServiceHolder(", name, ')'));
 				int count = holder.decRef();
 				if (count == 0)
@@ -147,8 +147,8 @@ public final class ServiceHolderManagerProvider implements IFactory {
 	public <T> IServiceHolderManager<T> create(BundleContext context,
 			Class<T> clazz, String nameOfId) {
 		try {
-			Filter filter = FrameworkUtil.createFilter(StrUtil.buildString(
-					"(&(" + Constants.OBJECTCLASS + "=", clazz.getName(), ")(",
+			Filter filter = FrameworkUtil.createFilter(StrUtil.join("(&("
+					+ Constants.OBJECTCLASS + "=", clazz.getName(), ")(",
 					nameOfId, "=*))"));
 			return new ServiceHolderTracker<T>(context, filter, nameOfId);
 		} catch (InvalidSyntaxException e) {

@@ -257,7 +257,7 @@ public final class Message implements Runnable, IMessage, IRoutable,
 					try {
 						((Closeable) attachment).close();
 					} catch (Throwable t) {
-						c_logger.error(StrUtil.buildString(
+						c_logger.error(StrUtil.join(
 								"Failed to close attachment: ", attachment), t);
 					}
 				}

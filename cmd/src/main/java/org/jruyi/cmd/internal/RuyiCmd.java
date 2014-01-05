@@ -58,9 +58,9 @@ public final class RuyiCmd implements IManual {
 			if (v instanceof String[]) {
 				String[] funcs = (String[]) v;
 				for (String func : funcs)
-					add(head, StrUtil.buildString(scope, ":", func));
+					add(head, StrUtil.join(scope, ":", func));
 			} else
-				add(head, StrUtil.buildString(scope, ":", v));
+				add(head, StrUtil.join(scope, ":", v));
 		}
 
 		ListNode<String> node = head.next();
@@ -92,9 +92,9 @@ public final class RuyiCmd implements IManual {
 		if (scope.length() < 1)
 			scope = "*";
 
-		String filter = StrUtil.buildString("(&("
-				+ CommandProcessor.COMMAND_SCOPE + "=", scope, ")("
-				+ CommandProcessor.COMMAND_FUNCTION + "=", function, "))");
+		String filter = StrUtil.join("(&(" + CommandProcessor.COMMAND_SCOPE
+				+ "=", scope, ")(" + CommandProcessor.COMMAND_FUNCTION + "=",
+				function, "))");
 
 		BundleContext context = m_context;
 		ServiceReference<?>[] references = context.getAllServiceReferences(
@@ -108,13 +108,13 @@ public final class RuyiCmd implements IManual {
 		ServiceReference<?> reference = references[0];
 		scope = (String) reference.getProperty(CommandProcessor.COMMAND_SCOPE);
 		Bundle bundle = reference.getBundle();
-		URL url = bundle.getEntry(StrUtil.buildString("/HELP-INF/", scope, "/",
+		URL url = bundle.getEntry(StrUtil.join("/HELP-INF/", scope, "/",
 				function));
 		if (url == null) {
 			if (bundle.equals(context.getBundle()))
 				return;
 			bundle = context.getBundle();
-			url = bundle.getEntry(StrUtil.buildString("/HELP-INF/", scope, "/",
+			url = bundle.getEntry(StrUtil.join("/HELP-INF/", scope, "/",
 					function));
 			if (url == null)
 				return;
@@ -151,7 +151,7 @@ public final class RuyiCmd implements IManual {
 			String regex) throws Exception {
 
 		if (ignoreCase)
-			regex = StrUtil.buildString("(?i)", regex);
+			regex = StrUtil.join("(?i)", regex);
 
 		Pattern pattern = Pattern.compile(regex);
 		Matcher matcher = pattern.matcher("");

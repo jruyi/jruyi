@@ -319,12 +319,12 @@ public final class Workshop implements IWorkshop, IWorkshopProfiler, IDumpable {
 	}
 
 	private String getLog(String arg0, Object arg1) {
-		return StrUtil.buildString("Workshop[" + P_THREAD_PREFIX + "=",
+		return StrUtil.join("Workshop[" + P_THREAD_PREFIX + "=",
 				m_threadPrefix, "]", arg0, arg1);
 	}
 
 	private String getLog(String arg) {
-		return StrUtil.buildString(arg, "Workshop[" + P_THREAD_PREFIX + "=",
+		return StrUtil.join(arg, "Workshop[" + P_THREAD_PREFIX + "=",
 				m_threadPrefix, "]...");
 	}
 

@@ -116,7 +116,7 @@ public final class IoCommand {
 	public void list(String arg) throws Exception {
 		final BundleContext context = m_context;
 		Collection<ServiceReference<IService>> references = context
-				.getServiceReferences(IService.class, StrUtil.buildString("("
+				.getServiceReferences(IService.class, StrUtil.join("("
 						+ IoConstants.SERVICE_ID + "=", arg, ")"));
 		if (references.isEmpty())
 			return;
@@ -193,7 +193,7 @@ public final class IoCommand {
 	private IService getService(String serviceId) throws Exception {
 		final BundleContext context = m_context;
 		Collection<ServiceReference<IService>> references = context
-				.getServiceReferences(IService.class, StrUtil.buildString("("
+				.getServiceReferences(IService.class, StrUtil.join("("
 						+ IoConstants.SERVICE_ID + "=", serviceId, ")"));
 		if (references.isEmpty())
 			return null;

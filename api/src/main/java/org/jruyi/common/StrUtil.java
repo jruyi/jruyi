@@ -13,6 +13,7 @@
  */
 package org.jruyi.common;
 
+import java.util.Iterator;
 import java.util.Map;
 
 import org.osgi.framework.BundleContext;
@@ -253,33 +254,32 @@ public final class StrUtil {
 	}
 
 	/**
-	 * Returns a {@code String} constructed as follows.
-	 * 
-	 * <pre>
-	 * {@code StringBuilder.get().append(obj0).append(obj1).toStringAndClose()}
-	 * </pre>
+	 * Concatenates the provided arguments into a single {@code String}. Null
+	 * argument is treated as an empty string.
 	 * 
 	 * @param obj0
 	 *            the first {@code Object} to construct the string
 	 * @param obj1
 	 *            the second {@code Object} to construct the string
 	 * @return the {@code String} constructed
+	 * @since 1.1
 	 */
-	public static String buildString(Object obj0, Object obj1) {
+	public static String join(Object obj0, Object obj1) {
 		StringBuilder builder = StringBuilder.get();
 		try {
-			return builder.append(obj0).append(obj1).toString();
+			if (obj0 != null)
+				builder.append(obj0);
+			if (obj1 != null)
+				builder.append(obj1);
+			return builder.toString();
 		} finally {
 			builder.close();
 		}
 	}
 
 	/**
-	 * Returns a {@code String} constructed as follows.
-	 * 
-	 * <pre>
-	 * {@code StringBuilder.get().append(obj0)...append(obj2).toStringAndClose()}
-	 * </pre>
+	 * Concatenates the provided arguments into a single {@code String}. Null
+	 * argument is treated as an empty string.
 	 * 
 	 * @param obj0
 	 *            the first {@code Object} to construct the string.
@@ -288,11 +288,18 @@ public final class StrUtil {
 	 * @param obj2
 	 *            the third {@code Object} to construct the string.
 	 * @return the {@code String} constructed.
+	 * @since 1.1
 	 */
-	public static String buildString(Object obj0, Object obj1, Object obj2) {
+	public static String join(Object obj0, Object obj1, Object obj2) {
 		StringBuilder builder = StringBuilder.get();
 		try {
-			return builder.append(obj0).append(obj1).append(obj2).toString();
+			if (obj0 != null)
+				builder.append(obj0);
+			if (obj1 != null)
+				builder.append(obj1);
+			if (obj2 != null)
+				builder.append(obj2);
+			return builder.toString();
 		} finally {
 			builder.close();
 		}
@@ -301,11 +308,8 @@ public final class StrUtil {
 	/**
 	 * Concatenates the string values of the 4 given {@code obj}s by using the
 	 * {@link StringBuilder} object associated with the current thread, and
-	 * returns the constructed {@code String}.
-	 * 
-	 * <pre>
-	 * {@code StringBuilder.get().append(obj0)...append(obj3).toStringAndClose()}
-	 * </pre>
+	 * returns the constructed {@code String}. Null argument is treated as an
+	 * empty string.
 	 * 
 	 * @param obj0
 	 *            the first {@code Object} to construct the string.
@@ -316,13 +320,20 @@ public final class StrUtil {
 	 * @param obj3
 	 *            the fourth {@code Object} to construct the string.
 	 * @return the {@code String} constructed.
+	 * @since 1.1
 	 */
-	public static String buildString(Object obj0, Object obj1, Object obj2,
-			Object obj3) {
+	public static String join(Object obj0, Object obj1, Object obj2, Object obj3) {
 		StringBuilder builder = StringBuilder.get();
 		try {
-			return builder.append(obj0).append(obj1).append(obj2).append(obj3)
-					.toString();
+			if (obj0 != null)
+				builder.append(obj0);
+			if (obj1 != null)
+				builder.append(obj1);
+			if (obj2 != null)
+				builder.append(obj2);
+			if (obj3 != null)
+				builder.append(obj3);
+			return builder.toString();
 		} finally {
 			builder.close();
 		}
@@ -331,11 +342,8 @@ public final class StrUtil {
 	/**
 	 * Concatenates the string values of the 5 given {@code obj}s by using the
 	 * {@link StringBuilder} object associated with the current thread, and
-	 * returns the constructed {@code String}.
-	 * 
-	 * <pre>
-	 * {@code StringBuilder.get().append(obj0)...append(obj4).toStringAndClose()}
-	 * </pre>
+	 * returns the constructed {@code String}. Null argument is treated as an
+	 * empty string.
 	 * 
 	 * @param obj0
 	 *            the first {@code Object} to construct the string.
@@ -348,13 +356,28 @@ public final class StrUtil {
 	 * @param obj4
 	 *            the fifth {@code Object} to construct the string.
 	 * @return the {@code String} constructed.
+	 * @since 1.1
 	 */
-	public static String buildString(Object obj0, Object obj1, Object obj2,
+	public static String join(Object obj0, Object obj1, Object obj2,
 			Object obj3, Object obj4) {
 		StringBuilder builder = StringBuilder.get();
 		try {
-			return builder.append(obj0).append(obj1).append(obj2).append(obj3)
-					.append(obj4).toString();
+			if (obj0 != null)
+				builder.append(obj0);
+
+			if (obj1 != null)
+				builder.append(obj1);
+
+			if (obj2 != null)
+				builder.append(obj2);
+
+			if (obj3 != null)
+				builder.append(obj3);
+
+			if (obj4 != null)
+				builder.append(obj4);
+
+			return builder.toString();
 		} finally {
 			builder.close();
 		}
@@ -363,13 +386,8 @@ public final class StrUtil {
 	/**
 	 * Concatenates the string values of the 6 given {@code obj}s by using the
 	 * {@link StringBuilder} object associated with the current thread, and
-	 * returns the constructed {@code String}.
-	 * 
-	 * The {@code String} is constructed as follows.
-	 * 
-	 * <pre>
-	 * {@code StringBuilder.get().append(obj0)...append(obj5).toStringAndClose()}
-	 * </pre>
+	 * returns the constructed {@code String}. Null argument is treated as an
+	 * empty string.
 	 * 
 	 * @param obj0
 	 *            the first {@code Object} to construct the string.
@@ -384,13 +402,25 @@ public final class StrUtil {
 	 * @param obj5
 	 *            the sixth {@code Object} to construct the string.
 	 * @return the {@code String} constructed.
+	 * @since 1.1
 	 */
-	public static String buildString(Object obj0, Object obj1, Object obj2,
+	public static String join(Object obj0, Object obj1, Object obj2,
 			Object obj3, Object obj4, Object obj5) {
 		StringBuilder builder = StringBuilder.get();
 		try {
-			return builder.append(obj0).append(obj1).append(obj2).append(obj3)
-					.append(obj4).append(obj5).toString();
+			if (obj0 != null)
+				builder.append(obj0);
+			if (obj1 != null)
+				builder.append(obj1);
+			if (obj2 != null)
+				builder.append(obj2);
+			if (obj3 != null)
+				builder.append(obj3);
+			if (obj4 != null)
+				builder.append(obj4);
+			if (obj5 != null)
+				builder.append(obj5);
+			return builder.toString();
 		} finally {
 			builder.close();
 		}
@@ -399,13 +429,8 @@ public final class StrUtil {
 	/**
 	 * Concatenates the string values of the 7 given {@code obj}s by using the
 	 * {@link StringBuilder} object associated with the current thread, and
-	 * returns the constructed {@code String}.
-	 * 
-	 * The {@code String} is constructed as follows.
-	 * 
-	 * <pre>
-	 * {@code StringBuilder.get().append(obj0)...append(obj6).toStringAndClose()}
-	 * </pre>
+	 * returns the constructed {@code String}. Null argument is treated as an
+	 * empty string.
 	 * 
 	 * @param obj0
 	 *            the first {@code Object} to construct the string.
@@ -422,38 +447,1282 @@ public final class StrUtil {
 	 * @param obj6
 	 *            the seventh {@code Object} to construct the string.
 	 * @return the {@code String} constructed.
+	 * @since 1.1
 	 */
-	public static String buildString(Object obj0, Object obj1, Object obj2,
+	public static String join(Object obj0, Object obj1, Object obj2,
 			Object obj3, Object obj4, Object obj5, Object obj6) {
 		StringBuilder builder = StringBuilder.get();
 		try {
-			return builder.append(obj0).append(obj1).append(obj2).append(obj3)
-					.append(obj4).append(obj5).append(obj6).toString();
+			if (obj0 != null)
+				builder.append(obj0);
+			if (obj1 != null)
+				builder.append(obj1);
+			if (obj2 != null)
+				builder.append(obj2);
+			if (obj3 != null)
+				builder.append(obj3);
+			if (obj4 != null)
+				builder.append(obj4);
+			if (obj5 != null)
+				builder.append(obj5);
+			if (obj6 != null)
+				builder.append(obj6);
+			return builder.toString();
 		} finally {
 			builder.close();
 		}
 	}
 
 	/**
-	 * Returns a {@code String} constructed as follows.
-	 * 
-	 * <pre>
-	 * {@code StringBuilder.get().append(obj).append(objs[0])...append(objs[objs.length -1]).toStringAndClose()}
-	 * </pre>
+	 * Concatenates the string values of the given {@code obj}s by using the
+	 * {@link StringBuilder} object associated with the current thread, and
+	 * returns the constructed {@code String}. Null argument is treated as an
+	 * empty string.
 	 * 
 	 * @param obj
 	 *            the first {@code Object} to construct the string.
 	 * @param objs
 	 *            the rest {@code Object}s to construct the string.
 	 * @return the {@code String} constructed.
+	 * @since 1.1
 	 */
-	public static String buildString(Object obj, Object... objs) {
+	public static String join(Object obj, Object... objs) {
 		StringBuilder builder = StringBuilder.get();
 		try {
-			builder.append(obj);
-			for (Object o : objs)
-				builder.append(o);
+			if (obj != null)
+				builder.append(obj);
+			for (Object o : objs) {
+				if (o != null)
+					builder.append(o);
+			}
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
 
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param delimiter
+	 *            the delimiter character to use
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(char[] array, char delimiter) {
+		if (array == null)
+			return null;
+
+		int n = array.length;
+		if (n < 1)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[0]);
+			for (int i = 1; i < n; ++i)
+				builder.append(delimiter).append(array[i]);
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param begin
+	 *            start joining at this offset
+	 * @param end
+	 *            stop joining at this offset
+	 * @param delimiter
+	 *            the delimiter character to use
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(char[] array, int begin, int end, char delimiter) {
+		if (array == null)
+			return null;
+
+		if (end <= begin)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[begin]);
+			while (++begin < end)
+				builder.append(delimiter).append(array[begin]);
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param delimiter
+	 *            the delimiter string to use, {@code null} treated as empty
+	 *            string
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(char[] array, String delimiter) {
+		if (array == null)
+			return null;
+
+		int n = array.length;
+		if (n < 1)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[0]);
+			for (int i = 1; i < n; ++i) {
+				if (delimiter != null)
+					builder.append(delimiter);
+				builder.append(array[i]);
+			}
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param begin
+	 *            start joining at this offset
+	 * @param end
+	 *            stop joining at this offset
+	 * @param delimiter
+	 *            the delimiter string to use, {@code null} treated as empty
+	 *            string
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(char[] array, int begin, int end, String delimiter) {
+		if (array == null)
+			return null;
+
+		if (end <= begin)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[begin]);
+			while (++begin < end) {
+				if (delimiter != null)
+					builder.append(delimiter);
+				builder.append(array[begin]);
+			}
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param delimiter
+	 *            the delimiter character to use
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(byte[] array, char delimiter) {
+		if (array == null)
+			return null;
+
+		int n = array.length;
+		if (n < 1)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[0]);
+			for (int i = 1; i < n; ++i)
+				builder.append(delimiter).append(array[i]);
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param begin
+	 *            start joining at this offset
+	 * @param end
+	 *            stop joining at this offset
+	 * @param delimiter
+	 *            the delimiter character to use
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(byte[] array, int begin, int end, char delimiter) {
+		if (array == null)
+			return null;
+
+		if (end <= begin)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[begin]);
+			while (++begin < end)
+				builder.append(delimiter).append(array[begin]);
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param delimiter
+	 *            the delimiter string to use, {@code null} treated as empty
+	 *            string
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(byte[] array, String delimiter) {
+		if (array == null)
+			return null;
+
+		int n = array.length;
+		if (n < 1)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[0]);
+			for (int i = 1; i < n; ++i) {
+				if (delimiter != null)
+					builder.append(delimiter);
+				builder.append(array[i]);
+			}
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param begin
+	 *            start joining at this offset
+	 * @param end
+	 *            stop joining at this offset
+	 * @param delimiter
+	 *            the delimiter string to use, {@code null} treated as empty
+	 *            string
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(byte[] array, int begin, int end, String delimiter) {
+		if (array == null)
+			return null;
+
+		if (end <= begin)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[begin]);
+			while (++begin < end) {
+				if (delimiter != null)
+					builder.append(delimiter);
+				builder.append(array[begin]);
+			}
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param delimiter
+	 *            the delimiter character to use
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(short[] array, char delimiter) {
+		if (array == null)
+			return null;
+
+		int n = array.length;
+		if (n < 1)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[0]);
+			for (int i = 1; i < n; ++i)
+				builder.append(delimiter).append(array[i]);
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param begin
+	 *            start joining at this offset
+	 * @param end
+	 *            stop joining at this offset
+	 * @param delimiter
+	 *            the delimiter character to use
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(short[] array, int begin, int end, char delimiter) {
+		if (array == null)
+			return null;
+
+		if (end <= begin)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[begin]);
+			while (++begin < end)
+				builder.append(delimiter).append(array[begin]);
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param delimiter
+	 *            the delimiter string to use, {@code null} treated as empty
+	 *            string
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(short[] array, String delimiter) {
+		if (array == null)
+			return null;
+
+		int n = array.length;
+		if (n < 1)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[0]);
+			for (int i = 1; i < n; ++i) {
+				if (delimiter != null)
+					builder.append(delimiter);
+				builder.append(array[i]);
+			}
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param begin
+	 *            start joining at this offset
+	 * @param end
+	 *            stop joining at this offset
+	 * @param delimiter
+	 *            the delimiter string to use, {@code null} treated as empty
+	 *            string
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(short[] array, int begin, int end,
+			String delimiter) {
+		if (array == null)
+			return null;
+
+		if (end <= begin)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[begin]);
+			while (++begin < end) {
+				if (delimiter != null)
+					builder.append(delimiter);
+				builder.append(array[begin]);
+			}
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param delimiter
+	 *            the delimiter character to use
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(int[] array, char delimiter) {
+		if (array == null)
+			return null;
+
+		int n = array.length;
+		if (n < 1)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[0]);
+			for (int i = 1; i < n; ++i)
+				builder.append(delimiter).append(array[i]);
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param begin
+	 *            start joining at this offset
+	 * @param end
+	 *            stop joining at this offset
+	 * @param delimiter
+	 *            the delimiter character to use
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(int[] array, int begin, int end, char delimiter) {
+		if (array == null)
+			return null;
+
+		if (end <= begin)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[begin]);
+			while (++begin < end)
+				builder.append(delimiter).append(array[begin]);
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param delimiter
+	 *            the delimiter string to use, {@code null} treated as empty
+	 *            string
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(int[] array, String delimiter) {
+		if (array == null)
+			return null;
+
+		int n = array.length;
+		if (n < 1)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[0]);
+			for (int i = 1; i < n; ++i) {
+				if (delimiter != null)
+					builder.append(delimiter);
+				builder.append(array[i]);
+			}
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param begin
+	 *            start joining at this offset
+	 * @param end
+	 *            stop joining at this offset
+	 * @param delimiter
+	 *            the delimiter string to use, {@code null} treated as empty
+	 *            string
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(int[] array, int begin, int end, String delimiter) {
+		if (array == null)
+			return null;
+
+		if (end <= begin)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[begin]);
+			while (++begin < end) {
+				if (delimiter != null)
+					builder.append(delimiter);
+				builder.append(array[begin]);
+			}
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param delimiter
+	 *            the delimiter character to use
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(long[] array, char delimiter) {
+		if (array == null)
+			return null;
+
+		int n = array.length;
+		if (n < 1)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[0]);
+			for (int i = 1; i < n; ++i)
+				builder.append(delimiter).append(array[i]);
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param begin
+	 *            start joining at this offset
+	 * @param end
+	 *            stop joining at this offset
+	 * @param delimiter
+	 *            the delimiter character to use
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(long[] array, int begin, int end, char delimiter) {
+		if (array == null)
+			return null;
+
+		if (end <= begin)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[begin]);
+			while (++begin < end)
+				builder.append(delimiter).append(array[begin]);
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param delimiter
+	 *            the delimiter string to use, {@code null} treated as empty
+	 *            string
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(long[] array, String delimiter) {
+		if (array == null)
+			return null;
+
+		int n = array.length;
+		if (n < 1)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[0]);
+			for (int i = 1; i < n; ++i) {
+				if (delimiter != null)
+					builder.append(delimiter);
+				builder.append(array[i]);
+			}
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param begin
+	 *            start joining at this offset
+	 * @param end
+	 *            stop joining at this offset
+	 * @param delimiter
+	 *            the delimiter string to use, {@code null} treated as empty
+	 *            string
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(long[] array, int begin, int end, String delimiter) {
+		if (array == null)
+			return null;
+
+		if (end <= begin)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[begin]);
+			while (++begin < end) {
+				if (delimiter != null)
+					builder.append(delimiter);
+				builder.append(array[begin]);
+			}
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param delimiter
+	 *            the delimiter character to use
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(float[] array, char delimiter) {
+		if (array == null)
+			return null;
+
+		int n = array.length;
+		if (n < 1)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[0]);
+			for (int i = 1; i < n; ++i)
+				builder.append(delimiter).append(array[i]);
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param begin
+	 *            start joining at this offset
+	 * @param end
+	 *            stop joining at this offset
+	 * @param delimiter
+	 *            the delimiter character to use
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(float[] array, int begin, int end, char delimiter) {
+		if (array == null)
+			return null;
+
+		if (end <= begin)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[begin]);
+			while (++begin < end)
+				builder.append(delimiter).append(array[begin]);
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param delimiter
+	 *            the delimiter string to use, {@code null} treated as empty
+	 *            string
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(float[] array, String delimiter) {
+		if (array == null)
+			return null;
+
+		int n = array.length;
+		if (n < 1)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[0]);
+			for (int i = 1; i < n; ++i) {
+				if (delimiter != null)
+					builder.append(delimiter);
+				builder.append(array[i]);
+			}
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param begin
+	 *            start joining at this offset
+	 * @param end
+	 *            stop joining at this offset
+	 * @param delimiter
+	 *            the delimiter string to use, {@code null} treated as empty
+	 *            string
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(float[] array, int begin, int end,
+			String delimiter) {
+		if (array == null)
+			return null;
+
+		if (end <= begin)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[begin]);
+			while (++begin < end) {
+				if (delimiter != null)
+					builder.append(delimiter);
+				builder.append(array[begin]);
+			}
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param delimiter
+	 *            the delimiter character to use
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(double[] array, char delimiter) {
+		if (array == null)
+			return null;
+
+		int n = array.length;
+		if (n < 1)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[0]);
+			for (int i = 1; i < n; ++i)
+				builder.append(delimiter).append(array[i]);
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param begin
+	 *            start joining at this offset
+	 * @param end
+	 *            stop joining at this offset
+	 * @param delimiter
+	 *            the delimiter character to use
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(double[] array, int begin, int end, char delimiter) {
+		if (array == null)
+			return null;
+
+		if (end <= begin)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[begin]);
+			while (++begin < end)
+				builder.append(delimiter).append(array[begin]);
+
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param delimiter
+	 *            the delimiter string to use, {@code null} treated as empty
+	 *            string
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(double[] array, String delimiter) {
+		if (array == null)
+			return null;
+
+		int n = array.length;
+		if (n < 1)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[0]);
+			for (int i = 1; i < n; ++i) {
+				if (delimiter != null)
+					builder.append(delimiter);
+				builder.append(array[i]);
+			}
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param begin
+	 *            start joining at this offset
+	 * @param end
+	 *            stop joining at this offset
+	 * @param delimiter
+	 *            the delimiter string to use, {@code null} treated as empty
+	 *            string
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(double[] array, int begin, int end,
+			String delimiter) {
+		if (array == null)
+			return null;
+
+		if (end <= begin)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[begin]);
+			while (++begin < end) {
+				if (delimiter != null)
+					builder.append(delimiter);
+				builder.append(array[begin]);
+			}
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param delimiter
+	 *            the delimiter character to use
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(Object[] array, char delimiter) {
+		if (array == null)
+			return null;
+
+		int n = array.length;
+		if (n < 1)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[0]);
+			for (int i = 1; i < n; ++i) {
+				builder.append(delimiter);
+				Object obj = array[i];
+				if (obj != null)
+					builder.append(obj);
+			}
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param begin
+	 *            start joining at this offset
+	 * @param end
+	 *            stop joining at this offset
+	 * @param delimiter
+	 *            the delimiter character to use
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(Object[] array, int begin, int end, char delimiter) {
+		if (array == null)
+			return null;
+
+		if (end <= begin)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[begin]);
+			while (++begin < end) {
+				builder.append(delimiter);
+				Object obj = array[begin];
+				if (obj != null)
+					builder.append(obj);
+			}
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param delimiter
+	 *            the delimiter string to use, {@code null} treated as empty
+	 *            string
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(Object[] array, String delimiter) {
+		if (array == null)
+			return null;
+
+		int n = array.length;
+		if (n < 1)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[0]);
+			for (int i = 1; i < n; ++i) {
+				if (delimiter != null)
+					builder.append(delimiter);
+				Object obj = array[i];
+				if (obj != null)
+					builder.append(obj);
+			}
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code array} into a single
+	 * {@code String} containing the provided list of elements.
+	 * <p>
+	 * No delimiter is added before or after the list. A null delimiter is the
+	 * same as an empty string.
+	 * 
+	 * @param array
+	 *            the array of values to join together, may be null
+	 * @param begin
+	 *            start joining at this offset
+	 * @param end
+	 *            stop joining at this offset
+	 * @param delimiter
+	 *            the delimiter string to use, {@code null} treated as empty
+	 *            string
+	 * @return the joined {@code String}, {@code null} if null array input
+	 * @since 1.1
+	 */
+	public static String join(Object[] array, int begin, int end,
+			String delimiter) {
+		if (array == null)
+			return null;
+
+		if (end <= begin)
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(array[begin]);
+			while (++begin < end) {
+				if (delimiter != null)
+					builder.append(delimiter);
+				Object obj = array[begin];
+				if (obj != null)
+					builder.append(obj);
+			}
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code Iterable} into a single
+	 * {@code String} containing the provided elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param iterable
+	 *            the {@code Iterable} providing the values to join together,
+	 *            may be null
+	 * @param delimiter
+	 *            the delimiter character to use
+	 * @return the joined {@code String}, {@code null} if null iterable input
+	 */
+	public static String join(Iterable<?> iterable, char delimiter) {
+		if (iterable == null)
+			return null;
+
+		Iterator<?> iterator = iterable.iterator();
+		if (!iterator.hasNext())
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(iterator.next());
+			while (iterator.hasNext()) {
+				builder.append(delimiter);
+				Object obj = iterator.next();
+				if (obj != null)
+					builder.append(obj);
+			}
+			return builder.toString();
+		} finally {
+			builder.close();
+		}
+	}
+
+	/**
+	 * Joins the elements of the provided {@code Iterable} into a single
+	 * {@code String} containing the provided elements.
+	 * <p>
+	 * No delimiter is added before or after the list.
+	 * 
+	 * @param iterable
+	 *            the {@code Iterable} providing the values to join together,
+	 *            may be null
+	 * @param delimiter
+	 *            the delimiter string to use, {@code null} treated as empty
+	 *            string
+	 * @return the joined {@code String}, {@code null} if null iterable input
+	 */
+	public static String join(Iterable<?> iterable, String delimiter) {
+		if (iterable == null)
+			return null;
+
+		Iterator<?> iterator = iterable.iterator();
+		if (!iterator.hasNext())
+			return "";
+
+		StringBuilder builder = StringBuilder.get();
+		try {
+			builder.append(iterator.next());
+			while (iterator.hasNext()) {
+				if (delimiter != null)
+					builder.append(delimiter);
+				Object obj = iterator.next();
+				if (obj != null)
+					builder.append(obj);
+			}
 			return builder.toString();
 		} finally {
 			builder.close();

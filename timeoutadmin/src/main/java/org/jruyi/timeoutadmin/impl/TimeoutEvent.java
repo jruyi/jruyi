@@ -66,8 +66,7 @@ final class TimeoutEvent implements ITimeoutEvent, Runnable {
 		try {
 			listener.onTimeout(this);
 		} catch (Throwable t) {
-			c_logger.error(
-					StrUtil.buildString("Error on timeout: ", getSubject()), t);
+			c_logger.error(StrUtil.join("Error on timeout: ", getSubject()), t);
 		}
 	}
 

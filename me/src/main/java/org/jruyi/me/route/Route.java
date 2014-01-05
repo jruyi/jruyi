@@ -105,8 +105,8 @@ final class Route implements IRoute, IDumpable {
 
 	@Override
 	public String toString() {
-		return StrUtil.buildString("Route[(", m_router.from(), ")->(", m_to,
-				"):", m_filter, "]");
+		return StrUtil.join("Route[(", m_router.from(), ")->(", m_to, "):",
+				m_filter, "]");
 	}
 
 	@Override
