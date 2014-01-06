@@ -17,6 +17,8 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,11 +41,77 @@ public final class RuyiCmd implements IManual {
 	}
 
 	public static String[] commands() {
-		return new String[] { "help", "echo", "grep", "shutdown" };
+		return new String[] { "echo", "grep", "help", "shutdown", "sysinfo" };
 	}
 
 	public void context(BundleContext context) {
 		m_context = context;
+	}
+
+	public void sysinfo() {
+
+		// Java Runtime
+		System.out.print("        Java Runtime: ");
+		System.out.print(System.getProperty("java.runtime.name"));
+		System.out.print("(build ");
+		System.out.print(System.getProperty("java.runtime.version"));
+		System.out.println(')');
+
+		// Java VM
+		System.out.print("Java Virtual Machine: ");
+		System.out.print(System.getProperty("java.vm.name"));
+		System.out.print("(build ");
+		System.out.print(System.getProperty("java.vm.version"));
+		String v = System.getProperty("java.vm.info");
+		if (v != null && !v.isEmpty()) {
+			System.out.print(", ");
+			System.out.print(System.getProperty("java.vm.info"));
+		}
+		System.out.println(')');
+
+		// OS Name
+		System.out.print("             OS Name: ");
+		System.out.println(System.getProperty("os.name"));
+
+		// OS Version
+		System.out.print("          OS Version: ");
+		System.out.println(System.getProperty("os.version"));
+
+		// OS Arch
+		System.out.print("             OS Arch: ");
+		System.out.println(System.getProperty("os.arch"));
+
+		// Default Locale
+		System.out.print("      Default Locale: ");
+		System.out.println(Locale.getDefault());
+
+		// Platform Encoding
+		System.out.print("     Default Charset: ");
+		System.out.println(Charset.defaultCharset());
+
+		Runtime runtime = Runtime.getRuntime();
+
+		// Available Processors
+		System.out.print("Available Processors: ");
+		System.out.println(runtime.availableProcessors());
+
+		// Used Memory
+		long totalMemory = runtime.totalMemory();
+		long freeMemory = runtime.freeMemory();
+		System.out.print("         Used Memory: ");
+		System.out.println(totalMemory - freeMemory);
+
+		// Free Memory
+		System.out.print("         Free Memory: ");
+		System.out.println(freeMemory);
+
+		// Total Memory
+		System.out.print("        Total Memory: ");
+		System.out.println(totalMemory);
+
+		// Max Memory
+		System.out.print("          Max Memory: ");
+		System.out.println(runtime.maxMemory());
 	}
 
 	public void help() throws Exception {
