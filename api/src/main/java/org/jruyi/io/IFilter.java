@@ -21,9 +21,9 @@ package org.jruyi.io;
  * @see Filter
  * 
  * @param <I>
- *            the type of the in-bound message passed to {@link onMsgArrive}
+ *            the type of the in-bound message passed to {@link #onMsgArrive}
  * @param <O>
- *            the type of the out-bound message passed to {@link onMsgDepart}
+ *            the type of the out-bound message passed to {@link #onMsgDepart}
  */
 public interface IFilter<I, O> {
 
