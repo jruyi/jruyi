@@ -41,7 +41,8 @@ public final class RuyiCmd implements IManual {
 	}
 
 	public static String[] commands() {
-		return new String[] { "echo", "grep", "help", "shutdown", "sysinfo" };
+		return new String[] { "echo", "gc", "grep", "help", "shutdown",
+				"sysinfo" };
 	}
 
 	public void context(BundleContext context) {
@@ -211,6 +212,10 @@ public final class RuyiCmd implements IManual {
 		}
 
 		System.out.println();
+	}
+
+	public void gc() {
+		Runtime.getRuntime().gc();
 	}
 
 	public void grep(
