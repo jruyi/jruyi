@@ -20,7 +20,7 @@
 
 	<groupId>org.jruyi</groupId>
 	<artifactId>jruyi</artifactId>
-	<version>1.1.0-SNAPSHOT</version>
+	<version>1.1.0</version>
 
 	<name>JRuyi Assembly</name>
 	<description>A framework for easily developing efficient and scalable network applications</description>
@@ -79,17 +79,17 @@
 		<org.apache.felix.gogo.runtime.version>0.10.0</org.apache.felix.gogo.runtime.version>
 
 		<!-- JRuyi Artifacts -->
-		<jruyi-cli.version>1.0.3-SNAPSHOT</jruyi-cli.version>
+		<jruyi-cli.version>1.0.3</jruyi-cli.version>
 		<jruyi-launcher.version>1.0.2</jruyi-launcher.version>
 		<jruyi-system.version>${project.version}</jruyi-system.version>
-		<org.jruyi.osgi.log.version>1.0.1-SNAPSHOT</org.jruyi.osgi.log.version>
-		<org.jruyi.common.version>1.1.0-SNAPSHOT</org.jruyi.common.version>
-		<org.jruyi.workshop.version>1.1.0-SNAPSHOT</org.jruyi.workshop.version>
-		<org.jruyi.timeoutadmin.version>1.1.0-SNAPSHOT</org.jruyi.timeoutadmin.version>
-		<org.jruyi.me.version>1.1.0-SNAPSHOT</org.jruyi.me.version>
-		<org.jruyi.io.version>1.1.0-SNAPSHOT</org.jruyi.io.version>
-		<org.jruyi.cmd.version>1.1.0-SNAPSHOT</org.jruyi.cmd.version>
-		<org.jruyi.clid.version>1.1.0-SNAPSHOT</org.jruyi.clid.version>
+		<org.jruyi.osgi.log.version>1.0.1</org.jruyi.osgi.log.version>
+		<org.jruyi.common.version>1.1.0</org.jruyi.common.version>
+		<org.jruyi.workshop.version>1.1.0</org.jruyi.workshop.version>
+		<org.jruyi.timeoutadmin.version>1.1.0</org.jruyi.timeoutadmin.version>
+		<org.jruyi.me.version>1.1.0</org.jruyi.me.version>
+		<org.jruyi.io.version>1.1.0</org.jruyi.io.version>
+		<org.jruyi.cmd.version>1.1.0</org.jruyi.cmd.version>
+		<org.jruyi.clid.version>1.1.0</org.jruyi.clid.version>
 	</properties>
 
 	<dependencies>
