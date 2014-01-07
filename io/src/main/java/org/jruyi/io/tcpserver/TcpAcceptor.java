@@ -25,6 +25,7 @@ import java.util.Map;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.common.StopThread;
@@ -49,8 +50,8 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 	private SyncPutQueue<TcpServer> m_queue;
 	private ComponentContext m_context;
 
-	@Reference(name = "workshop", target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
-	private IWorkshop m_workshop;
+	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
+	private volatile IWorkshop m_workshop;
 
 	@Override
 	public void doAccept(TcpServer server) throws Exception {
@@ -62,7 +63,6 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 
 	@Override
 	public void run() {
-		final IWorkshop workshop = m_workshop;
 		SyncPutQueue<TcpServer> queue = m_queue;
 		Selector selector = m_selector;
 		Thread currentThread = Thread.currentThread();
@@ -72,6 +72,8 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 				int n = selector.select();
 				if (currentThread.isInterrupted())
 					break;
+
+				final IWorkshop workshop = m_workshop;
 
 				// Register
 				while ((server = queue.poll()) != null) {
@@ -124,12 +126,13 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 		}
 	}
 
-	protected void bindWorkshop(IWorkshop workshop) {
+	protected synchronized void bindWorkshop(IWorkshop workshop) {
 		m_workshop = workshop;
 	}
 
-	protected void unbindWorkshop(IWorkshop workshop) {
-		m_workshop = null;
+	protected synchronized void unbindWorkshop(IWorkshop workshop) {
+		if (m_workshop != workshop)
+			m_workshop = null;
 	}
 
 	protected void activate(ComponentContext context, Map<String, ?> properties)

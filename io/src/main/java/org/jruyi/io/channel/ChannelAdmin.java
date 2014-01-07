@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.concurrent.RejectedExecutionException;
 
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
@@ -45,7 +46,7 @@ public final class ChannelAdmin implements IChannelAdmin {
 	private int m_count;
 
 	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
-	private IWorkshop m_workshop;
+	private volatile IWorkshop m_workshop;
 
 	@Reference(name = "timeoutAdmin", policy = ReferencePolicy.DYNAMIC)
 	private ITimeoutAdmin m_tm;
@@ -102,7 +103,6 @@ public final class ChannelAdmin implements IChannelAdmin {
 
 			c_logger.info("{} started", currentThread.getName());
 
-			final IWorkshop workshop = m_workshop;
 			Selector selector = m_selector;
 			try {
 				for (;;) {
@@ -117,6 +117,8 @@ public final class ChannelAdmin implements IChannelAdmin {
 
 					if (n < 1)
 						continue;
+
+					final IWorkshop workshop = m_workshop;
 
 					Iterator<SelectionKey> iter = selector.selectedKeys()
 							.iterator();
@@ -272,22 +274,46 @@ public final class ChannelAdmin implements IChannelAdmin {
 			m_tm = null;
 	}
 
+	@Modified
+	protected void modified(Map<String, ?> properties) throws Exception {
+		final int count = numberOfSelectors(properties);
+		if (count < 1)
+			throw new Exception("num");
+
+		int curCount = m_count;
+		if (count == curCount)
+			return;
+
+		SelectorThread[] sts = m_sts;
+		if (count > m_sts.length) {
+			sts = new SelectorThread[count];
+			System.arraycopy(m_sts, 0, sts, 0, curCount);
+			m_sts = sts;
+		}
+
+		while (count < curCount) {
+			sts[--curCount].close();
+			sts[curCount] = null;
+		}
+
+		while (curCount < count) {
+			SelectorThread st = new SelectorThread();
+			try {
+				st.open(curCount);
+			} catch (Exception e) {
+				st.close();
+				break;
+			}
+			sts[curCount++] = st;
+		}
+
+		m_count = curCount;
+	}
+
 	protected void activate(Map<String, ?> properties) throws Exception {
 		c_logger.info("Activating ChannelAdmin...");
 
-		Object numberOfSelectorThreads = properties
-				.get("numberOfSelectorThreads");
-		int count;
-		if (numberOfSelectorThreads == null) {
-			int i = Runtime.getRuntime().availableProcessors();
-			count = 0;
-			while ((i >>>= 1) > 0)
-				++count;
-			if (count < 1)
-				count = 1;
-		} else
-			count = (Integer) numberOfSelectorThreads;
-
+		int count = numberOfSelectors(properties);
 		final SelectorThread[] sts = new SelectorThread[count];
 		for (int i = 0; i < count; ++i) {
 			SelectorThread st = new SelectorThread();
@@ -321,5 +347,22 @@ public final class ChannelAdmin implements IChannelAdmin {
 
 	private SelectorThread getSelectorThread(ISelectableChannel channel) {
 		return m_sts[channel.id().intValue() % m_count];
+	}
+
+	private static int numberOfSelectors(Map<String, ?> properties) {
+		Object numberOfSelectorThreads = properties
+				.get("numberOfSelectorThreads");
+		int count;
+		if (numberOfSelectorThreads == null
+				|| (count = (Integer) numberOfSelectorThreads) < 1) {
+			int i = Runtime.getRuntime().availableProcessors();
+			count = 0;
+			while ((i >>>= 1) > 0)
+				++count;
+			if (count < 1)
+				count = 1;
+		}
+
+		return count;
 	}
 }
