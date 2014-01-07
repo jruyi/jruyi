@@ -88,7 +88,7 @@
 		<org.jruyi.timeoutadmin.version>1.1.0</org.jruyi.timeoutadmin.version>
 		<org.jruyi.me.version>1.1.0</org.jruyi.me.version>
 		<org.jruyi.io.version>1.1.1-SNAPSHOT</org.jruyi.io.version>
-		<org.jruyi.cmd.version>1.1.0</org.jruyi.cmd.version>
+		<org.jruyi.cmd.version>1.1.1-SNAPSHOT</org.jruyi.cmd.version>
 		<org.jruyi.clid.version>1.1.0</org.jruyi.clid.version>
 	</properties>
 

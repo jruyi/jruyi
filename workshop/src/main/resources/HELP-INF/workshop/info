@@ -1,3 +1,4 @@
-Usage: workshop:info <workshop-profiler-id>
+Usage: workshop:info [workshop-profiler-id] ...
 
-Print the profiling statistics of the workshop bound to the specified profiler.
+Print profiling statistics of the workshops bound to the specified profilers,
+or all the profilers if not provided.

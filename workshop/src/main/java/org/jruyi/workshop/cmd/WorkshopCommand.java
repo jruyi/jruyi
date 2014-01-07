@@ -14,6 +14,7 @@
 package org.jruyi.workshop.cmd;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.ConfigurationPolicy;
@@ -97,7 +98,7 @@ public final class WorkshopCommand {
 		}
 	}
 
-	public void profiling(String action, long profilerId) {
+	public void profiling(String action, long[] profilerIds) {
 		boolean start = false;
 		if (action.equals("start"))
 			start = true;
@@ -106,82 +107,78 @@ public final class WorkshopCommand {
 			return;
 		}
 
-		final IWorkshopProfiler profiler = getWorkshopProfiler(profilerId);
-		if (profiler == null) {
-			System.err.println("WorkshopProfiler NOT Found:" + profilerId);
-			return;
+		final List<IWorkshopProfiler> profilers = getWorkshopProfilers(profilerIds);
+		for (IWorkshopProfiler profiler : profilers) {
+			if (start)
+				profiler.startProfiling();
+			else
+				profiler.stopProfiling();
 		}
-
-		if (start)
-			profiler.startProfiling();
-		else
-			profiler.stopProfiling();
 	}
 
-	public void info(long profilerId) {
+	public void info(long[] profilerIds) {
 
-		final IWorkshopProfiler profiler = getWorkshopProfiler(profilerId);
-		if (profiler == null) {
-			System.err.println("WorkshopProfiler NOT Found:" + profilerId);
-			return;
+		final List<IWorkshopProfiler> profilers = getWorkshopProfilers(profilerIds);
+
+		for (IWorkshopProfiler profiler : profilers) {
+			System.out.println("============================================================");
+			System.out.print("                      ProfilerID: ");
+			System.out.println(profiler.getProfilerId());
+
+			System.out.print("                    ThreadPrefix: ");
+			System.out.println(profiler.getThreadPrefix());
+
+			System.out.print("                    CorePoolSize: ");
+			System.out.println(profiler.getCorePoolSize());
+
+			System.out.print("                     MaxPoolSize: ");
+			System.out.println(profiler.getMaxPoolSize());
+
+			System.out.print("                   KeepAliveTime: ");
+			System.out.print(profiler.getKeepAliveTime());
+			System.out.println('s');
+
+			System.out.print("                   QueueCapacity: ");
+			System.out.println(profiler.getQueueCapacity());
+
+			System.out.print("                 CurrentPoolSize: ");
+			System.out.println(profiler.getCurrentPoolSize());
+
+			System.out.print("              CurrentQueueLength: ");
+			System.out.println(profiler.getCurrentQueueLength());
+
+			System.out.print("                     InProfiling: ");
+			if (!profiler.isProfiling()) {
+				System.out.println('N');
+				return;
+			} else
+				System.out.println('Y');
+
+			System.out.print("         NumberOfRequestsRetired: ");
+			System.out.println(profiler.getNumberOfRequestsRetired());
+
+			System.out.print("   AverageNumberOfActiveRequests: ");
+			System.out.println(profiler
+					.getEstimatedAverageNumberOfActiveRequests());
+
+			System.out.print("             AverageResponseTime: ");
+			System.out.println(profiler.getAverageResponseTime());
+
+			System.out.print("              AverageServiceTime: ");
+			System.out.println(profiler.getAverageServiceTime());
+
+			System.out.print("        AverageTimeWaitingInPool: ");
+			System.out.println(profiler.getAverageTimeWaitingInPool());
+
+			System.out.print("RatioOfActiveRequestsToCoreCount: ");
+			System.out.println(profiler.getRatioOfActiveRequestsToCoreCount());
+
+			System.out.print("   RatioOfDeadTimeToResponseTime: ");
+			System.out.println(profiler.getRatioOfDeadTimeToResponseTime());
+
+			System.out.print("  RequestPerSecondRetirementRate: ");
+			System.out.println(profiler.getRequestPerSecondRetirementRate());
 		}
-
-		System.out.print("                      ProfilerID: ");
-		System.out.println(profilerId);
-
-		System.out.print("                    ThreadPrefix: ");
-		System.out.println(profiler.getThreadPrefix());
-
-		System.out.print("                    CorePoolSize: ");
-		System.out.println(profiler.getCorePoolSize());
-
-		System.out.print("                     MaxPoolSize: ");
-		System.out.println(profiler.getMaxPoolSize());
-
-		System.out.print("                   KeepAliveTime: ");
-		System.out.print(profiler.getKeepAliveTime());
-		System.out.println('s');
-
-		System.out.print("                   QueueCapacity: ");
-		System.out.println(profiler.getQueueCapacity());
-
-		System.out.print("                 CurrentPoolSize: ");
-		System.out.println(profiler.getCurrentPoolSize());
-
-		System.out.print("              CurrentQueueLength: ");
-		System.out.println(profiler.getCurrentQueueLength());
-
-		System.out.print("                     InProfiling: ");
-		if (!profiler.isProfiling()) {
-			System.out.println('N');
-			return;
-		} else
-			System.out.println('Y');
-
-		System.out.print("         NumberOfRequestsRetired: ");
-		System.out.println(profiler.getNumberOfRequestsRetired());
-
-		System.out.print("   AverageNumberOfActiveRequests: ");
-		System.out
-				.println(profiler.getEstimatedAverageNumberOfActiveRequests());
-
-		System.out.print("             AverageResponseTime: ");
-		System.out.println(profiler.getAverageResponseTime());
-
-		System.out.print("              AverageServiceTime: ");
-		System.out.println(profiler.getAverageServiceTime());
-
-		System.out.print("        AverageTimeWaitingInPool: ");
-		System.out.println(profiler.getAverageTimeWaitingInPool());
-
-		System.out.print("RatioOfActiveRequestsToCoreCount: ");
-		System.out.println(profiler.getRatioOfActiveRequestsToCoreCount());
-
-		System.out.print("   RatioOfDeadTimeToResponseTime: ");
-		System.out.println(profiler.getRatioOfDeadTimeToResponseTime());
-
-		System.out.print("  RequestPerSecondRetirementRate: ");
-		System.out.println(profiler.getRequestPerSecondRetirementRate());
 	}
 
 	private static void printFill(char c, int count) {
@@ -189,12 +186,23 @@ public final class WorkshopCommand {
 			System.out.print(c);
 	}
 
-	private IWorkshopProfiler getWorkshopProfiler(long profilerId) {
+	private List<IWorkshopProfiler> getWorkshopProfilers(long[] profilerIds) {
+		if (profilerIds == null || profilerIds.length < 1)
+			return m_profilers;
+
 		final ArrayList<IWorkshopProfiler> profilers = m_profilers;
-		for (IWorkshopProfiler profiler : profilers) {
-			if (profiler.getProfilerId() == profilerId)
-				return profiler;
+		ArrayList<IWorkshopProfiler> profilerList = new ArrayList<IWorkshopProfiler>(
+				profilerIds.length);
+		idLoop: for (long profilerId : profilerIds) {
+			for (IWorkshopProfiler profiler : profilers) {
+				if (profiler.getProfilerId() == profilerId) {
+					profilerList.add(profiler);
+					continue idLoop;
+				}
+			}
+			throw new RuntimeException("WorkshopProfiler NOT Found:"
+					+ profilerId);
 		}
-		return null;
+		return profilerList;
 	}
 }

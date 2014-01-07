@@ -29,7 +29,7 @@ public final class RuyiThreadPoolExecutor extends ThreadPoolExecutor {
 
 	interface Profiler {
 
-		public Profiler start();
+		public Profiler start(int queueCapacity);
 
 		public Profiler stop();
 
@@ -70,8 +70,8 @@ public final class RuyiThreadPoolExecutor extends ThreadPoolExecutor {
 		}
 
 		@Override
-		public Profiler start() {
-			return ActiveProfile.get();
+		public Profiler start(int queueCapacity) {
+			return ActiveProfile.get(queueCapacity);
 		}
 
 		@Override
@@ -148,10 +148,12 @@ public final class RuyiThreadPoolExecutor extends ThreadPoolExecutor {
 		private final ReentrantLock m_lock;
 		private Long m_lastArrivalTime;
 
-		private ActiveProfile() {
+		private ActiveProfile(int queueCapacity) {
 			m_startTime = new ThreadLocal<Long>();
+			if (queueCapacity < 1)
+				queueCapacity = 6000;
 			m_timeOfRequest = new IdentityHashMap<Runnable, BlockingQueue<Long>>(
-					6000);
+					queueCapacity);
 			m_totalServiceTime = new AtomicLong();
 			m_totalPoolTime = new AtomicLong();
 			m_aggregateInterRequestArrivalTime = new AtomicLong();
@@ -159,12 +161,12 @@ public final class RuyiThreadPoolExecutor extends ThreadPoolExecutor {
 			m_lock = new ReentrantLock();
 		}
 
-		public static ActiveProfile get() {
-			return new ActiveProfile();
+		public static ActiveProfile get(int queueCapacity) {
+			return new ActiveProfile(queueCapacity);
 		}
 
 		@Override
-		public Profiler start() {
+		public Profiler start(int queueCapacity) {
 			return this;
 		}
 
@@ -311,8 +313,8 @@ public final class RuyiThreadPoolExecutor extends ThreadPoolExecutor {
 		}
 	}
 
-	public void startProfiling() {
-		m_profile = m_profile.start();
+	public void startProfiling(int queueCapacity) {
+		m_profile = m_profile.start(queueCapacity);
 	}
 
 	public void stopProfiling() {

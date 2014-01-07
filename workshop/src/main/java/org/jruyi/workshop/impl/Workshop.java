@@ -109,7 +109,7 @@ public final class Workshop implements IWorkshop, IWorkshopProfiler, IDumpable {
 
 	@Override
 	public void startProfiling() {
-		m_executor.startProfiling();
+		m_executor.startProfiling(m_queueCapacity);
 	}
 
 	@Override
