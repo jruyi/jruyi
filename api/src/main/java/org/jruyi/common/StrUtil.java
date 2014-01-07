@@ -212,7 +212,7 @@ public final class StrUtil {
 		if (target.length() < 2)
 			return target;
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		IntStack stack = IntStack.get();
 		String propValue = null;
 		int j = target.length();
@@ -265,7 +265,7 @@ public final class StrUtil {
 	 * @since 1.1
 	 */
 	public static String join(Object obj0, Object obj1) {
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			if (obj0 != null)
 				builder.append(obj0);
@@ -291,7 +291,7 @@ public final class StrUtil {
 	 * @since 1.1
 	 */
 	public static String join(Object obj0, Object obj1, Object obj2) {
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			if (obj0 != null)
 				builder.append(obj0);
@@ -323,7 +323,7 @@ public final class StrUtil {
 	 * @since 1.1
 	 */
 	public static String join(Object obj0, Object obj1, Object obj2, Object obj3) {
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			if (obj0 != null)
 				builder.append(obj0);
@@ -360,7 +360,7 @@ public final class StrUtil {
 	 */
 	public static String join(Object obj0, Object obj1, Object obj2,
 			Object obj3, Object obj4) {
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			if (obj0 != null)
 				builder.append(obj0);
@@ -406,7 +406,7 @@ public final class StrUtil {
 	 */
 	public static String join(Object obj0, Object obj1, Object obj2,
 			Object obj3, Object obj4, Object obj5) {
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			if (obj0 != null)
 				builder.append(obj0);
@@ -451,7 +451,7 @@ public final class StrUtil {
 	 */
 	public static String join(Object obj0, Object obj1, Object obj2,
 			Object obj3, Object obj4, Object obj5, Object obj6) {
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			if (obj0 != null)
 				builder.append(obj0);
@@ -487,7 +487,7 @@ public final class StrUtil {
 	 * @since 1.1
 	 */
 	public static String join(Object obj, Object... objs) {
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			if (obj != null)
 				builder.append(obj);
@@ -522,7 +522,7 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i)
@@ -557,7 +557,7 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[begin]);
 			while (++begin < end)
@@ -590,7 +590,7 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i) {
@@ -629,7 +629,7 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[begin]);
 			while (++begin < end) {
@@ -664,7 +664,7 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i)
@@ -699,7 +699,7 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[begin]);
 			while (++begin < end)
@@ -732,7 +732,7 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i) {
@@ -771,7 +771,7 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[begin]);
 			while (++begin < end) {
@@ -806,7 +806,7 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i)
@@ -841,7 +841,7 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[begin]);
 			while (++begin < end)
@@ -874,7 +874,7 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i) {
@@ -914,7 +914,7 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[begin]);
 			while (++begin < end) {
@@ -949,7 +949,7 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i)
@@ -984,7 +984,7 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[begin]);
 			while (++begin < end)
@@ -1017,7 +1017,7 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i) {
@@ -1056,7 +1056,7 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[begin]);
 			while (++begin < end) {
@@ -1091,7 +1091,7 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i)
@@ -1126,7 +1126,7 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[begin]);
 			while (++begin < end)
@@ -1159,7 +1159,7 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i) {
@@ -1198,7 +1198,7 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[begin]);
 			while (++begin < end) {
@@ -1233,7 +1233,7 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i)
@@ -1268,7 +1268,7 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[begin]);
 			while (++begin < end)
@@ -1301,7 +1301,7 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i) {
@@ -1341,7 +1341,7 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[begin]);
 			while (++begin < end) {
@@ -1376,7 +1376,7 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i)
@@ -1411,7 +1411,7 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[begin]);
 			while (++begin < end)
@@ -1445,7 +1445,7 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i) {
@@ -1485,7 +1485,7 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
 			builder.append(array[begin]);
 			while (++begin < end) {
@@ -1520,14 +1520,23 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		Object obj = null;
+		int i = 0;
+		while (i < n && (obj = array[i]) == null)
+			++i;
+
+		if (obj == null)
+			return "";
+
+		final StringBuilder builder = StringBuilder.get();
 		try {
-			builder.append(array[0]);
-			for (int i = 1; i < n; ++i) {
-				builder.append(delimiter);
-				Object obj = array[i];
-				if (obj != null)
+			builder.append(obj);
+			while (++i < n) {
+				obj = array[i];
+				if (obj != null) {
+					builder.append(delimiter);
 					builder.append(obj);
+				}
 			}
 			return builder.toString();
 		} finally {
@@ -1559,14 +1568,22 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		Object obj = null;
+		while (begin < end && (obj = array[begin]) == null)
+			++begin;
+
+		if (obj == null)
+			return "";
+
+		final StringBuilder builder = StringBuilder.get();
 		try {
-			builder.append(array[begin]);
+			builder.append(obj);
 			while (++begin < end) {
-				builder.append(delimiter);
-				Object obj = array[begin];
-				if (obj != null)
+				obj = array[begin];
+				if (obj != null) {
+					builder.append(delimiter);
 					builder.append(obj);
+				}
 			}
 			return builder.toString();
 		} finally {
@@ -1596,15 +1613,24 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		Object obj = null;
+		int i = 0;
+		while (i < n && (obj = array[i]) == null)
+			++i;
+
+		if (obj == null)
+			return "";
+
+		final StringBuilder builder = StringBuilder.get();
 		try {
-			builder.append(array[0]);
-			for (int i = 1; i < n; ++i) {
-				if (delimiter != null)
-					builder.append(delimiter);
-				Object obj = array[i];
-				if (obj != null)
+			builder.append(obj);
+			while (++i < n) {
+				obj = array[i];
+				if (obj != null) {
+					if (delimiter != null)
+						builder.append(delimiter);
 					builder.append(obj);
+				}
 			}
 			return builder.toString();
 		} finally {
@@ -1639,15 +1665,23 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		Object obj = null;
+		while (begin < end && (obj = array[begin]) == null)
+			++begin;
+
+		if (obj == null)
+			return "";
+
+		final StringBuilder builder = StringBuilder.get();
 		try {
-			builder.append(array[begin]);
+			builder.append(obj);
 			while (++begin < end) {
-				if (delimiter != null)
-					builder.append(delimiter);
-				Object obj = array[begin];
-				if (obj != null)
+				obj = array[begin];
+				if (obj != null) {
+					if (delimiter != null)
+						builder.append(delimiter);
 					builder.append(obj);
+				}
 			}
 			return builder.toString();
 		} finally {
@@ -1672,18 +1706,23 @@ public final class StrUtil {
 		if (iterable == null)
 			return null;
 
+		Object obj = null;
 		Iterator<?> iterator = iterable.iterator();
-		if (!iterator.hasNext())
+		while (iterator.hasNext() && (obj = iterator.next()) == null)
+			;
+
+		if (obj == null)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
-			builder.append(iterator.next());
+			builder.append(obj);
 			while (iterator.hasNext()) {
-				builder.append(delimiter);
-				Object obj = iterator.next();
-				if (obj != null)
+				obj = iterator.next();
+				if (obj != null) {
+					builder.append(delimiter);
 					builder.append(obj);
+				}
 			}
 			return builder.toString();
 		} finally {
@@ -1709,19 +1748,24 @@ public final class StrUtil {
 		if (iterable == null)
 			return null;
 
+		Object obj = null;
 		Iterator<?> iterator = iterable.iterator();
-		if (!iterator.hasNext())
+		while (iterator.hasNext() && (obj = iterator.next()) == null)
+			;
+
+		if (obj == null)
 			return "";
 
-		StringBuilder builder = StringBuilder.get();
+		final StringBuilder builder = StringBuilder.get();
 		try {
-			builder.append(iterator.next());
+			builder.append(obj);
 			while (iterator.hasNext()) {
-				if (delimiter != null)
-					builder.append(delimiter);
-				Object obj = iterator.next();
-				if (obj != null)
+				obj = iterator.next();
+				if (obj != null) {
+					if (delimiter != null)
+						builder.append(delimiter);
 					builder.append(obj);
+				}
 			}
 			return builder.toString();
 		} finally {

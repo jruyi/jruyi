@@ -83,7 +83,7 @@
 		<jruyi-launcher.version>1.0.2</jruyi-launcher.version>
 		<jruyi-system.version>${project.version}</jruyi-system.version>
 		<org.jruyi.osgi.log.version>1.0.1</org.jruyi.osgi.log.version>
-		<org.jruyi.common.version>1.1.0</org.jruyi.common.version>
+		<org.jruyi.common.version>1.1.1-SNAPSHOT</org.jruyi.common.version>
 		<org.jruyi.workshop.version>1.1.1-SNAPSHOT</org.jruyi.workshop.version>
 		<org.jruyi.timeoutadmin.version>1.1.0</org.jruyi.timeoutadmin.version>
 		<org.jruyi.me.version>1.1.0</org.jruyi.me.version>
