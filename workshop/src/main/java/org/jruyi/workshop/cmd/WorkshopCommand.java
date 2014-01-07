@@ -145,9 +145,6 @@ public final class WorkshopCommand {
 		System.out.print("                   QueueCapacity: ");
 		System.out.println(profiler.getQueueCapacity());
 
-		System.out.print("             AvailableProcessors: ");
-		System.out.println(Runtime.getRuntime().availableProcessors());
-
 		System.out.print("                 CurrentPoolSize: ");
 		System.out.println(profiler.getCurrentPoolSize());
 

@@ -13,8 +13,9 @@
  */
 package org.jruyi.workshop.impl;
 
+import java.util.IdentityHashMap;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -138,7 +139,7 @@ public final class RuyiThreadPoolExecutor extends ThreadPoolExecutor {
 
 	static final class ActiveProfile implements Profiler {
 
-		private final ConcurrentHashMap<Runnable, Long> m_timeOfRequest;
+		private final IdentityHashMap<Runnable, BlockingQueue<Long>> m_timeOfRequest;
 		private final ThreadLocal<Long> m_startTime;
 		private final AtomicLong m_aggregateInterRequestArrivalTime;
 		private final AtomicLong m_totalServiceTime;
@@ -149,7 +150,8 @@ public final class RuyiThreadPoolExecutor extends ThreadPoolExecutor {
 
 		private ActiveProfile() {
 			m_startTime = new ThreadLocal<Long>();
-			m_timeOfRequest = new ConcurrentHashMap<Runnable, Long>();
+			m_timeOfRequest = new IdentityHashMap<Runnable, BlockingQueue<Long>>(
+					6000);
 			m_totalServiceTime = new AtomicLong();
 			m_totalPoolTime = new AtomicLong();
 			m_aggregateInterRequestArrivalTime = new AtomicLong();
@@ -178,19 +180,26 @@ public final class RuyiThreadPoolExecutor extends ThreadPoolExecutor {
 
 		@Override
 		public void execute(Runnable task) {
-			long now = System.nanoTime();
+			final Long lastArrivalTime;
+			final long now = System.nanoTime();
 			final ReentrantLock lock = m_lock;
 			lock.lock();
 			try {
-				if (m_lastArrivalTime != null)
-					m_aggregateInterRequestArrivalTime.addAndGet(now
-							- m_lastArrivalTime);
-
+				lastArrivalTime = m_lastArrivalTime;
 				m_lastArrivalTime = now;
-				m_timeOfRequest.put(task, now);
+				BlockingQueue<Long> queue = m_timeOfRequest.get(task);
+				if (queue == null) {
+					queue = new LinkedBlockingQueue<Long>();
+					m_timeOfRequest.put(task, queue);
+				}
+				queue.offer(now);
 			} finally {
 				lock.unlock();
 			}
+
+			if (lastArrivalTime != null)
+				m_aggregateInterRequestArrivalTime.addAndGet(now
+						- lastArrivalTime);
 		}
 
 		@Override
@@ -204,8 +213,21 @@ public final class RuyiThreadPoolExecutor extends ThreadPoolExecutor {
 			if (startTime == null)
 				return;
 
+			final Long enqueueTime;
+			final BlockingQueue<Long> queue;
+			final ReentrantLock lock = m_lock;
+			lock.lock();
+			try {
+				queue = m_timeOfRequest.get(task);
+				enqueueTime = queue.poll();
+				if (queue.isEmpty())
+					m_timeOfRequest.remove(task);
+			} finally {
+				lock.unlock();
+			}
+
 			m_totalServiceTime.addAndGet(System.nanoTime() - startTime);
-			m_totalPoolTime.addAndGet(startTime - m_timeOfRequest.remove(task));
+			m_totalPoolTime.addAndGet(startTime - enqueueTime);
 			m_numberOfRequestsRetired.incrementAndGet();
 		}
 
