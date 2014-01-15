@@ -1910,6 +1910,19 @@ public final class Buffer implements IBuffer, IUnitChain {
 		return new BufferInputStream(this);
 	}
 
+	int readByte() {
+		IUnit unit = currentUnit();
+		while (unit.isEmpty()) {
+			unit = nextUnit();
+			if (unit == null)
+				return -1;
+		}
+		int position = unit.position();
+		int i = unit.byteAt(unit.start() + position) & 0xFF;
+		unit.position(++position);
+		return i;
+	}
+	
 	/**
 	 * {@code fromIndex} must be less than m_size and non-negative.
 	 */

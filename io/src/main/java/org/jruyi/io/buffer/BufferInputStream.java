@@ -46,17 +46,19 @@ final class BufferInputStream extends InputStream {
 
 	@Override
 	public int read() throws IOException {
-		return m_buffer.readUnsignedByte();
+		return m_buffer.readByte();
 	}
 
 	@Override
 	public int read(byte[] b, int off, int len) throws IOException {
-		return m_buffer.read(b, off, len, ByteArrayCodec.INST);
+		int n = m_buffer.read(b, off, len, ByteArrayCodec.INST);
+		return n == 0 ? -1 : n;
 	}
 
 	@Override
 	public int read(byte[] b) throws IOException {
-		return m_buffer.read(b, ByteArrayCodec.INST);
+		int n = m_buffer.read(b, ByteArrayCodec.INST);
+		return n == 0 ? -1 : n;
 	}
 
 	@Override
