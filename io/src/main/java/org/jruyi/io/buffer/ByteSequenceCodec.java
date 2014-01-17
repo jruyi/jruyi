@@ -106,14 +106,9 @@ public final class ByteSequenceCodec extends AbstractCodec<IByteSequence> {
 		if (length < 1)
 			return;
 
-		int offset = 0;
-		int n = 0;
 		IUnit unit = Util.firstUnit(unitChain);
-		while ((n = prepend(src, offset, length, unit)) < length) {
-			offset += n;
-			length -= n;
+		while ((length -= prepend(src, 0, length, unit)) < length)
 			unit = Util.prependNewUnit(unitChain);
-		}
 	}
 
 	@Override
@@ -125,13 +120,9 @@ public final class ByteSequenceCodec extends AbstractCodec<IByteSequence> {
 		if (length < 1)
 			return;
 
-		int n = 0;
 		IUnit unit = Util.firstUnit(unitChain);
-		while ((n = prepend(src, offset, length, unit)) < length) {
-			offset += n;
-			length -= n;
+		while ((length -= prepend(src, offset, length, unit)) > 0)
 			unit = Util.prependNewUnit(unitChain);
-		}
 	}
 
 	private static int set(IByteSequence src, int offset, int length,

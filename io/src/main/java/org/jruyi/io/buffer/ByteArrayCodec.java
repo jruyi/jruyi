@@ -300,14 +300,9 @@ public final class ByteArrayCodec implements ICodec<byte[]> {
 		if (length < 1)
 			return;
 
-		int offset = 0;
-		int n = 0;
 		IUnit unit = Util.firstUnit(unitChain);
-		while ((n = prepend(src, offset, length, unit)) < length) {
-			offset += n;
-			length -= n;
+		while ((length -= prepend(src, 0, length, unit)) > 0)
 			unit = Util.prependNewUnit(unitChain);
-		}
 	}
 
 	@Override
@@ -318,13 +313,9 @@ public final class ByteArrayCodec implements ICodec<byte[]> {
 		if (length < 1)
 			return;
 
-		int n = 0;
 		IUnit unit = Util.firstUnit(unitChain);
-		while ((n = prepend(src, offset, length, unit)) < length) {
-			offset += n;
-			length -= n;
+		while ((length -= prepend(src, offset, length, unit)) > 0)
 			unit = Util.prependNewUnit(unitChain);
-		}
 	}
 
 	private static int get(byte[] dst, int offset, int length, IUnit unit,

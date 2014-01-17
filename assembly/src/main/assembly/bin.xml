@@ -57,19 +57,20 @@
 			<useProjectArtifact>false</useProjectArtifact>
 			<useTransitiveDependencies>false</useTransitiveDependencies>
 			<includes>
-				<include>org.apache.felix:org.apache.felix.framework</include>
-				<include>${project.groupId}:org.jruyi.osgi.log</include>
-				<include>org.apache.felix:org.apache.felix.metatype</include>
+				<include>com.google.protobuf:protobuf-java</include>
 				<include>org.apache.felix:org.apache.felix.configadmin</include>
-				<include>org.apache.felix:org.apache.felix.scr</include>
-				<include>${project.groupId}:org.jruyi.common</include>
-				<include>${project.groupId}:org.jruyi.workshop</include>
-				<include>${project.groupId}:org.jruyi.timeoutadmin</include>
-				<include>${project.groupId}:org.jruyi.me</include>
-				<include>${project.groupId}:org.jruyi.io</include>
+				<include>org.apache.felix:org.apache.felix.framework</include>
 				<include>org.apache.felix:org.apache.felix.gogo.runtime</include>
-				<include>${project.groupId}:org.jruyi.cmd</include>
+				<include>org.apache.felix:org.apache.felix.metatype</include>
+				<include>org.apache.felix:org.apache.felix.scr</include>
 				<include>${project.groupId}:org.jruyi.clid</include>
+				<include>${project.groupId}:org.jruyi.cmd</include>
+				<include>${project.groupId}:org.jruyi.common</include>
+				<include>${project.groupId}:org.jruyi.io</include>
+				<include>${project.groupId}:org.jruyi.me</include>
+				<include>${project.groupId}:org.jruyi.osgi.log</include>
+				<include>${project.groupId}:org.jruyi.timeoutadmin</include>
+				<include>${project.groupId}:org.jruyi.workshop</include>
 			</includes>
 		</dependencySet>
 	</dependencySets>
