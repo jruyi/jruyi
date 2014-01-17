@@ -20,7 +20,7 @@
 
 	<groupId>org.jruyi</groupId>
 	<artifactId>jruyi</artifactId>
-	<version>1.1.2-SNAPSHOT</version>
+	<version>1.1.2</version>
 
 	<name>JRuyi Assembly</name>
 	<description>A framework for easily developing efficient and scalable network applications</description>
@@ -76,7 +76,6 @@
 		<org.apache.felix.gogo.runtime.version>0.10.0</org.apache.felix.gogo.runtime.version>
 		<org.apache.felix.metatype.version>1.0.8</org.apache.felix.metatype.version>
 		<org.apache.felix.scr.version>1.8.0</org.apache.felix.scr.version>
-		<protobuf-java.version>2.5.0</protobuf-java.version>
 		<slf4j-api.version>1.7.5</slf4j-api.version>
 
 		<!-- JRuyi Artifacts -->
@@ -86,7 +85,7 @@
 		<org.jruyi.clid.version>1.1.0</org.jruyi.clid.version>
 		<org.jruyi.cmd.version>1.1.1</org.jruyi.cmd.version>
 		<org.jruyi.common.version>1.1.1</org.jruyi.common.version>
-		<org.jruyi.io.version>1.1.2-SNAPSHOT</org.jruyi.io.version>
+		<org.jruyi.io.version>1.1.2</org.jruyi.io.version>
 		<org.jruyi.me.version>1.1.0</org.jruyi.me.version>
 		<org.jruyi.osgi.log.version>1.0.1</org.jruyi.osgi.log.version>
 		<org.jruyi.timeoutadmin.version>1.1.0</org.jruyi.timeoutadmin.version>
@@ -152,12 +151,6 @@
 			<groupId>org.apache.felix</groupId>
 			<artifactId>org.apache.felix.gogo.runtime</artifactId>
 			<version>${org.apache.felix.gogo.runtime.version}</version>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.google.protobuf</groupId>
-			<artifactId>protobuf-java</artifactId>
-			<version>${protobuf-java.version}</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>

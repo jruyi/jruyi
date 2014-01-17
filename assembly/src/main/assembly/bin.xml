@@ -57,7 +57,6 @@
 			<useProjectArtifact>false</useProjectArtifact>
 			<useTransitiveDependencies>false</useTransitiveDependencies>
 			<includes>
-				<include>com.google.protobuf:protobuf-java</include>
 				<include>org.apache.felix:org.apache.felix.configadmin</include>
 				<include>org.apache.felix:org.apache.felix.framework</include>
 				<include>org.apache.felix:org.apache.felix.gogo.runtime</include>
