@@ -26,7 +26,7 @@ final class PostHandlerDelegator implements IPostHandler {
 	}
 
 	@Override
-	public boolean postHandle(IMessage message) {
+	public Boolean postHandle(IMessage message) {
 		return m_holder.getService().postHandle(message);
 	}
 }

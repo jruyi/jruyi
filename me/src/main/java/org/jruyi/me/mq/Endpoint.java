@@ -202,7 +202,11 @@ class Endpoint implements IProducer, IConsumer, IDumpable {
 		IPostHandler[] postHandlers = m_postHandlers;
 		try {
 			for (IPostHandler handler : postHandlers) {
-				if (!handler.postHandle(message))
+				Boolean result = handler.postHandle(message);
+				if (result == null)
+					break;
+
+				if (!result)
 					return false;
 			}
 		} catch (Throwable t) {
@@ -219,7 +223,11 @@ class Endpoint implements IProducer, IConsumer, IDumpable {
 		IPreHandler[] preHandlers = m_preHandlers;
 		try {
 			for (IPreHandler handler : preHandlers) {
-				if (!handler.preHandle(message))
+				Boolean result = handler.preHandle(message);
+				if (result == null)
+					break;
+
+				if (!result)
 					return false;
 			}
 		} catch (Throwable t) {

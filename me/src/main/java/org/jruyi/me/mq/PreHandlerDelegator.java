@@ -26,7 +26,7 @@ final class PreHandlerDelegator implements IPreHandler {
 	}
 
 	@Override
-	public boolean preHandle(IMessage message) {
+	public Boolean preHandle(IMessage message) {
 		return m_holder.getService().preHandle(message);
 	}
 }

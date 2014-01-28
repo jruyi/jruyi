@@ -20,13 +20,11 @@ public interface IPreHandler {
 
 	/**
 	 * Handles the specified {@code message}.
-	 * <p>
-	 * If this method returns false, then the specified {@code message} will be
-	 * dropped immediately.
 	 * 
 	 * @param message
 	 *            the message leaving the message queue
-	 * @return true if no errors, otherwise false
+	 * @return true - forward message; false - drop message and terminate; null
+	 *         - abort
 	 */
-	public boolean preHandle(IMessage message);
+	public Boolean preHandle(IMessage message);
 }

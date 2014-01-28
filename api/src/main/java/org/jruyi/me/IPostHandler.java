@@ -20,13 +20,11 @@ public interface IPostHandler {
 
 	/**
 	 * Handles the specified {@code message}.
-	 * <p>
-	 * If this method returns false, then the specified {@code message} will be
-	 * dropped immediately.
 	 * 
 	 * @param message
 	 *            the message going into the message queue
-	 * @return true if no errors, otherwise false
+	 * @return true - forward message; false - drop message and terminate; null
+	 *         - abort
 	 */
-	public boolean postHandle(IMessage message);
+	public Boolean postHandle(IMessage message);
 }
