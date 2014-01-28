@@ -67,7 +67,7 @@
 
 	<properties>
 		<org.jruyi.cmd.version>1.0</org.jruyi.cmd.version>
-		<org.jruyi.common.version>1.1</org.jruyi.common.version>
+		<org.jruyi.common.version>1.2</org.jruyi.common.version>
 		<org.jruyi.io.version>1.1</org.jruyi.io.version>
 		<org.jruyi.me.version>1.1</org.jruyi.me.version>
 		<org.jruyi.system.version>1.0</org.jruyi.system.version>

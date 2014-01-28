@@ -79,7 +79,23 @@ public final class BiListNode<E> implements ICloseable {
 		}
 	}
 
-	private BiListNode() {
+	/**
+	 * The constructor method.
+	 * 
+	 * @since 1.2
+	 */
+	public BiListNode() {
+	}
+
+	/**
+	 * The constructor method.
+	 * 
+	 * @param e
+	 *            the initial data element
+	 * @since 1.2
+	 */
+	public BiListNode(E e) {
+		m_e = e;
 	}
 
 	/**
@@ -97,12 +113,41 @@ public final class BiListNode<E> implements ICloseable {
 	}
 
 	/**
+	 * Returns a {@code BiListNode} instance, with the specified {@code e} as
+	 * the initial data element, fetched from the current thread's local cache
+	 * if the cache is not empty. Otherwise a new instance will be created and
+	 * returned.
+	 * 
+	 * @param the
+	 *            initial data element
+	 * @return an instance of {@code BiListNode}
+	 * @since 1.2
+	 */
+	public static <E> BiListNode<E> create(E e) {
+		BiListNode<E> node = create();
+		node.set(e);
+		return node;
+	}
+
+	/**
 	 * Returns the data element.
 	 * 
 	 * @return the data element
 	 */
 	public E get() {
 		return m_e;
+	}
+
+	/**
+	 * Returns the data element and sets it to null.
+	 * 
+	 * @return the data element
+	 * @since 1.2
+	 */
+	public E take() {
+		E e = m_e;
+		m_e = null;
+		return e;
 	}
 
 	/**

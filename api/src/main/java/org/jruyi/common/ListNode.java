@@ -77,6 +77,23 @@ public final class ListNode<E> implements ICloseable {
 	}
 
 	/**
+	 * The constructor method.
+	 */
+	public ListNode() {
+	}
+
+	/**
+	 * The constructor method.
+	 * 
+	 * @param e
+	 *            the initial data element
+	 * @since 1.2
+	 */
+	public ListNode(E e) {
+		m_e = e;
+	}
+
+	/**
 	 * Returns a {@code ListNode} instance fetched from the current thread's
 	 * local cache if the cache is not empty. Otherwise a new instance will be
 	 * created and returned.
@@ -91,12 +108,41 @@ public final class ListNode<E> implements ICloseable {
 	}
 
 	/**
+	 * Returns a {@code ListNode} instance, with the specified {@code e} as the
+	 * initial data element, fetched from the current thread's local cache if
+	 * the cache is not empty. Otherwise a new instance will be created and
+	 * returned.
+	 * 
+	 * @param e
+	 *            the initial data element
+	 * @return an instance of {@code ListNode}
+	 * @since 1.2
+	 */
+	public static <E> ListNode<E> create(E e) {
+		ListNode<E> node = create();
+		node.set(e);
+		return node;
+	}
+
+	/**
 	 * Returns the data element.
 	 * 
 	 * @return the data element
 	 */
 	public E get() {
 		return m_e;
+	}
+
+	/**
+	 * Returns the data element and sets it to null.
+	 * 
+	 * @return the data element
+	 * @since 1.2
+	 */
+	public E take() {
+		E e = m_e;
+		m_e = null;
+		return e;
 	}
 
 	/**
