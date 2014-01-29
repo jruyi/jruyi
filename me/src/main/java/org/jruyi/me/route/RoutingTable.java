@@ -16,18 +16,29 @@ package org.jruyi.me.route;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.ConfigurationPolicy;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.felix.service.command.CommandProcessor;
 import org.jruyi.common.StrUtil;
+import org.jruyi.me.IRoute;
 import org.jruyi.me.IRouteSet;
 import org.jruyi.me.IRoutingTable;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Filter;
+import org.osgi.framework.FrameworkUtil;
 
 @Service
 @Component(name = "jruyi.me.route", policy = ConfigurationPolicy.IGNORE, createPid = false)
+@Properties({
+		@Property(name = CommandProcessor.COMMAND_SCOPE, value = "route"),
+		@Property(name = CommandProcessor.COMMAND_FUNCTION, value = { "clear",
+				"delete", "list", "set" }) })
 public final class RoutingTable implements IRoutingTable, IRouterManager {
 
 	private static final String ROUTINGTABLE_DIR = "jruyi.me.routingtable.dir";
@@ -77,6 +88,121 @@ public final class RoutingTable implements IRoutingTable, IRouterManager {
 		return router;
 	}
 
+	/**
+	 * Creates/Updates a route
+	 * 
+	 * @param from
+	 *            source endpoint
+	 * @param to
+	 *            destination endpoint
+	 * @param args
+	 *            [filter]
+	 * @throws Exception
+	 */
+	public void set(String from, String to, String[] args) throws Exception {
+		final Filter filter = args != null && args.length > 0 ? FrameworkUtil
+				.createFilter(args[0]) : null;
+		final IRouteSet router = getRouteSet(from);
+		if (filter == null)
+			router.setRoute(to);
+		else
+			router.setRoute(to, filter);
+
+		router.save();
+	}
+
+	/**
+	 * Lists routes
+	 * 
+	 * @param args
+	 *            [from] [to]
+	 * @throws Exception
+	 */
+	public void list(String[] args) throws Exception {
+		if (args == null || args.length < 1) {
+			final IRouteSet[] routeSets = getAllRouteSets();
+			final ArrayList<IRoute[]> routeSetList = new ArrayList<IRoute[]>(
+					routeSets.length);
+			IRoute[] routes;
+			int n = 0;
+			for (IRouteSet routeSet : routeSets) {
+				routes = routeSet.getRoutes();
+				routeSetList.add(routes);
+				n += routes.length;
+			}
+
+			routes = new IRoute[n];
+			n = 0;
+			for (IRoute[] array : routeSetList) {
+				System.arraycopy(array, 0, routes, n, array.length);
+				n += array.length;
+			}
+
+			printRoutes(routes);
+		} else if (args.length < 2) {
+			IRouteSet routeSet = queryRouteSet(args[0]);
+			if (routeSet == null) {
+				System.err.print("No Route(s) Found: from=");
+				System.err.println(args[0]);
+				return;
+			}
+
+			printRoutes(routeSet.getRoutes());
+		} else {
+			IRouteSet routeSet = queryRouteSet(args[0]);
+			if (routeSet == null) {
+				System.err.print("No Route(s) Found: from=");
+				System.err.println(args[0]);
+				return;
+			}
+
+			IRoute route = routeSet.getRoute(args[1]);
+			if (route == null) {
+				System.err.print("Route Not Found: from=");
+				System.err.print(args[0]);
+				System.err.print(", to=");
+				System.err.println(args[1]);
+				return;
+			}
+
+			printRoute(route);
+		}
+	}
+
+	/**
+	 * Deletes route(s)
+	 * 
+	 * @param from
+	 * @param args
+	 *            [to]
+	 * @throws Exception
+	 */
+	public void delete(String from, String[] args) throws Exception {
+		final IRouteSet routeSet = queryRouteSet(from);
+		if (routeSet == null)
+			return;
+
+		if (args.length < 1)
+			routeSet.clear();
+		else
+			routeSet.removeRoute(args[0]);
+
+		routeSet.save();
+	}
+
+	/**
+	 * Clears routing table
+	 * 
+	 * @throws Exception
+	 */
+	public void clear() throws Exception {
+		IRouteSet[] routeSets = getAllRouteSets();
+		for (IRouteSet routeSet : routeSets) {
+			routeSet.clear();
+			routeSet.save();
+		}
+	}
+
 	protected void activate(BundleContext bundleContext) throws Exception {
 		String location = bundleContext.getProperty(ROUTINGTABLE_DIR);
 		File routeTableDir = location == null ? bundleContext
@@ -119,5 +245,19 @@ public final class RoutingTable implements IRoutingTable, IRouterManager {
 		}
 
 		return routers;
+	}
+
+	private static void printRoute(IRoute route) {
+		System.out.print('[');
+		System.out.print(route.from());
+		System.out.print("] -> [");
+		System.out.print(route.to());
+		System.out.print("]: ");
+		System.out.println(route.filter());
+	}
+
+	private static void printRoutes(IRoute[] routes) {
+		for (IRoute route : routes)
+			printRoute(route);
 	}
 }

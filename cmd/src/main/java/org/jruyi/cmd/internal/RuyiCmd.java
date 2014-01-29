@@ -19,12 +19,11 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Locale;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.felix.service.command.CommandProcessor;
-import org.apache.felix.service.command.Descriptor;
-import org.apache.felix.service.command.Parameter;
 import org.jruyi.cmd.IManual;
 import org.jruyi.common.ListNode;
 import org.jruyi.common.StrUtil;
@@ -86,9 +85,13 @@ public final class RuyiCmd implements IManual {
 		System.out.print("      Default Locale: ");
 		System.out.println(Locale.getDefault());
 
-		// Platform Encoding
+		// Default Charset
 		System.out.print("     Default Charset: ");
 		System.out.println(Charset.defaultCharset());
+
+		// Default Time Zone
+		System.out.print("   Default Time Zone: ");
+		System.out.println(TimeZone.getDefault().getID());
 
 		Runtime runtime = Runtime.getRuntime();
 
@@ -218,10 +221,18 @@ public final class RuyiCmd implements IManual {
 		Runtime.getRuntime().gc();
 	}
 
-	public void grep(
-			@Parameter(names = { "-i", "--ignore-case" }, presentValue = "true", absentValue = "false") @Descriptor("ignore case distinctions") boolean ignoreCase,
-			@Parameter(names = { "-v", "--invert-match" }, presentValue = "true", absentValue = "false") @Descriptor("select non-matching lines") boolean invertMatch,
-			String regex) throws Exception {
+	/**
+	 * @param ignoreCase
+	 *            ignore case distinctions, names = { "-i", "--ignore-case" },
+	 *            presentValue = "true", absentValue = "false"
+	 * @param invertMatch
+	 *            select non-matching lines, names = { "-v", "--invert-match" },
+	 *            presentValue = "true", absentValue = "false")
+	 * @param regex
+	 * @throws Exception
+	 */
+	public void grep(boolean ignoreCase, boolean invertMatch, String regex)
+			throws Exception {
 
 		if (ignoreCase)
 			regex = StrUtil.join("(?i)", regex);

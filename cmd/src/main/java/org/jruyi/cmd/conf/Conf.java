@@ -23,7 +23,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceStrategy;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.service.command.CommandProcessor;
-import org.apache.felix.service.command.Descriptor;
 import org.jruyi.cmd.internal.RuyiCmd;
 import org.jruyi.common.Properties;
 import org.jruyi.common.StrUtil;
@@ -57,9 +56,16 @@ public final class Conf {
 	@Reference(name = "configurationAdmin")
 	private ConfigurationAdmin m_ca;
 
-	@Descriptor("Create a configuration")
-	public void create(@Descriptor("<pid|factoryPid>") String id,
-			@Descriptor("[name=value] ...") String[] args) throws Exception {
+	/**
+	 * Creates a configuration
+	 * 
+	 * @param id
+	 *            <pid|factoryPid>
+	 * @param args
+	 *            [name=value] ...
+	 * @throws Exception
+	 */
+	public void create(String id, String[] args) throws Exception {
 
 		if (args == null || args.length < 1) {
 			RuyiCmd.INST.help("conf:create");
@@ -88,21 +94,28 @@ public final class Conf {
 		conf.update(props);
 	}
 
-	@Descriptor("Update configuration(s)")
-	public void update(@Descriptor("<pid|filter>") String filter,
-			@Descriptor("[name[=value]] ...") String[] args) throws Exception {
+	/**
+	 * Updates configuration(s)
+	 * 
+	 * @param filter
+	 *            <pid | filter>
+	 * @param args
+	 *            [name[=value]] ...
+	 * @throws Exception
+	 */
+	public void update(String filter, String[] args) throws Exception {
 		if (args == null || args.length < 1) {
 			RuyiCmd.INST.help("conf:update");
 			return;
 		}
 
-		Configuration[] confs = m_ca
+		final Configuration[] confs = m_ca
 				.listConfigurations(normalizeFilter(filter));
 
 		if (confs == null || confs.length < 1)
 			throw new Exception("Configuration(s) NOT Found: " + filter);
 
-		for (Configuration conf : confs) {
+		for (final Configuration conf : confs) {
 			Dictionary<String, Object> props = conf.getProperties();
 			boolean modified = false;
 			for (String arg : args) {
@@ -130,9 +143,14 @@ public final class Conf {
 		}
 	}
 
-	@Descriptor("Delete configuration(s)")
-	public void delete(@Descriptor("[pid|filter]") String filter)
-			throws Exception {
+	/**
+	 * Deletes configuration(s)
+	 * 
+	 * @param filter
+	 *            pid | filter
+	 * @throws Exception
+	 */
+	public void delete(String filter) throws Exception {
 		Configuration[] confs = m_ca
 				.listConfigurations(normalizeFilter(filter));
 		if (confs == null || confs.length == 0) {
@@ -145,9 +163,14 @@ public final class Conf {
 			conf.delete();
 	}
 
-	@Descriptor("List configuration(s)")
-	public void list(@Descriptor("[pid|filter]") String[] args)
-			throws Exception {
+	/**
+	 * Lists configuration(s)
+	 * 
+	 * @param args
+	 *            [pid | filter]
+	 * @throws Exception
+	 */
+	public void list(String[] args) throws Exception {
 		String filter = null;
 		if (args != null) {
 			if (args.length > 1) {
@@ -175,10 +198,16 @@ public final class Conf {
 		}
 	}
 
-	@Descriptor("Test if configuration(s) exists")
-	public boolean exists(@Descriptor("[pid|filter]") String filter)
-			throws Exception {
-		Configuration[] confs = m_ca
+	/**
+	 * Tests if configuration(s) exists
+	 * 
+	 * @param filter
+	 *            [pid | filter]
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean exists(String filter) throws Exception {
+		final Configuration[] confs = m_ca
 				.listConfigurations(normalizeFilter(filter));
 		return (confs != null && confs.length > 0);
 	}

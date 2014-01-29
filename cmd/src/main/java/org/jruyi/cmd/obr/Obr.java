@@ -33,8 +33,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceStrategy;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.service.command.CommandProcessor;
-import org.apache.felix.service.command.Descriptor;
-import org.apache.felix.service.command.Parameter;
 import org.jruyi.cmd.internal.RuyiCmd;
 import org.jruyi.cmd.util.Util;
 import org.jruyi.common.StringBuilder;
@@ -55,11 +53,16 @@ public final class Obr {
 	private static final char VERSION_SEPARATOR = '@';
 	private ComponentContext m_context;
 
-	@Descriptor("Manage OSGi bundle repositories")
-	public void repos(
-			@Descriptor("( add | list | refresh | remove )") String action,
-			@Descriptor("space-delimited list of repository URLs") String[] args)
-			throws Exception {
+	/**
+	 * Manages OSGi bundle repositories
+	 * 
+	 * @param action
+	 *            ( add | list | refresh | remove )
+	 * @param args
+	 *            space-delimited list of repository URLs
+	 * @throws Exception
+	 */
+	public void repos(String action, String[] args) throws Exception {
 		RepositoryAdmin ra = (RepositoryAdmin) m_context
 				.locateService(REPO_ADMIN);
 
@@ -93,10 +96,15 @@ public final class Obr {
 			RuyiCmd.INST.help("obr:repos");
 	}
 
-	@Descriptor("Retrieve resource description from repository")
-	public void info(
-			@Descriptor("( <bundle-name> | <symbolic-name> | <bundle-id> )[@<version>] ...") String[] args)
-			throws Exception {
+	/**
+	 * Retrieves resource description from repository
+	 * 
+	 * @param args
+	 *            ( <bundle-name> | <symbolic-name> | <bundle-id> )[@<version>]
+	 *            ...
+	 * @throws Exception
+	 */
+	public void info(String[] args) throws Exception {
 		if (args == null || args.length == 0) {
 			RuyiCmd.INST.help("obr:info");
 			return;
@@ -128,14 +136,20 @@ public final class Obr {
 		}
 	}
 
-	@Descriptor("List repository resources")
-	public void list(
-			@Parameter(names = { "-v", "--verbose" }, presentValue = "true", absentValue = "false") boolean verbose,
-			@Descriptor("Optional strings used for name matching") String[] args)
-			throws Exception {
-		RepositoryAdmin ra = (RepositoryAdmin) m_context
+	/**
+	 * Lists repository resources
+	 * 
+	 * @param verbose
+	 *            names = { "-v", "--verbose" }, presentValue = "true",
+	 *            absentValue = "false"
+	 * @param args
+	 *            Optional strings used for name matching
+	 * @throws Exception
+	 */
+	public void list(boolean verbose, String[] args) throws Exception {
+		final RepositoryAdmin ra = (RepositoryAdmin) m_context
 				.locateService(REPO_ADMIN);
-		Resource[] resources;
+		final Resource[] resources;
 		// Create a filter that will match presentation name or symbolic name.
 		StringBuilder builder = StringBuilder.get();
 		try {
@@ -214,12 +228,23 @@ public final class Obr {
 		System.out.println(")");
 	}
 
-	public void deploy(
-			@Parameter(names = { "-s", "--start" }, presentValue = "true", absentValue = "false") boolean start,
-			@Parameter(names = { "-ro", "--required-only" }, presentValue = "true", absentValue = "false") boolean requiredOnly,
-			@Parameter(names = { "-f", "--force" }, presentValue = "true", absentValue = "false") boolean force,
-			@Descriptor("( <bundle-name> | <symbolic-name> | <bundle-id> )[@<version>] ...") String[] args)
-			throws Exception {
+	/**
+	 * @param start
+	 *            names = { "-s", "--start" }, presentValue = "true",
+	 *            absentValue = "false"
+	 * @param requiredOnly
+	 *            names = { "-ro", "--required-only" }, presentValue = "true",
+	 *            absentValue = "false"
+	 * @param force
+	 *            names = { "-f", "--force" }, presentValue = "true",
+	 *            absentValue = "false"
+	 * @param args
+	 *            ( <bundle-name> | <symbolic-name> | <bundle-id> )[@<version>]
+	 *            ...
+	 * @throws Exception
+	 */
+	public void deploy(boolean start, boolean requiredOnly, boolean force,
+			String[] args) throws Exception {
 		RepositoryAdmin ra = (RepositoryAdmin) m_context
 				.locateService(REPO_ADMIN);
 		Resolver resolver = ra.resolver();
@@ -367,7 +392,7 @@ public final class Obr {
 		printUnderlineString(n);
 
 		@SuppressWarnings("unchecked")
-		Map<Object, Object> map = resource.getProperties();
+		final Map<Object, Object> map = resource.getProperties();
 		for (Map.Entry<Object, Object> entry : map.entrySet()) {
 			System.out.print(entry.getKey());
 			System.out.println(":");
@@ -381,7 +406,7 @@ public final class Obr {
 				System.out.println(value);
 		}
 
-		Requirement[] reqs = resource.getRequirements();
+		final Requirement[] reqs = resource.getRequirements();
 		if (reqs != null && reqs.length > 0) {
 			System.out.println("Requires:");
 			n = reqs.length;
@@ -391,7 +416,7 @@ public final class Obr {
 			}
 		}
 
-		Capability[] caps = resource.getCapabilities();
+		final Capability[] caps = resource.getCapabilities();
 		if (caps != null && caps.length > 0) {
 			System.out.println("Capabilities:");
 			n = caps.length;
@@ -427,7 +452,7 @@ public final class Obr {
 	}
 
 	private static void printResources(Resource[] resources) {
-		for (Resource resource : resources) {
+		for (final Resource resource : resources) {
 			System.out.print("   ");
 			System.out.print(resource.getPresentationName());
 			System.out.print(" (");
@@ -446,11 +471,11 @@ public final class Obr {
 	}
 
 	private void uninstall(HashSet<String> bundlesToUninstall) {
-		Bundle[] bundles = m_context.getBundleContext().getBundles();
+		final Bundle[] bundles = m_context.getBundleContext().getBundles();
 		if (bundles == null)
 			return;
 
-		for (Bundle bundle : bundles) {
+		for (final Bundle bundle : bundles) {
 			if (bundlesToUninstall.contains(bundle.getSymbolicName())) {
 				try {
 					bundle.uninstall();
