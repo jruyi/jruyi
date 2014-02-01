@@ -13,11 +13,11 @@ else
 	JAVA="$JAVA_HOME/bin/java"
 fi
 
-# JPDA options. Uncomment and modify as appropriate to enable remote debugging.
-#JAVA_OPTS="$JAVA_OPTS -Xrunjdwp:transport=dt_socket,address=8010,server=y,suspend=y"
-
 # Set JRuyi home dir
-JAVA_OPTS="$JAVA_OPTS -Djruyi.home.dir=$JRUYI_HOME"
+JAVA_OPTS="-Djruyi.home.dir=$JRUYI_HOME"
+
+# JPDA options. Uncomment and modify as appropriate to enable remote debugging.
+#JAVA_OPTS="-Xrunjdwp:transport=dt_socket,address=8010,server=y,suspend=y $JAVA_OPTS"
 
 # Set program name
 JAVA_OPTS="$JAVA_OPTS -Dprogram.name=$PROGNAME"

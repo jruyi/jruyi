@@ -21,14 +21,14 @@ pushd %DIRNAME%
 set JRUYI_HOME=%cd%
 popd
 
+rem Set JRuyi home dir
+set JAVA_OPTS="-Djruyi.home.dir=%JRUYI_HOME%"
+
 rem JPDA options. Uncomment and modify as appropriate to enable remote debugging.
 rem set JAVA_OPTS=-Xdebug -Xrunjdwp:transport=dt_socket,address=8010,server=y,suspend=y %JAVA_OPTS%
 
-rem Set JRuyi home dir
-set JAVA_OPTS=%JAVA_OPTS% "-Djruyi.home.dir=%JRUYI_HOME%"
-
 rem Set program name
-set PROGNAME_PROP="-Dprogram.name=jruyi.bat"
+set PROGNAME_PROP="-Dprogram.name=ruyi-cli.bat"
 if "%OS%" == "Windows_NT" set PROGNAME_PROP="-Dprogram.name=%~nx0%"
 
 set JAVA_OPTS=%JAVA_OPTS% %PROGNAME_PROP%
