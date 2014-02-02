@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -45,6 +45,14 @@ public final class IntCodec {
 		 * @return a little-endian int codec
 		 */
 		public IIntCodec littleEndianIntCodec();
+
+		/**
+		 * Returns a varint int codec.
+		 * 
+		 * @return a varint int codec
+		 * @since 1.2
+		 */
+		public IIntCodec varintIntCodec();
 	}
 
 	/**
@@ -63,6 +71,16 @@ public final class IntCodec {
 	 */
 	public static IIntCodec littleEndian() {
 		return c_provider.littleEndianIntCodec();
+	}
+
+	/**
+	 * Returns a varint int codec.
+	 * 
+	 * @return a varint int codec
+	 * @since 1.2
+	 */
+	public static IIntCodec varint() {
+		return c_provider.varintIntCodec();
 	}
 
 	private IntCodec() {

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,33 +14,14 @@
 package org.jruyi.io.internal;
 
 import org.jruyi.common.IByteSequence;
+import org.jruyi.io.*;
 import org.jruyi.io.Codec.ICodecProvider;
 import org.jruyi.io.DoubleCodec.IDoubleCodecProvider;
 import org.jruyi.io.FloatCodec.IFloatCodecProvider;
-import org.jruyi.io.ICodec;
-import org.jruyi.io.IDoubleCodec;
-import org.jruyi.io.IFloatCodec;
-import org.jruyi.io.IIntCodec;
-import org.jruyi.io.ILongCodec;
-import org.jruyi.io.IShortCodec;
 import org.jruyi.io.IntCodec.IIntCodecProvider;
 import org.jruyi.io.LongCodec.ILongCodecProvider;
 import org.jruyi.io.ShortCodec.IShortCodecProvider;
-import org.jruyi.io.buffer.BigEndianDoubleCodec;
-import org.jruyi.io.buffer.BigEndianFloatCodec;
-import org.jruyi.io.buffer.BigEndianIntCodec;
-import org.jruyi.io.buffer.BigEndianLongCodec;
-import org.jruyi.io.buffer.BigEndianShortCodec;
-import org.jruyi.io.buffer.ByteArrayCodec;
-import org.jruyi.io.buffer.ByteSequenceCodec;
-import org.jruyi.io.buffer.CharArrayCodec;
-import org.jruyi.io.buffer.CharSequenceCodec;
-import org.jruyi.io.buffer.LittleEndianDoubleCodec;
-import org.jruyi.io.buffer.LittleEndianFloatCodec;
-import org.jruyi.io.buffer.LittleEndianIntCodec;
-import org.jruyi.io.buffer.LittleEndianLongCodec;
-import org.jruyi.io.buffer.LittleEndianShortCodec;
-import org.jruyi.io.buffer.StringCodec;
+import org.jruyi.io.buffer.*;
 
 public final class CodecProvider implements IShortCodecProvider,
 		IIntCodecProvider, ILongCodecProvider, IFloatCodecProvider,
@@ -90,6 +71,11 @@ public final class CodecProvider implements IShortCodecProvider,
 	}
 
 	@Override
+	public IShortCodec varintShortCodec() {
+		return VarintShortCodec.INST;
+	}
+
+	@Override
 	public IIntCodec bigEndianIntCodec() {
 		return BigEndianIntCodec.INST;
 	}
@@ -100,6 +86,11 @@ public final class CodecProvider implements IShortCodecProvider,
 	}
 
 	@Override
+	public IIntCodec varintIntCodec() {
+		return VarintIntCodec.INST;
+	}
+
+	@Override
 	public ILongCodec bigEndianLongCodec() {
 		return BigEndianLongCodec.INST;
 	}
@@ -107,6 +98,11 @@ public final class CodecProvider implements IShortCodecProvider,
 	@Override
 	public ILongCodec littleEndianLongCodec() {
 		return LittleEndianLongCodec.INST;
+	}
+
+	@Override
+	public ILongCodec varintLongCodec() {
+		return VarintLongCodec.INST;
 	}
 
 	@Override

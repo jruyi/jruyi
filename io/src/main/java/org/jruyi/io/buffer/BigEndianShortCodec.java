@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,36 +30,28 @@ public final class BigEndianShortCodec implements IShortCodec {
 	public short read(IUnitChain unitChain) {
 		int s = 0;
 		IUnit unit = unitChain.currentUnit();
-		for (;;) {
-			int position = unit.position();
-			int size = unit.size();
-			if (size > position) {
-				int start = unit.start();
-				s = unit.byteAt(start + position);
-				if (size > ++position) {
-					s = (s << 8) | (unit.byteAt(start + position) & 0xFF);
-					unit.position(++position);
-					return (short) s;
-				}
-				unit.position(position);
-				break;
-			}
-			unit = unitChain.nextUnit();
-			if (unit == null)
-				throw new BufferUnderflowException();
-		}
-
-		for (;;) {
-			unit = unitChain.nextUnit();
-			if (unit == null)
-				throw new BufferUnderflowException();
-			int position = unit.position();
-			if (unit.size() > position) {
-				s = (s << 8) | (unit.byteAt(unit.start() + position) & 0xFF);
-				unit.position(++position);
-				return (short) s;
+		int start = unit.start();
+		int position = start + unit.position();
+		int size = unit.size();
+		int end = start + size;
+		for (int n = 8; n >= 0;) {
+			if (position < end) {
+				s |= ((unit.byteAt(position) & 0xFF) << n);
+				++position;
+				n -= 8;
+			} else {
+				unit.position(size);
+				unit = unitChain.nextUnit();
+				if (unit == null)
+					throw new BufferUnderflowException();
+				start = unit.start();
+				position = start + unit.position();
+				size = unit.size();
+				end = start + size;
 			}
 		}
+		unit.position(position - start);
+		return (short) s;
 	}
 
 	@Override
@@ -85,31 +77,23 @@ public final class BigEndianShortCodec implements IShortCodec {
 			throw new IndexOutOfBoundsException();
 		int s = 0;
 		IUnit unit = unitChain.currentUnit();
-		for (;;) {
-			int size = unit.size();
-			if (size > index) {
-				int start = unit.start();
-				s = unit.byteAt(start + index);
-				if (size > ++index) {
-					s = (s << 8) | (unit.byteAt(start + index) & 0xFF);
-					return (short) s;
-				}
-				break;
-			}
-			unit = unitChain.nextUnit();
-			if (unit == null)
-				throw new IndexOutOfBoundsException();
-			index = 0;
-		}
-
-		while ((unit = unitChain.nextUnit()) != null) {
-			if (unit.size() > 0) {
-				s = (s << 8) | (unit.byteAt(unit.start()) & 0xFF);
-				return (short) s;
+		int size = unit.start();
+		index += size;
+		size += unit.size();
+		for (int n = 8; n >= 0;) {
+			if (index < size) {
+				s |= ((unit.byteAt(index) & 0xFF) << n);
+				++index;
+				n -= 8;
+			} else {
+				unit = unitChain.nextUnit();
+				if (unit == null)
+					throw new IndexOutOfBoundsException();
+				index = unit.start();
+				size = index + unit.size();
 			}
 		}
-
-		throw new IndexOutOfBoundsException();
+		return (short) s;
 	}
 
 	@Override

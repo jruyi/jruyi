@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -45,6 +45,14 @@ public final class ShortCodec {
 		 * @return a little-endian short codec
 		 */
 		public IShortCodec littleEndianShortCodec();
+
+		/**
+		 * Returns a varint short codec.
+		 * 
+		 * @return a varint short codec
+		 * @since 1.2
+		 */
+		public IShortCodec varintShortCodec();
 	}
 
 	/**
@@ -63,6 +71,16 @@ public final class ShortCodec {
 	 */
 	public static IShortCodec littleEndian() {
 		return c_provider.littleEndianShortCodec();
+	}
+
+	/**
+	 * Returns a varint short codec.
+	 * 
+	 * @return a varint short codec
+	 * @since 1.2
+	 */
+	public static IShortCodec varint() {
+		return c_provider.varintShortCodec();
 	}
 
 	private ShortCodec() {

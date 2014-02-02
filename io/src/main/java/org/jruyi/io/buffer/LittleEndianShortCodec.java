@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,36 +30,28 @@ public final class LittleEndianShortCodec implements IShortCodec {
 	public short read(IUnitChain unitChain) {
 		int s = 0;
 		IUnit unit = unitChain.currentUnit();
-		for (;;) {
-			int position = unit.position();
-			int size = unit.size();
-			if (size > position) {
-				int start = unit.start();
-				s = unit.byteAt(start + position) & 0xFF;
-				if (size > ++position) {
-					s |= (unit.byteAt(start + position) << 8);
-					unit.position(++position);
-					return (short) s;
-				}
-				unit.position(position);
-				break;
-			}
-			unit = unitChain.nextUnit();
-			if (unit == null)
-				throw new BufferUnderflowException();
-		}
-
-		for (;;) {
-			unit = unitChain.nextUnit();
-			if (unit == null)
-				throw new BufferUnderflowException();
-			int position = unit.position();
-			if (unit.size() > position) {
-				s |= (unit.byteAt(unit.start() + position) << 8);
-				unit.position(++position);
-				return (short) s;
+		int start = unit.start();
+		int position = start + unit.position();
+		int size = unit.size();
+		int end = start + size;
+		for (int n = 0; n <= 8;) {
+			if (position < end) {
+				s |= ((unit.byteAt(position) & 0xFF) << n);
+				++position;
+				n += 8;
+			} else {
+				unit.position(size);
+				unit = unitChain.nextUnit();
+				if (unit == null)
+					throw new BufferUnderflowException();
+				start = unit.start();
+				position = start + unit.position();
+				size = unit.size();
+				end = start + size;
 			}
 		}
+		unit.position(position - start);
+		return (short) s;
 	}
 
 	@Override
@@ -85,31 +77,23 @@ public final class LittleEndianShortCodec implements IShortCodec {
 			throw new IndexOutOfBoundsException();
 		int s = 0;
 		IUnit unit = unitChain.currentUnit();
-		for (;;) {
-			int size = unit.size();
-			if (size > index) {
-				int start = unit.start();
-				s = unit.byteAt(start + index) & 0xFF;
-				if (size > ++index) {
-					s |= (unit.byteAt(start + index) << 8);
-					return (short) s;
-				}
-				break;
-			}
-			unit = unitChain.nextUnit();
-			if (unit == null)
-				throw new IndexOutOfBoundsException();
-			index = 0;
-		}
-
-		while ((unit = unitChain.nextUnit()) != null) {
-			if (unit.size() > 0) {
-				s |= (unit.byteAt(unit.start()) << 8);
-				return (short) s;
+		int size = unit.start();
+		index += size;
+		size += unit.size();
+		for (int n = 0; n <= 8;) {
+			if (index < size) {
+				s |= ((unit.byteAt(index) & 0xFF) << n);
+				++index;
+				n += 8;
+			} else {
+				unit = unitChain.nextUnit();
+				if (unit == null)
+					throw new IndexOutOfBoundsException();
+				index = unit.start();
+				size = index + unit.size();
 			}
 		}
-
-		throw new IndexOutOfBoundsException();
+		return (short) s;
 	}
 
 	@Override
@@ -141,11 +125,6 @@ public final class LittleEndianShortCodec implements IShortCodec {
 		if (start < 1) {
 			unit.start(start);
 			unit.size(unit.size() + 1);
-			int position = unit.position();
-			if (position > 0) {
-				unit.position(position + 1);
-				unit.mark(unit.mark() + 1);
-			}
 			unit = Util.prependNewUnit(unitChain);
 			start = unit.start();
 		}

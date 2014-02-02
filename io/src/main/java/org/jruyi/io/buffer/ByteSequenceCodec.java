@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,7 +30,7 @@ public final class ByteSequenceCodec extends AbstractCodec<IByteSequence> {
 			return;
 
 		IUnit unit = Util.lastUnit(unitChain);
-		int n = 0;
+		int n;
 		int offset = 0;
 		while ((n = write(src, offset, length, unit)) < length) {
 			offset += n;
@@ -49,7 +49,7 @@ public final class ByteSequenceCodec extends AbstractCodec<IByteSequence> {
 			return;
 
 		IUnit unit = Util.lastUnit(unitChain);
-		int n = 0;
+		int n;
 		while ((n = write(src, offset, length, unit)) < length) {
 			offset += n;
 			length -= n;

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -85,7 +85,7 @@ public final class ByteArrayCodec implements ICodec<byte[]> {
 	@Override
 	public int read(byte[] dst, IUnitChain unitChain) {
 		int offset = 0;
-		int n = 0;
+		int n;
 		int length = dst.length;
 		IUnit unit = unitChain.currentUnit();
 		while ((n = read(dst, offset, length, unit)) < length) {
@@ -102,7 +102,7 @@ public final class ByteArrayCodec implements ICodec<byte[]> {
 	public int read(byte[] dst, int offset, int length, IUnitChain unitChain) {
 		if ((offset | length | (offset + length) | (dst.length - (offset + length))) < 0)
 			throw new IndexOutOfBoundsException();
-		int n = 0;
+		int n;
 		int count = length;
 		IUnit unit = unitChain.currentUnit();
 		while ((n = read(dst, offset, count, unit)) < count) {
@@ -122,7 +122,7 @@ public final class ByteArrayCodec implements ICodec<byte[]> {
 			return;
 
 		IUnit unit = Util.lastUnit(unitChain);
-		int n = 0;
+		int n;
 		int offset = 0;
 		while ((n = write(src, offset, length, unit)) < length) {
 			offset += n;
@@ -140,7 +140,7 @@ public final class ByteArrayCodec implements ICodec<byte[]> {
 			return;
 
 		IUnit unit = Util.lastUnit(unitChain);
-		int n = 0;
+		int n;
 		while ((n = write(src, offset, length, unit)) < length) {
 			offset += n;
 			length -= n;
@@ -372,11 +372,6 @@ public final class ByteArrayCodec implements ICodec<byte[]> {
 		start -= length;
 		unit.set(start, src, offset, length);
 		unit.start(start);
-		int position = unit.position();
-		if (position > 0) {
-			position += length;
-			unit.mark(unit.mark() + length);
-		}
 		unit.size(unit.size() + length);
 		return length;
 	}

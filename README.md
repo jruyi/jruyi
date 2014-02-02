@@ -18,10 +18,10 @@ Last but not least, JRuyi embraces [OSGi](http://www.osgi.org/Technology/WhatIsO
 
 ## License
 
-JRuyi is licensed under the [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0.html).
+JRuyi is licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html).
 
 ## Further Reading
 
-* What's [Ruyi](http://en.wikipedia.org/wiki/Ruyi_(scepter\))?
+* What's [Ruyi](http://en.wikipedia.org/wiki/Ruyi_\(scepter\))?
 * [JRuyi Website](http://www.jruyi.org)
 

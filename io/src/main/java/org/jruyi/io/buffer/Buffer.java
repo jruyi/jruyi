@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -197,7 +197,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		int m = size - unit.position();
 
 		final BiListNode<IUnit> head = m_head;
-		BiListNode<IUnit> next = null;
+		BiListNode<IUnit> next;
 		while (m < n && (next = node.next()) != head) {
 			unit.position(size);
 			node = next;
@@ -244,7 +244,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		final BiListNode<IUnit> head = m_head;
 		BiListNode<IUnit> node = head;
 		IUnit unit = node.get();
-		int n = 0;
+		int n;
 		while (fromIndex >= (n = unit.size())) {
 			fromIndex -= n;
 			node = node.next();
@@ -288,7 +288,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		final BiListNode<IUnit> head = m_head;
 		BiListNode<IUnit> node = head;
 		IUnit unit = node.get();
-		int unitSize = 0;
+		int unitSize;
 		int size = 0;
 		while (fromIndex >= (unitSize = unit.size())) {
 			fromIndex -= unitSize;
@@ -349,7 +349,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		IUnit unit = node.get();
 		int index = fromIndex;
 		int size = 0;
-		int unitSize = 0;
+		int unitSize;
 		while (index >= (unitSize = unit.size())) {
 			index -= unitSize;
 			size += unitSize;
@@ -741,7 +741,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		final BiListNode<IUnit> positionNode = m_positionNode;
 		final BiListNode<IUnit> markNode = m_markNode;
 		BiListNode<IUnit> node = head;
-		int n = 0;
+		int n;
 		IUnit unit = node.get();
 		while (size > (n = unit.size())) {
 			size -= n;
@@ -971,7 +971,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		final BiListNode<IUnit> head = m_head;
 		BiListNode<IUnit> node = head;
 		IUnit unit = node.get();
-		int size = 0;
+		int size;
 		while (index > (size = unit.size())) {
 			index -= size;
 			node = node.next();
@@ -979,7 +979,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 				throw new IndexOutOfBoundsException();
 			unit = node.get();
 		}
-		int n = unit.size() - index;
+		int n = size - index;
 		index += unit.start();
 		for (;;) {
 			if (n >= count) {
@@ -1030,7 +1030,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		final BiListNode<IUnit> head = m_head;
 		BiListNode<IUnit> node = head;
 		IUnit unit = node.get();
-		int size = 0;
+		int size;
 		while (index >= (size = unit.size())) {
 			index -= size;
 			node = node.next();
@@ -1047,7 +1047,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		BiListNode<IUnit> temp = m_head;
 		BiListNode<IUnit> node = temp;
 		IUnit unit = node.get();
-		int size = 0;
+		int size;
 		while (index > (size = unit.size())) {
 			index -= size;
 			node = node.next();
@@ -1070,7 +1070,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		BiListNode<IUnit> temp = m_head;
 		BiListNode<IUnit> node = temp;
 		IUnit unit = node.get();
-		int size = 0;
+		int size;
 		while (index > (size = unit.size())) {
 			index -= size;
 			node = node.next();
@@ -1093,7 +1093,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		BiListNode<IUnit> temp = m_head;
 		BiListNode<IUnit> node = temp;
 		IUnit unit = node.get();
-		int size = 0;
+		int size;
 		while (index > (size = unit.size())) {
 			index -= size;
 			node = node.next();
@@ -1116,7 +1116,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		BiListNode<IUnit> temp = m_head;
 		BiListNode<IUnit> node = temp;
 		IUnit unit = node.get();
-		int size = 0;
+		int size;
 		while (index > (size = unit.size())) {
 			index -= size;
 			node = node.next();
@@ -1139,7 +1139,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		BiListNode<IUnit> temp = m_head;
 		BiListNode<IUnit> node = temp;
 		IUnit unit = node.get();
-		int size = 0;
+		int size;
 		while (index > (size = unit.size())) {
 			index -= size;
 			node = node.next();
@@ -1162,7 +1162,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		BiListNode<IUnit> temp = m_head;
 		BiListNode<IUnit> node = temp;
 		IUnit unit = node.get();
-		int size = 0;
+		int size;
 		while (index > (size = unit.size())) {
 			index -= size;
 			node = node.next();
@@ -1185,7 +1185,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		BiListNode<IUnit> temp = m_head;
 		BiListNode<IUnit> node = temp;
 		IUnit unit = node.get();
-		int size = 0;
+		int size;
 		while (index > (size = unit.size())) {
 			index -= size;
 			node = node.next();
@@ -1209,7 +1209,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		BiListNode<IUnit> temp = m_head;
 		BiListNode<IUnit> node = temp;
 		IUnit unit = node.get();
-		int size = 0;
+		int size;
 		while (index > (size = unit.size())) {
 			index -= size;
 			node = node.next();
@@ -1293,7 +1293,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		final BiListNode<IUnit> head = m_head;
 		BiListNode<IUnit> node = head;
 		IUnit unit = node.get();
-		int size = 0;
+		int size;
 		while (index >= (size = unit.size())) {
 			index -= size;
 			node = node.next();
@@ -1329,7 +1329,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		BiListNode<IUnit> temp = m_head;
 		BiListNode<IUnit> node = temp;
 		IUnit unit = node.get();
-		int size = 0;
+		int size;
 		while (index > (size = unit.size())) {
 			index -= size;
 			node = node.next();
@@ -1351,7 +1351,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		BiListNode<IUnit> temp = m_head;
 		BiListNode<IUnit> node = temp;
 		IUnit unit = node.get();
-		int size = 0;
+		int size;
 		while (index > (size = unit.size())) {
 			index -= size;
 			node = node.next();
@@ -1373,7 +1373,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		BiListNode<IUnit> temp = m_head;
 		BiListNode<IUnit> node = temp;
 		IUnit unit = node.get();
-		int size = 0;
+		int size;
 		while (index > (size = unit.size())) {
 			index -= size;
 			node = node.next();
@@ -1395,7 +1395,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		BiListNode<IUnit> temp = m_head;
 		BiListNode<IUnit> node = temp;
 		IUnit unit = node.get();
-		int size = 0;
+		int size;
 		while (index > (size = unit.size())) {
 			index -= size;
 			node = node.next();
@@ -1417,7 +1417,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		BiListNode<IUnit> temp = m_head;
 		BiListNode<IUnit> node = temp;
 		IUnit unit = node.get();
-		int size = 0;
+		int size;
 		while (index > (size = unit.size())) {
 			index -= size;
 			node = node.next();
@@ -1439,7 +1439,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		BiListNode<IUnit> temp = m_head;
 		BiListNode<IUnit> node = temp;
 		IUnit unit = node.get();
-		int size = 0;
+		int size;
 		while (index > (size = unit.size())) {
 			index -= size;
 			node = node.next();
@@ -1461,7 +1461,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		BiListNode<IUnit> temp = m_head;
 		BiListNode<IUnit> node = temp;
 		IUnit unit = node.get();
-		int size = 0;
+		int size;
 		while (index > (size = unit.size())) {
 			index -= size;
 			node = node.next();
@@ -1483,7 +1483,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		BiListNode<IUnit> temp = m_head;
 		BiListNode<IUnit> node = temp;
 		IUnit unit = node.get();
-		int size = 0;
+		int size;
 		while (index > (size = unit.size())) {
 			index -= size;
 			node = node.next();
@@ -1505,7 +1505,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		BiListNode<IUnit> temp = m_head;
 		BiListNode<IUnit> node = temp;
 		IUnit unit = node.get();
-		int size = 0;
+		int size;
 		while (index > (size = unit.size())) {
 			index -= size;
 			node = node.next();
@@ -1528,7 +1528,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		BiListNode<IUnit> temp = m_head;
 		BiListNode<IUnit> node = temp;
 		IUnit unit = node.get();
-		int size = 0;
+		int size;
 		while (index > (size = unit.size())) {
 			index -= size;
 			node = node.next();
@@ -1732,7 +1732,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		BiListNode<IUnit> temp = m_head;
 		BiListNode<IUnit> node = temp;
 		IUnit unit = node.get();
-		int size = 0;
+		int size;
 		while (start > (size = unit.size())) {
 			start -= size;
 			node = node.next();
@@ -1755,7 +1755,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		BiListNode<IUnit> temp = m_head;
 		BiListNode<IUnit> node = temp;
 		IUnit unit = node.get();
-		int size = 0;
+		int size;
 		while (srcBegin > (size = unit.size())) {
 			srcBegin -= size;
 			node = node.next();

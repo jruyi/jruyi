@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,13 +29,12 @@ import org.jruyi.io.IUnitChain;
 public final class Helper {
 
 	public static final char[] EMPTY_CHARS = new char[0];
-	public static final byte[] EMPTY_BYTES = new byte[0];
 
 	private Helper() {
 	}
 
 	static void write(ICharsetCodec cc, CharBuffer cb, IUnitChain unitChain) {
-		CharsetEncoder encoder = cc.getEncoder();
+		final CharsetEncoder encoder = cc.getEncoder();
 		try {
 			IUnit unit = Util.lastUnit(unitChain);
 			ByteBuffer bb = unit.getByteBufferForWrite();
@@ -61,7 +60,7 @@ public final class Helper {
 					flush = true;
 			}
 		} catch (CharacterCodingException e) {
-			throw new Error(e);
+			throw new RuntimeException(e);
 		} finally {
 			cc.releaseEncoder(encoder);
 		}
@@ -81,7 +80,7 @@ public final class Helper {
 	}
 
 	static void prepend(ICharsetCodec cc, StringBuilder sb, IUnitChain unitChain) {
-		BytesBuilder bb = BytesBuilder.get();
+		final BytesBuilder bb = BytesBuilder.get();
 		try {
 			cc.encode(sb, bb);
 			int length = bb.length();

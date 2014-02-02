@@ -19,37 +19,39 @@ import org.jruyi.io.ILongCodec;
 import org.jruyi.io.IUnit;
 import org.jruyi.io.IUnitChain;
 
-public final class LittleEndianLongCodec implements ILongCodec {
+public final class VarintLongCodec implements ILongCodec {
 
-	public static final LittleEndianLongCodec INST = new LittleEndianLongCodec();
+	public static final ILongCodec INST = new VarintLongCodec();
 
-	private LittleEndianLongCodec() {
+	private VarintLongCodec() {
 	}
 
 	@Override
 	public long read(IUnitChain unitChain) {
 		long l = 0L;
+		int shift = 0;
 		IUnit unit = unitChain.currentUnit();
 		int start = unit.start();
 		int position = start + unit.position();
-		int size = unit.size();
-		int end = start + size;
-		for (int n = 0; n < 8;) {
+		int end = start + unit.size();
+		for (;;) {
 			if (position < end) {
-				l = (l >>> 8) | (((long) unit.byteAt(position)) << 56);
-				++position;
-				++n;
+				final long b = unit.byteAt(position++);
+				l |= ((b & 0x7F) << shift);
+				if ((b & 0x80) == 0)
+					break;
+				shift += 7;
 			} else {
-				unit.position(size);
+				unit.position(unit.size());
 				unit = unitChain.nextUnit();
 				if (unit == null)
 					throw new BufferUnderflowException();
 				start = unit.start();
 				position = start + unit.position();
-				size = unit.size();
-				end = start + size;
+				end = start + unit.size();
 			}
 		}
+
 		unit.position(position - start);
 		return l;
 	}
@@ -58,44 +60,53 @@ public final class LittleEndianLongCodec implements ILongCodec {
 	public void write(long l, IUnitChain unitChain) {
 		IUnit unit = Util.lastUnit(unitChain);
 		int start = unit.start();
-		int size = start + unit.size();
 		int end = unit.capacity();
-		for (int n = 0; n <= 56;) {
-			if (size < end) {
-				unit.set(size, (byte) (l >>> n));
-				++size;
-				n += 8;
+		int size = start + unit.size();
+		for (;;) {
+			if ((l & ~0x7FL) == 0) {
+				unit.set(size, (byte) l);
+				unit.size(++size - start);
+				break;
 			} else {
+				unit.set(size, (byte) ((l & 0x7F) | 0x80));
+				l >>>= 7;
+			}
+
+			if (++size >= end) {
 				unit.size(size - start);
 				unit = Util.appendNewUnit(unitChain);
 				start = unit.start();
-				size = start + unit.size();
 				end = unit.capacity();
+				size = start + unit.size();
 			}
 		}
-		unit.size(size - start);
 	}
 
 	@Override
 	public long get(IUnitChain unitChain, int index) {
 		if (index < 0)
 			throw new IndexOutOfBoundsException();
-		long l = 0;
+
+		long l = 0L;
+		int shift = 0;
 		IUnit unit = unitChain.currentUnit();
-		int size = unit.start();
-		index += size;
-		size += unit.size();
-		for (int n = 0; n < 8;) {
-			if (index < size) {
-				l = (l >>> 8) | (((long) unit.byteAt(index)) << 56);
+		int start = unit.start();
+		index += start;
+		int end = start + unit.size();
+		for (;;) {
+			if (index < end) {
+				final long b = unit.byteAt(index);
+				l |= ((b & 0x7FL) << shift);
+				if ((b & 0x80) == 0)
+					break;
+				shift += 7;
 				++index;
-				++n;
 			} else {
 				unit = unitChain.nextUnit();
 				if (unit == null)
 					throw new IndexOutOfBoundsException();
 				index = unit.start();
-				size = index + unit.size();
+				end = index + unit.size();
 			}
 		}
 		return l;
@@ -106,15 +117,21 @@ public final class LittleEndianLongCodec implements ILongCodec {
 		if (index < 0)
 			throw new IndexOutOfBoundsException();
 		IUnit unit = unitChain.currentUnit();
-		int size = unit.start();
-		index += size;
-		size += unit.size();
-		for (int n = 0; n <= 56;) {
+		int start = unit.start();
+		int size = start + unit.size();
+		index += start;
+		for (;;) {
 			if (index < size) {
-				unit.set(index, (byte) (l >>> n));
-				++index;
-				n += 8;
+				if ((l & ~0x7FL) == 0) {
+					unit.set(index, (byte) l);
+					break;
+				} else {
+					unit.set(index, (byte) ((l & 0x7F) | 0x80));
+					l >>>= 7;
+					++index;
+				}
 			} else {
+
 				unit = unitChain.nextUnit();
 				if (unit == null)
 					throw new IndexOutOfBoundsException();
@@ -127,11 +144,21 @@ public final class LittleEndianLongCodec implements ILongCodec {
 	@Override
 	public void prepend(long l, IUnitChain unitChain) {
 		IUnit unit = Util.firstUnit(unitChain);
+		int shift = 63;
 		int start = unit.start();
-		for (int n = 56; n >= 0;) {
+		long n;
+		while ((n = l >>> shift) == 0) {
+			shift -= 7;
+			if (shift == 0)
+				break;
+		}
+		unit.set(--start, (byte) n);
+
+		while (shift > 0) {
 			if (start > 0) {
-				unit.set(--start, (byte) (l >> n));
-				n -= 8;
+				shift -= 7;
+				n = ((l >>> shift) & 0x7F) | 0x80;
+				unit.set(--start, (byte) n);
 			} else {
 				unit.size(unit.size() + unit.start());
 				unit.start(start);
@@ -139,6 +166,7 @@ public final class LittleEndianLongCodec implements ILongCodec {
 				start = unit.start();
 			}
 		}
+
 		unit.size(unit.size() + unit.start() - start);
 		unit.start(start);
 	}

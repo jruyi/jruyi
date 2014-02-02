@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -45,6 +45,14 @@ public final class LongCodec {
 		 * @return a little-endian long codec
 		 */
 		public ILongCodec littleEndianLongCodec();
+
+		/**
+		 * Returns a varint long codec.
+		 * 
+		 * @return a varint long codec.
+		 * @since 1.2
+		 */
+		public ILongCodec varintLongCodec();
 	}
 
 	/**
@@ -63,6 +71,16 @@ public final class LongCodec {
 	 */
 	public static ILongCodec littleEndian() {
 		return c_provider.littleEndianLongCodec();
+	}
+
+	/**
+	 * Returns a varint long codec.
+	 * 
+	 * @return a varint long codec
+	 * @since 1.2
+	 */
+	public static ILongCodec varint() {
+		return c_provider.varintLongCodec();
 	}
 
 	private LongCodec() {
