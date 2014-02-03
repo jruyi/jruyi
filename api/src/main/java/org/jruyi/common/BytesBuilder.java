@@ -1282,7 +1282,8 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 	 *             if {@code charsetCodec} is {@code null}
 	 */
 	public BytesBuilder append(String str, ICharsetCodec charsetCodec) {
-		StringBuilder sb = StringBuilder.get();
+		final StringBuilder sb = str == null ? StringBuilder.get()
+				: StringBuilder.get(str.length());
 		try {
 			sb.append(str);
 			charsetCodec.encode(sb, this);
@@ -1396,7 +1397,7 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 	 */
 	public BytesBuilder append(String str, int offset, int length,
 			ICharsetCodec charsetCodec) {
-		StringBuilder sb = StringBuilder.get();
+		StringBuilder sb = StringBuilder.get(length);
 		try {
 			sb.append(str, offset, offset + length);
 			charsetCodec.encode(sb, this);
