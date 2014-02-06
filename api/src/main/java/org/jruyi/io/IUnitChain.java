@@ -74,4 +74,12 @@ public interface IUnitChain {
 	 *            the buffer unit to be prepended.
 	 */
 	public void prepend(IUnit unit);
+
+	/**
+	 * Returns the number of bytes remaining in the chained buffer units.
+	 * 
+	 * @return the number of bytes remaining in the chained buffer units.
+	 * @since 1.2
+	 */
+	public int remaining();
 }

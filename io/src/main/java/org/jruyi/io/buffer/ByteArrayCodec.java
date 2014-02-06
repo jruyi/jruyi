@@ -15,7 +15,6 @@ package org.jruyi.io.buffer;
 
 import java.nio.BufferUnderflowException;
 
-import org.jruyi.common.BytesBuilder;
 import org.jruyi.io.ICodec;
 import org.jruyi.io.IUnit;
 import org.jruyi.io.IUnitChain;
@@ -36,29 +35,16 @@ public final class ByteArrayCodec implements ICodec<byte[]> {
 				throw new BufferUnderflowException();
 		}
 
-		IUnit nextUnit = unitChain.nextUnit();
-		int length = unit.remaining();
-		if (nextUnit == null) {
-			byte[] dst = new byte[length];
-			read(dst, 0, length, unit);
-			return dst;
-		}
-
-		BytesBuilder bb = BytesBuilder.get();
-		try {
-			bb.append(unit, unit.start() + unit.position(), length);
-			unit.position(unit.size());
-			unit = nextUnit;
-			do {
-				bb.append(unit, unit.start() + unit.position(),
-						unit.remaining());
-				unit.position(unit.size());
-				unit = unitChain.nextUnit();
-			} while (unit != null);
-			return bb.toBytes();
-		} finally {
-			bb.close();
-		}
+		int n = unitChain.remaining();
+		final byte[] dst = new byte[n];
+		int offset = 0;
+		do {
+			n = unit.remaining();
+			read(dst, offset, n, unit);
+			offset += n;
+			unit = unitChain.nextUnit();
+		} while (unit != null);
+		return dst;
 	}
 
 	@Override
@@ -70,7 +56,7 @@ public final class ByteArrayCodec implements ICodec<byte[]> {
 		if (length > 0) {
 			IUnit unit = unitChain.currentUnit();
 			int offset = 0;
-			int n = 0;
+			int n;
 			while ((n = read(dst, offset, length, unit)) < length) {
 				offset += n;
 				length -= n;
@@ -161,26 +147,17 @@ public final class ByteArrayCodec implements ICodec<byte[]> {
 			index = 0;
 		}
 
-		IUnit nextUnit = unitChain.nextUnit();
-		int length = unit.size();
-		if (nextUnit == null) {
-			byte[] dst = new byte[length];
-			get(dst, 0, length, unit, index);
-			return dst;
+		int n = unitChain.remaining() + unit.position() - index;
+		final byte[] dst = new byte[n];
+		n = unit.size() - index;
+		get(dst, 0, n, unit, index);
+		int offset = n;
+		while ((unit = unitChain.nextUnit()) != null) {
+			n = unit.size();
+			get(dst, offset, n, unit, 0);
+			offset += n;
 		}
-
-		BytesBuilder bb = BytesBuilder.get();
-		try {
-			bb.append(unit, unit.start() + index, length);
-			unit = nextUnit;
-			do {
-				bb.append(unit, unit.start(), unit.size());
-				unit = unitChain.nextUnit();
-			} while (unit != null);
-			return bb.toBytes();
-		} finally {
-			bb.close();
-		}
+		return dst;
 	}
 
 	@Override

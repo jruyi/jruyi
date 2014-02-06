@@ -14,13 +14,18 @@
 package org.jruyi.io.buffer;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
 import org.jruyi.common.ByteKmp;
 import org.jruyi.common.StringBuilder;
-import org.jruyi.io.*;
+import org.jruyi.io.Codec;
+import org.jruyi.io.IBuffer;
+import org.jruyi.io.IntCodec;
+import org.jruyi.io.LongCodec;
+import org.jruyi.io.ShortCodec;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -60,7 +65,7 @@ public class BufferTest {
 			final int n = bytes.length;
 			for (int i = 1; i < n + 11; i += 10) {
 				BufferFactory factory = initializeFactory(i);
-				IBuffer buffer = factory.create();
+				final IBuffer buffer = factory.create();
 				buffer.write(bytes, Codec.byteArray());
 
 				Assert.assertEquals(0, buffer.position());
@@ -74,9 +79,19 @@ public class BufferTest {
 				Assert.assertEquals(hexDump1, hexDump2);
 
 				byte[] bytes2 = buffer.read(n, Codec.byteArray());
-
 				Assert.assertArrayEquals(bytes, bytes2);
+
+				int index = new Random().nextInt(n);
+				byte[] bytes3 = Arrays.copyOfRange(bytes, index, n);
+				byte[] bytes4 = buffer.get(index, Codec.byteArray());
+				Assert.assertArrayEquals(bytes3, bytes4);
+
 				Assert.assertEquals(0, buffer.remaining());
+
+				buffer.rewind();
+				buffer.prepend(bytes, Codec.byteArray());
+				byte[] bytes5 = buffer.read(n, Codec.byteArray());
+				Assert.assertArrayEquals(bytes, bytes5);
 			}
 		} finally {
 			builder.close();
