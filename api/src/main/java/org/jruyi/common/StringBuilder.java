@@ -32,7 +32,7 @@ public final class StringBuilder implements Serializable, Appendable,
 		CharSequence, ICloseable {
 
 	private static final long serialVersionUID = -6951364133799695673L;
-	private static final int DEFAULT_CAPACITY = 16;
+	private static final int DEFAULT_CAPACITY = 256;
 	private static final int HM_BYTES_PERROW = 16;
 	private static final int HM_DISTANCE = 3 * (HM_BYTES_PERROW + 1);
 	private static final int LSL = StrUtil.getLineSeparator().length();
@@ -66,7 +66,7 @@ public final class StringBuilder implements Serializable, Appendable,
 	}
 
 	/**
-	 * Gets a string builder with a minimum capacity of {@code 16}.
+	 * Gets a string builder with a minimum capacity of {@code 256}.
 	 * 
 	 * @return a {@code StringBuilder} object.
 	 * @see #capacity()

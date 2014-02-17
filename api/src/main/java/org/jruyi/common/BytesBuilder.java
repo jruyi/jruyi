@@ -13,6 +13,10 @@
  */
 package org.jruyi.common;
 
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -32,7 +36,7 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 		ICloseable {
 
 	private static final long serialVersionUID = -3381784872368302825L;
-	private static final int DEFAULT_CAPACITY = 16;
+	private static final int DEFAULT_CAPACITY = 256;
 	private static final IThreadLocalCache<BytesBuilder> c_cache = ThreadLocalCache
 			.weakArrayCache();
 	private byte[] m_value;
@@ -48,7 +52,7 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 	}
 
 	/**
-	 * Gets a bytes builder with a minimum capacity of {@code 16}.
+	 * Gets a bytes builder with a minimum capacity of {@code 256}.
 	 * 
 	 * @return a {@code BytesBuilder} object.
 	 * @see #capacity()
@@ -205,7 +209,7 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 
 	@Override
 	public byte[] getBytes(int index, int length) {
-		if (length < 0)
+		if (length < 0 || index + length > m_length)
 			throw new IndexOutOfBoundsException();
 
 		byte[] copy = new byte[length];
@@ -2649,7 +2653,7 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 	 *            the length of the subarray of the backing byte array
 	 * @return a {@code ByteBuffer}
 	 * @throws IndexOutOfBoundsException
-	 *             if the preconditions on the offset and length parameters do
+	 *             if the preconditions on the offset and length arguments do
 	 *             not hold
 	 */
 	public ByteBuffer getByteBuffer(int offset, int length) {
@@ -2664,6 +2668,82 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 		}
 
 		return byteBuffer;
+	}
+
+	/**
+	 * Writes all bytes in this {@code BytesBuilder} to the specified
+	 * {@code out}.
+	 * 
+	 * @param out
+	 *            the {@code OutputStream} to write to
+	 * @throws IOException
+	 *             if any IO error occurs
+	 * @since 1.2
+	 */
+	public void write(OutputStream out) throws IOException {
+		out.write(m_value, 0, m_length);
+	}
+
+	/**
+	 * Writes {@code length} number of bytes in this {@code BytesBuilder},
+	 * starting at the specified {@code offset}, to the specified {@code out}.
+	 * 
+	 * @param out
+	 *            the {@code OutputStream} to write to
+	 * @param offset
+	 *            the index of the first byte to write
+	 * @param length
+	 *            the number of bytes to write
+	 * @throws IndexOutOfBoundsException
+	 *             if the preconditions on the offset and length arguments do
+	 *             not hold
+	 * @throws IOException
+	 *             if any IO error occurs
+	 * @since 1.2
+	 */
+	public void write(OutputStream out, int offset, int length)
+			throws IOException {
+		if (offset < 0 || offset + length > m_length)
+			throw new IndexOutOfBoundsException();
+
+		out.write(m_value, offset, length);
+	}
+
+	/**
+	 * Reads {@code length} number of bytes from the specified {@code in} into
+	 * this {@code  BytesBuilder}, or fails if there are not enough left (EOF
+	 * reached).
+	 * 
+	 * @param in
+	 *            the {@code InputStream} to read from
+	 * @param length
+	 *            the number of bytes to read
+	 * @throws IOException
+	 *             if any IO error occurs
+	 * @throws IllegalArgumentException
+	 *             if {@code length} is negative
+	 * @throws EOFException
+	 *             if EOF is reached before the requested number of bytes is
+	 *             read
+	 * @since 1.2
+	 */
+	public void read(InputStream in, int length) throws IOException {
+		if (length < 0)
+			throw new IllegalArgumentException("Length must not be negative: "
+					+ length);
+		int offset = m_length;
+		ensureCapacity(offset + length);
+		final byte[] value = m_value;
+		int n;
+		while (length > 0 && (n = in.read(value, offset, length)) > 0) {
+			offset += n;
+			length -= n;
+		}
+
+		if (length > 0)
+			throw new EOFException();
+
+		m_length = offset;
 	}
 
 	private void expandCapacity(int minCapacity) {
