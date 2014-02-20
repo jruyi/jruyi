@@ -41,8 +41,8 @@ public final class BundleCmd {
 	}
 
 	public void list() {
-		Bundle[] bundles = m_context.getBundles();
-		FrameworkStartLevel fsl = m_context.getBundle(0).adapt(
+		final Bundle[] bundles = m_context.getBundles();
+		final FrameworkStartLevel fsl = m_context.getBundle(0).adapt(
 				FrameworkStartLevel.class);
 		System.out.print("START LEVEL ");
 		System.out.println(fsl.getStartLevel());
@@ -81,7 +81,7 @@ public final class BundleCmd {
 	}
 
 	public void inspect(String bundleId) {
-		Bundle bundle = m_context.getBundle(Long.parseLong(bundleId));
+		final Bundle bundle = m_context.getBundle(Long.parseLong(bundleId));
 		Dictionary<String, String> headers = bundle.getHeaders();
 
 		System.out.print("     Bundle ID: ");
@@ -136,7 +136,7 @@ public final class BundleCmd {
 			return;
 		}
 
-		BundleContext context = m_context;
+		final BundleContext context = m_context;
 		for (String s : bundles) {
 			Bundle bundle = Util.isBundleId(s) ? context.getBundle(Long
 					.parseLong(s)) : context.installBundle(s);
@@ -156,7 +156,7 @@ public final class BundleCmd {
 			return;
 		}
 
-		BundleContext context = m_context;
+		final BundleContext context = m_context;
 		for (String s : bundles) {
 			Bundle bundle;
 			if (Util.isBundleId(s))
@@ -180,7 +180,7 @@ public final class BundleCmd {
 			return;
 		}
 
-		BundleContext context = m_context;
+		final BundleContext context = m_context;
 		for (String url : urls)
 			context.installBundle(url);
 	}
@@ -191,7 +191,7 @@ public final class BundleCmd {
 			return;
 		}
 
-		BundleContext context = m_context;
+		final BundleContext context = m_context;
 		for (String s : bundles) {
 			Bundle bundle;
 			if (Util.isBundleId(s))
@@ -209,7 +209,7 @@ public final class BundleCmd {
 	}
 
 	public void update(String[] bundles) throws Exception {
-		BundleContext context = m_context;
+		final BundleContext context = m_context;
 		if (bundles == null || bundles.length < 1) {
 			RuyiCmd.INST.help("bundle:update");
 			return;
@@ -260,7 +260,7 @@ public final class BundleCmd {
 	}
 
 	public void refresh(String[] bundleIds) throws Exception {
-		BundleContext context = m_context;
+		final BundleContext context = m_context;
 		Collection<Bundle> bundles = null;
 		if (bundleIds != null && bundleIds.length > 0) {
 			bundles = new ArrayList<Bundle>(bundleIds.length);

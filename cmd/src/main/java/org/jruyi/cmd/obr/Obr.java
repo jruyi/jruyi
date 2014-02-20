@@ -33,6 +33,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceStrategy;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.service.command.CommandProcessor;
+import org.apache.felix.service.command.Parameter;
 import org.jruyi.cmd.internal.RuyiCmd;
 import org.jruyi.cmd.util.Util;
 import org.jruyi.common.StringBuilder;
@@ -146,7 +147,9 @@ public final class Obr {
 	 *            Optional strings used for name matching
 	 * @throws Exception
 	 */
-	public void list(boolean verbose, String[] args) throws Exception {
+	public void list(
+			@Parameter(names = { "-v", "--verbose" }, presentValue = "true", absentValue = "false") boolean verbose,
+			String[] args) throws Exception {
 		final RepositoryAdmin ra = (RepositoryAdmin) m_context
 				.locateService(REPO_ADMIN);
 		final Resource[] resources;
@@ -243,7 +246,10 @@ public final class Obr {
 	 *            ...
 	 * @throws Exception
 	 */
-	public void deploy(boolean start, boolean requiredOnly, boolean force,
+	public void deploy(
+			@Parameter(names = { "-s", "--start" }, presentValue = "true", absentValue = "false") boolean start,
+			@Parameter(names = { "-ro", "--required-only" }, presentValue = "true", absentValue = "false") boolean requiredOnly,
+			@Parameter(names = { "-f", "--force" }, presentValue = "true", absentValue = "false") boolean force,
 			String[] args) throws Exception {
 		RepositoryAdmin ra = (RepositoryAdmin) m_context
 				.locateService(REPO_ADMIN);

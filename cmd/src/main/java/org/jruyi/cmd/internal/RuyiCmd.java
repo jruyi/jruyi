@@ -24,6 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.felix.service.command.CommandProcessor;
+import org.apache.felix.service.command.Parameter;
 import org.jruyi.cmd.IManual;
 import org.jruyi.common.ListNode;
 import org.jruyi.common.StrUtil;
@@ -168,7 +169,7 @@ public final class RuyiCmd implements IManual {
 				+ "=", scope, ")(" + CommandProcessor.COMMAND_FUNCTION + "=",
 				function, "))");
 
-		BundleContext context = m_context;
+		final BundleContext context = m_context;
 		ServiceReference<?>[] references = context.getAllServiceReferences(
 				null, filter);
 		if (references == null || references.length < 1) {
@@ -192,8 +193,8 @@ public final class RuyiCmd implements IManual {
 				return;
 		}
 
-		byte[] buffer = new byte[512];
-		int n = 0;
+		final byte[] buffer = new byte[512];
+		int n;
 		InputStream in = url.openStream();
 		try {
 			while ((n = in.read(buffer)) > 0)
@@ -231,7 +232,8 @@ public final class RuyiCmd implements IManual {
 	 * @param regex
 	 * @throws Exception
 	 */
-	public void grep(boolean ignoreCase, boolean invertMatch, String regex)
+	public void grep(@Parameter(names = { "-i", "--ignore-case" }, presentValue = "true", absentValue = "false")boolean ignoreCase,
+					 @Parameter(names = { "-v", "--invert-match" }, presentValue = "true", absentValue = "false")boolean invertMatch, String regex)
 			throws Exception {
 
 		if (ignoreCase)
@@ -242,7 +244,7 @@ public final class RuyiCmd implements IManual {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(
 				System.in));
 		try {
-			String line = null;
+			String line;
 			while ((line = reader.readLine()) != null) {
 				if (matcher.reset(line).find() ^ invertMatch)
 					System.out.println(line);
