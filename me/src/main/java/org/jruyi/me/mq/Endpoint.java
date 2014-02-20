@@ -24,11 +24,13 @@ import org.jruyi.me.IPostHandler;
 import org.jruyi.me.IPreHandler;
 import org.jruyi.me.IProducer;
 import org.jruyi.me.IRoute;
+import org.jruyi.me.MeConstants;
 import org.jruyi.me.route.IRouter;
+import org.osgi.framework.ServiceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class Endpoint implements IProducer, IConsumer, IDumpable {
+abstract class Endpoint implements IProducer, IConsumer, IDumpable {
 
 	private static final Logger c_logger = LoggerFactory
 			.getLogger(Endpoint.class);
@@ -89,7 +91,6 @@ class Endpoint implements IProducer, IConsumer, IDumpable {
 	Endpoint(String id, MessageQueue mq) {
 		m_id = id;
 		m_mq = mq;
-		m_router = mq.getRouter(id);
 
 		String[] preHandlerIds = StrUtil.getEmptyStringArray();
 		String[] postHandlerIds = StrUtil.getEmptyStringArray();
@@ -111,6 +112,10 @@ class Endpoint implements IProducer, IConsumer, IDumpable {
 
 	final MessageQueue mq() {
 		return m_mq;
+	}
+
+	final void initRouter() {
+		m_router = m_mq.getRouter(m_id);
 	}
 
 	final IRouter router() {
@@ -150,6 +155,8 @@ class Endpoint implements IProducer, IConsumer, IDumpable {
 	IConsumer getConsumer() {
 		return this;
 	}
+
+	protected abstract ServiceReference<?> reference();
 
 	@Override
 	public void onMessage(IMessage message) {
@@ -196,6 +203,21 @@ class Endpoint implements IProducer, IConsumer, IDumpable {
 		m_postHandlers = mq.getPostHandlers(names);
 
 		mq.ungetPostHandlers(oldNames);
+	}
+
+	final void setHandlers(ServiceReference<?> reference) {
+		String[] v = (String[]) reference
+				.getProperty(MeConstants.EP_PREHANDLERS);
+		if (v != null)
+			setPreHandlers(v);
+		else
+			setPreHandlers(StrUtil.getEmptyStringArray());
+
+		v = (String[]) reference.getProperty(MeConstants.EP_POSTHANDLERS);
+		if (v != null)
+			setPostHandlers(v);
+		else
+			setPostHandlers(StrUtil.getEmptyStringArray());
 	}
 
 	private boolean onEnqueue(IMessage message) {

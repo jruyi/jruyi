@@ -51,11 +51,14 @@ final class LazyEndpoint extends Endpoint {
 				if (consumer != null)
 					return consumer;
 
-				IEndpoint original = endpoint.mq().locateService(
-						endpoint.reference());
+				ServiceReference<IEndpoint> reference = endpoint.reference();
+				IEndpoint original = endpoint.mq().locateService(reference);
 				if (original == null)
 					throw new RuntimeException(StrUtil.join(endpoint,
 							" is unavailable"));
+
+				endpoint.initRouter();
+				endpoint.setHandlers(reference);
 				original.producer(endpoint);
 				if (original instanceof IService) {
 					try {
@@ -113,7 +116,8 @@ final class LazyEndpoint extends Endpoint {
 		m_consumer = consumer;
 	}
 
-	ServiceReference<IEndpoint> reference() {
+	@Override
+	protected ServiceReference<IEndpoint> reference() {
 		return m_reference;
 	}
 

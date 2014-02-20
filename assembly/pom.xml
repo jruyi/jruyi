@@ -86,7 +86,7 @@
 		<org.jruyi.cmd.version>1.1.2-SNAPSHOT</org.jruyi.cmd.version>
 		<org.jruyi.common.version>1.2.0-SNAPSHOT</org.jruyi.common.version>
 		<org.jruyi.io.version>1.2.0-SNAPSHOT</org.jruyi.io.version>
-		<org.jruyi.me.version>1.2.0-SNAPSHOT</org.jruyi.me.version>
+		<org.jruyi.me.version>1.1.1-SNAPSHOT</org.jruyi.me.version>
 		<org.jruyi.osgi.log.version>1.0.1</org.jruyi.osgi.log.version>
 		<org.jruyi.timeoutadmin.version>1.1.1-SNAPSHOT</org.jruyi.timeoutadmin.version>
 		<org.jruyi.workshop.version>1.1.2-SNAPSHOT</org.jruyi.workshop.version>

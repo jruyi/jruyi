@@ -45,6 +45,11 @@ public final class TcpClient extends AbstractTcpClient {
 	private TcpClientConf m_conf;
 
 	@Override
+	public void openSession() {
+		connect();
+	}
+
+	@Override
 	public void onMessageSent(IChannel channel, Object msg) {
 		final ISessionListener listener = listener();
 		if (listener != null) {

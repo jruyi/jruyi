@@ -27,10 +27,6 @@
 		<AD id="workshop.target" name="Filter for Selecting Workshop" type="String" required="false" default="(threadPrefix=Worker)"/>
 	</OCD>
 
-	<OCD id="tcpAcceptor" name="TCP Acceptor">
-		<AD id="workshop.target" name="Filter for Selecting Workshop" type="String" required="false" default="(threadPrefix=Worker)"/>
-	</OCD>
-
 	<OCD id="tcpServer" name="TCP Server">
 		<AD id="jruyi.me.endpoint.id" name="Endpoint ID" type="String" required="true"/>
 		<AD id="jruyi.me.endpoint.lazy" name="Endpoint Lazy Loading" type="Boolean" required="false"/>
@@ -180,10 +176,6 @@
 
 	<Designate pid="jruyi.io.channeladmin">
 		<Object ocdref="channelAdmin"/>
-	</Designate>
-
-	<Designate pid="jruyi.io.tcpserver.tcpacceptor">
-		<Object ocdref="tcpAcceptor"/>
 	</Designate>
 
 	<Designate factoryPid="jruyi.io.tcpserver">

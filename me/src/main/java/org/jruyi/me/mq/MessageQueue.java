@@ -28,11 +28,9 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.References;
 import org.jruyi.common.BiListNode;
-import org.jruyi.common.IService;
 import org.jruyi.common.IServiceHolderManager;
 import org.jruyi.common.ServiceHolderManager;
 import org.jruyi.common.StrUtil;
-import org.jruyi.me.IConsumer;
 import org.jruyi.me.IEndpoint;
 import org.jruyi.me.IPostHandler;
 import org.jruyi.me.IPreHandler;
@@ -73,9 +71,9 @@ public final class MessageQueue implements ITimeoutListener {
 	private static final String P_MSG_TIMEOUT = "msgTimeout";
 
 	private final ConcurrentHashMap<String, Endpoint> m_endpoints;
-	private ConcurrentHashMap<String, BiListNode<MsgNotifier>> m_nodes;
 	private final ReentrantLock m_lock;
 	private final HashMap<Object, Endpoint> m_refEps;
+	private ConcurrentHashMap<String, BiListNode<MsgNotifier>> m_nodes;
 	private IServiceHolderManager<IPreHandler> m_preHandlerManager;
 	private IServiceHolderManager<IPostHandler> m_postHandlerManager;
 
@@ -88,7 +86,7 @@ public final class MessageQueue implements ITimeoutListener {
 	@Reference(name = "timeoutAdmin", policy = ReferencePolicy.DYNAMIC)
 	private ITimeoutAdmin m_ta;
 
-	private ComponentContext m_context;
+	private volatile ComponentContext m_context;
 	private int m_msgTimeout = 10;
 
 	static final class MsgNotifier {
@@ -120,7 +118,6 @@ public final class MessageQueue implements ITimeoutListener {
 
 	public MessageQueue() {
 		m_endpoints = new ConcurrentHashMap<String, Endpoint>();
-		m_nodes = new ConcurrentHashMap<String, BiListNode<MsgNotifier>>();
 		m_refEps = new HashMap<Object, Endpoint>();
 		m_lock = new ReentrantLock();
 	}
@@ -168,7 +165,7 @@ public final class MessageQueue implements ITimeoutListener {
 		if (id == null)
 			return;
 
-		Map<String, Endpoint> endpoints = m_endpoints;
+		final Map<String, Endpoint> endpoints = m_endpoints;
 		Endpoint endpoint = endpoints.get(id);
 		if (endpoint != null) {
 			c_logger.error(StrUtil.join(endpoint,
@@ -176,27 +173,17 @@ public final class MessageQueue implements ITimeoutListener {
 			return;
 		}
 
-		if (isLazy(reference)) {
-			endpoint = new LazyEndpoint(id, this, reference);
-			setHandlers(endpoint, reference);
-		} else {
-			IEndpoint original = locateService(reference);
-			IConsumer consumer = original.consumer();
-			endpoint = consumer == null ? new Endpoint(id, this)
-					: new Consumer(id, this, consumer);
-			setHandlers(endpoint, reference);
-			original.producer(endpoint);
-			if (original instanceof IService) {
-				try {
-					((IService) original).start();
-				} catch (Throwable t) {
-					// ignore
-				}
-			}
-		}
-
+		endpoint = new LazyEndpoint(id, this, reference);
 		m_refEps.put(reference, endpoint);
 		endpoints.put(id, endpoint);
+
+		// if MQ has not been activated yet
+		if (m_context == null)
+			return;
+
+		if (!isLazy(reference))
+			endpoint.getConsumer();
+
 		wakeMsgs(endpoint);
 	}
 
@@ -235,10 +222,13 @@ public final class MessageQueue implements ITimeoutListener {
 		}
 
 		endpoint = new Processor(id, this, reference);
-		setHandlers(endpoint, reference);
-
 		m_refEps.put(reference, endpoint);
 		endpoints.put(id, endpoint);
+
+		// if MQ has not been activated yet
+		if (m_context == null)
+			return;
+
 		wakeMsgs(endpoint);
 	}
 
@@ -270,7 +260,7 @@ public final class MessageQueue implements ITimeoutListener {
 	protected void activate(ComponentContext context, Map<String, ?> properties) {
 		m_context = context;
 
-		BundleContext bc = context.getBundleContext();
+		final BundleContext bc = context.getBundleContext();
 		IServiceHolderManager<IPreHandler> preHandlerManager = ServiceHolderManager
 				.newInstance(bc, IPreHandler.class, MeConstants.HANDLER_ID);
 		IServiceHolderManager<IPostHandler> postHandlerManager = ServiceHolderManager
@@ -284,10 +274,17 @@ public final class MessageQueue implements ITimeoutListener {
 
 		modified(properties);
 
+		final Collection<Endpoint> endpoints = m_endpoints.values();
+		for (Endpoint endpoint : endpoints) {
+			if (!isLazy(endpoint.reference()))
+				endpoint.getConsumer();
+		}
+
+		m_nodes = new ConcurrentHashMap<String, BiListNode<MsgNotifier>>();
+
 		c_logger.info("MessageQueue activated");
 	}
 
-	@SuppressWarnings("resource")
 	protected void deactivate() {
 		Collection<BiListNode<MsgNotifier>> nodes = m_nodes.values();
 		for (BiListNode<MsgNotifier> head : nodes) {
@@ -297,10 +294,12 @@ public final class MessageQueue implements ITimeoutListener {
 				node = node.next();
 			}
 		}
-		m_nodes.clear();
+		m_nodes = null;
 
 		m_postHandlerManager.close();
 		m_preHandlerManager.close();
+
+		m_context = null;
 
 		c_logger.info("MessageQueue deactivated");
 	}
@@ -406,21 +405,6 @@ public final class MessageQueue implements ITimeoutListener {
 		return id.intern();
 	}
 
-	private void setHandlers(Endpoint endpoint, ServiceReference<?> reference) {
-		String[] v = (String[]) reference
-				.getProperty(MeConstants.EP_PREHANDLERS);
-		if (v != null)
-			endpoint.setPreHandlers(v);
-		else
-			endpoint.setPreHandlers(StrUtil.getEmptyStringArray());
-
-		v = (String[]) reference.getProperty(MeConstants.EP_POSTHANDLERS);
-		if (v != null)
-			endpoint.setPostHandlers(v);
-		else
-			endpoint.setPostHandlers(StrUtil.getEmptyStringArray());
-	}
-
 	private void unregister(Endpoint endpoint, Object ref) {
 		endpoint.closeProducer();
 		m_endpoints.remove(endpoint.id());
@@ -428,7 +412,8 @@ public final class MessageQueue implements ITimeoutListener {
 	}
 
 	private void updated(Endpoint endpoint, ServiceReference<?> reference) {
-		setHandlers(endpoint, reference);
+		if (m_context != null)
+			endpoint.setHandlers(reference);
 
 		String id = getId(reference);
 		if (id == null) {

@@ -53,10 +53,14 @@ final class Processor extends Endpoint {
 				if (processor != null)
 					return processor;
 
-				processor = endpoint.mq().locateService(endpoint.reference());
+				ServiceReference<IProcessor> reference = endpoint.reference();
+				processor = endpoint.mq().locateService(reference);
 				if (processor == null)
 					throw new RuntimeException(StrUtil.join(endpoint,
 							" is unavailable"));
+
+				endpoint.initRouter();
+				endpoint.setHandlers(reference);
 				endpoint.processor(processor);
 			} finally {
 				lock.unlock();
@@ -97,7 +101,8 @@ final class Processor extends Endpoint {
 		}
 	}
 
-	ServiceReference<IProcessor> reference() {
+	@Override
+	protected ServiceReference<IProcessor> reference() {
 		return m_reference;
 	}
 

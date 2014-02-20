@@ -16,8 +16,8 @@ package org.jruyi.timeoutadmin.impl;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferencePolicy;
@@ -100,7 +100,13 @@ public final class TimeoutAdmin implements Runnable, ITimeoutAdmin {
 			m_workshop = null;
 	}
 
-	@Activate
+	@Modified
+	protected void modified(Map<String, ?> properties) {
+		// This empty modified method is for changing the property
+		// "workshop.target" dynamically.
+		// To take the change of property "scale", reactivating is required.
+	}
+
 	protected void activate(Map<String, ?> properties) {
 		int scale = (Integer) properties.get(P_SCALE);
 		if (scale < 5)
@@ -110,7 +116,8 @@ public final class TimeoutAdmin implements Runnable, ITimeoutAdmin {
 		for (int i = scale + 10; i != 0; i >>= 1)
 			capacity <<= 1;
 
-		int lockNum = capacity < DEFAULT_LOCK_NUM ? capacity : DEFAULT_LOCK_NUM;
+		final int lockNum = capacity < DEFAULT_LOCK_NUM ? capacity
+				: DEFAULT_LOCK_NUM;
 
 		m_scale = scale;
 		m_capacityMask = capacity - 1;
@@ -120,12 +127,12 @@ public final class TimeoutAdmin implements Runnable, ITimeoutAdmin {
 		// one more as a tail node for conveniently iterating the timeout
 		// sublist
 		@SuppressWarnings("unchecked")
-		BiListNode<TimeoutEvent>[] wheel = (BiListNode<TimeoutEvent>[]) new BiListNode<?>[capacity + 1];
+		final BiListNode<TimeoutEvent>[] wheel = (BiListNode<TimeoutEvent>[]) new BiListNode<?>[capacity + 1];
 		for (int i = 0; i < capacity + 1; ++i)
 			// create sentinel nodes
 			wheel[i] = list.addLast(null);
 
-		ReentrantLock[] locks = new ReentrantLock[lockNum];
+		final ReentrantLock[] locks = new ReentrantLock[lockNum];
 		for (int i = 0; i < lockNum; ++i)
 			locks[i] = new ReentrantLock();
 
@@ -152,7 +159,7 @@ public final class TimeoutAdmin implements Runnable, ITimeoutAdmin {
 	}
 
 	void schedule(TimeoutNotifier notifier, int timeout) {
-		TimeoutEvent event = TimeoutEvent.get(notifier, timeout);
+		final TimeoutEvent event = TimeoutEvent.get(notifier, timeout);
 		int scale = m_scale;
 		if (timeout > scale) {
 			event.setTimeLeft(timeout - scale);
@@ -160,15 +167,15 @@ public final class TimeoutAdmin implements Runnable, ITimeoutAdmin {
 		} else
 			event.setTimeLeft(0);
 
-		int index = getEffectiveIndex(m_hand + timeout);
+		final int index = getEffectiveIndex(m_hand + timeout);
 		event.setIndex(index);
 		notifier.setNode(m_list.syncInsertAfter(m_wheel[index], event,
 				getLock(index)));
 	}
 
 	void reschedule(TimeoutNotifier notifier, int timeout) {
-		BiListNode<TimeoutEvent> node = notifier.getNode();
-		TimeoutEvent event = node.get();
+		final BiListNode<TimeoutEvent> node = notifier.getNode();
+		final TimeoutEvent event = node.get();
 		final ReentrantLock lock1 = getLock(event.getIndex());
 
 		// dest sublist
@@ -179,16 +186,16 @@ public final class TimeoutAdmin implements Runnable, ITimeoutAdmin {
 		} else
 			event.setTimeLeft(0);
 
-		int index = getEffectiveIndex(m_hand + timeout);
+		final int index = getEffectiveIndex(m_hand + timeout);
 		event.setIndex(index);
-		BiListNode<TimeoutEvent> destHead = m_wheel[index];
+		final BiListNode<TimeoutEvent> destHead = m_wheel[index];
 		final ReentrantLock lock2 = getLock(index);
 
 		m_list.syncMoveAfter(destHead, node, lock1, lock2);
 	}
 
 	void cancel(TimeoutNotifier notifier) {
-		BiListNode<TimeoutEvent> node = notifier.getNode();
+		final BiListNode<TimeoutEvent> node = notifier.getNode();
 		notifier.clearNode();
 		TimeoutEvent event = node.get();
 		final ReentrantLock lock = getLock(event.getIndex());
@@ -199,18 +206,18 @@ public final class TimeoutAdmin implements Runnable, ITimeoutAdmin {
 	}
 
 	void fireTimeout(TimeoutNotifier notifier) {
-		BiListNode<TimeoutEvent> node = notifier.getNode();
+		final BiListNode<TimeoutEvent> node = notifier.getNode();
 		notifier.clearNode();
 		final ReentrantLock lock = getLock(m_hand);
-		TimeoutEvent event = m_list.syncRemove(node, lock);
+		final TimeoutEvent event = m_list.syncRemove(node, lock);
 
 		m_workshop.run(event);
 	}
 
 	void scheduleNextRound(TimeoutNotifier notifier) {
-		BiListNode<TimeoutEvent> node = notifier.getNode();
-		TimeoutEvent event = node.get();
-		int scale = m_scale;
+		final BiListNode<TimeoutEvent> node = notifier.getNode();
+		final TimeoutEvent event = node.get();
+		final int scale = m_scale;
 		int n = event.getTimeLeft();
 		// need reschedule
 		if (n > scale) {
@@ -219,7 +226,7 @@ public final class TimeoutAdmin implements Runnable, ITimeoutAdmin {
 		} else
 			event.setTimeLeft(0);
 
-		int hand = m_hand;
+		final int hand = m_hand;
 		n = getEffectiveIndex(hand + n);
 		event.setIndex(n);
 
@@ -238,16 +245,16 @@ public final class TimeoutAdmin implements Runnable, ITimeoutAdmin {
 	}
 
 	private void tick() {
-		int hand = m_hand;
-		int nextHand = hand + 1;
-		BiListNode<TimeoutEvent>[] wheel = m_wheel;
-		BiListNode<TimeoutEvent> begin = wheel[hand];
-		BiListNode<TimeoutEvent> end = wheel[nextHand];
-		BiListNode<TimeoutEvent> node = null;
+		final int hand = m_hand;
+		final int nextHand = hand + 1;
+		final BiListNode<TimeoutEvent>[] wheel = m_wheel;
+		final BiListNode<TimeoutEvent> begin = wheel[hand];
+		final BiListNode<TimeoutEvent> end = wheel[nextHand];
+		BiListNode<TimeoutEvent> node;
 
 		while ((node = begin.next()) != end) {
-			TimeoutNotifier notifier = null;
-			TimeoutEvent event = node.get();
+			TimeoutNotifier notifier;
+			final TimeoutEvent event = node.get();
 
 			// If this node has been cancelled, just skip.
 			// Otherwise, go ahead.

@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
@@ -39,7 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Service(ITcpAcceptor.class)
-@Component(name = "jruyi.io.tcpserver.tcpacceptor", createPid = false)
+@Component(name = "jruyi.io.tcpserver.tcpacceptor", configurationPid = "jruyi.io.channeladmin", createPid = false)
 public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 
 	private static final Logger c_logger = LoggerFactory
@@ -63,13 +64,13 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 
 	@Override
 	public void run() {
-		SyncPutQueue<TcpServer> queue = m_queue;
-		Selector selector = m_selector;
-		Thread currentThread = Thread.currentThread();
-		TcpServer server = null;
-		try {
-			for (;;) {
-				int n = selector.select();
+		final SyncPutQueue<TcpServer> queue = m_queue;
+		final Selector selector = m_selector;
+		final Thread currentThread = Thread.currentThread();
+		TcpServer server;
+		for (;;) {
+			try {
+				final int n = selector.select();
 				if (currentThread.isInterrupted())
 					break;
 
@@ -92,10 +93,10 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 				if (n < 1)
 					continue;
 
-				Iterator<SelectionKey> iter = selector.selectedKeys()
+				final Iterator<SelectionKey> iter = selector.selectedKeys()
 						.iterator();
 				while (iter.hasNext()) {
-					SelectionKey key = iter.next();
+					final SelectionKey key = iter.next();
 					iter.remove();
 
 					if (!key.isValid())
@@ -103,11 +104,11 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 
 					try {
 						server = (TcpServer) key.attachment();
-						SocketChannel socketChannel = ((ServerSocketChannel) key
+						final SocketChannel socketChannel = ((ServerSocketChannel) key
 								.channel()).accept();
 
 						@SuppressWarnings("resource")
-						TcpChannel channel = new TcpChannel(server,
+						final TcpChannel channel = new TcpChannel(server,
 								socketChannel);
 						workshop.run(channel.onAccept());
 					} catch (ClosedChannelException e) {
@@ -116,14 +117,16 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 								StrUtil.join(server, " failed to accept"), t);
 					}
 				}
+			} catch (ClosedSelectorException e) {
+				break;
+			} catch (Throwable t) {
+				c_logger.error("Unexpected Error", t);
 			}
-		} catch (ClosedSelectorException e) {
-		} catch (Throwable t) {
-			c_logger.error("TcpAcceptor Error", t);
-
-			// disable itself
-			m_context.disableComponent(m_name);
 		}
+	}
+
+	@Modified
+	protected void modified() {
 	}
 
 	protected synchronized void bindWorkshop(IWorkshop workshop) {
@@ -131,7 +134,7 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 	}
 
 	protected synchronized void unbindWorkshop(IWorkshop workshop) {
-		if (m_workshop != workshop)
+		if (m_workshop == workshop)
 			m_workshop = null;
 	}
 
