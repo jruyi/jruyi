@@ -41,6 +41,7 @@ public final class Session implements Runnable {
 	private InputStream m_in;
 	private OutputStream m_out;
 	private ConsoleReader m_console;
+	private Writer m_writer;
 
 	public void open(String host, int port, int timeout) throws Exception {
 		close();
@@ -81,9 +82,8 @@ public final class Session implements Runnable {
 	}
 
 	public boolean recv(Writer writer) throws Exception {
-		int len = 0;
 		for (;;) {
-			len = readLength();
+			int len = readLength();
 			if (len < 0) {
 				closeOnEof(writer);
 				return false;
@@ -102,20 +102,24 @@ public final class Session implements Runnable {
 			decoder.reset();
 			int n = len <= bytes.length ? len : bytes.length;
 			int offset = 0;
+			Writer tempWriter = m_writer;
+			if (tempWriter == null)
+				tempWriter = writer;
 			while (len > 0) {
 				if ((n = in.read(bytes, offset, n)) < 0) {
-					closeOnEof(writer);
+					closeOnEof(tempWriter);
 					return false;
 				}
 
 				len -= n;
-				if (writer != null) {
+
+				if (tempWriter != null) {
 					bb.position(0);
 					bb.limit(offset + n);
 					cb.clear();
 					decoder.decode(bb, cb, len < 1);
-					writer.write(chars, 0, cb.position());
-					writer.flush();
+					tempWriter.write(chars, 0, cb.position());
+					tempWriter.flush();
 
 					bb.compact();
 					offset = bb.position();
@@ -127,12 +131,12 @@ public final class Session implements Runnable {
 					n = len;
 			}
 
-			if (writer != null) {
+			if (tempWriter != null) {
 				cb.clear();
 				decoder.flush(cb);
 				if ((n = cb.position()) > 0) {
-					writer.write(chars, 0, n);
-					writer.flush();
+					tempWriter.write(chars, 0, n);
+					tempWriter.flush();
 				}
 			}
 		}
@@ -215,6 +219,10 @@ public final class Session implements Runnable {
 		}
 	}
 
+	void writer(Writer writer) {
+		m_writer = writer;
+	}
+
 	public void console(ConsoleReader console) {
 		m_console = console;
 	}
@@ -225,7 +233,7 @@ public final class Session implements Runnable {
 
 	private int readStatus() throws Exception {
 		InputStream in = m_in;
-		int b = 0;
+		int b;
 		int n = 0;
 		for (int i = 0; i < 4; ++i) {
 			b = in.read();
@@ -240,7 +248,7 @@ public final class Session implements Runnable {
 
 	private int readLength() throws Exception {
 		InputStream in = m_in;
-		int b = 0;
+		int b;
 		int n = 0;
 		do {
 			b = in.read();

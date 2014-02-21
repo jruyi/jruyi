@@ -16,21 +16,24 @@ package org.jruyi.cli;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 
 import jline.console.ConsoleReader;
 import jline.console.completer.ArgumentCompleter;
 import jline.console.completer.FileNameCompleter;
-import jline.console.completer.StringsCompleter;
 
 public final class RuyiCli {
 
+	static final String JRUYI_PREFIX = "jruyi:";
+	static final String CMD_HELP = JRUYI_PREFIX + "help";
+	static final int WRITER_INIT_SIZE = 2 * 1024;
 	static final RuyiCli INST = new RuyiCli();
 	private static final int BUFFER_LEN = 1024 * 8;
-	private static final String JRUYI_PREFIX = "jruyi:";
 	private Session m_session;
 	private String m_host = "localhost";
 	private int m_port = 6060;
@@ -86,7 +89,7 @@ public final class RuyiCli {
 			session.open(m_host, m_port, m_timeout);
 
 			String welcome;
-			StringWriter sw = new StringWriter(512);
+			StringWriter sw = new StringWriter(WRITER_INIT_SIZE);
 			try {
 				session.recv(sw);
 				welcome = sw.toString();
@@ -108,7 +111,7 @@ public final class RuyiCli {
 
 			reader.setPrompt(prompt);
 
-			addCompleter(reader, commandStr);
+			addCompleter(reader, session, commandStr);
 
 			writer.write(welcome);
 
@@ -133,10 +136,25 @@ public final class RuyiCli {
 						|| cmdLine.equalsIgnoreCase("exit"))
 					break;
 
-				if (!session.send(cmdLine))
-					break;
+				if (cmdLine.equals("help"))
+					cmdLine = CMD_HELP;
 
-				session.await();
+				boolean help = CMD_HELP.equals(cmdLine);
+				if (help) {
+					writer = new StringWriter(WRITER_INIT_SIZE);
+					session.writer(writer);
+				}
+
+				try {
+					if (!session.send(cmdLine))
+						break;
+					session.await();
+				} finally {
+					session.writer(null);
+				}
+
+				if (help)
+					printColumns(reader, writer.toString().trim());
 			}
 		} finally {
 			if (thread != null) {
@@ -156,9 +174,23 @@ public final class RuyiCli {
 		try {
 			if (!session.recv(null))
 				return;
-			Writer writer = m_console.getOutput();
+
+			if (command.equals("help"))
+				command = CMD_HELP;
+			boolean help = CMD_HELP.equals(command);
+
+			final Writer writer;
+			if (help)
+				writer = new StringWriter(WRITER_INIT_SIZE);
+			else
+				writer = m_console.getOutput();
+
 			if (!session.send(command, writer))
 				return;
+
+			if (help)
+				printColumns(m_console, writer.toString().trim());
+
 			m_status = session.status();
 		} finally {
 			session.close();
@@ -235,22 +267,28 @@ public final class RuyiCli {
 		}
 	}
 
-	private static void addCompleter(ConsoleReader reader, String commandStr) {
-		String[] commands = commandStr.split("\n");
-		HashSet<String> cmdSet = new HashSet<String>();
-		int n = JRUYI_PREFIX.length();
-		for (String command : commands) {
-			if (command.startsWith(JRUYI_PREFIX))
-				cmdSet.add(command.substring(n));
-		}
-		cmdSet.add("quit");
-		cmdSet.add("exit");
-
-		reader.addCompleter(new StringsCompleter(commands));
+	private static void addCompleter(ConsoleReader reader, Session session,
+			String commandStr) {
+		final CommandCompleter commandCompleter = new CommandCompleter(session,
+				commandStr);
+		reader.addCompleter(commandCompleter);
 		ArgumentCompleter completer = new ArgumentCompleter(
-				new WhitespaceArgumentDelimiter(),
-				new StringsCompleter(cmdSet), new FileNameCompleter());
+				new WhitespaceArgumentDelimiter(), new FileNameCompleter());
 		completer.setStrict(false);
 		reader.addCompleter(completer);
+	}
+
+	private static void printColumns(ConsoleReader reader, String commandStr)
+			throws IOException {
+		final List<CharSequence> commandList = new ArrayList<CharSequence>(128);
+		final String[] commands = commandStr.trim().split("\n");
+		for (String command : commands) {
+			command = command.trim();
+			if (!command.isEmpty())
+				commandList.add(command);
+		}
+
+		reader.printColumns(commandList);
+		reader.flush();
 	}
 }
