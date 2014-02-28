@@ -20,7 +20,7 @@
 
 	<groupId>org.jruyi</groupId>
 	<artifactId>org.jruyi.io</artifactId>
-	<version>1.2.0</version>
+	<version>1.2.1-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 
 	<name>JRuyi IO</name>
@@ -94,7 +94,7 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.7.5</version>
+			<version>1.7.6</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -114,7 +114,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>org.jruyi.common</artifactId>
-			<version>1.0.0</version>
+			<version>1.2.0</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -145,7 +145,7 @@
 					<dependency>
 						<groupId>org.slf4j</groupId>
 						<artifactId>slf4j-simple</artifactId>
-						<version>1.7.5</version>
+						<version>1.7.6</version>
 					</dependency>
 				</dependencies>
 				<executions>

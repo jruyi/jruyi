@@ -99,14 +99,22 @@ public final class ChannelAdmin implements IChannelAdmin {
 
 		@Override
 		public void run() {
-			Thread currentThread = Thread.currentThread();
+			final Thread currentThread = Thread.currentThread();
 
 			c_logger.info("{} started", currentThread.getName());
 
-			Selector selector = m_selector;
+			final Selector selector = m_selector;
 			try {
 				for (;;) {
-					int n = selector.select();
+					final int n;
+					try {
+						n = selector.select();
+					} catch (IOException e) {
+						c_logger.warn(StrUtil.join(currentThread.getName(),
+								": selector error"), e);
+						continue;
+					}
+
 					if (currentThread.isInterrupted())
 						break;
 
@@ -119,8 +127,7 @@ public final class ChannelAdmin implements IChannelAdmin {
 						continue;
 
 					final IWorkshop workshop = m_workshop;
-
-					Iterator<SelectionKey> iter = selector.selectedKeys()
+					final Iterator<SelectionKey> iter = selector.selectedKeys()
 							.iterator();
 					while (iter.hasNext()) {
 						SelectionKey key = iter.next();
@@ -157,9 +164,6 @@ public final class ChannelAdmin implements IChannelAdmin {
 			} catch (ClosedSelectorException e) {
 				c_logger.error(StrUtil.join(currentThread.getName(),
 						": selector closed unexpectedly"), e);
-			} catch (IOException e) {
-				c_logger.error(StrUtil.join(currentThread.getName(),
-						": selector error"), e);
 			} catch (Throwable t) {
 				c_logger.error(StrUtil.join(currentThread.getName(),
 						": unexpected error"), t);
@@ -256,29 +260,29 @@ public final class ChannelAdmin implements IChannelAdmin {
 		return m_tm.createNotifier(channel);
 	}
 
-	protected synchronized void bindWorkshop(IWorkshop workshop) {
+	synchronized void bindWorkshop(IWorkshop workshop) {
 		m_workshop = workshop;
 	}
 
-	protected synchronized void unbindWorkshop(IWorkshop workshop) {
+	synchronized void unbindWorkshop(IWorkshop workshop) {
 		if (m_workshop == workshop)
 			m_workshop = null;
 	}
 
-	protected synchronized void bindTimeoutAdmin(ITimeoutAdmin tm) {
+	synchronized void bindTimeoutAdmin(ITimeoutAdmin tm) {
 		m_tm = tm;
 	}
 
-	protected synchronized void unbindTimeoutAdmin(ITimeoutAdmin tm) {
+	synchronized void unbindTimeoutAdmin(ITimeoutAdmin tm) {
 		if (m_tm == tm)
 			m_tm = null;
 	}
 
 	@Modified
-	protected void modified(Map<String, ?> properties) throws Exception {
+	void modified(Map<String, ?> properties) throws Exception {
 		final int count = numberOfSelectors(properties);
 		if (count < 1)
-			throw new Exception("num");
+			throw new Exception("Number of selectors must be positive.");
 
 		int curCount = m_count;
 		if (count == curCount)
@@ -310,7 +314,7 @@ public final class ChannelAdmin implements IChannelAdmin {
 		m_count = curCount;
 	}
 
-	protected void activate(Map<String, ?> properties) throws Exception {
+	void activate(Map<String, ?> properties) throws Exception {
 		c_logger.info("Activating ChannelAdmin...");
 
 		int count = numberOfSelectors(properties);
@@ -334,7 +338,7 @@ public final class ChannelAdmin implements IChannelAdmin {
 		c_logger.info("ChannelAdmin activated");
 	}
 
-	protected void deactivate() {
+	void deactivate() {
 		c_logger.info("Deactivating ChannelAdmin...");
 
 		final SelectorThread[] sts = m_sts;

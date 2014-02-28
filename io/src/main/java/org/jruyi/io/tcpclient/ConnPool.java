@@ -42,7 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Service(IService.class)
-@Component(name = IoConstants.CN_TCPCLIENT_CONNPOOL_FACTORY, factory = "tcpclient.connpool", createPid = false, specVersion = "1.1.0")
+@Component(name = IoConstants.CN_TCPCLIENT_CONNPOOL_FACTORY, factory = "tcpclient.connpool", createPid = false, specVersion = "1.2.0")
 @References({
 		@Reference(name = "channelAdmin", referenceInterface = IChannelAdmin.class),
 		@Reference(name = "filterManager", referenceInterface = IFilterManager.class),

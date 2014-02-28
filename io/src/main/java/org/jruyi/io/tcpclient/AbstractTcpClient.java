@@ -37,7 +37,6 @@ import org.jruyi.io.channel.IChannelService;
 import org.jruyi.io.filter.IFilterManager;
 import org.jruyi.io.tcp.TcpChannel;
 import org.jruyi.io.tcp.TcpChannelConf;
-import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -246,8 +245,7 @@ public abstract class AbstractTcpClient extends Service implements
 			m_bf = bf;
 	}
 
-	protected void activate(ComponentContext context, Map<String, ?> properties)
-			throws Exception {
+	protected void activate(Map<String, ?> properties) throws Exception {
 		String id = (String) properties.get(IoConstants.SERVICE_ID);
 
 		m_caption = StrUtil.join("TcpClient[", id, "]");
