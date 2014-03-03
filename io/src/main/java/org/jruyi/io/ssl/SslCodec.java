@@ -34,14 +34,14 @@ import org.jruyi.io.buffer.Util;
 final class SslCodec extends AbstractCodec<IBuffer> {
 
 	private final SSLEngine m_engine;
-	private final ArrayList<IUnit> m_units;
+	private final ArrayList<IUnit> m_writeUnits;
 	private IBuffer m_inception;
 	private SSLEngineResult m_unwrapResult;
 	private SSLEngineResult m_wrapResult;
 
 	SslCodec(SSLEngine engine) {
 		m_engine = engine;
-		m_units = new ArrayList<IUnit>();
+		m_writeUnits = new ArrayList<IUnit>();
 	}
 
 	/**
@@ -85,18 +85,18 @@ final class SslCodec extends AbstractCodec<IBuffer> {
 			netData = builder.getByteBuffer(0, length);
 		}
 
-		SSLEngineResult result = null;
-		ByteBufferArray bba = ByteBufferArray.get();
-		final ArrayList<IUnit> units = m_units;
+		SSLEngineResult result;
+		final ByteBufferArray bba = ByteBufferArray.get();
+		final ArrayList<IUnit> units = m_writeUnits;
 		try {
-			int pos = netData.position();
+			final int pos = netData.position();
 			IUnit unit = Util.lastUnit(appBuf);
 			units.add(unit);
 			bba.add(unit.getByteBufferForWrite());
 			final SSLEngine engine = m_engine;
 			for (;;) {
 				result = engine.unwrap(netData, bba.array(), 0, bba.size());
-				Status status = result.getStatus();
+				final Status status = result.getStatus();
 				if (status != Status.BUFFER_OVERFLOW)
 					break;
 
@@ -107,7 +107,7 @@ final class SslCodec extends AbstractCodec<IBuffer> {
 
 			src.skip(netData.position() - pos);
 			final ByteBuffer[] array = bba.array();
-			int n = bba.size();
+			final int n = bba.size();
 			for (int i = 0; i < n; ++i) {
 				unit = units.get(i);
 				unit.size(array[i].position() - unit.start());
@@ -141,7 +141,7 @@ final class SslCodec extends AbstractCodec<IBuffer> {
 	 */
 	@Override
 	public int read(IBuffer dst, IUnitChain appBuf) {
-		ByteBufferArray bba = ByteBufferArray.get();
+		final ByteBufferArray bba = ByteBufferArray.get();
 		IUnit unit = appBuf.currentUnit();
 		do {
 			bba.add(unit.getByteBufferForRead());
@@ -152,7 +152,7 @@ final class SslCodec extends AbstractCodec<IBuffer> {
 		boolean usedBuilder;
 		BytesBuilder builder;
 		ByteBuffer netBuf;
-		Buffer dstBuf;
+		final Buffer dstBuf;
 		final SSLSession session = engine.getSession();
 		if (dst instanceof Buffer) {
 			dstBuf = (Buffer) dst;
@@ -169,12 +169,13 @@ final class SslCodec extends AbstractCodec<IBuffer> {
 
 		SSLEngineResult result;
 		try {
-			ByteBuffer[] appData = bba.array();
+			final ByteBuffer[] appData = bba.array();
 			int size = bba.size();
+			int i = 0;
 			wrap: for (;;) {
 				for (;;) {
-					result = engine.wrap(appData, 0, size, netBuf);
-					Status status = result.getStatus();
+					result = engine.wrap(appData, i, size, netBuf);
+					final Status status = result.getStatus();
 					if (status != Status.BUFFER_OVERFLOW)
 						break;
 
@@ -192,10 +193,10 @@ final class SslCodec extends AbstractCodec<IBuffer> {
 					dst.write(builder, Codec.byteSequence());
 				} else
 					unit.size(netBuf.position() - unit.start());
-				for (int i = 0; i < size; ++i) {
+
+				for (; i < size; ++i) {
 					if (appData[i].hasRemaining()) {
 						size -= i;
-						System.arraycopy(appData, i, appData, 0, size);
 						if (dstBuf != null) {
 							unit = Util.lastUnit(dstBuf);
 							netBuf = unit.getByteBufferForWrite();

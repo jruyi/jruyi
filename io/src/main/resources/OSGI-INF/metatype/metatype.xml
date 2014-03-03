@@ -150,8 +150,35 @@
 		<AD id="sslcp.target" name="Filter for selecting SslContextParameters" type="String" required="false"/>
 	</OCD>
 
-	<OCD id="sslFileKeyStore" name="SSL FileKeyStore">
+	<OCD id="sslFileKeyStore" name="SSL File KeyStore">
 		<AD id="jruyi.io.sslcp.id" name="SslContextParameters ID" type="String"/>
+		<AD id="keyStoreType" name="KeyStore Type" type="String" required="false"/>
+		<AD id="keyStoreProvider" name="KeyStore Provider" type="String" required="false"/>
+		<AD id="keyStoreUrl" name="KeyStore URL" type="String" required="false"/>
+		<AD id="keyStorePassword" name="KeyStore Password" type="Password" required="false"/>
+		<AD id="keyPassword" name="Key Password" type="Password" required="false"/>
+		<AD id="keyManagerFactoryAlgorithm" name="KeyManagerFactory Algorithm" type="String" required="false"/>
+		<AD id="keyManagerFactoryProvider" name="KeyManagerFactoryProvider" type="String" required="false"/>
+		<AD id="certValidation" name="Certificate Validation" type="Boolean" default="false"/>
+		<AD id="trustStoreType" name="TrustStore Type" type="String" required="false"/>
+		<AD id="trustStoreProvider" name="TrustStore Provider" type="String" required="false"/>
+		<AD id="trustStoreUrl" name="TrustStore URL" type="String" required="false"/>
+		<AD id="trustStorePassword" name="TrustStore Password" type="Password" required="false"/>
+		<AD id="trustManagerFactoryAlgorithm" name="TrustManagerFactory Algorithm" type="String" required="false"/>
+		<AD id="trustManagerFactoryProvider" name="TrustManagerFactoryProvider" type="String" required="false"/>
+		<AD id="secureRandomAlgorithm" name="SecureRandom Algorithm" type="String" required="false"/>
+		<AD id="secureRandomProvider" name="SecureRandom Provider" type="String" required="false"/>
+	</OCD>
+
+	<OCD id="fksSslFilter" name = "File KeyStore SSL Filter">
+		<AD id="jruyi.io.filter.id" name="Filter ID" type="String"/>
+		<AD id="protocol" name="Protocol" type="String" default="TLS"/>
+		<AD id="provider" name="Provider" type="String" required="false"/>
+		<AD id="needClientAuth" name="Need Client Auth" type="Boolean" default="false"/>
+		<AD id="wantClientAuth" name="Want Client Auth" type="Boolean" default="false"/>
+		<AD id="enabledProtocols" name="Enabled Protocols" type="String" cardinality="65535" required="false"/>
+		<AD id="enabledCipherSuites" name="Enabled Cipher Suites" type="String" cardinality="65535" required="false"/>
+		<AD id="enableSessionCreation" name="Enable Session Creation" type="Boolean" default="true"/>
 		<AD id="keyStoreType" name="KeyStore Type" type="String" required="false"/>
 		<AD id="keyStoreProvider" name="KeyStore Provider" type="String" required="false"/>
 		<AD id="keyStoreUrl" name="KeyStore URL" type="String" required="false"/>
@@ -208,6 +235,10 @@
 
 	<Designate factoryPid="jruyi.io.ssl.filekeystore">
 		<Object ocdref="sslFileKeyStore"/>
+	</Designate>
+
+	<Designate factoryPid="jruyi.io.ssl.fks.filter">
+		<Object ocdref="fksSslFilter"/>
 	</Designate>
 
 </metatype:MetaData>

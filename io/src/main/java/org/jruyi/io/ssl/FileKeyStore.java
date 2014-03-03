@@ -21,51 +21,27 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.security.KeyStore;
 import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
 import java.util.Map;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Service;
 import org.jruyi.io.ISslContextParameters;
-import org.osgi.service.component.ComponentContext;
 
 @Service
 @Component(name = "jruyi.io.ssl.filekeystore", createPid = false)
 public final class FileKeyStore implements ISslContextParameters {
 
 	private static final char[] EMPTY_CHARARRAY = new char[0];
-	private static final TrustManager[] TRUST_ALL_CERTS;
 	private Configuration m_conf;
 	private KeyManager[] m_keyManagers;
 	private TrustManager[] m_trustManagers;
 	private SecureRandom m_secureRandom;
-
-	static {
-		TRUST_ALL_CERTS = new TrustManager[] { new X509TrustManager() {
-
-			@Override
-			public X509Certificate[] getAcceptedIssuers() {
-				return null;
-			}
-
-			@Override
-			public void checkClientTrusted(X509Certificate[] certs,
-					String authType) {
-			}
-
-			@Override
-			public void checkServerTrusted(X509Certificate[] certs,
-					String authType) {
-			}
-		} };
-	}
 
 	static final class Configuration {
 
@@ -361,9 +337,9 @@ public final class FileKeyStore implements ISslContextParameters {
 
 	@Modified
 	protected void modified(Map<String, ?> properties) throws Exception {
-		Configuration newConf = new Configuration();
+		final Configuration newConf = new Configuration();
 		newConf.initialize(properties);
-		Configuration conf = m_conf;
+		final Configuration conf = m_conf;
 		KeyManager[] keyManagers = newConf.isChanged(conf,
 				Configuration.c_keyProps) ? getKeyManagers(newConf)
 				: m_keyManagers;
@@ -381,9 +357,8 @@ public final class FileKeyStore implements ISslContextParameters {
 		m_conf = newConf;
 	}
 
-	protected void activate(ComponentContext context, Map<String, ?> properties)
-			throws Exception {
-		Configuration conf = new Configuration();
+	protected void activate(Map<String, ?> properties) throws Exception {
+		final Configuration conf = new Configuration();
 		conf.initialize(properties);
 
 		KeyManager[] keyManagers = getKeyManagers(conf);
@@ -440,9 +415,9 @@ public final class FileKeyStore implements ISslContextParameters {
 	private TrustManager[] getTrustManagers(Configuration conf)
 			throws Exception {
 		if (!conf.certValidation())
-			return TRUST_ALL_CERTS;
+			return TrustAll.TRUST_ALL;
 
-		String trustStoreUrl = conf.trustStoreUrl();
+		final String trustStoreUrl = conf.trustStoreUrl();
 		if (trustStoreUrl == null || trustStoreUrl.length() < 1)
 			return null;
 

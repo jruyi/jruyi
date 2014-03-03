@@ -732,7 +732,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		if (size == 0)
 			return newBuffer();
 
-		Buffer slice = getForSlice(m_factory);
+		final Buffer slice = getForSlice(m_factory);
 		final BiListNode<IUnit> head = m_head;
 		slice.m_head = head;
 
@@ -761,31 +761,21 @@ public final class Buffer implements IBuffer, IUnitChain {
 		if (node == positionNode)
 			adjustPosNode = true;
 
-		if (size > 0) {
-			BiListNode<IUnit> temp = BiListNode.create();
-			temp.set(cut(size, unit));
-			m_head = temp;
-			BiListNode<IUnit> next = node.next();
-			if (next == head) {
-				temp.next(temp);
-				temp.previous(temp);
-			} else {
-				BiListNode<IUnit> tail = head.previous();
-				temp.next(next);
-				temp.previous(tail);
-				next.previous(temp);
-				tail.next(temp);
-				head.previous(node);
-				node.next(head);
-			}
+		final BiListNode<IUnit> temp = BiListNode.create();
+		temp.set(cut(size, unit));
+		m_head = temp;
+		final BiListNode<IUnit> next = node.next();
+		if (next == head) {
+			temp.next(temp);
+			temp.previous(temp);
 		} else {
-			m_head = node;
-			BiListNode<IUnit> prev = node.previous();
 			BiListNode<IUnit> tail = head.previous();
-			head.previous(prev);
-			prev.next(head);
-			node.previous(tail);
-			tail.next(node);
+			temp.next(next);
+			temp.previous(tail);
+			next.previous(temp);
+			tail.next(temp);
+			head.previous(node);
+			node.next(head);
 		}
 
 		if (adjustMarkNode) {
@@ -1922,7 +1912,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		unit.position(++position);
 		return i;
 	}
-	
+
 	/**
 	 * {@code fromIndex} must be less than m_size and non-negative.
 	 */
