@@ -20,7 +20,7 @@
 
 	<groupId>org.jruyi</groupId>
 	<artifactId>jruyi</artifactId>
-	<version>1.2.1-SNAPSHOT</version>
+	<version>1.2.1</version>
 
 	<name>JRuyi</name>
 	<description>A framework for easily developing efficient and scalable network applications</description>
@@ -85,7 +85,7 @@
 		<org.jruyi.clid.version>1.1.1</org.jruyi.clid.version>
 		<org.jruyi.cmd.version>1.1.2</org.jruyi.cmd.version>
 		<org.jruyi.common.version>1.2.0</org.jruyi.common.version>
-		<org.jruyi.io.version>1.2.1-SNAPSHOT</org.jruyi.io.version>
+		<org.jruyi.io.version>1.2.1</org.jruyi.io.version>
 		<org.jruyi.me.version>1.1.1</org.jruyi.me.version>
 		<org.jruyi.osgi.log.version>1.0.1</org.jruyi.osgi.log.version>
 		<org.jruyi.timeoutadmin.version>1.1.1</org.jruyi.timeoutadmin.version>

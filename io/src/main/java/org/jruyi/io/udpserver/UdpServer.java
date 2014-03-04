@@ -44,7 +44,6 @@ import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.channel.IChannelService;
 import org.jruyi.io.filter.IFilterManager;
-import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -381,8 +380,7 @@ public final class UdpServer extends Service implements IChannelService,
 			m_bf = null;
 	}
 
-	protected void activate(ComponentContext context, Map<String, ?> properties)
-			throws Exception {
+	protected void activate(Map<String, ?> properties) throws Exception {
 		String id = (String) properties.get(IoConstants.SERVICE_ID);
 		m_caption = StrUtil.join("UdpServer[", id, "]");
 		Configuration conf = new Configuration();

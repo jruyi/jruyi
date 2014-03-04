@@ -34,22 +34,18 @@ import org.jruyi.io.common.SyncPutQueue;
 import org.jruyi.io.tcp.TcpChannel;
 import org.jruyi.workshop.IWorkshop;
 import org.jruyi.workshop.WorkshopConstants;
-import org.osgi.service.component.ComponentConstants;
-import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Service(ITcpAcceptor.class)
-@Component(name = "jruyi.io.tcpserver.tcpacceptor", configurationPid = "jruyi.io.channeladmin", createPid = false)
+@Component(name = "jruyi.io.tcpserver.tcpacceptor", configurationPid = "jruyi.io.channeladmin", specVersion = "1.1.0", createPid = false)
 public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 
 	private static final Logger c_logger = LoggerFactory
 			.getLogger(TcpAcceptor.class);
-	private String m_name;
 	private Selector m_selector;
 	private Thread m_thread;
 	private SyncPutQueue<TcpServer> m_queue;
-	private ComponentContext m_context;
 
 	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
 	private volatile IWorkshop m_workshop;
@@ -138,12 +134,8 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 			m_workshop = null;
 	}
 
-	protected void activate(ComponentContext context, Map<String, ?> properties)
-			throws Exception {
+	protected void activate(Map<String, ?> properties) throws Exception {
 		c_logger.info("Starting TcpAcceptor...");
-
-		m_name = (String) properties.get(ComponentConstants.COMPONENT_NAME);
-		m_context = context;
 
 		m_selector = Selector.open();
 		m_queue = new SyncPutQueue<TcpServer>();
@@ -171,9 +163,6 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 			c_logger.error("Failed to close the selector", t);
 		}
 		m_selector = null;
-
-		m_context = null;
-		m_name = null;
 
 		c_logger.info("TcpAcceptor stopped");
 	}
