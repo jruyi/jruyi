@@ -53,8 +53,10 @@ public final class VarintShortCodec implements IShortCodec {
 		int n;
 		while ((n = i >>> shift) == 0) {
 			shift -= 7;
-			if (shift == 0)
+			if (shift == 0) {
+				n = i;
 				break;
+			}
 		}
 		unit.set(--start, (byte) n);
 

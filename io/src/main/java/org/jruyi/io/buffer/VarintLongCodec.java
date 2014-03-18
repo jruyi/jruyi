@@ -149,8 +149,10 @@ public final class VarintLongCodec implements ILongCodec {
 		long n;
 		while ((n = l >>> shift) == 0) {
 			shift -= 7;
-			if (shift == 0)
+			if (shift == 0) {
+				n = l;
 				break;
+			}
 		}
 		unit.set(--start, (byte) n);
 

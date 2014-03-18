@@ -20,7 +20,7 @@
 
 	<groupId>org.jruyi</groupId>
 	<artifactId>jruyi</artifactId>
-	<version>1.2.1</version>
+	<version>1.2.2-SNAPSHOT</version>
 
 	<name>JRuyi</name>
 	<description>A framework for easily developing efficient and scalable network applications</description>
