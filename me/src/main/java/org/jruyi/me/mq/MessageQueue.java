@@ -285,6 +285,7 @@ public final class MessageQueue implements ITimeoutListener {
 		c_logger.info("MessageQueue activated");
 	}
 
+	@SuppressWarnings("resource")
 	protected void deactivate() {
 		Collection<BiListNode<MsgNotifier>> nodes = m_nodes.values();
 		for (BiListNode<MsgNotifier> head : nodes) {

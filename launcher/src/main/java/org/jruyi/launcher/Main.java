@@ -98,8 +98,14 @@ public final class Main {
 		ArrayList<String> pkgList = new ArrayList<String>();
 		File[] jars = getLibJars();
 		for (File jar : jars) {
-			String exportPackages = new JarFile(jar).getManifest()
-					.getMainAttributes().getValue("Export-Package");
+			final String exportPackages;
+			final JarFile jf = new JarFile(jar);
+			try {
+				exportPackages = jf.getManifest().getMainAttributes()
+						.getValue("Export-Package");
+			} finally {
+				jf.close();
+			}
 			if (exportPackages != null)
 				pkgList.add(exportPackages);
 			addUrl.invoke(classLoader, jar.getCanonicalFile().toURI().toURL());
