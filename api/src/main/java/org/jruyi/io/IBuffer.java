@@ -186,6 +186,8 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable,
 	 * 
 	 * @param bytes
 	 *            the target byte array
+	 * @param fromIndex
+	 *            the index to start the search from
 	 * @return the index of the first occurrence of the given {@code bytes}
 	 *         after {@code fromIndex}(inclusive) in this byte sequence,
 	 *         {@code -1} if the target byte array does not occur
@@ -686,6 +688,8 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable,
 	 * specified {@code index} from the underlying buffer into an object of type
 	 * {@code T} and returns the resultant object.
 	 * 
+	 * @param <T>
+	 *            the type of the result to decode to
 	 * @param index
 	 *            the index of the first byte to be decoded
 	 * @param codec
@@ -702,8 +706,12 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable,
 	 * underlying buffer into an object of type {@code T} and returns the
 	 * resultant object.
 	 * 
+	 * @param <T>
+	 *            the type of the result to decode to
 	 * @param index
 	 *            the index of the first byte to be decoded
+	 * @param length
+	 *            the number of bytes to be decoded
 	 * @param codec
 	 *            the codec to decode
 	 * @return the resultant object of type {@code T}
@@ -717,6 +725,8 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable,
 	 * specified {@code index} from the underlying buffer into the specified
 	 * {@code dst}.
 	 * 
+	 * @param <T>
+	 *            the type of result to decode to
 	 * @param index
 	 *            the index of the first byte to be decoded
 	 * @param dst
@@ -734,8 +744,14 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable,
 	 * {@code dst} starting at the specified {@code offset} and ending at
 	 * {@code (offset + length)}.
 	 * 
+	 * @param <T>
+	 *            the type of the result to decode to
 	 * @param index
 	 *            the index of the first byte to be decoded
+	 * @param offset
+	 *            the start index of the destination
+	 * @param length
+	 *            the capacity of the destination
 	 * @param dst
 	 *            the object to hold the decoded result
 	 * @param codec
@@ -846,6 +862,8 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable,
 	 * <i>position</i> from the underlying buffer into an object of type
 	 * {@code T} and returns the resultant object.
 	 * 
+	 * @param <T>
+	 *            the type of the result to decode to
 	 * @param codec
 	 *            the codec to decode
 	 * @return the resultant object of type {@code T}
@@ -861,6 +879,10 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable,
 	 * underlying buffer into an object of type {@code T} and returns the
 	 * resultant object.
 	 * 
+	 * @param <T>
+	 *            the type of the result to decode to
+	 * @param length
+	 *            the number bytes to be decoded
 	 * @param codec
 	 *            the codec to decode
 	 * @return the resultant object of type {@code T}
@@ -877,6 +899,8 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable,
 	 * <i>position</i>, from the underlying buffer into the specified
 	 * {@code dst} and returns the actual number of bytes decoded.
 	 * 
+	 * @param <T>
+	 *            the type of the result to decode to
 	 * @param dst
 	 *            the object to hold the decoded result
 	 * @param codec
@@ -892,6 +916,8 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable,
 	 * {@code (offset + length)}(exclusive) and returns the actual number of
 	 * bytes decoded.
 	 * 
+	 * @param <T>
+	 *            the type of the result to decode to
 	 * @param dst
 	 *            the object to hold the decoded result
 	 * @param offset
@@ -1028,6 +1054,8 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable,
 	 * encoded from the specified {@code src} of type {@code T} with the
 	 * specified {@code codec}.
 	 * 
+	 * @param <T>
+	 *            the type of the target to be encoded
 	 * @param index
 	 *            the index of the the first byte to be set
 	 * @param src
@@ -1046,6 +1074,8 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable,
 	 * specified {@code offset}, ending at {@code (offset + length)} with the
 	 * specified {@code codec}.
 	 * 
+	 * @param <T>
+	 *            the type of the target to be encoded
 	 * @param index
 	 *            the index of the first byte to be set
 	 * @param src
@@ -1074,103 +1104,107 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable,
 	public IBuffer write(byte b);
 
 	/**
-	 * Writes the bytes, decoded from the specified char value {@code c} with
+	 * Writes the bytes, encoded from the specified char value {@code c} with
 	 * the specified {@code codec}, to the end of this buffer.
 	 * 
 	 * @param c
-	 *            the char value to be decoded
+	 *            the char value to be encoded
 	 * @param codec
-	 *            the codec to decode
+	 *            the codec to encode
 	 * @return this buffer
 	 */
 	public IBuffer write(char c, ICharCodec codec);
 
 	/**
-	 * Writes the bytes, decoded from the specified short value {@code s} with
+	 * Writes the bytes, encoded from the specified short value {@code s} with
 	 * the specified {@code codec}, to the end of this buffer.
 	 * 
 	 * @param s
-	 *            the short value to be decoded
+	 *            the short value to be encoded
 	 * @param codec
-	 *            the codec to decode
+	 *            the codec to encode
 	 * @return this buffer
 	 */
 	public IBuffer write(short s, IShortCodec codec);
 
 	/**
-	 * Writes the bytes, decoded from the specified int value {@code i} with the
+	 * Writes the bytes, encoded from the specified int value {@code i} with the
 	 * specified {@code codec}, to the end of this buffer.
 	 * 
 	 * @param i
-	 *            the int value to be decoded
+	 *            the int value to be encoded
 	 * @param codec
-	 *            the codec to decode
+	 *            the codec to encode
 	 * @return this buffer
 	 */
 	public IBuffer write(int i, IIntCodec codec);
 
 	/**
-	 * Writes the bytes, decoded from the specified long value {@code l} with
+	 * Writes the bytes, encoded from the specified long value {@code l} with
 	 * the specified {@code codec}, to the end of this buffer.
 	 * 
 	 * @param l
-	 *            the long value to be decoded
+	 *            the long value to be encoded
 	 * @param codec
-	 *            the codec to decode
+	 *            the codec to encode
 	 * @return this buffer
 	 */
 	public IBuffer write(long l, ILongCodec codec);
 
 	/**
-	 * Writes the bytes, decoded from the specified float value {@code f} with
+	 * Writes the bytes, encoded from the specified float value {@code f} with
 	 * the specified {@code codec}, to the end of this buffer.
 	 * 
 	 * @param f
-	 *            the float value to be decoded
+	 *            the float value to be encoded
 	 * @param codec
-	 *            the codec to decode
+	 *            the codec to encode
 	 * @return this buffer
 	 */
 	public IBuffer write(float f, IFloatCodec codec);
 
 	/**
-	 * Writes the bytes, decoded from the specified double value {@code d} with
+	 * Writes the bytes, encoded from the specified double value {@code d} with
 	 * the specified {@code codec}, to the end of this buffer.
 	 * 
 	 * @param d
-	 *            the double value to be decoded
+	 *            the double value to be encoded
 	 * @param codec
-	 *            the codec to decode
+	 *            the codec to encoded
 	 * @return this buffer
 	 */
 	public IBuffer write(double d, IDoubleCodec codec);
 
 	/**
-	 * Writes the bytes, decoded from the specified object {@code src} with the
+	 * Writes the bytes, encoded from the specified object {@code src} with the
 	 * specified {@code codec}, to the end of this buffer.
 	 * 
+	 * @param <T>
+	 *            the type of the target to be encoded
 	 * @param src
-	 *            the object to be decoded
+	 *            the object to be encoded
 	 * @param codec
-	 *            the codec to decode
+	 *            the codec to encode
 	 * @return this buffer
 	 */
 	public <T> IBuffer write(T src, ICodec<T> codec);
 
 	/**
-	 * Writes the bytes, decoded from the specified collection {@code src}
+	 * Writes the bytes, encoded from the specified collection {@code src}
 	 * starting at the specified {@code offset} ending at the specified
 	 * {@code (offset + length)} with the specified {@code codec}, to the end of
 	 * this buffer.
 	 * 
+	 * @param <T>
+	 *            the type of the target to be encoded
 	 * @param src
-	 *            the collection to be decoded
+	 *            the collection to be encoded
 	 * @param offset
-	 *            the offset of the first element to be decoded
+	 *            the offset of the first element to be encoded
 	 * @param length
-	 *            the number of elements to be decoded
+	 *            the number of elements to be encoded
 	 * @param codec
-	 *            the codec to decode
+	 *            the codec to encode
 	 * @return this buffer
 	 */
 	public <T> IBuffer write(T src, int offset, int length, ICodec<T> codec);
@@ -1263,6 +1297,8 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable,
 	 * Writes the bytes, encoded from the specified object {@code src} with the
 	 * specified {@code codec}, to the head of this buffer.
 	 * 
+	 * @param <T>
+	 *            the type of the target to be encoded
 	 * @param src
 	 *            the object to be encoded
 	 * @param codec
@@ -1276,6 +1312,8 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable,
 	 * the specified {@code codec} starting at {@code offset} ending at
 	 * {@code (offset + length)}, to the head of this buffer.
 	 * 
+	 * @param <T>
+	 *            the type of the target to be encoded
 	 * @param src
 	 *            the collection to be encoded
 	 * @param offset

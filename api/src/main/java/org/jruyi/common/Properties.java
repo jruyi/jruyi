@@ -110,6 +110,7 @@ public final class Properties extends Dictionary<String, Object> implements
 	 * mappings in the specified {@code map}.
 	 * 
 	 * @param map
+	 *            the map whose mappings are to be placed in this properties
 	 */
 	public Properties(Map<? extends String, ?> map) {
 		m_map = new HashMap<String, Object>(map);

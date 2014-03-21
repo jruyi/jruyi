@@ -24,9 +24,9 @@ import java.util.Map;
  * State transition is as follows:
  * 
  * <pre>
- * {Stopped|Inactive}-(start)-Starting-{(success)->Active|(fail)->Inactive}
- * Active-(stop)-Stopping->Stopped
- * Inactive-(stop)->Stopped
+ * {Stopped|Inactive}-(start)-Starting-{(success)-&gt;Active|(fail)-&gt;Inactive}
+ * Active-(stop)-Stopping-&gt;Stopped
+ * Inactive-(stop)-&gt;Stopped
  * </pre>
  */
 public interface IService {

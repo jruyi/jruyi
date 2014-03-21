@@ -123,7 +123,7 @@ public final class StrUtil {
 
 	/**
 	 * Returns a copy of the given string {@code target}, with the system
-	 * properties substituted using syntax <i>${<property name>}</i>. The
+	 * properties substituted using syntax <i>${&lt;property name&gt;}</i>. The
 	 * property substitution can be nested.
 	 * 
 	 * <p>
@@ -142,8 +142,9 @@ public final class StrUtil {
 	/**
 	 * Returns a copy of the given string {@code target}, with the given
 	 * {@code properties} and system properties substituted using syntax
-	 * <i>${<property name>}</i>. The property substitution can be nested. The
-	 * given {@code properties} have higher precedence than system properties.
+	 * <i>${&lt;property name&gt;}</i>. The property substitution can be nested.
+	 * The given {@code properties} have higher precedence than system
+	 * properties.
 	 * 
 	 * <p>
 	 * This string itself will be returned, if it has no properties to be
@@ -164,8 +165,9 @@ public final class StrUtil {
 	/**
 	 * Returns a copy of the given string {@code target}, with the OSGi
 	 * framework properties and system properties substituted using syntax
-	 * <i>${<property name>}</i>. The property substitution can be nested. The
-	 * OSGi framework properties have higher precedence than system properties.
+	 * <i>${&lt;property name&gt;}</i>. The property substitution can be nested.
+	 * The OSGi framework properties have higher precedence than system
+	 * properties.
 	 * 
 	 * <p>
 	 * This string itself will be returned, if it has no properties to be
@@ -185,7 +187,7 @@ public final class StrUtil {
 	/**
 	 * Returns a copy of the given string {@code target}, with the given
 	 * {@code properties}, OSGi framework properties and system properties
-	 * substituted using syntax <i>${<property name>}</i>. The property
+	 * substituted using syntax <i>${&lt;property name&gt;}</i>. The property
 	 * substitution can be nested. The precedence of properties to be taken for
 	 * substitution from highest to lowest is the given {@code properties}, OSGi
 	 * framework properties and system properties.

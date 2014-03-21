@@ -20,7 +20,7 @@
 
 	<groupId>org.jruyi</groupId>
 	<artifactId>jruyi-api</artifactId>
-	<version>1.2.0</version>
+	<version>1.2.1-SNAPSHOT</version>
 
 	<name>JRuyi API</name>
 	<description>JRuyi API</description>
@@ -110,6 +110,27 @@
 					<doctitle>${project.name} ${project.version}</doctitle>
 					<windowtitle>${project.name} ${project.version}</windowtitle>
 				</configuration>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.2.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>

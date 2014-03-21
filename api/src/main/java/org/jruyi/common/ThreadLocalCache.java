@@ -35,6 +35,8 @@ public final class ThreadLocalCache {
 		 * Creates a thread local cache which is softly referenced and backed by
 		 * an array with 6 as the initial capacity.
 		 * 
+		 * @param <E>
+		 *            the type of the object to be cached
 		 * @return a thread local cache
 		 */
 		public <E> IThreadLocalCache<E> softArrayCache();
@@ -43,6 +45,8 @@ public final class ThreadLocalCache {
 		 * Creates a thread local cache which is softly referenced and backed by
 		 * an array with the specified initial capacity.
 		 * 
+		 * @param <E>
+		 *            the type of the object to be cached
 		 * @param initialCapacity
 		 *            the initial capacity of the backing array
 		 * @return a thread local cache
@@ -53,6 +57,8 @@ public final class ThreadLocalCache {
 		 * Creates a thread local cache which is softly reference and backed by
 		 * a linked list.
 		 * 
+		 * @param <E>
+		 *            the type of the object to be cached
 		 * @return a thread local cache
 		 */
 		public <E> IThreadLocalCache<E> softLinkedCache();
@@ -61,6 +67,8 @@ public final class ThreadLocalCache {
 		 * Creates a thread local cache which is weakly referenced and backed by
 		 * an array with 6 as the initial capacity.
 		 * 
+		 * @param <E>
+		 *            the type of the object to be cached
 		 * @return a thread local cache
 		 */
 		public <E> IThreadLocalCache<E> weakArrayCache();
@@ -69,6 +77,8 @@ public final class ThreadLocalCache {
 		 * Creates a thread local cache which is weakly referenced and backed by
 		 * an array with the specified initial capacity.
 		 * 
+		 * @param <E>
+		 *            the type of the object to be cached
 		 * @param initialCapacity
 		 *            the initial capacity of the backing array
 		 * @return a thread local cache
@@ -79,6 +89,8 @@ public final class ThreadLocalCache {
 		 * Creates a thread local cache which is weakly referenced and backed by
 		 * a linked list.
 		 * 
+		 * @param <E>
+		 *            the type of the object to be cached
 		 * @return a thread local cache
 		 */
 		public <E> IThreadLocalCache<E> weakLinkedCache();
@@ -91,6 +103,8 @@ public final class ThreadLocalCache {
 	 * Creates a thread local cache which is softly referenced and backed by an
 	 * array with 6 as the initial capacity.
 	 * 
+	 * @param <E>
+	 *            the type of the object to be cached
 	 * @return a thread local cache
 	 */
 	public static <E> IThreadLocalCache<E> softArrayCache() {
@@ -101,6 +115,8 @@ public final class ThreadLocalCache {
 	 * Creates a thread local cache which is softly referenced and backed by an
 	 * array with the specified initial capacity.
 	 * 
+	 * @param <E>
+	 *            the type of the object to be cached
 	 * @param initialCapacity
 	 *            the initial capacity of the backing array
 	 * @return a thread local cache
@@ -113,6 +129,8 @@ public final class ThreadLocalCache {
 	 * Creates a thread local cache which is softly reference and backed by a
 	 * linked list.
 	 * 
+	 * @param <E>
+	 *            the type of the object to be cached
 	 * @return a thread local cache
 	 */
 	public static <E> IThreadLocalCache<E> softLinkedCache() {
@@ -123,6 +141,8 @@ public final class ThreadLocalCache {
 	 * Creates a thread local cache which is weakly referenced and backed by an
 	 * array with 6 as the initial capacity.
 	 * 
+	 * @param <E>
+	 *            the type of the object to be cached
 	 * @return a thread local cache
 	 */
 	public static <E> IThreadLocalCache<E> weakArrayCache() {
@@ -133,6 +153,8 @@ public final class ThreadLocalCache {
 	 * Creates a thread local cache which is weakly referenced and backed by an
 	 * array with the specified initial capacity.
 	 * 
+	 * @param <E>
+	 *            the type of the object to be cached
 	 * @param initialCapacity
 	 *            the initial capacity of the backing array
 	 * @return a thread local cache
@@ -145,6 +167,8 @@ public final class ThreadLocalCache {
 	 * Creates a thread local cache which is weakly referenced and backed by a
 	 * linked list.
 	 * 
+	 * @param <E>
+	 *            the type of the object to be cached
 	 * @return a thread local cache
 	 */
 	public static <E> IThreadLocalCache<E> weakLinkedCache() {

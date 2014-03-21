@@ -25,8 +25,8 @@ import java.nio.CharBuffer;
  * The static methods {@code get} are used to get the instance of this class. If
  * there are some instances currently available in the thread local cache, one
  * will be returned. Otherwise, a new instance will be created and returned. The
- * method {@code release} is used to recycle this instance into the local cache
- * of the current thread for it can be reused in this thread before being GC'ed.
+ * method {@code close} is used to recycle this instance into the local cache of
+ * the current thread for it can be reused in this thread before being GC'ed.
  */
 public final class StringBuilder implements Serializable, Appendable,
 		CharSequence, ICloseable {
@@ -1612,7 +1612,6 @@ public final class StringBuilder implements Serializable, Appendable,
 	 * 
 	 * This method is provided so that this class can implement the
 	 * {@code CharSequence} interface.
-	 * </p>
 	 * 
 	 * @param start
 	 *            the start index, inclusive

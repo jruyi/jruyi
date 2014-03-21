@@ -838,6 +838,8 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 	 * 
 	 * @param bytes
 	 *            the target byte array
+	 * @param fromIndex
+	 *            the index to start the search from
 	 * @return the index of the first occurrence of the given {@code bytes}
 	 *         after {@code fromIndex}(inclusive) in this byte sequence,
 	 *         {@code -1} if the target byte array does not occur

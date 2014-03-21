@@ -22,11 +22,11 @@ package org.jruyi.timeoutadmin;
  * The state transitions are listed below.
  * 
  * <pre>
- * [Unscheduled] --(schedule)-> [Scheduled]
- * [Scheduled] --(cancel)-> [Unscheduled]
- * [Scheduled] --(timeout)-> [TimedOut]
- * [TimedOut] --(reset)-> [Unscheduled]
- * [Scheduled | Unscheduled | TimedOut] --(close)-> [Closed]
+ * [Unscheduled] --(schedule)-&gt; [Scheduled]
+ * [Scheduled] --(cancel)-&gt; [Unscheduled]
+ * [Scheduled] --(timeout)-&gt; [TimedOut]
+ * [TimedOut] --(reset)-&gt; [Unscheduled]
+ * [Scheduled | Unscheduled | TimedOut] --(close)-&gt; [Closed]
  * </pre>
  * 
  * <p>

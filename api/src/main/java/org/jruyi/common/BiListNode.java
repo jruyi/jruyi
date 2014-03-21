@@ -103,12 +103,14 @@ public final class BiListNode<E> implements ICloseable {
 	 * local cache if the cache is not empty. Otherwise a new instance will be
 	 * created and returned.
 	 * 
+	 * @param <T>
+	 *            the type of the element
 	 * @return an instance of {@code BiListNode}
 	 */
 	@SuppressWarnings({ "unchecked", "resource" })
-	public static <E> BiListNode<E> create() {
+	public static <T> BiListNode<T> create() {
 		Stack stack = Stack.get();
-		return (BiListNode<E>) (stack.isEmpty() ? new BiListNode<Object>()
+		return (BiListNode<T>) (stack.isEmpty() ? new BiListNode<Object>()
 				: stack.pop());
 	}
 
@@ -118,13 +120,15 @@ public final class BiListNode<E> implements ICloseable {
 	 * if the cache is not empty. Otherwise a new instance will be created and
 	 * returned.
 	 * 
+	 * @param <T>
+	 *            the type of the element
 	 * @param e
 	 *            the initial data element
 	 * @return an instance of {@code BiListNode}
 	 * @since 1.2
 	 */
-	public static <E> BiListNode<E> create(E e) {
-		BiListNode<E> node = create();
+	public static <T> BiListNode<T> create(T e) {
+		BiListNode<T> node = create();
 		node.set(e);
 		return node;
 	}

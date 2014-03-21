@@ -35,6 +35,8 @@ public final class ServiceHolderManager {
 		/**
 		 * Creates a new {@code IServiceHolderManager} object.
 		 * 
+		 * @param <T>
+		 *            the type of the service to be hold
 		 * @param context
 		 *            a bundle context bound to the service holder manager for
 		 *            getting services.
@@ -54,6 +56,8 @@ public final class ServiceHolderManager {
 	/**
 	 * Creates a new {@code IServiceHolderManager} object.
 	 * 
+	 * @param <T>
+	 *            the type of the service to be hold
 	 * @param context
 	 *            a bundle context bound to the service holder manager for
 	 *            getting services.

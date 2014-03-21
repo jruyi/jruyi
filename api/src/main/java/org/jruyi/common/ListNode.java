@@ -98,12 +98,14 @@ public final class ListNode<E> implements ICloseable {
 	 * local cache if the cache is not empty. Otherwise a new instance will be
 	 * created and returned.
 	 * 
+	 * @param <T>
+	 *            the type of the element
 	 * @return an instance of {@code ListNode}
 	 */
 	@SuppressWarnings({ "unchecked", "resource" })
-	public static <E> ListNode<E> create() {
+	public static <T> ListNode<T> create() {
 		Stack cache = Stack.get();
-		return (ListNode<E>) (cache.isEmpty() ? new ListNode<Object>() : cache
+		return (ListNode<T>) (cache.isEmpty() ? new ListNode<Object>() : cache
 				.pop());
 	}
 
@@ -113,13 +115,15 @@ public final class ListNode<E> implements ICloseable {
 	 * the cache is not empty. Otherwise a new instance will be created and
 	 * returned.
 	 * 
+	 * @param <T>
+	 *            the type of the element
 	 * @param e
 	 *            the initial data element
 	 * @return an instance of {@code ListNode}
 	 * @since 1.2
 	 */
-	public static <E> ListNode<E> create(E e) {
-		ListNode<E> node = create();
+	public static <T> ListNode<T> create(T e) {
+		ListNode<T> node = create();
 		node.set(e);
 		return node;
 	}
