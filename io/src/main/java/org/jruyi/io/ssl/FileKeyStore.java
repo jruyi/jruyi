@@ -37,6 +37,25 @@ import org.jruyi.io.ISslContextParameters;
 @Component(name = "jruyi.io.ssl.filekeystore", createPid = false)
 public final class FileKeyStore implements ISslContextParameters {
 
+	private static final String KS_TYPE = "keyStoreType";
+	private static final String KS_PROVIDER = "keyStoreProvider";
+	private static final String KS_URL = "keyStoreUrl";
+	private static final String KS_PASSWORD = "keyStorePassword";
+	private static final String KEY_PASSWORD = "keyPassword";
+	private static final String KMF_ALG = "keyManagerFactoryAlgorithm";
+	private static final String KMF_PROVIDER = "keyManagerFactoryProvider";
+
+	private static final String CERT_VALIDATION = "certValidation";
+	private static final String TS_TYPE = "trustStoreType";
+	private static final String TS_PROVIDER = "trustStoreProvider";
+	private static final String TS_URL = "trustStoreUrl";
+	private static final String TS_PASSWORD = "trustStorePassword";
+	private static final String TMF_ALG = "trustManagerFactoryAlgorithm";
+	private static final String TMF_PROVIDER = "trustManagerFactoryProvider";
+
+	private static final String SR_ALG = "secureRandomAlgorithm";
+	private static final String SR_PROVIDER = "secureRandomProvider";
+
 	private static final char[] EMPTY_CHARARRAY = new char[0];
 	private Configuration m_conf;
 	private KeyManager[] m_keyManagers;
@@ -45,14 +64,11 @@ public final class FileKeyStore implements ISslContextParameters {
 
 	static final class Configuration {
 
-		private static final String[] KEYPROPS = { "keyStoreType",
-				"keyStoreProvider", "keyStoreUrl", "keyStorePassword",
-				"keyPassword" };
-		private static final String[] TRUSTPROPS = { "certValidation",
-				"trustStoreType", "trustStoreProvider", "trustStoreUrl",
-				"trustStorePassword" };
-		private static final String[] SRPROPS = { "secureRandomAlgorithm",
-				"secureRandomProvider" };
+		private static final String[] KEYPROPS = { KS_TYPE, KS_PROVIDER,
+				KS_URL, KS_PASSWORD, KEY_PASSWORD };
+		private static final String[] TRUSTPROPS = { CERT_VALIDATION, TS_TYPE,
+				TS_PROVIDER, TS_URL, TS_PASSWORD };
+		private static final String[] SRPROPS = { SR_ALG, SR_PROVIDER };
 		static final Method[] c_keyProps;
 		static final Method[] c_srProps;
 		static final Method[] c_trustProps;
@@ -93,30 +109,24 @@ public final class FileKeyStore implements ISslContextParameters {
 		}
 
 		public void initialize(Map<String, ?> properties) {
-			keyStoreType((String) properties.get("keyStoreType"));
-			keyStoreProvider((String) properties.get("keyStoreProvider"));
-			keyStoreUrl((String) properties.get("keyStoreUrl"));
-			keyStorePassword((String) properties.get("keyStorePassword"));
-			keyPassword((String) properties.get("keyPassword"));
-			keyManagerFactoryAlgorithm((String) properties
-					.get("keyManagerFactoryAlgorithm"));
-			keyManagerFactoryProvider((String) properties
-					.get("keyManagerFactoryProvider"));
+			keyStoreType((String) properties.get(KS_TYPE));
+			keyStoreProvider((String) properties.get(KS_PROVIDER));
+			keyStoreUrl((String) properties.get(KS_URL));
+			keyStorePassword((String) properties.get(KS_PASSWORD));
+			keyPassword((String) properties.get(KEY_PASSWORD));
+			keyManagerFactoryAlgorithm((String) properties.get(KMF_ALG));
+			keyManagerFactoryProvider((String) properties.get(KMF_PROVIDER));
 
-			certValidation((Boolean) properties.get("certValidation"));
-			trustStoreType((String) properties.get("trustStoreType"));
-			trustStoreProvider((String) properties.get("trustStoreProvider"));
-			trustStoreUrl((String) properties.get("trustStoreUrl"));
-			trustStorePassword((String) properties.get("trustStorePassword"));
-			trustManagerFactoryAlgorithm((String) properties
-					.get("trustManagerFactoryAlgorithm"));
-			trustManagerFactoryProvider((String) properties
-					.get("trustManagerFactoryProvider"));
+			certValidation((Boolean) properties.get(CERT_VALIDATION));
+			trustStoreType((String) properties.get(TS_TYPE));
+			trustStoreProvider((String) properties.get(TS_PROVIDER));
+			trustStoreUrl((String) properties.get(TS_URL));
+			trustStorePassword((String) properties.get(TS_PASSWORD));
+			trustManagerFactoryAlgorithm((String) properties.get(TMF_ALG));
+			trustManagerFactoryProvider((String) properties.get(TMF_PROVIDER));
 
-			secureRandomAlgorithm((String) properties
-					.get("secureRandomAlgorithm"));
-			secureRandomProvider((String) properties
-					.get("secureRandomProvider"));
+			secureRandomAlgorithm((String) properties.get(SR_ALG));
+			secureRandomProvider((String) properties.get(SR_PROVIDER));
 		}
 
 		public void keyStoreType(String keyStoreType) {
@@ -414,7 +424,8 @@ public final class FileKeyStore implements ISslContextParameters {
 
 	private TrustManager[] getTrustManagers(Configuration conf)
 			throws Exception {
-		if (!conf.certValidation())
+		final Boolean certValidation = conf.certValidation();
+		if (certValidation == null || !certValidation)
 			return TrustAll.TRUST_ALL;
 
 		final String trustStoreUrl = conf.trustStoreUrl();
