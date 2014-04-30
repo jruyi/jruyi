@@ -138,11 +138,12 @@ public final class ByteSequenceCodec extends AbstractCodec<IByteSequence> {
 	private static int write(IByteSequence src, int offset, int length,
 			IUnit unit) {
 		int size = unit.size();
-		int n = unit.capacity() - size;
+		int start = unit.start() + size;
+		int n = unit.capacity() - start;
 		if (n > length)
 			n = length;
 
-		unit.set(unit.start() + size, src, offset, offset + n);
+		unit.set(start, src, offset, offset + n);
 		unit.size(size + n);
 		return n;
 	}
