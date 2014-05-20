@@ -391,26 +391,28 @@ public final class FileKeyStore implements ISslContextParameters {
 	}
 
 	private KeyManager[] getKeyManagers(Configuration conf) throws Exception {
-		String keyStoreUrl = conf.keyStoreUrl();
-		if (keyStoreUrl == null || keyStoreUrl.length() < 1)
-			return null;
+		final String keyStoreUrl = conf.keyStoreUrl();
 
 		String v = conf.keyStorePassword();
 		char[] password = v == null ? EMPTY_CHARARRAY : v.toCharArray();
 
-		v = conf.keyStoreProvider();
-		KeyStore ks = v == null ? KeyStore.getInstance(conf.keyStoreType())
-				: KeyStore.getInstance(conf.keyStoreType(), v);
+		final KeyStore ks;
+		if (keyStoreUrl == null || keyStoreUrl.length() < 1)
+			ks = null;
+		else {
+			v = conf.keyStoreProvider();
+			ks = v == null ? KeyStore.getInstance(conf.keyStoreType())
+					: KeyStore.getInstance(conf.keyStoreType(), v);
 
-		File file = new File(keyStoreUrl);
-		@SuppressWarnings("resource")
-		InputStream in = file.exists() ? new FileInputStream(file) : new URL(
-				keyStoreUrl).openStream();
-		try {
-			in = new BufferedInputStream(in);
-			ks.load(in, password);
-		} finally {
-			in.close();
+			File file = new File(keyStoreUrl);
+			InputStream in = file.exists() ? new FileInputStream(file)
+					: new URL(keyStoreUrl).openStream();
+			try {
+				in = new BufferedInputStream(in);
+				ks.load(in, password);
+			} finally {
+				in.close();
+			}
 		}
 
 		v = conf.keyManagerFactoryProvider();
@@ -428,26 +430,28 @@ public final class FileKeyStore implements ISslContextParameters {
 		if (certValidation == null || !certValidation)
 			return TrustAll.TRUST_ALL;
 
+		String v;
+		final KeyStore ks;
 		final String trustStoreUrl = conf.trustStoreUrl();
 		if (trustStoreUrl == null || trustStoreUrl.length() < 1)
-			return null;
+			ks = null;
+		else {
+			v = conf.trustStorePassword();
+			char[] password = v == null ? EMPTY_CHARARRAY : v.toCharArray();
 
-		String v = conf.trustStorePassword();
-		char[] password = v == null ? EMPTY_CHARARRAY : v.toCharArray();
+			v = conf.trustStoreProvider();
+			ks = v == null ? KeyStore.getInstance(conf.trustStoreType())
+					: KeyStore.getInstance(conf.trustStoreType(), v);
 
-		v = conf.trustStoreProvider();
-		KeyStore ks = v == null ? KeyStore.getInstance(conf.trustStoreType())
-				: KeyStore.getInstance(conf.trustStoreType(), v);
-
-		File file = new File(trustStoreUrl);
-		@SuppressWarnings("resource")
-		InputStream in = file.exists() ? new FileInputStream(file) : new URL(
-				trustStoreUrl).openStream();
-		try {
-			in = new BufferedInputStream(in);
-			ks.load(in, password);
-		} finally {
-			in.close();
+			File file = new File(trustStoreUrl);
+			InputStream in = file.exists() ? new FileInputStream(file)
+					: new URL(trustStoreUrl).openStream();
+			try {
+				in = new BufferedInputStream(in);
+				ks.load(in, password);
+			} finally {
+				in.close();
+			}
 		}
 
 		v = conf.trustManagerFactoryProvider();

@@ -142,8 +142,10 @@
 		<AD id="jruyi.io.filter.id" name="Filter ID" type="String"/>
 		<AD id="protocol" name="Protocol" type="String" default="TLS"/>
 		<AD id="provider" name="Provider" type="String" required="false"/>
-		<AD id="needClientAuth" name="Need Client Auth" type="Boolean" default="false"/>
-		<AD id="wantClientAuth" name="Want Client Auth" type="Boolean" default="false"/>
+		<AD id="clientAuth" name="Client Auth" type="String" required="false">
+			<Option label="Want" value="want"/>
+			<Option label="Need" value="need"/>
+		</AD>
 		<AD id="enabledProtocols" name="Enabled Protocols" type="String" cardinality="65535" required="false"/>
 		<AD id="enabledCipherSuites" name="Enabled Cipher Suites" type="String" cardinality="65535" required="false"/>
 		<AD id="enableSessionCreation" name="Enable Session Creation" type="Boolean" default="true"/>
@@ -174,8 +176,10 @@
 		<AD id="jruyi.io.filter.id" name="Filter ID" type="String"/>
 		<AD id="protocol" name="Protocol" type="String" default="TLS"/>
 		<AD id="provider" name="Provider" type="String" required="false"/>
-		<AD id="needClientAuth" name="Need Client Auth" type="Boolean" default="false"/>
-		<AD id="wantClientAuth" name="Want Client Auth" type="Boolean" default="false"/>
+		<AD id="clientAuth" name="Client Auth" type="String" required="false">
+			<Option label="Want" value="want"/>
+			<Option label="Need" value="need"/>
+		</AD>
 		<AD id="enabledProtocols" name="Enabled Protocols" type="String" cardinality="65535" required="false"/>
 		<AD id="enabledCipherSuites" name="Enabled Cipher Suites" type="String" cardinality="65535" required="false"/>
 		<AD id="enableSessionCreation" name="Enable Session Creation" type="Boolean" default="true"/>

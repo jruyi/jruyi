@@ -48,8 +48,7 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 		private static final Method[] c_mProps;
 		private String m_protocol;
 		private String m_provider;
-		private Boolean m_needClientAuth;
-		private Boolean m_wantClientAuth;
+		private String m_clientAuth;
 		private String[] m_enabledProtocols;
 		private String[] m_enabledCipherSuites;
 
@@ -67,8 +66,7 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 		public void initialize(Map<String, ?> properties) {
 			protocol((String) properties.get("protocol"));
 			provider((String) properties.get("provider"));
-			needClientAuth((Boolean) properties.get("needClientAuth"));
-			wantClientAuth((Boolean) properties.get("wantClientAuth"));
+			clientAuth((String) properties.get("clientAuth"));
 			enabledProtocols((String[]) properties.get("enabledProtocols"));
 			enabledCipherSuites((String[]) properties
 					.get("enabledCipherSuites"));
@@ -90,20 +88,12 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 			return m_provider;
 		}
 
-		public void needClientAuth(Boolean needClientAuth) {
-			m_needClientAuth = needClientAuth;
+		public void clientAuth(String clientAuth) {
+			m_clientAuth = clientAuth;
 		}
 
-		public Boolean needClientAuth() {
-			return m_needClientAuth;
-		}
-
-		public void wantClientAuth(Boolean wantClientAuth) {
-			m_wantClientAuth = wantClientAuth;
-		}
-
-		public Boolean wantClientAuth() {
-			return m_wantClientAuth;
+		public String clientAuth() {
+			return m_clientAuth;
 		}
 
 		public void enabledProtocols(String[] enabledProtocols) {
@@ -299,10 +289,14 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 
 	private synchronized SSLContext createSslContext(Configuration conf)
 			throws Exception {
+		String protocol = conf.protocol();
+		if (protocol == null || protocol.isEmpty())
+			protocol = "TLS";
+
 		final String provider = conf.provider();
-		final SSLContext sslContext = (provider == null || provider.length() < 1) ? SSLContext
-				.getInstance(conf.protocol()) : SSLContext.getInstance(
-				conf.protocol(), provider);
+		final SSLContext sslContext = (provider == null || provider.isEmpty()) ? SSLContext
+				.getInstance(protocol) : SSLContext.getInstance(protocol,
+				provider);
 
 		final ISslContextParameters sslcp = sslcp();
 		sslContext.init(sslcp.getKeyManagers(), sslcp.getCertManagers(),
@@ -325,8 +319,11 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 		if (conf.enabledCipherSuites() != null)
 			engine.setEnabledCipherSuites(conf.enabledCipherSuites());
 
-		engine.setNeedClientAuth(conf.needClientAuth());
-		engine.setWantClientAuth(conf.wantClientAuth());
+		final String clientAuth = conf.clientAuth();
+		if ("want".equals(clientAuth))
+			engine.setWantClientAuth(true);
+		else if ("need".equals(clientAuth))
+			engine.setNeedClientAuth(true);
 		engine.setUseClientMode(clientMode);
 
 		return engine;
