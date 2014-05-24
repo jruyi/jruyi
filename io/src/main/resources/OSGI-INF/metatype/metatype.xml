@@ -161,7 +161,7 @@
 		<AD id="keyPassword" name="Key Password" type="Password" required="false"/>
 		<AD id="keyManagerFactoryAlgorithm" name="KeyManagerFactory Algorithm" type="String" required="false"/>
 		<AD id="keyManagerFactoryProvider" name="KeyManagerFactoryProvider" type="String" required="false"/>
-		<AD id="certValidation" name="Certificate Validation" type="Boolean" default="false"/>
+		<AD id="certValidation" name="Certificate Validation" type="Boolean" default="true"/>
 		<AD id="trustStoreType" name="TrustStore Type" type="String" required="false"/>
 		<AD id="trustStoreProvider" name="TrustStore Provider" type="String" required="false"/>
 		<AD id="trustStoreUrl" name="TrustStore URL" type="String" required="false"/>
@@ -190,7 +190,7 @@
 		<AD id="keyPassword" name="Key Password" type="Password" required="false"/>
 		<AD id="keyManagerFactoryAlgorithm" name="KeyManagerFactory Algorithm" type="String" required="false"/>
 		<AD id="keyManagerFactoryProvider" name="KeyManagerFactoryProvider" type="String" required="false"/>
-		<AD id="certValidation" name="Certificate Validation" type="Boolean" default="false"/>
+		<AD id="certValidation" name="Certificate Validation" type="Boolean" default="true"/>
 		<AD id="trustStoreType" name="TrustStore Type" type="String" required="false"/>
 		<AD id="trustStoreProvider" name="TrustStore Provider" type="String" required="false"/>
 		<AD id="trustStoreUrl" name="TrustStore URL" type="String" required="false"/>

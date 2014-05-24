@@ -286,21 +286,16 @@ public final class Conf {
 					.getAttributeDefinitions(ObjectClassDefinition.ALL);
 			int n;
 			if (ads != null && (n = ads.length) > 0) {
-				AttributeDefinition ad = ads[0];
-				id = ad.getID();
-				Object value = props.get(id);
-				if (value != null) {
-					if (ad.getType() == AttributeDefinition.PASSWORD)
-						value = MASK;
-					lineProperty(id, value);
-				}
-
-				for (int i = 1; i < n; ++i) {
-					ad = ads[i];
+				boolean first = true;
+				for (int i = 0; i < n; ++i) {
+					final AttributeDefinition ad = ads[i];
 					id = ad.getID();
-					value = props.get(id);
+					Object value = props.get(id);
 					if (value != null) {
-						System.out.print(", ");
+						if (!first)
+							System.out.print(", ");
+						else
+							first = false;
 						if (ad.getType() == AttributeDefinition.PASSWORD)
 							value = MASK;
 						lineProperty(id, value);
