@@ -11,7 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jruyi.timeoutadmin.impl;
+package org.jruyi.timeoutadmin.internal;
+
+import java.util.concurrent.TimeUnit;
 
 import org.jruyi.common.IThreadLocalCache;
 import org.jruyi.common.StrUtil;
@@ -28,7 +30,8 @@ final class TimeoutEvent implements ITimeoutEvent, Runnable {
 	private static final IThreadLocalCache<TimeoutEvent> c_cache = ThreadLocalCache
 			.weakLinkedCache();
 	private int m_timeout;
-	private int m_timeLeft;
+	private long m_expireTime;
+	private TimeoutAdmin.TimeWheel m_timeWheel;
 	private int m_index;
 	private TimeoutNotifier m_notifier;
 
@@ -42,6 +45,8 @@ final class TimeoutEvent implements ITimeoutEvent, Runnable {
 
 		event.m_notifier = notifier;
 		event.m_timeout = timeout;
+		event.m_expireTime = System.currentTimeMillis()
+				+ TimeUnit.SECONDS.toMillis(timeout);
 		return event;
 	}
 
@@ -57,7 +62,7 @@ final class TimeoutEvent implements ITimeoutEvent, Runnable {
 
 	@Override
 	public void run() {
-		ITimeoutListener listener = m_notifier.getListener();
+		final ITimeoutListener listener = m_notifier.getListener();
 		if (listener == null) {
 			release();
 			return;
@@ -74,25 +79,26 @@ final class TimeoutEvent implements ITimeoutEvent, Runnable {
 		return m_notifier;
 	}
 
+	TimeoutAdmin.TimeWheel getTimeWheel() {
+		return m_timeWheel;
+	}
+
+	void setTimeWheelAndIndex(TimeoutAdmin.TimeWheel timeWheel, int index) {
+		m_timeWheel = timeWheel;
+		m_index = index;
+	}
+
 	int getIndex() {
 		return m_index;
 	}
 
-	void setIndex(int index) {
-		m_index = index;
-	}
-
-	int getTimeLeft() {
-		return m_timeLeft;
-	}
-
-	void setTimeLeft(int timeLeft) {
-		m_timeLeft = timeLeft;
+	long expireTime() {
+		return m_expireTime;
 	}
 
 	void release() {
 		m_notifier = null;
-		m_index = -1;
+		m_timeWheel = null;
 		c_cache.put(this);
 	}
 }

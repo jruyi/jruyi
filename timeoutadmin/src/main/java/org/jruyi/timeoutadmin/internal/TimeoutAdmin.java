@@ -1,0 +1,241 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.jruyi.timeoutadmin.internal;
+
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
+
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferencePolicy;
+import org.apache.felix.scr.annotations.Service;
+import org.jruyi.common.BiListNode;
+import org.jruyi.common.IScheduler;
+import org.jruyi.timeoutadmin.ITimeoutAdmin;
+import org.jruyi.timeoutadmin.ITimeoutNotifier;
+import org.jruyi.workshop.IWorkshop;
+import org.jruyi.workshop.WorkshopConstants;
+
+@Service
+@Component(name = "jruyi.timeoutadmin", createPid = false)
+public final class TimeoutAdmin implements ITimeoutAdmin {
+
+	// 1 hour
+	private static final int SCALE = 60 * 60;
+	private static final int COVER_DAYS = 7;
+	private static final int UNIT_TW2;
+	private static final int SCALE_TW2;
+
+	private LinkedList<TimeoutEvent> m_list;
+	private TimeWheel m_tw1;
+	private TimeWheel m_tw2;
+
+	@Reference(name = "scheduler", policy = ReferencePolicy.DYNAMIC)
+	private IScheduler m_scheduler;
+
+	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
+	private IWorkshop m_workshop;
+
+	static {
+		int n = 1;
+		for (int i = SCALE / 2 + 1; i != 0; i >>= 1)
+			n <<= 1;
+		UNIT_TW2 = n;
+		n = 1;
+		for (int i = (COVER_DAYS * 24 * 60 * 60 + UNIT_TW2 - 1) / UNIT_TW2 + 1; i != 0; i >>= 1)
+			n <<= 1;
+		SCALE_TW2 = n;
+	}
+
+	final class TimeWheel implements Runnable {
+
+		private final BiListNode<TimeoutEvent>[] m_wheel;
+		private final ReentrantLock[] m_locks;
+		private final int m_capacityMask;
+
+		// The hand that points to the current timeout sublist, nodes of witch
+		// are between m_wheel[m_hand] and m_wheel[m_hand + 1].
+		private int m_hand;
+
+		public TimeWheel(int capacity) {
+			// one more as a tail node for conveniently iterating the timeout
+			// sublist
+			@SuppressWarnings("unchecked")
+			final BiListNode<TimeoutEvent>[] wheel = (BiListNode<TimeoutEvent>[]) new BiListNode<?>[capacity + 1];
+			final ReentrantLock[] locks = new ReentrantLock[capacity];
+			final LinkedList<TimeoutEvent> list = m_list;
+			for (int i = 0; i < capacity; ++i) {
+				// create sentinel nodes
+				wheel[i] = list.addLast(null);
+				locks[i] = new ReentrantLock();
+			}
+			wheel[capacity] = list.addLast(null);
+
+			m_wheel = wheel;
+			m_locks = locks;
+			m_capacityMask = capacity - 1;
+		}
+
+		@Override
+		public void run() {
+			final int hand = m_hand;
+			final int nextHand = hand + 1;
+			final BiListNode<TimeoutEvent>[] wheel = m_wheel;
+			final BiListNode<TimeoutEvent> begin = wheel[hand];
+			final BiListNode<TimeoutEvent> end = wheel[nextHand];
+			BiListNode<TimeoutEvent> node;
+
+			while ((node = begin.next()) != end) {
+				final TimeoutNotifier notifier;
+				final TimeoutEvent event = node.get();
+
+				// If this node has been cancelled, just skip.
+				// Otherwise, go ahead.
+				if (event != null && (notifier = event.getNotifier()) != null)
+					// Passing "hand" for checking the notifier is still in this
+					// same timeout sublist. Otherwise it may be cancelled or
+					// rescheduled, and needs to be skipped.
+					notifier.onTimeout(this, hand);
+			}
+
+			// tick
+			m_hand = getEffectiveIndex(nextHand);
+		}
+
+		void schedule(TimeoutNotifier notifier, TimeoutEvent event, int offset) {
+			final int n = getEffectiveIndex(m_hand + offset);
+			event.setTimeWheelAndIndex(this, n);
+			notifier.setNode(m_list.syncInsertAfter(m_wheel[n], event,
+					getLock(n)));
+		}
+
+		void reschedule(TimeoutNotifier notifier, int offset,
+				ReentrantLock srcLock) {
+			final BiListNode<TimeoutEvent> node = notifier.getNode();
+			final TimeoutEvent event = node.get();
+			final int n = getEffectiveIndex(m_hand + offset);
+			event.setTimeWheelAndIndex(this, n);
+
+			final ReentrantLock dstLock = getLock(n);
+			m_list.syncMoveAfter(m_wheel[n], node, srcLock, dstLock);
+		}
+
+		ReentrantLock getLock(int index) {
+			return m_locks[index];
+		}
+
+		private int getEffectiveIndex(int index) {
+			return (index & m_capacityMask);
+		}
+	}
+
+	@Override
+	public ITimeoutNotifier createNotifier(Object subject) {
+		return new TimeoutNotifier(subject, this);
+	}
+
+	protected synchronized void bindScheduler(IScheduler scheduler) {
+		m_scheduler = scheduler;
+	}
+
+	protected synchronized void unbindScheduler(IScheduler scheduler) {
+		if (m_scheduler == scheduler)
+			m_scheduler = null;
+	}
+
+	protected synchronized void bindWorkshop(IWorkshop workshop) {
+		m_workshop = workshop;
+	}
+
+	protected synchronized void unbindWorkshop(IWorkshop workshop) {
+		if (m_workshop == workshop)
+			m_workshop = null;
+	}
+
+	@Modified
+	protected void modified(Map<String, ?> properties) {
+		// This empty modified method is for changing the property
+		// "workshop.target" dynamically.
+	}
+
+	protected void activate() {
+		m_list = new LinkedList<TimeoutEvent>();
+
+		final TimeWheel tw1 = new TimeWheel(UNIT_TW2 * 2);
+		final TimeWheel tw2 = new TimeWheel(SCALE_TW2);
+		final IScheduler scheduler = m_scheduler;
+		scheduler.scheduleAtFixedRate(tw1, 1, 1, TimeUnit.SECONDS);
+		scheduler
+				.scheduleAtFixedRate(tw2, UNIT_TW2, UNIT_TW2, TimeUnit.SECONDS);
+		m_tw1 = tw1;
+		m_tw2 = tw2;
+	}
+
+	protected void deactivate() {
+		m_tw2 = null;
+		m_tw1 = null;
+		m_list = null;
+	}
+
+	void schedule(TimeoutNotifier notifier, int timeout) {
+		final TimeoutEvent event = TimeoutEvent.get(notifier, timeout);
+		if (timeout < UNIT_TW2 * 2)
+			m_tw1.schedule(notifier, event, timeout);
+		else {
+			int offset = (timeout - UNIT_TW2 - 1) / UNIT_TW2;
+			if (offset > SCALE_TW2 - 1)
+				offset = SCALE_TW2 - 1;
+			m_tw2.schedule(notifier, event, offset);
+		}
+	}
+
+	void reschedule(TimeoutNotifier notifier, int timeout) {
+		final TimeoutEvent event = notifier.getNode().get();
+		final ReentrantLock srcLock = event.getTimeWheel().getLock(
+				event.getIndex());
+		if (timeout < UNIT_TW2 * 2)
+			m_tw1.reschedule(notifier, timeout, srcLock);
+		else {
+			timeout = (timeout - UNIT_TW2 - 1) / UNIT_TW2;
+			if (timeout > SCALE_TW2 - 1)
+				timeout = SCALE_TW2 - 1;
+			m_tw2.reschedule(notifier, timeout, srcLock);
+		}
+	}
+
+	void cancel(TimeoutNotifier notifier) {
+		final BiListNode<TimeoutEvent> node = notifier.getNode();
+		notifier.clearNode();
+		final TimeoutEvent event = node.get();
+		final ReentrantLock lock = event.getTimeWheel().getLock(
+				event.getIndex());
+		m_list.syncRemove(node, lock);
+
+		// release the timeout event
+		event.release();
+	}
+
+	void fireTimeout(TimeoutNotifier notifier) {
+		final BiListNode<TimeoutEvent> node = notifier.getNode();
+		notifier.clearNode();
+		final TimeoutEvent event = node.get();
+		final ReentrantLock lock = event.getTimeWheel().getLock(
+				event.getIndex());
+		m_list.syncRemove(node, lock);
+
+		m_workshop.run(event);
+	}
+}

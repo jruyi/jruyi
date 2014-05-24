@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jruyi.timeoutadmin.impl;
+package org.jruyi.timeoutadmin.internal;
 
 import java.util.concurrent.locks.ReentrantLock;
 

@@ -11,8 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jruyi.timeoutadmin.impl;
+package org.jruyi.timeoutadmin.internal;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.jruyi.common.BiListNode;
@@ -21,6 +22,7 @@ import org.jruyi.timeoutadmin.ITimeoutNotifier;
 
 final class TimeoutNotifier implements ITimeoutNotifier {
 
+	private static final long HALF_SEC = 500L;
 	private final Object m_subject;
 	private final TimeoutAdmin m_admin;
 	private BiListNode<TimeoutEvent> m_node;
@@ -197,7 +199,7 @@ final class TimeoutNotifier implements ITimeoutNotifier {
 
 	@Override
 	public boolean schedule(int timeout) {
-		if (timeout < 1)
+		if (timeout < 1L)
 			throw new IllegalArgumentException();
 
 		final ReentrantLock lock = m_lock;
@@ -253,7 +255,7 @@ final class TimeoutNotifier implements ITimeoutNotifier {
 		m_listener = listener;
 	}
 
-	void onTimeout(int hand) {
+	void onTimeout(TimeoutAdmin.TimeWheel timeWheel, int hand) {
 		final ReentrantLock lock = m_lock;
 		// If the lock cannot be acquired, which means this notifier is being
 		// cancelled or rescheduled or closed, just skip.
@@ -264,15 +266,20 @@ final class TimeoutNotifier implements ITimeoutNotifier {
 			// If this notifier is not in the same timeout sublist,
 			// which means it has been cancelled or rescheduled,
 			// then skip.
-			TimeoutEvent event = m_node.get();
-			if (event == null || hand != event.getIndex())
+			final TimeoutEvent event = m_node.get();
+			if (event == null || timeWheel != event.getTimeWheel()
+					|| hand != event.getIndex())
 				return;
 
-			if (event.getTimeLeft() < 1) {
+			long difference = event.expireTime() - System.currentTimeMillis();
+			if (difference < HALF_SEC) {
 				changeState(TimedOut.INST);
 				m_admin.fireTimeout(this);
-			} else
-				m_admin.scheduleNextRound(this);
+			} else {
+				int timeout = (int) TimeUnit.MILLISECONDS.toSeconds(difference
+						+ HALF_SEC);
+				m_admin.reschedule(this, timeout);
+			}
 		} finally {
 			lock.unlock();
 		}
