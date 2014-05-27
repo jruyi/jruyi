@@ -3,8 +3,7 @@
 # JRuyi Bootstrap Script
 # -------------------------------------------------------------------------
 
-JRUYI_HOME="`dirname $0`"
-JRUYI_HOME="`dirname $JRUYI_HOME`"
+JRUYI_HOME="`dirname $0`"/..
 PROGNAME="`basename $0`"
 GREP="grep"
 

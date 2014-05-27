@@ -3,8 +3,7 @@
 # JRuyi CLI Client
 # -------------------------------------------------------------------------
 
-JRUYI_HOME="`dirname $0`"
-JRUYI_HOME="`dirname $JRUYI_HOME`"
+JRUYI_HOME="`dirname $0`"/..
 PROGNAME="`basename $0`"
 
 if [ "x$JAVA_HOME" = "x" ]; then
