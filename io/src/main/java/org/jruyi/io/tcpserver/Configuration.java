@@ -24,7 +24,7 @@ public final class Configuration extends TcpChannelConf {
 			"reuseAddr", "recvBufSize", "performancePreferences" };
 	private static final Method[] c_mProps;
 	private Integer m_backlog;
-	private Integer m_sessionIdleTimeout;
+	private Integer m_sessionIdleTimeoutInSeconds;
 	private Integer m_initCapacityOfChannelMap;
 
 	static {
@@ -48,7 +48,8 @@ public final class Configuration extends TcpChannelConf {
 
 		bindAddr((String) properties.get("bindAddr"));
 		backlog((Integer) properties.get("backlog"));
-		sessionIdleTimeout((Integer) properties.get("sessionIdleTimeout"));
+		sessionIdleTimeoutInSeconds((Integer) properties
+				.get("sessionIdleTimeoutInSeconds"));
 		initCapacityOfChannelMap((Integer) properties
 				.get("initCapacityOfChannelMap"));
 	}
@@ -69,13 +70,13 @@ public final class Configuration extends TcpChannelConf {
 		ip(bindAddr);
 	}
 
-	public Integer sessionIdleTimeout() {
-		return m_sessionIdleTimeout;
+	public Integer sessionIdleTimeoutInSeconds() {
+		return m_sessionIdleTimeoutInSeconds;
 	}
 
-	public void sessionIdleTimeout(Integer sessionIdleTimeout) {
-		m_sessionIdleTimeout = sessionIdleTimeout == null ? 300
-				: sessionIdleTimeout;
+	public void sessionIdleTimeoutInSeconds(Integer sessionIdleTimeoutInSeconds) {
+		m_sessionIdleTimeoutInSeconds = sessionIdleTimeoutInSeconds == null ? 300
+				: sessionIdleTimeoutInSeconds;
 	}
 
 	public Integer initCapacityOfChannelMap() {

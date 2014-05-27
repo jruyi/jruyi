@@ -22,8 +22,8 @@ class TcpClientConf extends TcpChannelConf {
 
 	private static final String[] M_PROPS = { "addr", "port" };
 	private static final Method[] c_mProps;
-	private Integer m_connectTimeout;
-	private Integer m_readTimeout;
+	private Integer m_connectTimeoutInSeconds;
+	private Integer m_readTimeoutInSeconds;
 
 	static {
 		c_mProps = new Method[M_PROPS.length];
@@ -45,8 +45,9 @@ class TcpClientConf extends TcpChannelConf {
 		super.initialize(properties);
 
 		addr((String) properties.get("addr"));
-		connectTimeout((Integer) properties.get("connectTimeout"));
-		readTimeout((Integer) properties.get("readTimeout"));
+		connectTimeoutInSeconds((Integer) properties
+				.get("connectTimeoutInSeconds"));
+		readTimeoutInSeconds((Integer) properties.get("readTimeoutInSeconds"));
 	}
 
 	public final String addr() {
@@ -57,20 +58,22 @@ class TcpClientConf extends TcpChannelConf {
 		ip(addr);
 	}
 
-	public final Integer connectTimeout() {
-		return m_connectTimeout;
+	public final Integer connectTimeoutInSeconds() {
+		return m_connectTimeoutInSeconds;
 	}
 
-	public final void connectTimeout(Integer connectTimeout) {
-		m_connectTimeout = connectTimeout == null ? 10 : connectTimeout;
+	public final void connectTimeoutInSeconds(Integer connectTimeoutInSeconds) {
+		m_connectTimeoutInSeconds = connectTimeoutInSeconds == null ? 10
+				: connectTimeoutInSeconds;
 	}
 
-	public final Integer readTimeout() {
-		return m_readTimeout;
+	public final Integer readTimeoutInSeconds() {
+		return m_readTimeoutInSeconds;
 	}
 
-	public final void readTimeout(Integer readTimeout) {
-		m_readTimeout = readTimeout == null ? 10 : readTimeout;
+	public final void readTimeoutInSeconds(Integer readTimeoutInSeconds) {
+		m_readTimeoutInSeconds = readTimeoutInSeconds == null ? 10
+				: readTimeoutInSeconds;
 	}
 
 	public final boolean isMandatoryChanged(TcpClientConf newConf)

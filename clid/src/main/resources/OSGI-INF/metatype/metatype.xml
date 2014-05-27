@@ -22,7 +22,7 @@
 		<AD id="bindAddr" name="Bind Address" type="String" default="localhost"/>
 		<AD id="port" name="Port" type="Integer" min="0" max="65535" default="6060"/>
 		<AD id="buffer.target" name="Filter for Selecting Buffer Factory" type="String" required="false"/>
-		<AD id="sessionIdleTimeout" name="Session Idle Timeout" type="Integer" min="-1" default="300"/>
+		<AD id="sessionIdleTimeoutInSeconds" name="Session Idle Timeout(s)" type="Integer" min="-1" default="300"/>
 		<AD id="flushThreshold" name="Flush Threshold" type="Integer" default="7168"/>
 	</OCD>
 

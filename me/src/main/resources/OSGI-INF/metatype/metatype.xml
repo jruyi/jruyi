@@ -19,7 +19,7 @@
 	xsi:schemaLocation="http://www.osgi.org/xmlns/metatype/v1.2.0 http://www.osgi.org/xmlns/metatype/v1.2.0/metatype.xsd">
 
 	<OCD id="mq" name="Message Queue">
-		<AD id="msgTimeout" name="Message Timeout" type="Integer" default="10" />
+		<AD id="msgTimeoutInSeconds" name="Message Timeout(s)" type="Integer" default="10" />
 		<AD id="workshop.target" name="Filter for Selecting Workshop" type="String" required="false" default="(threadPrefix=Worker)"/>
 	</OCD>
 

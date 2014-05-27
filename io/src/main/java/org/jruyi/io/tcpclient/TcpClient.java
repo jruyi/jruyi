@@ -59,7 +59,7 @@ public final class TcpClient extends AbstractTcpClient {
 				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
 			}
 		}
-		int timeout = m_conf.readTimeout();
+		int timeout = m_conf.readTimeoutInSeconds();
 		if (timeout > 0)
 			channel.scheduleReadTimeout(timeout);
 		else if (timeout == 0)

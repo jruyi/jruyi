@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jruyi.workshop.impl;
+package org.jruyi.workshop.internal;
 
 import java.util.IdentityHashMap;
 import java.util.concurrent.BlockingQueue;

@@ -67,7 +67,7 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 
 		private Integer m_minPoolSize;
 		private Integer m_maxPoolSize;
-		private Integer m_idleTimeout;
+		private Integer m_idleTimeoutInSeconds;
 
 		@Override
 		public void initialize(Map<String, ?> properties) {
@@ -75,7 +75,8 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 
 			minPoolSize((Integer) properties.get("minPoolSize"));
 			maxPoolSize((Integer) properties.get("maxPoolSize"));
-			idleTimeout((Integer) properties.get("idleTimeout"));
+			idleTimeoutInSeconds((Integer) properties
+					.get("idleTimeoutInSeconds"));
 		}
 
 		public Integer minPoolSize() {
@@ -94,12 +95,13 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 			m_maxPoolSize = maxPoolSize == null ? 10 : maxPoolSize;
 		}
 
-		public Integer idleTimeout() {
-			return m_idleTimeout;
+		public Integer idleTimeoutInSeconds() {
+			return m_idleTimeoutInSeconds;
 		}
 
-		public void idleTimeout(Integer idleTimeout) {
-			m_idleTimeout = idleTimeout == null ? 60 : idleTimeout;
+		public void idleTimeoutInSeconds(Integer idleTimeoutInSeconds) {
+			m_idleTimeoutInSeconds = idleTimeoutInSeconds == null ? 60
+					: idleTimeoutInSeconds;
 		}
 	}
 
@@ -162,7 +164,7 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 			}
 		}
 
-		int timeout = m_conf.readTimeout();
+		int timeout = m_conf.readTimeoutInSeconds();
 		if (timeout < 0)
 			return;
 
@@ -179,7 +181,7 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 	@Override
 	public void onMessageReceived(IChannel channel, Object msg) {
 		if (!channel.cancelTimeout() // channel has timed out
-				|| m_conf.readTimeout() == 0 // no response is expected
+				|| m_conf.readTimeoutInSeconds() == 0 // no response is expected
 		) {
 			if (msg instanceof Closeable) {
 				try {
@@ -414,7 +416,7 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 
 	private void poolChannel(IChannel channel) {
 		Configuration conf = m_conf;
-		final int keepAliveTime = conf.idleTimeout();
+		final int keepAliveTime = conf.idleTimeoutInSeconds();
 		final ReentrantLock lock = m_channelQueueLock;
 		lock.lock();
 		try {
@@ -442,7 +444,7 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 			return msg;
 
 		final Configuration conf = m_conf;
-		final int keepAliveTime = conf.idleTimeout();
+		final int keepAliveTime = conf.idleTimeoutInSeconds();
 		final ReentrantLock lock = m_channelQueueLock;
 		lock.lock();
 		try {

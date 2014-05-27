@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jruyi.workshop.impl;
+package org.jruyi.workshop.internal;
 
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -46,13 +46,13 @@ public final class Workshop implements IWorkshop, IWorkshopProfiler, IDumpable {
 	private static final String P_CORE_POOLSIZE = "corePoolSize";
 	private static final String P_MAX_POOLSIZE = "maxPoolSize";
 	@Property(intValue = 10)
-	private static final String P_KEEPALIVE_TIME = "keepAliveTime";
+	private static final String P_KEEPALIVE_TIME = "keepAliveTimeInSeconds";
 	@Property(intValue = 6000)
 	private static final String P_QUEUE_CAPACITY = "queueCapacity";
 	@Property(value = WorkshopConstants.DEFAULT_THREADPREFIX)
 	private static final String P_THREAD_PREFIX = WorkshopConstants.THREAD_PREFIX;
 	@Property(intValue = 300)
-	private static final String P_TERM_WAITTIME = "terminationWaitTime";
+	private static final String P_TERM_WAITTIME = "terminationWaitTimeInSeconds";
 
 	private static final AtomicLong c_sequence = new AtomicLong();
 	private final long m_id = c_sequence.getAndIncrement();
@@ -176,9 +176,9 @@ public final class Workshop implements IWorkshop, IWorkshopProfiler, IDumpable {
 				.append(executor.getMaximumPoolSize())
 				.append(", " + P_KEEPALIVE_TIME + "=")
 				.append(executor.getKeepAliveTime(TimeUnit.SECONDS))
-				.append("s" + ", " + P_QUEUE_CAPACITY + "=")
-				.append(m_queueCapacity).append(", " + P_TERM_WAITTIME + "=")
-				.append(m_terminationWaitTime).append("s}");
+				.append(", " + P_QUEUE_CAPACITY + "=").append(m_queueCapacity)
+				.append(", " + P_TERM_WAITTIME + "=")
+				.append(m_terminationWaitTime);
 	}
 
 	@Modified

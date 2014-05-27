@@ -68,7 +68,7 @@ public final class MessageQueue implements ITimeoutListener {
 			.getLogger(MessageQueue.class);
 
 	@Property(intValue = 10)
-	private static final String P_MSG_TIMEOUT = "msgTimeout";
+	private static final String P_MSG_TIMEOUT = "msgTimeoutInSeconds";
 
 	private final ConcurrentHashMap<String, Endpoint> m_endpoints;
 	private final ReentrantLock m_lock;

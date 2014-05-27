@@ -19,11 +19,9 @@ import org.jruyi.io.udp.UdpChannelConf;
 
 final class Configuration extends UdpChannelConf {
 
-	private static final String[] M_PROPS = {
-		"bindAddr", "port"
-	};
+	private static final String[] M_PROPS = { "bindAddr", "port" };
 	private static final Method[] c_mProps;
-	private Integer m_sessionIdleTimeout;
+	private Integer m_sessionIdleTimeoutInSeconds;
 	private Integer m_initCapacityOfChannelMap;
 
 	static {
@@ -46,8 +44,10 @@ final class Configuration extends UdpChannelConf {
 		super.initialize(properties);
 
 		bindAddr((String) properties.get("bindAddr"));
-		sessionIdleTimeout((Integer) properties.get("sessionIdleTimeout"));
-		initCapacityOfChannelMap((Integer) properties.get("initCapacityOfChannelMap"));
+		sessionIdleTimeoutInSeconds((Integer) properties
+				.get("sessionIdleTimeoutInSeconds"));
+		initCapacityOfChannelMap((Integer) properties
+				.get("initCapacityOfChannelMap"));
 	}
 
 	public String bindAddr() {
@@ -58,12 +58,12 @@ final class Configuration extends UdpChannelConf {
 		ip(bindAddr);
 	}
 
-	public Integer sessionIdleTimeout() {
-		return m_sessionIdleTimeout;
+	public Integer sessionIdleTimeoutInSeconds() {
+		return m_sessionIdleTimeoutInSeconds;
 	}
 
-	public void sessionIdleTimeout(Integer channelIdleTimeout) {
-		m_sessionIdleTimeout = channelIdleTimeout;
+	public void sessionIdleTimeoutInSeconds(Integer channelIdleTimeoutInSeconds) {
+		m_sessionIdleTimeoutInSeconds = channelIdleTimeoutInSeconds;
 	}
 
 	public Integer initCapacityOfChannelMap() {

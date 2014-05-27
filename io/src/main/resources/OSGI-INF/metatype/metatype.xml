@@ -37,7 +37,7 @@
 		<AD id="port" name="Port" type="Integer" min="0" max="65535"/>
 		<AD id="readThreshold" name="Read Threshold" type="Integer" min="0" default="0"/>
 		<AD id="backlog" name="Backlog" type="Integer" min="1" required="false"/>
-		<AD id="sessionIdleTimeout" name="Session Idle Timeout" type="Integer" min="-1" default="300"/>
+		<AD id="sessionIdleTimeoutInSeconds" name="Session Idle Timeout(s)" type="Integer" min="-1" default="300"/>
 		<AD id="initCapacityOfChannelMap" name="Initial Capacity of Channel Map" type="Integer" min="4" default="2048"/>
 		<AD id="filters" name="Filter Chain" type="String" cardinality="65535" required="false"/>
 		<AD id="reuseAddr" name="Reuse Address" type="Boolean" default="true"/>
@@ -60,8 +60,8 @@
 		<AD id="addr" name="Host Address" type="String" required="true"/>
 		<AD id="port" name="Port" type="Integer" min="0" max="65535" required="false"/>
 		<AD id="readThreshold" name="Read Threshold" type="Integer" min="0" default="0"/>
-		<AD id="connectTimeout" name="Connect Timeout" type="Integer" min="-1" default="10"/>
-		<AD id="readTimeout" name="Read Timeout" type="Integer" min="-1" default="10"/>
+		<AD id="connectTimeoutInSeconds" name="Connect Timeout(s)" type="Integer" min="-1" default="10"/>
+		<AD id="readTimeoutInSeconds" name="Read Timeout(s)" type="Integer" min="-1" default="10"/>
 		<AD id="filters" name="Filter Chain" type="String" cardinality="65535" required="false"/>
 		<AD id="reuseAddr" name="Reuse Address" type="Boolean" default="false"/>
 		<AD id="soLinger" name="Linger" type="Integer" min="0" required="false"/>
@@ -83,11 +83,11 @@
 		<AD id="addr" name="Host Address" type="String" required="true"/>
 		<AD id="port" name="Port" type="Integer" min="0" max="65535" required="true"/>
 		<AD id="readThreshold" name="Read Threshold" type="Integer" min="0" default="0"/>
-		<AD id="connectTimeout" name="Connect Timeout" type="Integer" min="-1" default="10"/>
-		<AD id="readTimeout" name="Read Timeout" type="Integer" min="-1" default="10"/>
+		<AD id="connectTimeoutInSeconds" name="Connect Timeout(s)" type="Integer" min="-1" default="10"/>
+		<AD id="readTimeoutInSeconds" name="Read Timeout(s)" type="Integer" min="-1" default="10"/>
 		<AD id="minPoolSize" name="Minimum Pool Size" type="Integer" min="0" default="5"/>
 		<AD id="maxPoolSize" name="Maximum Pool Size" type="Integer" min="0" default="10"/>
-		<AD id="idleTimeout" name="Idle Timeout" type="Integer" min="-1" default="60"/>
+		<AD id="idleTimeoutInSeconds" name="Idle Timeout(s)" type="Integer" min="-1" default="60"/>
 		<AD id="filters" name="Filter Chain" type="String" cardinality="65535" required="false"/>
 		<AD id="reuseAddr" name="Reuse Address" type="Boolean" default="false"/>
 		<AD id="keepAlive" name="Keep Alive" type="Boolean" required="false"/>
@@ -108,7 +108,7 @@
 		<AD id="buffer.target" name="Filter for Selecting Buffer Factory" type="String" required="false"/>
 		<AD id="bindAddr" name="Bind Address" type="String" required="false"/>
 		<AD id="port" name="Port" type="Integer" min="0" max="65535"/>
-		<AD id="sessionIdleTimeout" name="Session Idle Timeout" type="Integer" min="-1" default="120"/>
+		<AD id="sessionIdleTimeoutInSeconds" name="Session Idle Timeout(s)" type="Integer" min="-1" default="120"/>
 		<AD id="initCapacityOfChannelMap" name="Initial Capacity of Channel Map" type="Integer" min="4" default="2048"/>
 		<AD id="filters" name="Filter Chain" type="String" cardinality="65535" required="false"/>
 		<AD id="broadcast" name="Broadcast" type="Boolean" default="false"/>

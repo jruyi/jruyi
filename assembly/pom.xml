@@ -82,14 +82,14 @@
 		<jruyi-cli.version>1.0.4</jruyi-cli.version>
 		<jruyi-launcher.version>1.0.4</jruyi-launcher.version>
 		<jruyi-system.version>${project.version}</jruyi-system.version>
-		<org.jruyi.clid.version>1.1.1</org.jruyi.clid.version>
+		<org.jruyi.clid.version>1.1.2-SNAPSHOT</org.jruyi.clid.version>
 		<org.jruyi.cmd.version>1.1.3-SNAPSHOT</org.jruyi.cmd.version>
 		<org.jruyi.common.version>1.3.0-SNAPSHOT</org.jruyi.common.version>
 		<org.jruyi.io.version>1.2.3-SNAPSHOT</org.jruyi.io.version>
-		<org.jruyi.me.version>1.1.2</org.jruyi.me.version>
+		<org.jruyi.me.version>1.1.3-SNAPSHOT</org.jruyi.me.version>
 		<org.jruyi.osgi.log.version>1.0.1</org.jruyi.osgi.log.version>
 		<org.jruyi.timeoutadmin.version>1.1.2-SNAPSHOT</org.jruyi.timeoutadmin.version>
-		<org.jruyi.workshop.version>1.1.2</org.jruyi.workshop.version>
+		<org.jruyi.workshop.version>1.1.3-SNAPSHOT</org.jruyi.workshop.version>
 	</properties>
 
 	<dependencies>

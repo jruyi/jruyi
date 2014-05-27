@@ -428,7 +428,7 @@ public final class UdpServer extends Service implements IChannelService,
 	}
 
 	private boolean scheduleIdleTimeout(IChannel channel) {
-		int timeout = m_conf.sessionIdleTimeout();
+		int timeout = m_conf.sessionIdleTimeoutInSeconds();
 		if (timeout > 0)
 			return channel.scheduleIdleTimeout(timeout);
 

@@ -273,14 +273,14 @@ public abstract class AbstractTcpClient extends Service implements
 	final void connect() {
 		@SuppressWarnings("resource")
 		TcpChannel channel = new TcpChannel(this);
-		channel.connect(configuration().connectTimeout());
+		channel.connect(configuration().connectTimeoutInSeconds());
 	}
 
 	final void connect(Object attachment) {
 		@SuppressWarnings("resource")
 		TcpChannel channel = new TcpChannel(this);
 		channel.attach(attachment);
-		channel.connect(configuration().connectTimeout());
+		channel.connect(configuration().connectTimeoutInSeconds());
 	}
 
 	private void updateFilters(TcpChannelConf oldConf, TcpChannelConf newConf) {
