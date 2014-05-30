@@ -40,8 +40,6 @@ import org.jruyi.io.IUnitChain;
 
 public final class Buffer implements IBuffer, IUnitChain {
 
-	// private static final IThreadLocalCache<Buffer> c_cache = ThreadLocalCache
-	// .weakLinkedCache();
 	private BufferFactory m_factory;
 	private BiListNode<IUnit> m_positionNode;
 	private BiListNode<IUnit> m_markNode;
@@ -57,10 +55,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 	}
 
 	static Buffer get(BufferFactory factory) {
-		// Buffer buffer = c_cache.take();
-		// if (buffer == null)
-		// buffer = new Buffer();
-		Buffer buffer = new Buffer();
+		final Buffer buffer = new Buffer();
 
 		buffer.m_head.set(factory.getUnit());
 		buffer.m_factory = factory;
@@ -79,7 +74,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 	@Override
 	public IUnit nextUnit() {
-		BiListNode<IUnit> node = m_positionNode.next();
+		final BiListNode<IUnit> node = m_positionNode.next();
 		if (node == m_head)
 			return null;
 		m_positionNode = node;
@@ -98,7 +93,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 	@Override
 	public void append(IUnit unit) {
-		BiListNode<IUnit> node = BiListNode.create();
+		final BiListNode<IUnit> node = BiListNode.create();
 		node.set(unit);
 
 		final BiListNode<IUnit> head = m_head;
@@ -116,10 +111,10 @@ public final class Buffer implements IBuffer, IUnitChain {
 			throw new UnsupportedOperationException(
 					"prepend is not allowed when position() > 0");
 
-		BiListNode<IUnit> node = BiListNode.create();
+		final BiListNode<IUnit> node = BiListNode.create();
 		node.set(unit);
 
-		BiListNode<IUnit> prev = head.previous();
+		final BiListNode<IUnit> prev = head.previous();
 		node.next(head);
 		node.previous(prev);
 		prev.next(node);
@@ -761,21 +756,36 @@ public final class Buffer implements IBuffer, IUnitChain {
 		if (node == positionNode)
 			adjustPosNode = true;
 
-		final BiListNode<IUnit> temp = BiListNode.create();
-		temp.set(cut(size, unit));
-		m_head = temp;
 		final BiListNode<IUnit> next = node.next();
-		if (next == head) {
-			temp.next(temp);
+		if (size > 0) {
+			final BiListNode<IUnit> temp = BiListNode.create();
+			temp.set(cut(size, unit));
+			m_head = temp;
+			if (next == head) {
+				temp.next(temp);
+				temp.previous(temp);
+			} else {
+				BiListNode<IUnit> tail = head.previous();
+				temp.next(next);
+				temp.previous(tail);
+				next.previous(temp);
+				tail.next(temp);
+				head.previous(node);
+				node.next(head);
+			}
+		} else if (next == head) {
+			final BiListNode<IUnit> temp = BiListNode.create();
 			temp.previous(temp);
+			temp.next(temp);
+			temp.set(m_factory.getUnit());
+			m_head = temp;
 		} else {
-			BiListNode<IUnit> tail = head.previous();
-			temp.next(next);
-			temp.previous(tail);
-			next.previous(temp);
-			tail.next(temp);
+			m_head = next;
+			final BiListNode<IUnit> tail = head.previous();
 			head.previous(node);
 			node.next(head);
+			next.previous(tail);
+			tail.next(next);
 		}
 
 		if (adjustMarkNode) {
