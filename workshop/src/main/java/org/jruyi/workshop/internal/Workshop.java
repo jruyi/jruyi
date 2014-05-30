@@ -178,7 +178,7 @@ public final class Workshop implements IWorkshop, IWorkshopProfiler, IDumpable {
 				.append(executor.getKeepAliveTime(TimeUnit.SECONDS))
 				.append(", " + P_QUEUE_CAPACITY + "=").append(m_queueCapacity)
 				.append(", " + P_TERM_WAITTIME + "=")
-				.append(m_terminationWaitTime);
+				.append(m_terminationWaitTime).append('}');
 	}
 
 	@Modified
