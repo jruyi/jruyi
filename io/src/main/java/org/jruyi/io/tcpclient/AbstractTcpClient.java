@@ -45,6 +45,9 @@ public abstract class AbstractTcpClient extends Service implements
 
 	private static final Logger c_logger = LoggerFactory
 			.getLogger(AbstractTcpClient.class);
+
+	private static final Object TRIED_CANCEL = new Object();
+
 	private String m_caption;
 	private IChannelAdmin m_ca;
 	private IFilterManager m_fm;
@@ -281,6 +284,26 @@ public abstract class AbstractTcpClient extends Service implements
 		TcpChannel channel = new TcpChannel(this);
 		channel.attach(attachment);
 		channel.connect(configuration().connectTimeoutInSeconds());
+	}
+
+	final void writeInternal(IChannel channel, Object msg) {
+		channel.deposit(TRIED_CANCEL, Boolean.FALSE);
+		channel.write(msg);
+	}
+
+	final boolean cancelReadTimeout(IChannel channel) {
+		synchronized (channel) {
+			channel.deposit(TRIED_CANCEL, Boolean.TRUE);
+			return channel.cancelTimeout();
+		}
+	}
+
+	final void scheduleReadTimeout(IChannel channel, int timeout) {
+		synchronized (channel) {
+			if ((Boolean) channel.inquiry(TRIED_CANCEL))
+				return;
+			channel.scheduleReadTimeout(timeout);
+		}
 	}
 
 	private void updateFilters(TcpChannelConf oldConf, TcpChannelConf newConf) {

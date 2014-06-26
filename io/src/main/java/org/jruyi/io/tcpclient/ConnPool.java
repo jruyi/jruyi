@@ -51,11 +51,11 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 
 	private static final Logger c_logger = LoggerFactory
 			.getLogger(ConnPool.class);
-	private Configuration m_conf;
 
 	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
 	private IWorkshop m_workshop;
 
+	private Configuration m_conf;
 	private final SyncQueue<Object> m_msgs;
 	private final ReentrantLock m_channelQueueLock;
 	private final BiListNode<IChannel> m_channelQueueHead;
@@ -127,7 +127,7 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 		// fetch an idle channel in the pool if any
 		IChannel channel = fetchChannel();
 		if (channel != null) {
-			channel.write(msg);
+			writeInternal(channel, msg);
 			return;
 		}
 
@@ -147,7 +147,7 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 		if (channel != null) {
 			msg = m_msgs.poll();
 			if (msg != null)
-				channel.write(msg);
+				writeInternal(channel, msg);
 			else
 				poolChannel(channel);
 		}
@@ -169,7 +169,7 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 			return;
 
 		if (timeout > 0)
-			channel.scheduleReadTimeout(timeout);
+			scheduleReadTimeout(channel, timeout);
 		else {
 			// readTimeout == 0, means no response is expected
 			msg = poolChannelIfNoMsg(channel);
@@ -180,7 +180,7 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 
 	@Override
 	public void onMessageReceived(IChannel channel, Object msg) {
-		if (!channel.cancelTimeout() // channel has timed out
+		if (!cancelReadTimeout(channel) // channel has timed out
 				|| m_conf.readTimeoutInSeconds() == 0 // no response is expected
 		) {
 			if (msg instanceof Closeable) {
@@ -206,13 +206,13 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 
 		msg = poolChannelIfNoMsg(channel);
 		if (msg != null)
-			channel.write(msg);
+			writeInternal(channel, msg);
 	}
 
 	@Override
 	public void onChannelOpened(IChannel channel) {
 		super.onChannelOpened(channel);
-		channel.write(channel.detach());
+		writeInternal(channel, channel.detach());
 	}
 
 	@Override
@@ -333,8 +333,8 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 
 	@Override
 	public void run(IArgList args) {
-		IChannel channel = (IChannel) args.arg(0);
-		channel.write(args.arg(1));
+		final IChannel channel = (IChannel) args.arg(0);
+		writeInternal(channel, args.arg(1));
 	}
 
 	protected synchronized void bindWorkshop(IWorkshop workshop) {

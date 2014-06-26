@@ -50,7 +50,7 @@ public final class ShortConn extends AbstractTcpClient {
 	@Override
 	public void onChannelOpened(IChannel channel) {
 		super.onChannelOpened(channel);
-		channel.write(channel.detach());
+		writeInternal(channel, channel.detach());
 	}
 
 	@Override
@@ -65,7 +65,7 @@ public final class ShortConn extends AbstractTcpClient {
 		}
 		int timeout = m_conf.readTimeoutInSeconds();
 		if (timeout > 0)
-			channel.scheduleReadTimeout(timeout);
+			scheduleReadTimeout(channel, timeout);
 		else if (timeout == 0)
 			channel.close();
 	}
@@ -74,7 +74,7 @@ public final class ShortConn extends AbstractTcpClient {
 	public void onMessageReceived(IChannel channel, Object msg) {
 
 		// if false, channel has timed out.
-		if (channel.cancelTimeout()) {
+		if (cancelReadTimeout(channel)) {
 			channel.close();
 			final ISessionListener listener = listener();
 			if (listener != null) {

@@ -61,14 +61,14 @@ public final class TcpClient extends AbstractTcpClient {
 		}
 		int timeout = m_conf.readTimeoutInSeconds();
 		if (timeout > 0)
-			channel.scheduleReadTimeout(timeout);
+			scheduleReadTimeout(channel, timeout);
 		else if (timeout == 0)
 			onChannelReadTimedOut(channel);
 	}
 
 	@Override
 	public void onMessageReceived(IChannel channel, Object msg) {
-		if (!channel.cancelTimeout()) { // channel has timed out
+		if (!cancelReadTimeout(channel)) { // channel has timed out
 			if (msg instanceof Closeable) {
 				try {
 					((Closeable) msg).close();
