@@ -66,14 +66,14 @@ public final class CharsetCodecProvider implements IFactory {
 			if (length == 0)
 				return;
 
-			CharBuffer cb = in.getCharBuffer(offset, length);
+			final CharBuffer cb = in.getCharBuffer(offset, length);
 
-			CharsetEncoder ce = getEncoder();
+			final CharsetEncoder ce = getEncoder();
 			try {
 				offset = out.length();
 				length = scale(length, ce.maxBytesPerChar());
 				out.ensureCapacity(offset + length);
-				ByteBuffer bb = out.getByteBuffer(offset, length);
+				final ByteBuffer bb = out.getByteBuffer(offset, length);
 
 				ce.reset();
 				CoderResult cr = ce.encode(cb, bb, true);
@@ -102,13 +102,13 @@ public final class CharsetCodecProvider implements IFactory {
 			if (length == 0)
 				return;
 
-			CharBuffer cb = CharBuffer.wrap(chars, offset, length);
-			CharsetEncoder ce = getEncoder();
+			final CharBuffer cb = CharBuffer.wrap(chars, offset, length);
+			final CharsetEncoder ce = getEncoder();
 			try {
 				offset = out.length();
 				length = scale(length, ce.maxBytesPerChar());
 				out.ensureCapacity(offset + length);
-				ByteBuffer bb = out.getByteBuffer(offset, length);
+				final ByteBuffer bb = out.getByteBuffer(offset, length);
 
 				ce.reset();
 				CoderResult cr = ce.encode(cb, bb, true);
@@ -131,12 +131,12 @@ public final class CharsetCodecProvider implements IFactory {
 			if (!in.hasRemaining())
 				return;
 
-			CharsetEncoder ce = getEncoder();
+			final CharsetEncoder ce = getEncoder();
 			try {
-				int offset = out.length();
-				int length = scale(in.remaining(), ce.maxBytesPerChar());
+				final int offset = out.length();
+				final int length = scale(in.remaining(), ce.maxBytesPerChar());
 				out.ensureCapacity(offset + length);
-				ByteBuffer bb = out.getByteBuffer(offset, length);
+				final ByteBuffer bb = out.getByteBuffer(offset, length);
 
 				ce.reset();
 				CoderResult cr = ce.encode(in, bb, true);
@@ -164,14 +164,14 @@ public final class CharsetCodecProvider implements IFactory {
 			if (length == 0)
 				return EMPTY_BYTES;
 
-			CharBuffer cb = CharBuffer.wrap(chars, offset, length);
+			final CharBuffer cb = CharBuffer.wrap(chars, offset, length);
 
-			CharsetEncoder ce = getEncoder();
-			int size = scale(length, ce.maxBytesPerChar());
+			final CharsetEncoder ce = getEncoder();
+			final int size = scale(length, ce.maxBytesPerChar());
 
-			BytesBuilder out = BytesBuilder.get(size);
+			final BytesBuilder out = BytesBuilder.get(size);
 			try {
-				ByteBuffer bb = out.getByteBuffer(0, size);
+				final ByteBuffer bb = out.getByteBuffer(0, size);
 
 				ce.reset();
 				CoderResult cr = ce.encode(cb, bb, true);
@@ -197,12 +197,12 @@ public final class CharsetCodecProvider implements IFactory {
 			if (!in.hasRemaining())
 				return EMPTY_BYTES;
 
-			CharsetEncoder ce = getEncoder();
-			int size = scale(in.remaining(), ce.maxBytesPerChar());
+			final CharsetEncoder ce = getEncoder();
+			final int size = scale(in.remaining(), ce.maxBytesPerChar());
 
-			BytesBuilder out = BytesBuilder.get(size);
+			final BytesBuilder out = BytesBuilder.get(size);
 			try {
-				ByteBuffer bb = out.getByteBuffer(0, size);
+				final ByteBuffer bb = out.getByteBuffer(0, size);
 
 				ce.reset();
 				CoderResult cr = ce.encode(in, bb, true);
@@ -230,8 +230,8 @@ public final class CharsetCodecProvider implements IFactory {
 
 		@Override
 		public byte[] toBytes(String str, int offset, int length) {
-			CharBuffer cb = CharBuffer.wrap(str, offset, offset + length);
-			BytesBuilder out = BytesBuilder.get();
+			final CharBuffer cb = CharBuffer.wrap(str, offset, offset + length);
+			final BytesBuilder out = BytesBuilder.get();
 			try {
 				encode(cb, out);
 				return out.toBytes();
@@ -251,14 +251,14 @@ public final class CharsetCodecProvider implements IFactory {
 			if (length == 0)
 				return;
 
-			ByteBuffer bb = in.getByteBuffer(offset, length);
+			final ByteBuffer bb = in.getByteBuffer(offset, length);
 
-			CharsetDecoder cd = getDecoder();
+			final CharsetDecoder cd = getDecoder();
 			try {
 				offset = out.length();
 				length = scale(length, cd.maxCharsPerByte());
 				out.ensureCapacity(offset + length);
-				CharBuffer cb = out.getCharBuffer(offset, length);
+				final CharBuffer cb = out.getCharBuffer(offset, length);
 
 				cd.reset();
 				CoderResult cr = cd.decode(bb, cb, true);
@@ -286,14 +286,14 @@ public final class CharsetCodecProvider implements IFactory {
 			if (length == 0)
 				return;
 
-			ByteBuffer bb = ByteBuffer.wrap(in, offset, length);
+			final ByteBuffer bb = ByteBuffer.wrap(in, offset, length);
 
-			CharsetDecoder cd = getDecoder();
+			final CharsetDecoder cd = getDecoder();
 			try {
 				offset = out.length();
 				length = scale(length, cd.maxCharsPerByte());
 				out.ensureCapacity(offset + length);
-				CharBuffer cb = out.getCharBuffer(offset, length);
+				final CharBuffer cb = out.getCharBuffer(offset, length);
 
 				cd.reset();
 				CoderResult cr = cd.decode(bb, cb, true);
@@ -316,12 +316,12 @@ public final class CharsetCodecProvider implements IFactory {
 			if (!in.hasRemaining())
 				return;
 
-			CharsetDecoder cd = getDecoder();
+			final CharsetDecoder cd = getDecoder();
 			try {
-				int offset = out.length();
-				int length = scale(in.remaining(), cd.maxCharsPerByte());
+				final int offset = out.length();
+				final int length = scale(in.remaining(), cd.maxCharsPerByte());
 				out.ensureCapacity(offset + length);
-				CharBuffer cb = out.getCharBuffer(offset, length);
+				final CharBuffer cb = out.getCharBuffer(offset, length);
 
 				cd.reset();
 				CoderResult cr = cd.decode(in, cb, true);
@@ -349,14 +349,14 @@ public final class CharsetCodecProvider implements IFactory {
 			if (length == 0)
 				return EMPTY_CHARS;
 
-			ByteBuffer bb = ByteBuffer.wrap(in, offset, length);
+			final ByteBuffer bb = ByteBuffer.wrap(in, offset, length);
 
-			CharsetDecoder cd = getDecoder();
-			int size = scale(length, cd.maxCharsPerByte());
+			final CharsetDecoder cd = getDecoder();
+			final int size = scale(length, cd.maxCharsPerByte());
 
-			StringBuilder out = StringBuilder.get(size);
+			final StringBuilder out = StringBuilder.get(size);
 			try {
-				CharBuffer cb = out.getCharBuffer(0, size);
+				final CharBuffer cb = out.getCharBuffer(0, size);
 
 				cd.reset();
 				CoderResult cr = cd.decode(bb, cb, true);
@@ -382,12 +382,12 @@ public final class CharsetCodecProvider implements IFactory {
 			if (!in.hasRemaining())
 				return EMPTY_CHARS;
 
-			CharsetDecoder cd = getDecoder();
-			int size = scale(in.remaining(), cd.maxCharsPerByte());
+			final CharsetDecoder cd = getDecoder();
+			final int size = scale(in.remaining(), cd.maxCharsPerByte());
 
-			StringBuilder out = StringBuilder.get(size);
+			final StringBuilder out = StringBuilder.get(size);
 			try {
-				CharBuffer cb = out.getCharBuffer(0, size);
+				final CharBuffer cb = out.getCharBuffer(0, size);
 
 				cd.reset();
 				CoderResult cr = cd.decode(in, cb, true);
@@ -418,14 +418,14 @@ public final class CharsetCodecProvider implements IFactory {
 			if (length == 0)
 				return "";
 
-			ByteBuffer bb = ByteBuffer.wrap(in, offset, length);
+			final ByteBuffer bb = ByteBuffer.wrap(in, offset, length);
 
-			CharsetDecoder cd = getDecoder();
-			int size = scale(length, cd.maxCharsPerByte());
+			final CharsetDecoder cd = getDecoder();
+			final int size = scale(length, cd.maxCharsPerByte());
 
-			StringBuilder out = StringBuilder.get(size);
+			final StringBuilder out = StringBuilder.get(size);
 			try {
-				CharBuffer cb = out.getCharBuffer(0, size);
+				final CharBuffer cb = out.getCharBuffer(0, size);
 
 				cd.reset();
 				CoderResult cr = cd.decode(bb, cb, true);
@@ -451,12 +451,12 @@ public final class CharsetCodecProvider implements IFactory {
 			if (!in.hasRemaining())
 				return "";
 
-			CharsetDecoder cd = getDecoder();
-			int size = scale(in.remaining(), cd.maxCharsPerByte());
+			final CharsetDecoder cd = getDecoder();
+			final int size = scale(in.remaining(), cd.maxCharsPerByte());
 
-			StringBuilder out = StringBuilder.get(size);
+			final StringBuilder out = StringBuilder.get(size);
 			try {
-				CharBuffer cb = out.getCharBuffer(0, size);
+				final CharBuffer cb = out.getCharBuffer(0, size);
 
 				cd.reset();
 				CoderResult cr = cd.decode(in, cb, true);
@@ -494,13 +494,13 @@ public final class CharsetCodecProvider implements IFactory {
 			if (n < 1)
 				return;
 
-			CharsetEncoder ce = getEncoder();
-			StringBuilder builder = StringBuilder.get();
+			final CharsetEncoder ce = getEncoder();
+			final StringBuilder builder = StringBuilder.get();
 			try {
 				i = out.length();
 				length = scale(n, ce.maxBytesPerChar());
 				out.ensureCapacity(i + length);
-				ByteBuffer bb = out.getByteBuffer(i, length);
+				final ByteBuffer bb = out.getByteBuffer(i, length);
 
 				ce.reset();
 				for (i = offset; i < j; ++i) {
@@ -513,7 +513,7 @@ public final class CharsetCodecProvider implements IFactory {
 						cb.flip();
 					}
 
-					CoderResult cr = ce.encode(cb, bb, i == j - 1);
+					final CoderResult cr = ce.encode(cb, bb, i == j - 1);
 					if (!cr.isUnderflow())
 						cr.throwException();
 
@@ -531,7 +531,7 @@ public final class CharsetCodecProvider implements IFactory {
 						builder.setLength(0);
 				}
 
-				CoderResult cr = ce.flush(bb);
+				final CoderResult cr = ce.flush(bb);
 				if (!cr.isUnderflow())
 					cr.throwException();
 
@@ -551,7 +551,7 @@ public final class CharsetCodecProvider implements IFactory {
 
 		@Override
 		public byte[] encode(CharBuffer[] in, int offset, int length) {
-			BytesBuilder builder = BytesBuilder.get();
+			final BytesBuilder builder = BytesBuilder.get();
 			try {
 				encode(in, offset, length, builder);
 				return builder.toBytes();
@@ -577,13 +577,13 @@ public final class CharsetCodecProvider implements IFactory {
 			if (n < 1)
 				return;
 
-			CharsetDecoder cd = getDecoder();
-			BytesBuilder builder = BytesBuilder.get();
+			final CharsetDecoder cd = getDecoder();
+			final BytesBuilder builder = BytesBuilder.get();
 			try {
 				i = out.length();
 				length = scale(n, cd.maxCharsPerByte());
 				out.ensureCapacity(i + length);
-				CharBuffer cb = out.getCharBuffer(i, length);
+				final CharBuffer cb = out.getCharBuffer(i, length);
 
 				cd.reset();
 				for (i = offset; i < j; ++i) {
@@ -596,7 +596,7 @@ public final class CharsetCodecProvider implements IFactory {
 						bb.flip();
 					}
 
-					CoderResult cr = cd.decode(bb, cb, i == j - 1);
+					final CoderResult cr = cd.decode(bb, cb, i == j - 1);
 					if (!cr.isUnderflow())
 						cr.throwException();
 
@@ -614,7 +614,7 @@ public final class CharsetCodecProvider implements IFactory {
 						builder.setLength(0);
 				}
 
-				CoderResult cr = cd.flush(cb);
+				final CoderResult cr = cd.flush(cb);
 				if (!cr.isUnderflow())
 					cr.throwException();
 
@@ -634,7 +634,7 @@ public final class CharsetCodecProvider implements IFactory {
 
 		@Override
 		public char[] decode(ByteBuffer[] in, int offset, int length) {
-			StringBuilder builder = StringBuilder.get();
+			final StringBuilder builder = StringBuilder.get();
 			try {
 				decode(in, offset, length, builder);
 				return builder.toCharArray();
@@ -650,7 +650,7 @@ public final class CharsetCodecProvider implements IFactory {
 
 		@Override
 		public String toString(ByteBuffer[] in, int offset, int length) {
-			StringBuilder builder = StringBuilder.get();
+			final StringBuilder builder = StringBuilder.get();
 			try {
 				decode(in, offset, length, builder);
 				return builder.toString();
@@ -722,9 +722,9 @@ public final class CharsetCodecProvider implements IFactory {
 		SoftReference<CharsetCodec> reference = c_cache.get(charsetName);
 		CharsetCodec cc = reference != null ? reference.get() : null;
 		if (cc == null) {
-			Map<String, SoftReference<CharsetCodec>> cache = c_cache;
-			Charset charset = Charset.forName(charsetName);
-			String canonicalName = charset.name();
+			final Map<String, SoftReference<CharsetCodec>> cache = c_cache;
+			final Charset charset = Charset.forName(charsetName);
+			final String canonicalName = charset.name();
 			reference = cache.get(canonicalName);
 			if (reference != null)
 				cc = reference.get();
@@ -745,7 +745,7 @@ public final class CharsetCodecProvider implements IFactory {
 
 	@Override
 	public ICharsetCodec get(Charset charset) {
-		String name = charset.name();
+		final String name = charset.name();
 		SoftReference<CharsetCodec> reference = c_cache.get(name);
 		CharsetCodec cc = reference == null ? null : reference.get();
 		if (cc != null)

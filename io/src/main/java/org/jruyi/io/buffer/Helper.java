@@ -79,10 +79,37 @@ public final class Helper {
 		return length;
 	}
 
+	static void prepend(ICharsetCodec cc, CharBuffer cb, IUnitChain unitChain) {
+		final BytesBuilder bb = BytesBuilder.get();
+		try {
+			cc.encode(cb, bb);
+			int length = bb.length();
+			IUnit unit = Util.firstUnit(unitChain);
+			while ((length -= prepend(bb, 0, length, unit)) > 0)
+				unit = Util.prependNewUnit(unitChain);
+		} finally {
+			bb.close();
+		}
+	}
+
 	static void prepend(ICharsetCodec cc, StringBuilder sb, IUnitChain unitChain) {
 		final BytesBuilder bb = BytesBuilder.get();
 		try {
 			cc.encode(sb, bb);
+			int length = bb.length();
+			IUnit unit = Util.firstUnit(unitChain);
+			while ((length -= prepend(bb, 0, length, unit)) > 0)
+				unit = Util.prependNewUnit(unitChain);
+		} finally {
+			bb.close();
+		}
+	}
+
+	static void prepend(ICharsetCodec cc, StringBuilder sb, int offset,
+			int len, IUnitChain unitChain) {
+		final BytesBuilder bb = BytesBuilder.get();
+		try {
+			cc.encode(sb, offset, len, bb);
 			int length = bb.length();
 			IUnit unit = Util.firstUnit(unitChain);
 			while ((length -= prepend(bb, 0, length, unit)) > 0)

@@ -17,7 +17,6 @@ import java.nio.CharBuffer;
 
 import org.jruyi.common.CharsetCodec;
 import org.jruyi.common.ICharsetCodec;
-import org.jruyi.common.StringBuilder;
 import org.jruyi.io.AbstractCodec;
 import org.jruyi.io.ICodec;
 import org.jruyi.io.IUnit;
@@ -46,7 +45,7 @@ public final class StringCodec extends AbstractCodec<String> {
 
 	@Override
 	public String read(IUnitChain unitChain) {
-		ByteBufferArray bba = ByteBufferArray.get();
+		final ByteBufferArray bba = ByteBufferArray.get();
 		try {
 			IUnit unit = unitChain.currentUnit();
 			bba.add(unit.getByteBufferForRead(unit.position(), unit.remaining()));
@@ -56,7 +55,7 @@ public final class StringCodec extends AbstractCodec<String> {
 						unit.remaining()));
 				unit.position(unit.size());
 			}
-			ICharsetCodec cc = CharsetCodec.get(m_charsetName);
+			final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
 			return cc.toString(bba.array(), 0, bba.size());
 		} finally {
 			bba.clear();
@@ -71,7 +70,7 @@ public final class StringCodec extends AbstractCodec<String> {
 		if (length == 0)
 			return "";
 
-		ByteBufferArray bba = ByteBufferArray.get();
+		final ByteBufferArray bba = ByteBufferArray.get();
 		try {
 			IUnit unit = unitChain.currentUnit();
 			bba.add(unit.getByteBufferForRead(unit.position(), length));
@@ -79,7 +78,7 @@ public final class StringCodec extends AbstractCodec<String> {
 				unit = unitChain.nextUnit();
 				bba.add(unit.getByteBufferForRead(unit.position(), length));
 			}
-			ICharsetCodec cc = CharsetCodec.get(m_charsetName);
+			final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
 			return cc.toString(bba.array(), 0, bba.size());
 		} finally {
 			bba.clear();
@@ -88,13 +87,13 @@ public final class StringCodec extends AbstractCodec<String> {
 
 	@Override
 	public void write(String str, IUnitChain unitChain) {
-		ICharsetCodec cc = CharsetCodec.get(m_charsetName);
+		final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
 		Helper.write(cc, CharBuffer.wrap(str), unitChain);
 	}
 
 	@Override
 	public void write(String str, int offset, int length, IUnitChain unitChain) {
-		ICharsetCodec cc = CharsetCodec.get(m_charsetName);
+		final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
 		Helper.write(cc, CharBuffer.wrap(str, offset, offset + length),
 				unitChain);
 	}
@@ -103,13 +102,13 @@ public final class StringCodec extends AbstractCodec<String> {
 	public String get(IUnitChain unitChain, int index) {
 		if (index < 0)
 			throw new IndexOutOfBoundsException();
-		ByteBufferArray bba = ByteBufferArray.get();
+		final ByteBufferArray bba = ByteBufferArray.get();
 		try {
 			IUnit unit = unitChain.currentUnit();
 			bba.add(unit.getByteBufferForRead(index, unit.size() - index));
 			while ((unit = unitChain.nextUnit()) != null)
 				bba.add(unit.getByteBufferForRead(0, unit.size()));
-			ICharsetCodec cc = CharsetCodec.get(m_charsetName);
+			final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
 			return cc.toString(bba.array(), 0, bba.size());
 		} finally {
 			bba.clear();
@@ -122,7 +121,7 @@ public final class StringCodec extends AbstractCodec<String> {
 			throw new IndexOutOfBoundsException();
 		if (length == 0)
 			return "";
-		ByteBufferArray bba = ByteBufferArray.get();
+		final ByteBufferArray bba = ByteBufferArray.get();
 		try {
 			IUnit unit = unitChain.currentUnit();
 			bba.add(unit.getByteBufferForRead(index, length));
@@ -132,7 +131,7 @@ public final class StringCodec extends AbstractCodec<String> {
 				bba.add(unit.getByteBufferForRead(0, length));
 				length -= unit.size();
 			}
-			ICharsetCodec cc = CharsetCodec.get(m_charsetName);
+			final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
 			return cc.toString(bba.array(), 0, bba.size());
 		} finally {
 			bba.clear();
@@ -141,24 +140,14 @@ public final class StringCodec extends AbstractCodec<String> {
 
 	@Override
 	public void prepend(String str, IUnitChain unitChain) {
-		StringBuilder sb = StringBuilder.get(str);
-		try {
-			ICharsetCodec cc = CharsetCodec.get(m_charsetName);
-			Helper.prepend(cc, sb, unitChain);
-		} finally {
-			sb.close();
-		}
+		final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
+		Helper.prepend(cc, CharBuffer.wrap(str), unitChain);
 	}
 
 	@Override
 	public void prepend(String str, int offset, int length, IUnitChain unitChain) {
-		StringBuilder sb = StringBuilder.get(length);
-		try {
-			sb.append(str, offset, offset + length);
-			ICharsetCodec cc = CharsetCodec.get(m_charsetName);
-			Helper.prepend(cc, sb, unitChain);
-		} finally {
-			sb.close();
-		}
+		final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
+		Helper.prepend(cc, CharBuffer.wrap(str, offset, offset + length),
+				unitChain);
 	}
 }

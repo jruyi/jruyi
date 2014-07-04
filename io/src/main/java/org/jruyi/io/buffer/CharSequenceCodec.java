@@ -45,39 +45,52 @@ public final class CharSequenceCodec extends AbstractCodec<CharSequence> {
 
 	@Override
 	public void write(CharSequence cs, IUnitChain unitChain) {
-		ICharsetCodec cc = CharsetCodec.get(m_charsetName);
-		Helper.write(cc, CharBuffer.wrap(cs), unitChain);
+		final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
+		final CharBuffer cb;
+		if (cs instanceof StringBuilder)
+			cb = ((StringBuilder) cs).getCharBuffer(0, cs.length());
+		else if (cs instanceof CharBuffer)
+			cb = (CharBuffer) cs;
+		else
+			cb = CharBuffer.wrap(cs);
+		Helper.write(cc, cb, unitChain);
 	}
 
 	@Override
 	public void write(CharSequence cs, int offset, int length,
 			IUnitChain unitChain) {
-		ICharsetCodec cc = CharsetCodec.get(m_charsetName);
-		Helper.write(cc, CharBuffer.wrap(cs, offset, offset + length),
-				unitChain);
+		final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
+		final CharBuffer cb;
+		if (cs instanceof StringBuilder)
+			cb = ((StringBuilder) cs).getCharBuffer(offset, length);
+		else
+			cb = CharBuffer.wrap(cs, offset, offset + length);
+		Helper.write(cc, cb, unitChain);
 	}
 
 	@Override
 	public void prepend(CharSequence cs, IUnitChain unitChain) {
-		StringBuilder sb = StringBuilder.get(cs);
-		try {
-			ICharsetCodec cc = CharsetCodec.get(m_charsetName);
-			Helper.prepend(cc, sb, unitChain);
-		} finally {
-			sb.close();
+		final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
+		if (cs instanceof StringBuilder) {
+			Helper.prepend(cc, (StringBuilder) cs, unitChain);
+			return;
 		}
+
+		final CharBuffer cb = cs instanceof CharBuffer ? (CharBuffer) cs
+				: CharBuffer.wrap(cs);
+		Helper.prepend(cc, cb, unitChain);
 	}
 
 	@Override
 	public void prepend(CharSequence cs, int offset, int length,
 			IUnitChain unitChain) {
-		StringBuilder sb = StringBuilder.get(length);
-		try {
-			sb.append(cs, offset, offset + length);
-			ICharsetCodec cc = CharsetCodec.get(m_charsetName);
-			Helper.prepend(cc, sb, unitChain);
-		} finally {
-			sb.close();
+		final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
+		if (cs instanceof StringBuilder) {
+			Helper.prepend(cc, (StringBuilder) cs, offset, length, unitChain);
+			return;
 		}
+
+		Helper.prepend(cc, CharBuffer.wrap(cs, offset, offset + length),
+				unitChain);
 	}
 }

@@ -13,7 +13,11 @@
  */
 package org.jruyi.io.buffer;
 
+import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CoderResult;
 
 import org.jruyi.common.BytesBuilder;
 import org.jruyi.common.CharsetCodec;
@@ -46,7 +50,7 @@ public final class CharArrayCodec extends AbstractCodec<char[]> {
 
 	@Override
 	public char[] read(IUnitChain unitChain) {
-		ByteBufferArray bba = ByteBufferArray.get();
+		final ByteBufferArray bba = ByteBufferArray.get();
 		try {
 			IUnit unit = unitChain.currentUnit();
 			bba.add(unit.getByteBufferForRead(unit.position(), unit.remaining()));
@@ -56,8 +60,8 @@ public final class CharArrayCodec extends AbstractCodec<char[]> {
 						unit.remaining()));
 				unit.position(unit.size());
 			}
-			ICharsetCodec cc = CharsetCodec.get(m_charsetName);
-			return cc.decode(bba.array());
+			final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
+			return cc.decode(bba.array(), 0, bba.size());
 		} finally {
 			bba.clear();
 		}
@@ -70,7 +74,7 @@ public final class CharArrayCodec extends AbstractCodec<char[]> {
 		if (length == 0)
 			return Helper.EMPTY_CHARS;
 
-		ByteBufferArray bba = ByteBufferArray.get();
+		final ByteBufferArray bba = ByteBufferArray.get();
 		try {
 			IUnit unit = unitChain.currentUnit();
 			bba.add(unit.getByteBufferForRead(unit.position(), length));
@@ -78,8 +82,8 @@ public final class CharArrayCodec extends AbstractCodec<char[]> {
 				unit = unitChain.nextUnit();
 				bba.add(unit.getByteBufferForRead(unit.position(), length));
 			}
-			ICharsetCodec cc = CharsetCodec.get(m_charsetName);
-			return cc.decode(bba.array());
+			final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
+			return cc.decode(bba.array(), 0, bba.size());
 		} finally {
 			bba.clear();
 		}
@@ -87,14 +91,14 @@ public final class CharArrayCodec extends AbstractCodec<char[]> {
 
 	@Override
 	public char[] get(IUnitChain unitChain, int index) {
-		ByteBufferArray bba = ByteBufferArray.get();
+		final ByteBufferArray bba = ByteBufferArray.get();
 		try {
 			IUnit unit = unitChain.currentUnit();
 			bba.add(unit.getByteBufferForRead(index, unit.size() - index));
 			while ((unit = unitChain.nextUnit()) != null)
 				bba.add(unit.getByteBufferForRead(0, unit.size()));
-			ICharsetCodec cc = CharsetCodec.get(m_charsetName);
-			return cc.decode(bba.array());
+			final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
+			return cc.decode(bba.array(), 0, bba.size());
 		} finally {
 			bba.clear();
 		}
@@ -107,7 +111,7 @@ public final class CharArrayCodec extends AbstractCodec<char[]> {
 		if (length == 0)
 			return Helper.EMPTY_CHARS;
 
-		ByteBufferArray bba = ByteBufferArray.get();
+		final ByteBufferArray bba = ByteBufferArray.get();
 		try {
 			IUnit unit = unitChain.currentUnit();
 			bba.add(unit.getByteBufferForRead(index, length));
@@ -119,8 +123,8 @@ public final class CharArrayCodec extends AbstractCodec<char[]> {
 				bba.add(unit.getByteBufferForRead(0, length));
 				length -= unit.size();
 			}
-			ICharsetCodec cc = CharsetCodec.get(m_charsetName);
-			return cc.decode(bba.array());
+			final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
+			return cc.decode(bba.array(), 0, bba.size());
 		} finally {
 			bba.clear();
 		}
@@ -128,20 +132,20 @@ public final class CharArrayCodec extends AbstractCodec<char[]> {
 
 	@Override
 	public void write(char[] chars, IUnitChain unitChain) {
-		ICharsetCodec cc = CharsetCodec.get(m_charsetName);
+		final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
 		Helper.write(cc, CharBuffer.wrap(chars), unitChain);
 	}
 
 	@Override
 	public void write(char[] chars, int offset, int length, IUnitChain unitChain) {
-		ICharsetCodec cc = CharsetCodec.get(m_charsetName);
+		final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
 		Helper.write(cc, CharBuffer.wrap(chars, offset, length), unitChain);
 	}
 
 	@Override
 	public void prepend(char[] chars, IUnitChain unitChain) {
-		ICharsetCodec cc = CharsetCodec.get(m_charsetName);
-		BytesBuilder bb = BytesBuilder.get();
+		final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
+		final BytesBuilder bb = BytesBuilder.get();
 		try {
 			cc.encode(chars, bb);
 			int length = bb.length();
@@ -156,8 +160,8 @@ public final class CharArrayCodec extends AbstractCodec<char[]> {
 	@Override
 	public void prepend(char[] chars, int offset, int length,
 			IUnitChain unitChain) {
-		ICharsetCodec cc = CharsetCodec.get(m_charsetName);
-		BytesBuilder bb = BytesBuilder.get();
+		final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
+		final BytesBuilder bb = BytesBuilder.get();
 		try {
 			cc.encode(chars, offset, length, bb);
 			length = bb.length();
