@@ -19,14 +19,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Properties;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.ReferencePolicy;
-import org.apache.felix.scr.annotations.References;
 import org.jruyi.common.BiListNode;
 import org.jruyi.common.IServiceHolderManager;
 import org.jruyi.common.ServiceHolderManager;
@@ -48,18 +40,19 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Component(name = "jruyi.me.mq", createPid = false)
-@References({
-		@Reference(name = "endpoint", referenceInterface = IEndpoint.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, updated = "updatedEndpoint"),
-		@Reference(name = "processor", referenceInterface = IProcessor.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, updated = "updatedProcessor") })
-@Properties({
-		@Property(name = "endpoint.target", value = "(" + MeConstants.EP_ID
-				+ "=*)"),
-		@Property(name = "processor.target", value = "(" + MeConstants.EP_ID
-				+ "=*)") })
+@Component(name = "jruyi.me.mq", //
+service = {}, //
+property = { "endpoint.target=(" + MeConstants.EP_ID + "=*)",
+		"processor.target=(" + MeConstants.EP_ID + "=*)", }, //
+xmlns = "http://www.osgi.org/xmlns/scr/v1.2.0")
 public final class MessageQueue implements ITimeoutListener {
 
 	static final PreHandlerDelegator[] EMPTY_PREHANDLERS = new PreHandlerDelegator[0];
@@ -67,7 +60,6 @@ public final class MessageQueue implements ITimeoutListener {
 	private static final Logger c_logger = LoggerFactory
 			.getLogger(MessageQueue.class);
 
-	@Property(intValue = 10)
 	private static final String P_MSG_TIMEOUT = "msgTimeoutInSeconds";
 
 	private final ConcurrentHashMap<String, Endpoint> m_endpoints;
@@ -77,13 +69,8 @@ public final class MessageQueue implements ITimeoutListener {
 	private IServiceHolderManager<IPreHandler> m_preHandlerManager;
 	private IServiceHolderManager<IPostHandler> m_postHandlerManager;
 
-	@Reference(name = "routerManager", policy = ReferencePolicy.DYNAMIC)
 	private IRouterManager m_rm;
-
-	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
 	private IWorkshop m_workshop;
-
-	@Reference(name = "timeoutAdmin", policy = ReferencePolicy.DYNAMIC)
 	private ITimeoutAdmin m_ta;
 
 	private volatile ComponentContext m_context;
@@ -132,36 +119,40 @@ public final class MessageQueue implements ITimeoutListener {
 		msg.close();
 	}
 
-	protected synchronized void bindRouterManager(IRouterManager rm) {
+	@Reference(name = "routerManager", policy = ReferencePolicy.DYNAMIC)
+	protected synchronized void setRouterManager(IRouterManager rm) {
 		m_rm = rm;
 	}
 
-	protected synchronized void unbindRouterManager(IRouterManager rm) {
+	protected synchronized void unsetRouterManager(IRouterManager rm) {
 		if (m_rm == rm)
 			m_rm = null;
 	}
 
-	protected synchronized void bindWorkshop(IWorkshop workshop) {
-		m_workshop = workshop;
-	}
-
-	protected synchronized void unbindWorkshop(IWorkshop workshop) {
-		if (m_workshop == workshop)
-			m_workshop = null;
-	}
-
-	protected synchronized void bindTimeoutAdmin(ITimeoutAdmin ta) {
+	@Reference(name = "timeoutAdmin", policy = ReferencePolicy.DYNAMIC)
+	protected synchronized void setTimeoutAdmin(ITimeoutAdmin ta) {
 		m_ta = ta;
 	}
 
-	protected synchronized void unbindTimeoutAdmin(ITimeoutAdmin ta) {
+	protected synchronized void unsetTimeoutAdmin(ITimeoutAdmin ta) {
 		if (m_ta == ta)
 			m_ta = null;
 	}
 
-	protected synchronized void bindEndpoint(
+	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
+	protected synchronized void setWorkshop(IWorkshop workshop) {
+		m_workshop = workshop;
+	}
+
+	protected synchronized void unsetWorkshop(IWorkshop workshop) {
+		if (m_workshop == workshop)
+			m_workshop = null;
+	}
+
+	@Reference(name = "endpoint", service = IEndpoint.class, cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
+	protected synchronized void setEndpoint(
 			ServiceReference<IEndpoint> reference) throws Exception {
-		String id = getId(reference);
+		final String id = getId(reference);
 		if (id == null)
 			return;
 
@@ -187,9 +178,9 @@ public final class MessageQueue implements ITimeoutListener {
 		wakeMsgs(endpoint);
 	}
 
-	protected synchronized void unbindEndpoint(
+	protected synchronized void unsetEndpoint(
 			ServiceReference<IEndpoint> reference) {
-		Endpoint endpoint = m_refEps.remove(reference);
+		final Endpoint endpoint = m_refEps.remove(reference);
 		if (endpoint != null) {
 			m_endpoints.remove(endpoint.id());
 			endpoint.closeProducer();
@@ -198,22 +189,23 @@ public final class MessageQueue implements ITimeoutListener {
 
 	protected synchronized void updatedEndpoint(
 			ServiceReference<IEndpoint> reference) throws Exception {
-		Endpoint endpoint = m_refEps.get(reference);
+		final Endpoint endpoint = m_refEps.get(reference);
 		if (endpoint != null) {
 			updated(endpoint, reference);
 			return;
 		}
 
-		bindEndpoint(reference);
+		setEndpoint(reference);
 	}
 
-	protected synchronized void bindProcessor(
+	@Reference(name = "processor", service = IProcessor.class, cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
+	protected synchronized void setProcessor(
 			ServiceReference<IProcessor> reference) {
-		String id = getId(reference);
+		final String id = getId(reference);
 		if (id == null)
 			return;
 
-		Map<String, Endpoint> endpoints = m_endpoints;
+		final Map<String, Endpoint> endpoints = m_endpoints;
 		Endpoint endpoint = endpoints.get(id);
 		if (endpoint != null) {
 			c_logger.error(StrUtil.join(endpoint,
@@ -232,9 +224,9 @@ public final class MessageQueue implements ITimeoutListener {
 		wakeMsgs(endpoint);
 	}
 
-	protected synchronized void unbindProcessor(
+	protected synchronized void unsetProcessor(
 			ServiceReference<IProcessor> reference) {
-		Endpoint endpoint = m_refEps.remove(reference);
+		final Endpoint endpoint = m_refEps.remove(reference);
 		if (endpoint != null) {
 			m_endpoints.remove(endpoint.id());
 			endpoint.closeProducer();
@@ -243,18 +235,20 @@ public final class MessageQueue implements ITimeoutListener {
 
 	protected synchronized void updatedProcessor(
 			ServiceReference<IProcessor> reference) {
-		Endpoint endpoint = m_refEps.get(reference);
+		final Endpoint endpoint = m_refEps.get(reference);
 		if (endpoint != null) {
 			updated(endpoint, reference);
 			return;
 		}
 
-		bindProcessor(reference);
+		setProcessor(reference);
 	}
 
 	@Modified
 	protected void modified(Map<String, ?> properties) {
-		m_msgTimeout = (Integer) properties.get(P_MSG_TIMEOUT);
+		final Integer v = (Integer) properties.get(P_MSG_TIMEOUT);
+		if (v != null)
+			m_msgTimeout = v;
 	}
 
 	protected void activate(ComponentContext context, Map<String, ?> properties) {

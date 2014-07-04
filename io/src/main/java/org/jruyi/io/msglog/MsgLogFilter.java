@@ -13,22 +13,22 @@
  */
 package org.jruyi.io.msglog;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.ConfigurationPolicy;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Service;
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.Filter;
 import org.jruyi.io.IFilter;
 import org.jruyi.io.IFilterOutput;
 import org.jruyi.io.ISession;
 import org.jruyi.io.IoConstants;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Service(IFilter.class)
-@Component(name = IoConstants.FID_MSGLOG, policy = ConfigurationPolicy.IGNORE, createPid = false)
-@Property(name = IoConstants.FILTER_ID, value = IoConstants.FID_MSGLOG)
+@Component(name = IoConstants.FID_MSGLOG, //
+configurationPolicy = ConfigurationPolicy.IGNORE, //
+property = { IoConstants.FILTER_ID + "=" + IoConstants.FID_MSGLOG }, //
+service = { IFilter.class }, //
+xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class MsgLogFilter extends Filter<Object, Object> {
 
 	private static final Logger c_logger = LoggerFactory

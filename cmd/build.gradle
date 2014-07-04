@@ -1,0 +1,49 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply plugin: 'osgibnd'
+
+archivesBaseName = 'org.jruyi.cmd'
+version = org_jruyi_cmd_version
+description = 'Provides some JRuyi CLI commands for administering JRuyi'
+
+ext {
+	title = 'JRuyi Command'
+}
+
+dependencies {
+	compile "org.osgi:org.osgi.core:$org_osgi_core_version"
+	compile "org.osgi:org.osgi.compendium:$org_osgi_compendium_version"
+	compile "org.apache.felix:org.apache.felix.gogo.runtime:$org_apache_felix_gogo_runtime_version"
+	compile "org.apache.felix:org.apache.felix.bundlerepository:$org_apache_felix_bundlerepository_version"
+	compile "org.slf4j:slf4j-api:$slf4j_api_version"
+
+	compile project(':api')
+}
+
+jar {
+	manifest {
+		attributes(
+				'Export-Package': 'org.jruyi.cmd',
+				'Import-Package': 'org.osgi.service.metatype;resolution:=optional,' +
+						'org.osgi.service.cm;resolution:=optional,' +
+						'org.apache.felix.bundlerepository;resolution:=optional,' +
+						'*',
+				'DynamicImport-Package': 'org.osgi.service.metatype,' +
+						'org.osgi.service.cm,' +
+						'org.apache.felix.bundlerepository',
+				'Bundle-Activator': 'org.jruyi.cmd.internal.Activator',
+		)
+	}
+}

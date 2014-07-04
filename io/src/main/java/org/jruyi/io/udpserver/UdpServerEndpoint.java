@@ -15,13 +15,6 @@ package org.jruyi.io.udpserver;
 
 import java.util.Map;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.ConfigurationPolicy;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceStrategy;
-import org.apache.felix.scr.annotations.Service;
 import org.jruyi.common.Properties;
 import org.jruyi.io.ISession;
 import org.jruyi.io.ISessionService;
@@ -32,19 +25,23 @@ import org.jruyi.me.IEndpoint;
 import org.jruyi.me.IMessage;
 import org.jruyi.me.IProducer;
 import org.jruyi.me.MeConstants;
-import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentFactory;
 import org.osgi.service.component.ComponentInstance;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
 
-@Service(IEndpoint.class)
-@Component(name = "jruyi.io.udpserver", policy = ConfigurationPolicy.REQUIRE, createPid = false)
-@Reference(name = UdpServerEndpoint.UDPSERVER, referenceInterface = ComponentFactory.class, target = "(component.name="
-		+ IoConstants.CN_UDPSERVER_FACTORY + ")", strategy = ReferenceStrategy.LOOKUP)
-@Property(name = MeConstants.EP_LAZY, boolValue = false)
+@Component(name = "jruyi.io.udpserver", //
+configurationPolicy = ConfigurationPolicy.REQUIRE, //
+service = { IEndpoint.class }, //
+property = { MeConstants.EP_LAZY + ":Boolean=false" }, //
+xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class UdpServerEndpoint extends SessionListener implements
 		IConsumer, IEndpoint {
 
-	public static final String UDPSERVER = "udpServer";
+	private ComponentFactory m_cf;
 	private ComponentInstance m_udpServer;
 	private ISessionService m_ss;
 	private IProducer m_producer;
@@ -87,18 +84,26 @@ public final class UdpServerEndpoint extends SessionListener implements
 		}
 	}
 
+	@Reference(name = "udpServer", target = "("
+			+ ComponentConstants.COMPONENT_NAME + "="
+			+ IoConstants.CN_UDPSERVER_FACTORY + ")")
+	protected void setUdpServer(ComponentFactory cf) {
+		m_cf = cf;
+	}
+
+	protected void unsetUdpServer(ComponentFactory cf) {
+		m_cf = null;
+	}
+
 	@Modified
 	protected void modified(Map<String, ?> properties) throws Exception {
 		m_ss.update(normalizeConfiguration(properties));
 	}
 
-	protected void activate(ComponentContext context, Map<String, ?> properties)
-			throws Exception {
-		ComponentFactory factory = (ComponentFactory) context
-				.locateService(UDPSERVER);
-		ComponentInstance udpServer = factory
+	protected void activate(Map<String, ?> properties) throws Exception {
+		final ComponentInstance udpServer = m_cf
 				.newInstance(normalizeConfiguration(properties));
-		ISessionService ss = (ISessionService) udpServer.getInstance();
+		final ISessionService ss = (ISessionService) udpServer.getInstance();
 		ss.setSessionListener(this);
 		m_udpServer = udpServer;
 		m_ss = ss;
@@ -111,7 +116,7 @@ public final class UdpServerEndpoint extends SessionListener implements
 	}
 
 	private static Properties normalizeConfiguration(Map<String, ?> properties) {
-		Properties conf = new Properties(properties);
+		final Properties conf = new Properties(properties);
 		conf.put(IoConstants.SERVICE_ID, properties.get(MeConstants.EP_ID));
 		return conf;
 	}

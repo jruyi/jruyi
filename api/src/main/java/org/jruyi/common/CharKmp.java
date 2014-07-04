@@ -14,7 +14,7 @@
 package org.jruyi.common;
 
 /**
- * A character sequence to be searched for using the Knuth–Morris–Pratt
+ * A character sequence to be searched for using the Knuth-Morris-Pratt
  * algorithm.
  */
 public final class CharKmp {

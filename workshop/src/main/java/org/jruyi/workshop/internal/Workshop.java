@@ -21,10 +21,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Service;
 import org.jruyi.common.IArgList;
 import org.jruyi.common.IDumpable;
 import org.jruyi.common.StrUtil;
@@ -33,11 +29,16 @@ import org.jruyi.workshop.IRunnable;
 import org.jruyi.workshop.IWorkshop;
 import org.jruyi.workshop.IWorkshopProfiler;
 import org.jruyi.workshop.WorkshopConstants;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Modified;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Service({ IWorkshop.class, IWorkshopProfiler.class })
-@Component(name = "jruyi.workshop", createPid = false)
+@Component(name = "jruyi.workshop", //
+service = { IWorkshop.class, IWorkshopProfiler.class }, //
+property = { WorkshopConstants.THREAD_PREFIX + "="
+		+ WorkshopConstants.DEFAULT_THREADPREFIX }, //
+xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class Workshop implements IWorkshop, IWorkshopProfiler, IDumpable {
 
 	private static final Logger c_logger = LoggerFactory
@@ -45,21 +46,17 @@ public final class Workshop implements IWorkshop, IWorkshopProfiler, IDumpable {
 
 	private static final String P_CORE_POOLSIZE = "corePoolSize";
 	private static final String P_MAX_POOLSIZE = "maxPoolSize";
-	@Property(intValue = 10)
 	private static final String P_KEEPALIVE_TIME = "keepAliveTimeInSeconds";
-	@Property(intValue = 6000)
 	private static final String P_QUEUE_CAPACITY = "queueCapacity";
-	@Property(value = WorkshopConstants.DEFAULT_THREADPREFIX)
 	private static final String P_THREAD_PREFIX = WorkshopConstants.THREAD_PREFIX;
-	@Property(intValue = 300)
 	private static final String P_TERM_WAITTIME = "terminationWaitTimeInSeconds";
 
 	private static final AtomicLong c_sequence = new AtomicLong();
 	private final long m_id = c_sequence.getAndIncrement();
 
-	private String m_threadPrefix;
+	private String m_threadPrefix = WorkshopConstants.DEFAULT_THREADPREFIX;;
 	private RuyiThreadPoolExecutor m_executor;
-	private int m_queueCapacity;
+	private int m_queueCapacity = 6000;
 	private int m_terminationWaitTime = 300;
 
 	@Override
@@ -183,15 +180,15 @@ public final class Workshop implements IWorkshop, IWorkshopProfiler, IDumpable {
 
 	@Modified
 	protected void modified(Map<String, ?> properties) throws Exception {
-		final int keepAliveTime = getKeepAliveTime(properties);
+		final ThreadPoolExecutor executor = m_executor;
+		final int keepAliveTime = getKeepAliveTime(properties,
+				(int) executor.getKeepAliveTime(TimeUnit.SECONDS));
 		final int corePoolSize = getCorePoolSize(properties);
 		final int maxPoolSize = getMaxPoolSize(properties, corePoolSize);
-		final int queueCapacity = (Integer) properties.get(P_QUEUE_CAPACITY);
-		final int terminationWaitTime = (Integer) properties
-				.get(P_TERM_WAITTIME);
+		final int queueCapacity = getQueueCapacity(properties);
+		final int terminationWaitTime = getTerminationWaitTime(properties);
 		final String threadPrefix = getThreadPrefix(properties);
 
-		final ThreadPoolExecutor executor = m_executor;
 		final int oldQueueCapacity = m_queueCapacity;
 		if (queueCapacity != oldQueueCapacity
 				&& (queueCapacity >= 0 || oldQueueCapacity >= 0)) {
@@ -221,12 +218,11 @@ public final class Workshop implements IWorkshop, IWorkshopProfiler, IDumpable {
 
 		c_logger.info(getLog("Activating "));
 
-		final int keepAliveTime = getKeepAliveTime(properties);
+		final int keepAliveTime = getKeepAliveTime(properties, 10);
 		final int corePoolSize = getCorePoolSize(properties);
 		final int maxPoolSize = getMaxPoolSize(properties, corePoolSize);
-		final int queueCapacity = (Integer) properties.get(P_QUEUE_CAPACITY);
-		final int terminationWaitTime = (Integer) properties
-				.get(P_TERM_WAITTIME);
+		final int queueCapacity = getQueueCapacity(properties);
+		final int terminationWaitTime = getTerminationWaitTime(properties);
 
 		m_executor = newExecutor(threadPrefix, corePoolSize, maxPoolSize,
 				keepAliveTime, queueCapacity);
@@ -300,20 +296,46 @@ public final class Workshop implements IWorkshop, IWorkshopProfiler, IDumpable {
 		return maxPoolSize;
 	}
 
-	private static int getKeepAliveTime(Map<String, ?> properties)
-			throws Exception {
-		int keepAliveTime = (Integer) properties.get(P_KEEPALIVE_TIME);
+	private static Integer getKeepAliveTime(Map<String, ?> properties,
+			Integer defaultValue) throws Exception {
+		final Integer keepAliveTime = (Integer) properties
+				.get(P_KEEPALIVE_TIME);
+		if (keepAliveTime == null)
+			return defaultValue;
+
 		if (keepAliveTime < 0)
 			throw new Exception("Property[" + P_KEEPALIVE_TIME
 					+ "] has to be non-negative");
 		return keepAliveTime;
 	}
 
+	private Integer getTerminationWaitTime(Map<String, ?> properties) {
+		final Integer terminationWaitTime = (Integer) properties
+				.get(P_TERM_WAITTIME);
+		if (terminationWaitTime == null)
+			return m_terminationWaitTime;
+
+		return terminationWaitTime;
+	}
+
+	private Integer getQueueCapacity(Map<String, ?> properties) {
+		final Integer queueCapacity = (Integer) properties
+				.get(P_QUEUE_CAPACITY);
+		if (queueCapacity == null)
+			return m_queueCapacity;
+
+		return queueCapacity;
+	}
+
 	private String getThreadPrefix(Map<String, ?> properties) {
 		String threadPrefix = (String) properties.get(P_THREAD_PREFIX);
+		if (threadPrefix == null)
+			return m_threadPrefix;
+
 		threadPrefix = threadPrefix.trim();
 		if (threadPrefix.isEmpty())
-			threadPrefix = WorkshopConstants.DEFAULT_THREADPREFIX;
+			return m_threadPrefix;
+
 		m_threadPrefix = threadPrefix;
 		return threadPrefix;
 	}

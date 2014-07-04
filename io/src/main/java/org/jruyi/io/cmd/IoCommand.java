@@ -15,27 +15,23 @@ package org.jruyi.io.cmd;
 
 import java.util.Collection;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.ConfigurationPolicy;
-import org.apache.felix.scr.annotations.Properties;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Service;
-import org.apache.felix.service.command.CommandProcessor;
 import org.jruyi.common.IService;
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.IoConstants;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
-@Service(IoCommand.class)
-@Component(name = "jruyi.io.cmd", policy = ConfigurationPolicy.IGNORE, createPid = false)
-@Properties({
-		@Property(name = CommandProcessor.COMMAND_SCOPE, value = "io"),
-		@Property(name = CommandProcessor.COMMAND_FUNCTION, value = { "list",
-				"start", "stop" }) })
 public final class IoCommand {
 
-	private BundleContext m_context;
+	private final BundleContext m_context;
+
+	public IoCommand(BundleContext context) {
+		m_context = context;
+	}
+
+	public static String[] commands() {
+		return new String[] { "list", "start", "stop" };
+	}
 
 	public void start(String serviceId) throws Exception {
 		IService service = getService(serviceId);
@@ -148,14 +144,6 @@ public final class IoCommand {
 		}
 	}
 
-	protected void activate(BundleContext context) {
-		m_context = context;
-	}
-
-	protected void deactivate() {
-		m_context = null;
-	}
-
 	private static String state(int state) {
 		switch (state) {
 		case IService.ACTIVE:
@@ -192,7 +180,7 @@ public final class IoCommand {
 
 	private IService getService(String serviceId) throws Exception {
 		final BundleContext context = m_context;
-		Collection<ServiceReference<IService>> references = context
+		final Collection<ServiceReference<IService>> references = context
 				.getServiceReferences(IService.class, StrUtil.join("("
 						+ IoConstants.SERVICE_ID + "=", serviceId, ")"));
 		if (references.isEmpty())
@@ -200,8 +188,7 @@ public final class IoCommand {
 
 		final ServiceReference<IService> reference = references.iterator()
 				.next();
-		IService service = context.getService(reference);
-		return service;
+		return context.getService(reference);
 	}
 
 	private static void printFill(char c, int count) {

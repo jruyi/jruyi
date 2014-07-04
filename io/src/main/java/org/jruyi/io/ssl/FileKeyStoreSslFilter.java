@@ -15,14 +15,16 @@ package org.jruyi.io.ssl;
 
 import java.util.Map;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.ConfigurationPolicy;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Service;
+import org.jruyi.io.IFilter;
 import org.jruyi.io.ISslContextParameters;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.Modified;
 
-@Service
-@Component(name = "jruyi.io.ssl.fks.filter", policy = ConfigurationPolicy.REQUIRE, createPid = false)
+@Component(name = "jruyi.io.ssl.fks.filter", //
+configurationPolicy = ConfigurationPolicy.REQUIRE, //
+service = { IFilter.class }, //
+xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class FileKeyStoreSslFilter extends AbstractSslFilter {
 
 	private final FileKeyStore m_fks = new FileKeyStore();

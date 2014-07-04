@@ -13,17 +13,17 @@
  */
 package org.jruyi.io.filter;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.ConfigurationPolicy;
-import org.apache.felix.scr.annotations.Service;
 import org.jruyi.common.IServiceHolderManager;
 import org.jruyi.common.ServiceHolderManager;
 import org.jruyi.io.IFilter;
 import org.jruyi.io.IoConstants;
 import org.osgi.framework.BundleContext;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
 
-@Service
-@Component(name = "jruyi.io.filter", policy = ConfigurationPolicy.IGNORE, createPid = false)
+@Component(name = "jruyi.io.filter", //
+configurationPolicy = ConfigurationPolicy.IGNORE, //
+xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class FilterManager implements IFilterManager {
 
 	private static final IFilter<?, ?>[] EMPTY = new IFilter[0];

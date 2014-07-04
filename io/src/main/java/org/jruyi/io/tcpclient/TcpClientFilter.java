@@ -13,20 +13,20 @@
  */
 package org.jruyi.io.tcpclient;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.ConfigurationPolicy;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Service;
 import org.jruyi.io.Filter;
 import org.jruyi.io.IFilter;
 import org.jruyi.io.IFilterOutput;
 import org.jruyi.io.ISession;
 import org.jruyi.io.IoConstants;
 import org.jruyi.me.IMessage;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
 
-@Service(IFilter.class)
-@Component(name = IoConstants.FID_TCPCLIENT, policy = ConfigurationPolicy.IGNORE, createPid = false)
-@Property(name = IoConstants.FILTER_ID, value = IoConstants.FID_TCPCLIENT)
+@Component(name = IoConstants.FID_TCPCLIENT, //
+configurationPolicy = ConfigurationPolicy.IGNORE, //
+service = { IFilter.class }, //
+property = { IoConstants.FILTER_ID + "=" + IoConstants.FID_TCPCLIENT }, //
+xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class TcpClientFilter extends Filter<Object, Object> {
 
 	@Override

@@ -9,4 +9,7 @@
 target
 .idea
 *.iml
+.gradle
+build
+.nb-gradle
 

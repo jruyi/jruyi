@@ -15,28 +15,32 @@ package org.jruyi.io.ssl;
 
 import java.util.Map;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.Service;
 import org.jruyi.io.ISslContextParameters;
 import org.jruyi.io.IoConstants;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
 
-@Service
-@Component(name = IoConstants.FID_SSL, createPid = false)
-@Property(name = IoConstants.FILTER_ID, value = IoConstants.FID_SSL)
+@Component(name = IoConstants.FID_SSL, //
+property = { IoConstants.FILTER_ID + "=" + IoConstants.FID_SSL }, //
+xmlns = "http://www.osgi.org/xmlns/scr/v1.2.0")
 public final class SslFilter extends AbstractSslFilter {
 
-	@Reference(name = "sslcp", bind = "bindSslContextParameters", unbind = "unbindSslContextParameters", updated = "updatedSslContextParameters")
 	private ISslContextParameters m_sslcp;
 
-	protected void bindSslContextParameters(ISslContextParameters sslcp) {
+	@Reference(name = "sslcp")
+	protected void setSslContextParameters(ISslContextParameters sslcp) {
 		m_sslcp = sslcp;
 	}
 
-	protected void unbindSslContextParameters(ISslContextParameters sslcp) {
+	protected void unsetSslContextParameters(ISslContextParameters sslcp) {
 		m_sslcp = null;
+	}
+
+	@Override
+	protected void updatedSslContextParameters(ISslContextParameters sslcp)
+			throws Exception {
+		super.updatedSslContextParameters(sslcp);
 	}
 
 	@Modified

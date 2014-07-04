@@ -125,13 +125,6 @@ public abstract class AbstractTcpClient extends Service implements
 
 	@Override
 	public void closeSession(ISession session) {
-		// final ConcurrentHashMap<Object, IChannel> channels = m_channels;
-		// if (channels == null)
-		// return;
-		//
-		// IChannel channel = channels.get(session.id());
-		// if (channel != null)
-		// channel.close();
 		((IChannel) session).close();
 	}
 
@@ -223,27 +216,27 @@ public abstract class AbstractTcpClient extends Service implements
 			channel.close();
 	}
 
-	protected void bindChannelAdmin(IChannelAdmin cm) {
+	protected void setChannelAdmin(IChannelAdmin cm) {
 		m_ca = cm;
 	}
 
-	protected void unbindChannelAdmin(IChannelAdmin cm) {
+	protected void unsetChannelAdmin(IChannelAdmin cm) {
 		m_ca = null;
 	}
 
-	protected void bindFilterManager(IFilterManager fm) {
+	protected void setFilterManager(IFilterManager fm) {
 		m_fm = fm;
 	}
 
-	protected void unbindFilterManager(IFilterManager fm) {
+	protected void unsetFilterManager(IFilterManager fm) {
 		m_fm = null;
 	}
 
-	protected synchronized void bindBufferFactory(IBufferFactory bf) {
+	protected synchronized void setBufferFactory(IBufferFactory bf) {
 		m_bf = bf;
 	}
 
-	protected synchronized void unbindBufferFactory(IBufferFactory bf) {
+	protected synchronized void unsetBufferFactory(IBufferFactory bf) {
 		if (m_bf == bf)
 			m_bf = bf;
 	}

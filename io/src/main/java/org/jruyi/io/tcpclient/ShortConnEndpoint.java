@@ -17,12 +17,6 @@ import java.io.Closeable;
 import java.util.Arrays;
 import java.util.Map;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.ConfigurationPolicy;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceStrategy;
-import org.apache.felix.scr.annotations.Service;
 import org.jruyi.common.Properties;
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.ISession;
@@ -34,24 +28,27 @@ import org.jruyi.me.IEndpoint;
 import org.jruyi.me.IMessage;
 import org.jruyi.me.IProducer;
 import org.jruyi.me.MeConstants;
-import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentFactory;
 import org.osgi.service.component.ComponentInstance;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Service(IEndpoint.class)
-@Component(name = "jruyi.io.tcpclient.shortconn", policy = ConfigurationPolicy.REQUIRE, createPid = false)
-@Reference(name = ShortConnEndpoint.SHORTCONN, referenceInterface = ComponentFactory.class, target = "(component.name="
-		+ IoConstants.CN_TCPCLIENT_SHORTCONN_FACTORY + ")", strategy = ReferenceStrategy.LOOKUP)
+@Component(name = "jruyi.io.tcpclient.shortconn", //
+configurationPolicy = ConfigurationPolicy.REQUIRE, //
+service = { IEndpoint.class }, //
+xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class ShortConnEndpoint extends SessionListener implements
 		IConsumer, IEndpoint {
-
-	public static final String SHORTCONN = "shortConn";
 
 	private static final Logger c_logger = LoggerFactory
 			.getLogger(ShortConnEndpoint.class);
 
+	private ComponentFactory m_cf;
 	private ComponentInstance m_shortConn;
 	private ISessionService m_ss;
 	private IProducer m_producer;
@@ -144,18 +141,26 @@ public final class ShortConnEndpoint extends SessionListener implements
 		}
 	}
 
+	@Reference(name = "shortConn", target = "("
+			+ ComponentConstants.COMPONENT_NAME + "="
+			+ IoConstants.CN_TCPCLIENT_SHORTCONN_FACTORY + ")")
+	protected void setShortConn(ComponentFactory cf) {
+		m_cf = cf;
+	}
+
+	protected void unsetShortConn(ComponentFactory cf) {
+		m_cf = null;
+	}
+
 	@Modified
 	protected void modified(Map<String, ?> properties) throws Exception {
 		m_ss.update(normalizeConfiguration(properties));
 	}
 
-	protected void activate(ComponentContext context, Map<String, ?> properties)
-			throws Exception {
-		ComponentFactory factory = (ComponentFactory) context
-				.locateService(SHORTCONN);
-		ComponentInstance shortConn = factory
+	protected void activate(Map<String, ?> properties) throws Exception {
+		final ComponentInstance shortConn = m_cf
 				.newInstance(normalizeConfiguration(properties));
-		ISessionService ss = (ISessionService) shortConn.getInstance();
+		final ISessionService ss = (ISessionService) shortConn.getInstance();
 		ss.setSessionListener(this);
 		try {
 			ss.start();

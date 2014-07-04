@@ -23,32 +23,33 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferencePolicy;
-import org.apache.felix.scr.annotations.Service;
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.common.StopThread;
 import org.jruyi.io.common.SyncPutQueue;
 import org.jruyi.io.tcp.TcpChannel;
 import org.jruyi.workshop.IWorkshop;
 import org.jruyi.workshop.WorkshopConstants;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Service(ITcpAcceptor.class)
-@Component(name = "jruyi.io.tcpserver.tcpacceptor", configurationPid = "jruyi.io.channeladmin", specVersion = "1.1.0", createPid = false)
+@Component(name = "jruyi.io.tcpserver.tcpacceptor", //
+configurationPid = "jruyi.io.channeladmin", //
+service = { ITcpAcceptor.class }, //
+xmlns = "http://www.osgi.org/xmlns/scr/v1.2.0")
 public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 
 	private static final Logger c_logger = LoggerFactory
 			.getLogger(TcpAcceptor.class);
+
 	private Selector m_selector;
 	private Thread m_thread;
 	private SyncPutQueue<TcpServer> m_queue;
 
-	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
-	private volatile IWorkshop m_workshop;
+	private IWorkshop m_workshop;
 
 	@Override
 	public void doAccept(TcpServer server) throws Exception {
@@ -125,11 +126,12 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 	protected void modified() {
 	}
 
-	protected synchronized void bindWorkshop(IWorkshop workshop) {
+	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
+	protected synchronized void setWorkshop(IWorkshop workshop) {
 		m_workshop = workshop;
 	}
 
-	protected synchronized void unbindWorkshop(IWorkshop workshop) {
+	protected synchronized void unsetWorkshop(IWorkshop workshop) {
 		if (m_workshop == workshop)
 			m_workshop = null;
 	}

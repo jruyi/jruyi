@@ -17,20 +17,18 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferencePolicy;
-import org.apache.felix.scr.annotations.Service;
 import org.jruyi.common.BiListNode;
 import org.jruyi.common.IScheduler;
 import org.jruyi.timeoutadmin.ITimeoutAdmin;
 import org.jruyi.timeoutadmin.ITimeoutNotifier;
 import org.jruyi.workshop.IWorkshop;
 import org.jruyi.workshop.WorkshopConstants;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferencePolicy;
 
-@Service
-@Component(name = "jruyi.timeoutadmin", createPid = false)
+@Component(name = "jruyi.timeoutadmin", xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class TimeoutAdmin implements ITimeoutAdmin {
 
 	// 1 hour
@@ -43,10 +41,7 @@ public final class TimeoutAdmin implements ITimeoutAdmin {
 	private TimeWheel m_tw1;
 	private TimeWheel m_tw2;
 
-	@Reference(name = "scheduler", policy = ReferencePolicy.DYNAMIC)
 	private IScheduler m_scheduler;
-
-	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
 	private IWorkshop m_workshop;
 
 	static {
@@ -147,20 +142,22 @@ public final class TimeoutAdmin implements ITimeoutAdmin {
 		return new TimeoutNotifier(subject, this);
 	}
 
-	protected synchronized void bindScheduler(IScheduler scheduler) {
+	@Reference(name = "scheduler", policy = ReferencePolicy.DYNAMIC)
+	protected synchronized void setScheduler(IScheduler scheduler) {
 		m_scheduler = scheduler;
 	}
 
-	protected synchronized void unbindScheduler(IScheduler scheduler) {
+	protected synchronized void unsetScheduler(IScheduler scheduler) {
 		if (m_scheduler == scheduler)
 			m_scheduler = null;
 	}
 
-	protected synchronized void bindWorkshop(IWorkshop workshop) {
+	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
+	protected synchronized void setWorkshop(IWorkshop workshop) {
 		m_workshop = workshop;
 	}
 
-	protected synchronized void unbindWorkshop(IWorkshop workshop) {
+	protected synchronized void unsetWorkshop(IWorkshop workshop) {
 		if (m_workshop == workshop)
 			m_workshop = null;
 	}

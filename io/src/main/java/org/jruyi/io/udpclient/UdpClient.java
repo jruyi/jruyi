@@ -21,9 +21,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.jruyi.common.IService;
 import org.jruyi.common.Service;
 import org.jruyi.common.StrUtil;
@@ -37,11 +34,16 @@ import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.channel.IChannelService;
 import org.jruyi.io.filter.IFilterManager;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@org.apache.felix.scr.annotations.Service(IService.class)
-@Component(name = IoConstants.CN_UDPCLIENT_FACTORY, factory = "udpclient", createPid = false, specVersion = "1.1.0")
+@Component(name = IoConstants.CN_UDPCLIENT_FACTORY, //
+factory = "udpclient", //
+service = { IService.class }, //
+xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class UdpClient extends Service implements IChannelService,
 		ISessionService {
 
@@ -50,14 +52,9 @@ public final class UdpClient extends Service implements IChannelService,
 	private String m_caption;
 	private Configuration m_conf;
 
-	@Reference(name = "channelAdmin")
-	private IChannelAdmin m_ca;
-
-	@Reference(name = "filterManager")
-	private IFilterManager m_fm;
-
-	@Reference(name = "buffer", policy = ReferencePolicy.DYNAMIC, bind = "bindBufferFactory", unbind = "unbindBufferFactory")
 	private IBufferFactory m_bf;
+	private IChannelAdmin m_ca;
+	private IFilterManager m_fm;
 
 	private IFilter<?, ?>[] m_filters;
 	private boolean m_closed = true;
@@ -265,33 +262,36 @@ public final class UdpClient extends Service implements IChannelService,
 		c_logger.info(StrUtil.join(this, " stopped"));
 	}
 
-	protected void bindChannelAdmin(IChannelAdmin cm) {
-		m_ca = cm;
-	}
-
-	protected void unbindChannelAdmin(IChannelAdmin cm) {
-		m_ca = null;
-	}
-
-	protected void bindFilterManager(IFilterManager fm) {
-		m_fm = fm;
-	}
-
-	protected void unbindFilterManager(IFilterManager fm) {
-		m_fm = null;
-	}
-
-	protected synchronized void bindBufferFactory(IBufferFactory bf) {
+	@Reference(name = "buffer", policy = ReferencePolicy.DYNAMIC)
+	protected synchronized void setBufferFactory(IBufferFactory bf) {
 		m_bf = bf;
 	}
 
-	protected synchronized void unbindBufferFactory(IBufferFactory bf) {
+	protected synchronized void unsetBufferFactory(IBufferFactory bf) {
 		if (m_bf == bf)
 			m_bf = bf;
 	}
 
+	@Reference(name = "channelAdmin")
+	protected void setChannelAdmin(IChannelAdmin cm) {
+		m_ca = cm;
+	}
+
+	protected void unsetChannelAdmin(IChannelAdmin cm) {
+		m_ca = null;
+	}
+
+	@Reference(name = "filterManager")
+	protected void setFilterManager(IFilterManager fm) {
+		m_fm = fm;
+	}
+
+	protected void unsetFilterManager(IFilterManager fm) {
+		m_fm = null;
+	}
+
 	protected void activate(Map<String, ?> properties) throws Exception {
-		String id = (String) properties.get(IoConstants.SERVICE_ID);
+		final String id = (String) properties.get(IoConstants.SERVICE_ID);
 		m_caption = StrUtil.join("UdpClient[", id, "]");
 
 		updateFilters(updateConf(properties), m_conf);

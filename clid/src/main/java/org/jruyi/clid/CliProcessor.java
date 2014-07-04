@@ -20,12 +20,6 @@ import java.net.URL;
 import java.nio.BufferUnderflowException;
 import java.util.Map;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceStrategy;
-import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.service.command.CommandProcessor;
 import org.apache.felix.service.command.CommandSession;
 import org.jruyi.common.CharsetCodec;
@@ -49,18 +43,19 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentFactory;
 import org.osgi.service.component.ComponentInstance;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Service(IFilter.class)
-@Component(name = CliProcessor.SERVICE_ID, immediate = true, createPid = false)
-@Property(name = IoConstants.FILTER_ID, value = "jruyi.clid.filter")
-@Reference(name = CliProcessor.TCPSERVER, referenceInterface = ComponentFactory.class, target = "(component.name="
-		+ IoConstants.CN_TCPSERVER_FACTORY + ")", strategy = ReferenceStrategy.LOOKUP)
+@Component(name = CliProcessor.SERVICE_ID, //
+immediate = true, //
+property = { IoConstants.FILTER_ID + "=jruyi.clid.filter" }, //
+xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class CliProcessor extends SessionListener implements
 		IFilter<IBuffer, Object> {
 
-	public static final String TCPSERVER = "tcpserver";
 	public static final String SERVICE_ID = "jruyi.clid";
 
 	private static final Logger c_logger = LoggerFactory
@@ -81,16 +76,11 @@ public final class CliProcessor extends SessionListener implements
 
 	private static final String[] FILTERS = { "jruyi.clid.filter" };
 
-	@Property(intValue = 300)
 	private static final String P_SESSION_IDLE_TIMEOUT = "sessionIdleTimeout";
-
-	@Property(intValue = 7168)
 	private static final String P_FLUSH_THRESHOLD = "flushThreshold";
 
-	@Reference(name = "commandProcessor")
+	private ComponentFactory m_tsf;
 	private CommandProcessor m_cp;
-
-	@Reference(name = "timeoutAdmin")
 	private ITimeoutAdmin m_ta;
 
 	private BundleContext m_context;
@@ -208,19 +198,31 @@ public final class CliProcessor extends SessionListener implements
 		out.writeOut(status);
 	}
 
-	protected void bindCommandProcessor(CommandProcessor cp) {
+	@Reference(name = "tsf", target = "(component.name="
+			+ IoConstants.CN_TCPSERVER_FACTORY + ")")
+	protected void setTcpServerFactory(ComponentFactory tsf) {
+		m_tsf = tsf;
+	}
+
+	protected void unsetTcpServerFactory(ComponentFactory tsf) {
+		m_tsf = null;
+	}
+
+	@Reference(name = "cp")
+	protected void setCommandProcessor(CommandProcessor cp) {
 		m_cp = cp;
 	}
 
-	protected void unbindCommandProcessor(CommandProcessor cp) {
+	protected void unsetCommandProcessor(CommandProcessor cp) {
 		m_cp = null;
 	}
 
-	protected void bindTimeoutAdmin(ITimeoutAdmin ta) {
+	@Reference(name = "ta")
+	protected void setTimeoutAdmin(ITimeoutAdmin ta) {
 		m_ta = ta;
 	}
 
-	protected void unbindTimeoutAdmin(ITimeoutAdmin ta) {
+	protected void unsetTimeoutAdmin(ITimeoutAdmin ta) {
 		m_ta = null;
 	}
 
@@ -236,9 +238,8 @@ public final class CliProcessor extends SessionListener implements
 	protected void activate(ComponentContext context, Map<String, ?> properties)
 			throws Exception {
 
-		BundleContext bundleContext = context.getBundleContext();
-		loadBrandingInfo(context.getBundleContext().getProperty(BRANDING_URL),
-				bundleContext);
+		final BundleContext bundleContext = context.getBundleContext();
+		loadBrandingInfo(bundleContext.getProperty(BRANDING_URL), bundleContext);
 
 		OutBufferStream.flushThreshold((Integer) properties
 				.get(P_FLUSH_THRESHOLD));
@@ -264,9 +265,7 @@ public final class CliProcessor extends SessionListener implements
 			conf.put(P_SESSION_IDLE_TIMEOUT, sessionIdleTimeout);
 		}
 
-		ComponentFactory factory = (ComponentFactory) context
-				.locateService(TCPSERVER);
-		ComponentInstance tcpServer = factory.newInstance(conf);
+		final ComponentInstance tcpServer = m_tsf.newInstance(conf);
 		ISessionService ss = (ISessionService) tcpServer.getInstance();
 		ss.setSessionListener(this);
 		try {

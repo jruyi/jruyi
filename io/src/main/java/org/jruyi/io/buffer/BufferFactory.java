@@ -15,24 +15,19 @@ package org.jruyi.io.buffer;
 
 import java.util.Map;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Service;
 import org.jruyi.common.IThreadLocalCache;
 import org.jruyi.common.ThreadLocalCache;
 import org.jruyi.io.IBuffer;
 import org.jruyi.io.IBufferFactory;
 import org.jruyi.io.IUnit;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Modified;
 
-@Service
-@Component(name = "jruyi.io.buffer", createPid = false)
+@Component(name = "jruyi.io.buffer", xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class BufferFactory implements IBufferFactory {
 
-	private static final int MIN_UNIT_CAPACITY = 8;
-
-	@Property(intValue = 8192)
 	private static final String UNIT_CAPACITY = "unitCapacity";
+	private static final int MIN_UNIT_CAPACITY = 8;
 
 	private final IThreadLocalCache<HeapUnit> m_unitCache = ThreadLocalCache
 			.weakLinkedCache();
@@ -45,8 +40,12 @@ public final class BufferFactory implements IBufferFactory {
 
 	@Modified
 	protected void modified(Map<String, ?> properties) {
-		int value = (Integer) properties.get(UNIT_CAPACITY);
-		m_unitCapacity = value > MIN_UNIT_CAPACITY ? value : MIN_UNIT_CAPACITY;
+		final Integer value = (Integer) properties.get(UNIT_CAPACITY);
+		if (value == null)
+			m_unitCapacity = 1024 * 8;
+		else
+			m_unitCapacity = value > MIN_UNIT_CAPACITY ? value
+					: MIN_UNIT_CAPACITY;
 	}
 
 	protected void activate(Map<String, ?> properties) {

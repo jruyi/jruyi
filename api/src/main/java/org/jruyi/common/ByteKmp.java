@@ -14,7 +14,7 @@
 package org.jruyi.common;
 
 /**
- * A byte sequence to be searched for using the Knuth–Morris–Pratt algorithm.
+ * A byte sequence to be searched for using the Knuth-Morris-Pratt algorithm.
  */
 public final class ByteKmp {
 

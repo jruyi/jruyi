@@ -19,11 +19,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.ConfigurationPolicy;
-import org.apache.felix.scr.annotations.Properties;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.service.command.CommandProcessor;
 import org.jruyi.common.StrUtil;
 import org.jruyi.me.IRoute;
@@ -32,13 +27,17 @@ import org.jruyi.me.IRoutingTable;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
 
-@Service
-@Component(name = "jruyi.me.route", policy = ConfigurationPolicy.IGNORE, createPid = false)
-@Properties({
-		@Property(name = CommandProcessor.COMMAND_SCOPE, value = "route"),
-		@Property(name = CommandProcessor.COMMAND_FUNCTION, value = { "clear",
-				"delete", "list", "set" }) })
+@Component(name = "jruyi.me.route", //
+configurationPolicy = ConfigurationPolicy.IGNORE, //
+property = { CommandProcessor.COMMAND_SCOPE + "=route",
+		CommandProcessor.COMMAND_FUNCTION + "=clear", //
+		CommandProcessor.COMMAND_FUNCTION + "=delete", //
+		CommandProcessor.COMMAND_FUNCTION + "=list", //
+		CommandProcessor.COMMAND_FUNCTION + "=set", }, //
+xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class RoutingTable implements IRoutingTable, IRouterManager {
 
 	private static final String ROUTINGTABLE_DIR = "jruyi.me.routingtable.dir";
@@ -81,7 +80,7 @@ public final class RoutingTable implements IRoutingTable, IRouterManager {
 			return router;
 
 		router = new Router(id);
-		Router oldRouter = m_routers.putIfAbsent(router.from(), router);
+		final Router oldRouter = m_routers.putIfAbsent(router.from(), router);
 		if (oldRouter != null)
 			router = oldRouter;
 
@@ -196,7 +195,7 @@ public final class RoutingTable implements IRoutingTable, IRouterManager {
 	 * @throws Exception
 	 */
 	public void clear() throws Exception {
-		IRouteSet[] routeSets = getAllRouteSets();
+		final IRouteSet[] routeSets = getAllRouteSets();
 		for (IRouteSet routeSet : routeSets) {
 			routeSet.clear();
 			routeSet.save();
@@ -204,7 +203,7 @@ public final class RoutingTable implements IRoutingTable, IRouterManager {
 	}
 
 	protected void activate(BundleContext bundleContext) throws Exception {
-		String location = bundleContext.getProperty(ROUTINGTABLE_DIR);
+		final String location = bundleContext.getProperty(ROUTINGTABLE_DIR);
 		File routeTableDir = location == null ? bundleContext
 				.getDataFile(DEFAULT_ROUTINGTABLE_LOCATION)
 				: new File(location);
@@ -235,12 +234,12 @@ public final class RoutingTable implements IRoutingTable, IRouterManager {
 
 	private static ConcurrentHashMap<String, Router> load(File routeTableDir)
 			throws IOException {
-		File[] files = routeTableDir.listFiles(new NonDirFileFilter());
-		int size = files.length < 1024 ? 1024 : files.length;
-		ConcurrentHashMap<String, Router> routers = new ConcurrentHashMap<String, Router>(
+		final File[] files = routeTableDir.listFiles(new NonDirFileFilter());
+		final int size = files.length < 1024 ? 1024 : files.length;
+		final ConcurrentHashMap<String, Router> routers = new ConcurrentHashMap<String, Router>(
 				size);
 		for (File file : files) {
-			Router router = Router.load(file);
+			final Router router = Router.load(file);
 			routers.put(router.from(), router);
 		}
 

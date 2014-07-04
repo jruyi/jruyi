@@ -28,13 +28,11 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Service;
 import org.jruyi.io.ISslContextParameters;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Modified;
 
-@Service
-@Component(name = "jruyi.io.ssl.filekeystore", createPid = false)
+@Component(name = "jruyi.io.ssl.filekeystore", xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class FileKeyStore implements ISslContextParameters {
 
 	private static final String KS_TYPE = "keyStoreType";

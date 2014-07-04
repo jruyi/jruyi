@@ -17,11 +17,6 @@ import java.io.Closeable;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferencePolicy;
-import org.apache.felix.scr.annotations.References;
-import org.apache.felix.scr.annotations.Service;
 import org.jruyi.common.ArgList;
 import org.jruyi.common.BiListNode;
 import org.jruyi.common.IArgList;
@@ -38,21 +33,21 @@ import org.jruyi.io.filter.IFilterManager;
 import org.jruyi.workshop.IRunnable;
 import org.jruyi.workshop.IWorkshop;
 import org.jruyi.workshop.WorkshopConstants;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Service(IService.class)
-@Component(name = IoConstants.CN_TCPCLIENT_CONNPOOL_FACTORY, factory = "tcpclient.connpool", createPid = false, specVersion = "1.2.0")
-@References({
-		@Reference(name = "channelAdmin", referenceInterface = IChannelAdmin.class),
-		@Reference(name = "filterManager", referenceInterface = IFilterManager.class),
-		@Reference(name = "buffer", referenceInterface = IBufferFactory.class, policy = ReferencePolicy.DYNAMIC, bind = "bindBufferFactory", unbind = "unbindBufferFactory") })
+@Component(name = IoConstants.CN_TCPCLIENT_CONNPOOL_FACTORY, //
+factory = "tcpclient.connpool", //
+service = { IService.class }, //
+xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class ConnPool extends AbstractTcpClient implements IRunnable {
 
 	private static final Logger c_logger = LoggerFactory
 			.getLogger(ConnPool.class);
 
-	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
 	private IWorkshop m_workshop;
 
 	private Configuration m_conf;
@@ -337,11 +332,45 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 		writeInternal(channel, args.arg(1));
 	}
 
-	protected synchronized void bindWorkshop(IWorkshop workshop) {
+	@Reference(name = "buffer", policy = ReferencePolicy.DYNAMIC)
+	@Override
+	protected synchronized void setBufferFactory(IBufferFactory bf) {
+		super.setBufferFactory(bf);
+	}
+
+	@Override
+	protected synchronized void unsetBufferFactory(IBufferFactory bf) {
+		super.unsetBufferFactory(bf);
+	}
+
+	@Reference(name = "channelAdmin")
+	@Override
+	protected void setChannelAdmin(IChannelAdmin cm) {
+		super.setChannelAdmin(cm);
+	}
+
+	@Override
+	protected void unsetChannelAdmin(IChannelAdmin cm) {
+		super.unsetChannelAdmin(cm);
+	}
+
+	@Reference(name = "filterManager")
+	@Override
+	protected void setFilterManager(IFilterManager fm) {
+		super.setFilterManager(fm);
+	}
+
+	@Override
+	protected void unsetFilterManager(IFilterManager fm) {
+		super.unsetFilterManager(fm);
+	}
+
+	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
+	protected synchronized void setWorkshop(IWorkshop workshop) {
 		m_workshop = workshop;
 	}
 
-	protected synchronized void unbindWorkshop(IWorkshop workshop) {
+	protected synchronized void unsetWorkshop(IWorkshop workshop) {
 		if (m_workshop == workshop)
 			m_workshop = null;
 	}

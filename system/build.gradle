@@ -1,0 +1,51 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply plugin: 'osgibnd'
+
+archivesBaseName = 'jruyi-system'
+version = jruyi_system_version
+description = "Sets up JRuyi's environment and bootloads the system"
+
+ext {
+	title = 'JRuyi System'
+}
+
+dependencies {
+	compile "org.osgi:org.osgi.core:$org_osgi_core_version"
+	compile "org.slf4j:slf4j-api:$slf4j_api_version"
+
+	compile project(':api')
+}
+
+processResources {
+	eachFile { fileCopyDetails ->
+		if (fileCopyDetails.name == 'product.properties')
+			fileCopyDetails.expand([
+					jruyiName     : rootProject.title,
+					jruyiVersion  : version,
+					jruyiUrl      : organizationUrl,
+					jruyiVendor   : organizationName,
+					jruyiVendorUrl: organizationUrl,
+			])
+	}
+}
+
+jar {
+	manifest {
+		attributes(
+				'Export-Package': 'org.jruyi.system',
+		)
+	}
+}

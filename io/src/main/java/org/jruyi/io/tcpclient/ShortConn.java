@@ -17,11 +17,6 @@ import java.io.Closeable;
 import java.lang.reflect.Method;
 import java.util.Map;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferencePolicy;
-import org.apache.felix.scr.annotations.References;
-import org.apache.felix.scr.annotations.Service;
 import org.jruyi.common.IService;
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.IBufferFactory;
@@ -31,20 +26,23 @@ import org.jruyi.io.IoConstants;
 import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.filter.IFilterManager;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Service(IService.class)
-@Component(name = IoConstants.CN_TCPCLIENT_SHORTCONN_FACTORY, factory = "tcpclient.shortconn", createPid = false, specVersion = "1.1.0")
-@References({
-		@Reference(name = "channelAdmin", referenceInterface = IChannelAdmin.class),
-		@Reference(name = "filterManager", referenceInterface = IFilterManager.class),
-		@Reference(name = "buffer", referenceInterface = IBufferFactory.class, policy = ReferencePolicy.DYNAMIC, bind = "bindBufferFactory", unbind = "unbindBufferFactory") })
+@Component(name = IoConstants.CN_TCPCLIENT_SHORTCONN_FACTORY, //
+factory = "tcpclient.shortconn", //
+service = { IService.class }, //
+xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class ShortConn extends AbstractTcpClient {
 
 	private static final Logger c_logger = LoggerFactory
 			.getLogger(ShortConn.class);
+
 	private static final Method[] EMTPY_MANDATORY_PROPS = new Method[0];
+
 	private TcpClientConf m_conf;
 
 	@Override
@@ -161,6 +159,39 @@ public final class ShortConn extends AbstractTcpClient {
 		super.stopInternal();
 
 		c_logger.info(StrUtil.join(this, " stopped"));
+	}
+
+	@Reference(name = "buffer", policy = ReferencePolicy.DYNAMIC)
+	@Override
+	protected synchronized void setBufferFactory(IBufferFactory bf) {
+		super.setBufferFactory(bf);
+	}
+
+	@Override
+	protected synchronized void unsetBufferFactory(IBufferFactory bf) {
+		super.unsetBufferFactory(bf);
+	}
+
+	@Reference(name = "channelAdmin")
+	@Override
+	protected void setChannelAdmin(IChannelAdmin cm) {
+		super.setChannelAdmin(cm);
+	}
+
+	@Override
+	protected void unsetChannelAdmin(IChannelAdmin cm) {
+		super.unsetChannelAdmin(cm);
+	}
+
+	@Reference(name = "filterManager")
+	@Override
+	protected void setFilterManager(IFilterManager fm) {
+		super.setFilterManager(fm);
+	}
+
+	@Override
+	protected void unsetFilterManager(IFilterManager fm) {
+		super.unsetFilterManager(fm);
 	}
 
 	@Override

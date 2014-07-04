@@ -45,8 +45,9 @@ final class OutBufferStream extends OutputStream implements ITimeoutListener {
 		tn.setListener(this);
 	}
 
-	public static void flushThreshold(int flushThreshold) {
-		s_flushThreshold = flushThreshold;
+	public static void flushThreshold(Integer flushThreshold) {
+		if (flushThreshold != null)
+			s_flushThreshold = flushThreshold;
 	}
 
 	@Override

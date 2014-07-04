@@ -16,33 +16,20 @@ package org.jruyi.cmd.conf;
 import java.util.Dictionary;
 import java.util.Enumeration;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.ConfigurationPolicy;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceStrategy;
-import org.apache.felix.scr.annotations.Service;
-import org.apache.felix.service.command.CommandProcessor;
 import org.jruyi.cmd.internal.RuyiCmd;
 import org.jruyi.common.Properties;
 import org.jruyi.common.StrUtil;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
-import org.osgi.service.component.ComponentContext;
 import org.osgi.service.metatype.AttributeDefinition;
 import org.osgi.service.metatype.MetaTypeInformation;
 import org.osgi.service.metatype.MetaTypeService;
 import org.osgi.service.metatype.ObjectClassDefinition;
 
-@Service(Conf.class)
-@Component(name = "jruyi.cmd.conf", policy = ConfigurationPolicy.IGNORE, createPid = false)
-@org.apache.felix.scr.annotations.Properties({
-		@Property(name = CommandProcessor.COMMAND_SCOPE, value = "conf"),
-		@Property(name = CommandProcessor.COMMAND_FUNCTION, value = { "create",
-				"delete", "list", "update", "exists" }) })
-@Reference(name = "mts", referenceInterface = MetaTypeService.class, strategy = ReferenceStrategy.LOOKUP)
 public final class Conf {
 
 	private static final String MASK = "****";
@@ -51,10 +38,15 @@ public final class Conf {
 	private static final int FACTORYPID = 0x02;
 	private static final int BOTH = PID | FACTORYPID;
 
-	private ComponentContext m_context;
+	private final BundleContext m_context;
 
-	@Reference(name = "configurationAdmin")
-	private ConfigurationAdmin m_ca;
+	public Conf(BundleContext context) {
+		m_context = context;
+	}
+
+	public static String[] commands() {
+		return new String[] { "create", "delete", "list", "update", "exists" };
+	}
 
 	/**
 	 * Creates a configuration
@@ -81,15 +73,16 @@ public final class Conf {
 			props.put(arg.substring(0, i).trim(), arg.substring(i + 1).trim());
 		}
 
-		boolean[] factory = new boolean[1];
-		ObjectClassDefinition ocd = getOcd(id, BOTH, factory);
+		final boolean[] factory = new boolean[1];
+		final ObjectClassDefinition ocd = getOcd(id, BOTH, factory);
 		if (ocd == null)
 			throw new Exception("Metatype NOT Found: " + id);
 
 		props = PropUtil.normalize(props, ocd);
 
-		Configuration conf = factory[0] ? m_ca.createFactoryConfiguration(id,
-				null) : m_ca.getConfiguration(id, null);
+		final ConfigurationAdmin ca = (ConfigurationAdmin) ca();
+		Configuration conf = factory[0] ? ca.createFactoryConfiguration(id,
+				null) : ca.getConfiguration(id, null);
 
 		conf.update(props);
 	}
@@ -109,7 +102,8 @@ public final class Conf {
 			return;
 		}
 
-		final Configuration[] confs = m_ca
+		final ConfigurationAdmin ca = (ConfigurationAdmin) ca();
+		final Configuration[] confs = ca
 				.listConfigurations(normalizeFilter(filter));
 
 		if (confs == null || confs.length < 1)
@@ -151,7 +145,8 @@ public final class Conf {
 	 * @throws Exception
 	 */
 	public void delete(String filter) throws Exception {
-		Configuration[] confs = m_ca
+		final ConfigurationAdmin ca = (ConfigurationAdmin) ca();
+		final Configuration[] confs = ca
 				.listConfigurations(normalizeFilter(filter));
 		if (confs == null || confs.length == 0) {
 			System.err.print("Configuration(s) NOT Found: ");
@@ -180,7 +175,8 @@ public final class Conf {
 				filter = normalizeFilter(args[0]);
 		}
 
-		Configuration[] confs = m_ca.listConfigurations(filter);
+		final ConfigurationAdmin ca = (ConfigurationAdmin) ca();
+		final Configuration[] confs = ca.listConfigurations(filter);
 		if (confs == null || confs.length == 0)
 			return;
 
@@ -207,25 +203,10 @@ public final class Conf {
 	 * @throws Exception
 	 */
 	public boolean exists(String filter) throws Exception {
-		final Configuration[] confs = m_ca
+		final ConfigurationAdmin ca = (ConfigurationAdmin) ca();
+		final Configuration[] confs = ca
 				.listConfigurations(normalizeFilter(filter));
 		return (confs != null && confs.length > 0);
-	}
-
-	protected void bindConfigurationAdmin(ConfigurationAdmin ca) {
-		m_ca = ca;
-	}
-
-	protected void unbindConfigurationAdmin(ConfigurationAdmin ca) {
-		m_ca = null;
-	}
-
-	protected void activate(ComponentContext context) {
-		m_context = context;
-	}
-
-	protected void deactivate() {
-		m_context = null;
 	}
 
 	private static String normalizeFilter(String filter) {
@@ -242,11 +223,9 @@ public final class Conf {
 
 	private ObjectClassDefinition getOcd(final String id, final int type,
 			boolean[] factory) {
-		final ComponentContext context = m_context;
-		final MetaTypeService mts = (MetaTypeService) context
-				.locateService("mts");
 
-		Bundle[] bundles = context.getBundleContext().getBundles();
+		final MetaTypeService mts = (MetaTypeService) mts();
+		final Bundle[] bundles = m_context.getBundles();
 		for (Bundle bundle : bundles) {
 			MetaTypeInformation mti = mts.getMetaTypeInformation(bundle);
 			if (mti == null)
@@ -392,5 +371,19 @@ public final class Conf {
 			}
 		}
 		System.out.print(']');
+	}
+
+	private Object ca() {
+		final BundleContext context = m_context;
+		final ServiceReference<ConfigurationAdmin> reference = context
+				.getServiceReference(ConfigurationAdmin.class);
+		return context.getService(reference);
+	}
+
+	private Object mts() {
+		final BundleContext context = m_context;
+		final ServiceReference<MetaTypeService> reference = context
+				.getServiceReference(MetaTypeService.class);
+		return context.getService(reference);
 	}
 }

@@ -28,9 +28,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.jruyi.common.IService;
 import org.jruyi.common.Service;
 import org.jruyi.common.StrUtil;
@@ -44,11 +41,16 @@ import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.channel.IChannelService;
 import org.jruyi.io.filter.IFilterManager;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@org.apache.felix.scr.annotations.Service(IService.class)
-@Component(name = IoConstants.CN_UDPSERVER_FACTORY, factory = "udpserver", createPid = false, specVersion = "1.1.0")
+@Component(name = IoConstants.CN_UDPSERVER_FACTORY, //
+factory = "udpserver", //
+service = { IService.class }, //
+xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class UdpServer extends Service implements IChannelService,
 		ISessionService {
 
@@ -58,14 +60,9 @@ public final class UdpServer extends Service implements IChannelService,
 	private Configuration m_conf;
 	private DatagramChannel m_datagramChannel;
 
-	@Reference(name = "channelAdmin")
-	private IChannelAdmin m_ca;
-
-	@Reference(name = "filterManager")
-	private IFilterManager m_fm;
-
-	@Reference(name = "buffer", policy = ReferencePolicy.DYNAMIC, bind = "bindBufferFactory", unbind = "unbindBufferFactory")
 	private IBufferFactory m_bf;
+	private IChannelAdmin m_ca;
+	private IFilterManager m_fm;
 
 	private IFilter<?, ?>[] m_filters;
 	private boolean m_closed;
@@ -355,35 +352,38 @@ public final class UdpServer extends Service implements IChannelService,
 		c_logger.info(StrUtil.join(this, " stopped"));
 	}
 
-	protected void bindChannelAdmin(IChannelAdmin ca) {
-		m_ca = ca;
-	}
-
-	protected void unbindChannelAdmin(IChannelAdmin ca) {
-		m_ca = null;
-	}
-
-	protected void bindFilterManager(IFilterManager fm) {
-		m_fm = fm;
-	}
-
-	protected void unbindFilterManager(IFilterManager fm) {
-		m_fm = null;
-	}
-
-	protected synchronized void bindBufferFactory(IBufferFactory bf) {
+	@Reference(name = "buffer", policy = ReferencePolicy.DYNAMIC)
+	protected synchronized void setBufferFactory(IBufferFactory bf) {
 		m_bf = bf;
 	}
 
-	protected synchronized void unbindBufferFactory(IBufferFactory bf) {
+	protected synchronized void unsetBufferFactory(IBufferFactory bf) {
 		if (m_bf == bf)
 			m_bf = null;
 	}
 
+	@Reference(name = "channelAdmin")
+	protected void setChannelAdmin(IChannelAdmin ca) {
+		m_ca = ca;
+	}
+
+	protected void unsetChannelAdmin(IChannelAdmin ca) {
+		m_ca = null;
+	}
+
+	@Reference(name = "filterManager")
+	protected void setFilterManager(IFilterManager fm) {
+		m_fm = fm;
+	}
+
+	protected void unsetFilterManager(IFilterManager fm) {
+		m_fm = null;
+	}
+
 	protected void activate(Map<String, ?> properties) throws Exception {
-		String id = (String) properties.get(IoConstants.SERVICE_ID);
+		final String id = (String) properties.get(IoConstants.SERVICE_ID);
 		m_caption = StrUtil.join("UdpServer[", id, "]");
-		Configuration conf = new Configuration();
+		final Configuration conf = new Configuration();
 		conf.initialize(properties);
 		updateConf(conf);
 	}
@@ -403,14 +403,14 @@ public final class UdpServer extends Service implements IChannelService,
 
 		socket.setReuseAddress(true);
 
-		Integer recvBufSize = conf.recvBufSize();
+		final Integer recvBufSize = conf.recvBufSize();
 		if (recvBufSize != null)
 			socket.setReceiveBufferSize(recvBufSize);
 	}
 
 	private void updateConf(Configuration newConf) {
-		String[] newNames = newConf == null ? StrUtil.getEmptyStringArray()
-				: newConf.filters();
+		final String[] newNames = newConf == null ? StrUtil
+				.getEmptyStringArray() : newConf.filters();
 		String[] oldNames = StrUtil.getEmptyStringArray();
 		IFilterManager fm = m_fm;
 		if (m_conf == null)
@@ -428,7 +428,7 @@ public final class UdpServer extends Service implements IChannelService,
 	}
 
 	private boolean scheduleIdleTimeout(IChannel channel) {
-		int timeout = m_conf.sessionIdleTimeoutInSeconds();
+		final int timeout = m_conf.sessionIdleTimeoutInSeconds();
 		if (timeout > 0)
 			return channel.scheduleIdleTimeout(timeout);
 

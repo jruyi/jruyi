@@ -15,19 +15,19 @@ package org.jruyi.io.textline;
 
 import java.util.Map;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Service;
 import org.jruyi.common.CharsetCodec;
 import org.jruyi.common.ICharsetCodec;
 import org.jruyi.io.Filter;
 import org.jruyi.io.IBuffer;
+import org.jruyi.io.IFilter;
 import org.jruyi.io.ISession;
 import org.jruyi.io.IoConstants;
+import org.osgi.service.component.annotations.Component;
 
-@Service
-@Component(name = "jruyi.io.textline.filter", createPid = false, specVersion = "1.1.0")
-@Property(name = IoConstants.FILTER_ID, value = "jruyi.io.textline.filter")
+@Component(name = "jruyi.io.textline.filter", //
+service = { IFilter.class }, //
+property = { IoConstants.FILTER_ID + "=" + "jruyi.io.textline.filter" }, //
+xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class TextLineFilter extends Filter<Object, Object> {
 
 	private byte[] m_lineTerminator;

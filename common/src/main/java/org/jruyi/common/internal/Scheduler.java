@@ -19,60 +19,58 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Service;
 import org.jruyi.common.IScheduler;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Modified;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Service(IScheduler.class)
-@Component(name = "jruyi.common.scheduler", createPid = false)
+@Component(name = "jruyi.common.scheduler", xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class Scheduler implements IScheduler {
 
 	private static final Logger c_logger = LoggerFactory
 			.getLogger(Scheduler.class);
-
-	@Property(intValue = 1)
-	private static final String P_NUMBER_OF_THREAD = "numberOfThread";
-
-	@Property(intValue = 300)
-	private static final String P_TERM_WAITTIME_IN_SECONDS = "terminationWaitTimeInSeconds";
 
 	private Configuration m_conf;
 	private ScheduledThreadPoolExecutor m_executor;
 
 	static final class Configuration {
 
-		private Integer m_numberOfThread;
-		private Integer m_terminationWaitTimeInSeconds;
+		private static final String P_NUMBER_OF_THREADS = "numberOfThreads";
+		private static final String P_TERM_WAITTIME_IN_SECONDS = "terminationWaitTimeInSeconds";
+
+		private int m_numberOfThreads = 1;
+		private int m_terminationWaitTimeInSeconds = 300;
 
 		private Configuration() {
 		}
 
 		static Configuration create(Map<String, ?> properties) {
 			final Configuration conf = new Configuration();
-			conf.numberOfThread((Integer) properties.get(P_NUMBER_OF_THREAD));
+			conf.numberOfThreads((Integer) properties.get(P_NUMBER_OF_THREADS));
 			conf.terminationWaitTimeInSeconds((Integer) properties
 					.get(P_TERM_WAITTIME_IN_SECONDS));
 			return conf;
 		}
 
-		public Integer numberOfThread() {
-			return m_numberOfThread;
+		public int numberOfThreads() {
+			return m_numberOfThreads;
 		}
 
-		public void numberOfThread(Integer numberOfThread) {
-			m_numberOfThread = numberOfThread;
+		public void numberOfThreads(Integer numberOfThreads) {
+			if (numberOfThreads == null || numberOfThreads < 1)
+				return;
+			m_numberOfThreads = numberOfThreads;
 		}
 
-		public Integer terminationWaitTimeInSeconds() {
+		public int terminationWaitTimeInSeconds() {
 			return m_terminationWaitTimeInSeconds;
 		}
 
 		public void terminationWaitTimeInSeconds(
 				Integer terminationWaitTimeInSeconds) {
+			if (terminationWaitTimeInSeconds == null)
+				return;
 			m_terminationWaitTimeInSeconds = terminationWaitTimeInSeconds;
 		}
 	}
@@ -108,19 +106,20 @@ public final class Scheduler implements IScheduler {
 		final Configuration conf = Configuration.create(properties);
 		m_conf = conf;
 
-		final Integer numberOfThread = conf.numberOfThread();
-		m_executor.setCorePoolSize(numberOfThread);
+		final int numberOfThreads = conf.numberOfThreads();
+		m_executor.setCorePoolSize(numberOfThreads);
 
-		c_logger.info("Scheduler modified: numberOfThread={}", numberOfThread);
+		c_logger.info("Scheduler modified: numberOfThreads={}", numberOfThreads);
 	}
 
 	public void activate(Map<String, ?> properties) {
 		final Configuration conf = Configuration.create(properties);
-		final Integer numberOfThread = conf.numberOfThread();
-		m_executor = new ScheduledThreadPoolExecutor(numberOfThread);
+		final int numberOfThreads = conf.numberOfThreads();
+		m_executor = new ScheduledThreadPoolExecutor(numberOfThreads);
 		m_conf = conf;
 
-		c_logger.info("Scheduler activated: numberOfThread={}", numberOfThread);
+		c_logger.info("Scheduler activated: numberOfThreads={}",
+				numberOfThreads);
 	}
 
 	public void deactivate() {

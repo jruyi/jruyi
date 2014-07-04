@@ -25,34 +25,27 @@ import org.apache.felix.bundlerepository.RepositoryAdmin;
 import org.apache.felix.bundlerepository.Requirement;
 import org.apache.felix.bundlerepository.Resolver;
 import org.apache.felix.bundlerepository.Resource;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.ConfigurationPolicy;
-import org.apache.felix.scr.annotations.Properties;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceStrategy;
-import org.apache.felix.scr.annotations.Service;
-import org.apache.felix.service.command.CommandProcessor;
 import org.apache.felix.service.command.Parameter;
 import org.jruyi.cmd.internal.RuyiCmd;
 import org.jruyi.cmd.util.Util;
 import org.jruyi.common.StringBuilder;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
-import org.osgi.service.component.ComponentContext;
 
-@Service(Obr.class)
-@Component(name = "jruyi.cmd.obr", policy = ConfigurationPolicy.IGNORE, createPid = false)
-@Properties({
-		@Property(name = CommandProcessor.COMMAND_SCOPE, value = "obr"),
-		@Property(name = CommandProcessor.COMMAND_FUNCTION, value = { "deploy",
-				"info", "list", "repos" }) })
-@Reference(name = Obr.REPO_ADMIN, referenceInterface = RepositoryAdmin.class, strategy = ReferenceStrategy.LOOKUP)
 public final class Obr {
 
-	public static final String REPO_ADMIN = "repositoryAdmin";
 	private static final char VERSION_SEPARATOR = '@';
-	private ComponentContext m_context;
+	private final BundleContext m_context;
+
+	public Obr(BundleContext context) {
+		m_context = context;
+	}
+
+	public static String[] commands() {
+		return new String[] { "deploy", "info", "list", "repos" };
+	}
 
 	/**
 	 * Manages OSGi bundle repositories
@@ -64,8 +57,8 @@ public final class Obr {
 	 * @throws Exception
 	 */
 	public void repos(String action, String[] args) throws Exception {
-		RepositoryAdmin ra = (RepositoryAdmin) m_context
-				.locateService(REPO_ADMIN);
+
+		final RepositoryAdmin ra = (RepositoryAdmin) ra();
 
 		int n = args.length;
 		if (n > 0) {
@@ -111,8 +104,7 @@ public final class Obr {
 			return;
 		}
 
-		RepositoryAdmin ra = (RepositoryAdmin) m_context
-				.locateService(REPO_ADMIN);
+		final RepositoryAdmin ra = (RepositoryAdmin) ra();
 		for (String targetName : args) {
 			// Find the target's bundle resource.
 			String targetVersion = null;
@@ -121,7 +113,7 @@ public final class Obr {
 				targetVersion = targetName.substring(i + 1);
 				targetName = targetName.substring(0, i);
 			}
-			Resource[] resources = searchRepository(ra, targetName,
+			final Resource[] resources = searchRepository(ra, targetName,
 					targetVersion);
 			if ((resources == null) || (resources.length == 0)) {
 				System.err.print("Unknown bundle and/or version: ");
@@ -150,8 +142,7 @@ public final class Obr {
 	public void list(
 			@Parameter(names = { "-v", "--verbose" }, presentValue = "true", absentValue = "false") boolean verbose,
 			String[] args) throws Exception {
-		final RepositoryAdmin ra = (RepositoryAdmin) m_context
-				.locateService(REPO_ADMIN);
+		final RepositoryAdmin ra = (RepositoryAdmin) ra();
 		final Resource[] resources;
 		// Create a filter that will match presentation name or symbolic name.
 		StringBuilder builder = StringBuilder.get();
@@ -251,9 +242,8 @@ public final class Obr {
 			@Parameter(names = { "-ro", "--required-only" }, presentValue = "true", absentValue = "false") boolean requiredOnly,
 			@Parameter(names = { "-f", "--force" }, presentValue = "true", absentValue = "false") boolean force,
 			String[] args) throws Exception {
-		RepositoryAdmin ra = (RepositoryAdmin) m_context
-				.locateService(REPO_ADMIN);
-		Resolver resolver = ra.resolver();
+		final RepositoryAdmin ra = (RepositoryAdmin) ra();
+		final Resolver resolver = ra.resolver();
 		if (args != null) {
 			for (String arg : args) {
 				// Find the target's bundle resource.
@@ -324,7 +314,7 @@ public final class Obr {
 			return;
 		}
 
-		Reason[] reasons = resolver.getUnsatisfiedRequirements();
+		final Reason[] reasons = resolver.getUnsatisfiedRequirements();
 		if (reasons == null || reasons.length == 0) {
 			System.out.println("Could not resolve targets.");
 			return;
@@ -340,14 +330,6 @@ public final class Obr {
 		}
 	}
 
-	protected void activate(ComponentContext context) {
-		m_context = context;
-	}
-
-	protected void deactivate() {
-		m_context = null;
-	}
-
 	private static void append(StringBuilder builder, String[] args) {
 		builder.append(args[0]);
 		for (int i = 1, n = args.length; i < n; ++i)
@@ -358,8 +340,7 @@ public final class Obr {
 			String targetVersion) throws Exception {
 		// Try to see if the targetId is a bundle ID.
 		if (Util.isBundleId(targetId)) {
-			Bundle bundle = m_context.getBundleContext().getBundle(
-					Long.parseLong(targetId));
+			final Bundle bundle = m_context.getBundle(Long.parseLong(targetId));
 			if (bundle == null)
 				return null;
 
@@ -446,8 +427,8 @@ public final class Obr {
 		Resource r = resources[0];
 		Version v = r.getVersion();
 		for (int i = 1, n = resources.length; i < n; ++i) {
-			Resource resource = resources[i];
-			Version vtmp = resource.getVersion();
+			final Resource resource = resources[i];
+			final Version vtmp = resource.getVersion();
 			if (vtmp.compareTo(v) > 0) {
 				r = resource;
 				v = vtmp;
@@ -477,7 +458,7 @@ public final class Obr {
 	}
 
 	private void uninstall(HashSet<String> bundlesToUninstall) {
-		final Bundle[] bundles = m_context.getBundleContext().getBundles();
+		final Bundle[] bundles = m_context.getBundles();
 		if (bundles == null)
 			return;
 
@@ -492,5 +473,12 @@ public final class Obr {
 				}
 			}
 		}
+	}
+
+	private Object ra() {
+		final BundleContext context = m_context;
+		final ServiceReference<RepositoryAdmin> reference = context
+				.getServiceReference(RepositoryAdmin.class);
+		return context.getService(reference);
 	}
 }

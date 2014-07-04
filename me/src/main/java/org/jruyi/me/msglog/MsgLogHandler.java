@@ -13,21 +13,20 @@
  */
 package org.jruyi.me.msglog;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.ConfigurationPolicy;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Service;
 import org.jruyi.common.StringBuilder;
 import org.jruyi.me.IMessage;
 import org.jruyi.me.IPostHandler;
 import org.jruyi.me.IPreHandler;
 import org.jruyi.me.MeConstants;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Service
-@Component(name = "jruyi.me.msglog.handler", policy = ConfigurationPolicy.IGNORE, createPid = false)
-@Property(name = MeConstants.HANDLER_ID, value = MeConstants.HID_MSGLOG)
+@Component(name = "jruyi.me.msglog.handler", //
+configurationPolicy = ConfigurationPolicy.IGNORE, //
+property = { MeConstants.HANDLER_ID + "=" + MeConstants.HID_MSGLOG }, //
+xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class MsgLogHandler implements IPreHandler, IPostHandler {
 
 	private static final Logger c_logger = LoggerFactory

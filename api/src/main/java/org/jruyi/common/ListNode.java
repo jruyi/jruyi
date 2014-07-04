@@ -102,7 +102,7 @@ public final class ListNode<E> implements ICloseable {
 	 *            the type of the element
 	 * @return an instance of {@code ListNode}
 	 */
-	@SuppressWarnings({ "unchecked", "resource" })
+	@SuppressWarnings({ "unchecked" })
 	public static <T> ListNode<T> create() {
 		Stack cache = Stack.get();
 		return (ListNode<T>) (cache.isEmpty() ? new ListNode<Object>() : cache

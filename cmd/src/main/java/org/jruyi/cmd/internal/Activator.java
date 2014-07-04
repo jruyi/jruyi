@@ -15,6 +15,8 @@ package org.jruyi.cmd.internal;
 
 import org.apache.felix.service.command.CommandProcessor;
 import org.jruyi.cmd.IManual;
+import org.jruyi.cmd.conf.Conf;
+import org.jruyi.cmd.obr.Obr;
 import org.jruyi.common.Properties;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -23,7 +25,7 @@ public final class Activator implements BundleActivator {
 
 	@Override
 	public void start(BundleContext context) throws Exception {
-		Properties properties = new Properties();
+		final Properties properties = new Properties();
 
 		// builtin command
 		properties.put(CommandProcessor.COMMAND_SCOPE, "builtin");
@@ -43,6 +45,18 @@ public final class Activator implements BundleActivator {
 		properties.put(CommandProcessor.COMMAND_FUNCTION, BundleCmd.commands());
 		context.registerService(BundleCmd.class.getName(), new BundleCmd(
 				context), properties);
+
+		// conf command
+		properties.put(CommandProcessor.COMMAND_SCOPE, "conf");
+		properties.put(CommandProcessor.COMMAND_FUNCTION, Conf.commands());
+		context.registerService(Conf.class.getName(), new Conf(context),
+				properties);
+
+		// Obr command
+		properties.put(CommandProcessor.COMMAND_SCOPE, "obr");
+		properties.put(CommandProcessor.COMMAND_FUNCTION, Obr.commands());
+		context.registerService(Obr.class.getName(), new Obr(context),
+				properties);
 	}
 
 	@Override

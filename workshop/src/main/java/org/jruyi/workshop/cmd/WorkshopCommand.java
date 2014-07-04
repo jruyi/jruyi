@@ -14,46 +14,28 @@
 package org.jruyi.workshop.cmd;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.ConfigurationPolicy;
-import org.apache.felix.scr.annotations.Properties;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.ReferencePolicy;
-import org.apache.felix.scr.annotations.Service;
-import org.apache.felix.service.command.CommandProcessor;
 import org.jruyi.workshop.IWorkshopProfiler;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 
-@Service(WorkshopCommand.class)
-@Component(name = "jruyi.workshop.cmd", policy = ConfigurationPolicy.IGNORE, createPid = false)
-@Properties({
-		@Property(name = CommandProcessor.COMMAND_SCOPE, value = "workshop"),
-		@Property(name = CommandProcessor.COMMAND_FUNCTION, value = { "info",
-				"list", "profiling" }) })
 public final class WorkshopCommand {
 
-	@Reference(name = "profiler", referenceInterface = IWorkshopProfiler.class, policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE)
-	private final ArrayList<IWorkshopProfiler> m_profilers = new ArrayList<IWorkshopProfiler>();
+	private final BundleContext m_context;
 
-	protected synchronized void bindProfiler(IWorkshopProfiler profiler) {
-		m_profilers.add(profiler);
+	public WorkshopCommand(BundleContext context) {
+		m_context = context;
 	}
 
-	protected synchronized void unbindProfiler(IWorkshopProfiler profiler) {
-		final ArrayList<IWorkshopProfiler> profilers = m_profilers;
-		for (int i = 0, n = profilers.size(); i < n; ++i) {
-			if (profilers.get(i) == profiler) {
-				profilers.remove(i);
-				break;
-			}
-		}
+	public static String[] commands() {
+		return new String[] { "info", "list", "profiling" };
 	}
 
-	public void list() {
-		final ArrayList<IWorkshopProfiler> profilers = m_profilers;
+	public void list() throws Exception {
+		final List<IWorkshopProfiler> profilers = getWorkshopProfilers(null);
 		System.out
 				.println(" ProfilerID Core/MaxPoolSize KeepAliveTime QueueCapacity Profiling ThreadPrefix");
 
@@ -98,7 +80,7 @@ public final class WorkshopCommand {
 		}
 	}
 
-	public void profiling(String action, long[] profilerIds) {
+	public void profiling(String action, long[] profilerIds) throws Exception {
 		boolean start = false;
 		if (action.equals("start"))
 			start = true;
@@ -116,12 +98,13 @@ public final class WorkshopCommand {
 		}
 	}
 
-	public void info(long[] profilerIds) {
+	public void info(long[] profilerIds) throws Exception {
 
 		final List<IWorkshopProfiler> profilers = getWorkshopProfilers(profilerIds);
 
 		for (IWorkshopProfiler profiler : profilers) {
-			System.out.println("============================================================");
+			System.out
+					.println("============================================================");
 			System.out.print("                      ProfilerID: ");
 			System.out.println(profiler.getProfilerId());
 
@@ -186,23 +169,43 @@ public final class WorkshopCommand {
 			System.out.print(c);
 	}
 
-	private List<IWorkshopProfiler> getWorkshopProfilers(long[] profilerIds) {
-		if (profilerIds == null || profilerIds.length < 1)
-			return m_profilers;
+	private List<IWorkshopProfiler> getWorkshopProfilers(long[] profilerIds)
+			throws Exception {
+		final BundleContext context = m_context;
+		final Collection<ServiceReference<IWorkshopProfiler>> references = context
+				.getServiceReferences(IWorkshopProfiler.class, null);
 
-		final ArrayList<IWorkshopProfiler> profilers = m_profilers;
-		ArrayList<IWorkshopProfiler> profilerList = new ArrayList<IWorkshopProfiler>(
-				profilerIds.length);
-		idLoop: for (long profilerId : profilerIds) {
-			for (IWorkshopProfiler profiler : profilers) {
-				if (profiler.getProfilerId() == profilerId) {
-					profilerList.add(profiler);
-					continue idLoop;
-				}
+		if (references == null || references.size() < 1)
+			return Collections.emptyList();
+
+		final ArrayList<IWorkshopProfiler> profilers;
+		if (profilerIds == null || profilerIds.length < 1) {
+			profilers = new ArrayList<IWorkshopProfiler>(references.size());
+			for (ServiceReference<IWorkshopProfiler> reference : references) {
+				final IWorkshopProfiler profiler = context
+						.getService(reference);
+				if (profiler != null)
+					profilers.add(profiler);
 			}
-			throw new RuntimeException("WorkshopProfiler NOT Found:"
-					+ profilerId);
+		} else {
+			profilers = new ArrayList<IWorkshopProfiler>(profilerIds.length);
+			for (ServiceReference<IWorkshopProfiler> reference : references) {
+				final IWorkshopProfiler profiler = context
+						.getService(reference);
+				if (profiler != null
+						&& in(profilerIds, profiler.getProfilerId()))
+					profilers.add(profiler);
+			}
 		}
-		return profilerList;
+		return profilers;
+	}
+
+	private static boolean in(long[] profilerIds, long profilerId) {
+		for (long id : profilerIds) {
+			if (id == profilerId)
+				return true;
+		}
+
+		return false;
 	}
 }

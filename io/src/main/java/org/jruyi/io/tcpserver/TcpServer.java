@@ -29,9 +29,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.jruyi.common.IService;
 import org.jruyi.common.Service;
 import org.jruyi.common.StrUtil;
@@ -45,31 +42,30 @@ import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.channel.IChannelService;
 import org.jruyi.io.filter.IFilterManager;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@org.apache.felix.scr.annotations.Service(IService.class)
-@Component(name = IoConstants.CN_TCPSERVER_FACTORY, factory = "tcpserver", createPid = false, specVersion = "1.1.0")
+@Component(name = IoConstants.CN_TCPSERVER_FACTORY, //
+factory = "tcpserver", //
+service = { IService.class }, //
+xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class TcpServer extends Service implements IChannelService,
 		ISessionService {
 
 	private static final Logger c_logger = LoggerFactory
 			.getLogger(TcpServer.class);
+
 	private String m_caption;
 	private Configuration m_conf;
 	private ServerSocketChannel m_ssc;
 
-	@Reference(name = "channelAdmin")
-	private IChannelAdmin m_ca;
-
-	@Reference(name = "tcpAcceptor")
-	private ITcpAcceptor m_acceptor;
-
-	@Reference(name = "filterManager")
-	private IFilterManager m_fm;
-
-	@Reference(name = "buffer", policy = ReferencePolicy.DYNAMIC, bind = "bindBufferFactory", unbind = "unbindBufferFactory")
 	private IBufferFactory m_bf;
+	private IChannelAdmin m_ca;
+	private IFilterManager m_fm;
+	private ITcpAcceptor m_acceptor;
 
 	private IFilter<?, ?>[] m_filters;
 	private boolean m_closed;
@@ -369,37 +365,41 @@ public final class TcpServer extends Service implements IChannelService,
 		return oldConf.isMandatoryChanged(newConf);
 	}
 
-	protected void bindChannelAdmin(IChannelAdmin ca) {
-		m_ca = ca;
-	}
-
-	protected void unbindChannelAdmin(IChannelAdmin ca) {
-		m_ca = null;
-	}
-
-	protected void bindTcpAcceptor(ITcpAcceptor acceptor) {
-		m_acceptor = acceptor;
-	}
-
-	protected void unbindTcpAcceptor(ITcpAcceptor acceptor) {
-		m_acceptor = null;
-	}
-
-	protected void bindFilterManager(IFilterManager fm) {
-		m_fm = fm;
-	}
-
-	protected void unbindFilterManager(IFilterManager fm) {
-		m_fm = null;
-	}
-
-	protected synchronized void bindBufferFactory(IBufferFactory bf) {
+	@Reference(name = "buffer", policy = ReferencePolicy.DYNAMIC)
+	protected synchronized void setBufferFactory(IBufferFactory bf) {
 		m_bf = bf;
 	}
 
-	protected synchronized void unbindBufferFactory(IBufferFactory bf) {
+	protected synchronized void unsetBufferFactory(IBufferFactory bf) {
 		if (m_bf == bf)
 			m_bf = null;
+	}
+
+	@Reference(name = "channelAdmin")
+	protected void setChannelAdmin(IChannelAdmin ca) {
+		m_ca = ca;
+	}
+
+	protected void unsetChannelAdmin(IChannelAdmin ca) {
+		m_ca = null;
+	}
+
+	@Reference(name = "filterManager")
+	protected void setFilterManager(IFilterManager fm) {
+		m_fm = fm;
+	}
+
+	protected void unsetFilterManager(IFilterManager fm) {
+		m_fm = null;
+	}
+
+	@Reference(name = "tcpAcceptor")
+	protected void setTcpAcceptor(ITcpAcceptor acceptor) {
+		m_acceptor = acceptor;
+	}
+
+	protected void unsetTcpAcceptor(ITcpAcceptor acceptor) {
+		m_acceptor = null;
 	}
 
 	protected void activate(Map<String, ?> properties) throws Exception {

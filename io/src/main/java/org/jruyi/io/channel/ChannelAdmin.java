@@ -22,33 +22,29 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.RejectedExecutionException;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferencePolicy;
-import org.apache.felix.scr.annotations.Service;
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.common.SyncPutQueue;
 import org.jruyi.timeoutadmin.ITimeoutAdmin;
 import org.jruyi.timeoutadmin.ITimeoutNotifier;
 import org.jruyi.workshop.IWorkshop;
 import org.jruyi.workshop.WorkshopConstants;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Service
-@Component(name = "jruyi.io.channeladmin", createPid = false)
+@Component(name = "jruyi.io.channeladmin", xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class ChannelAdmin implements IChannelAdmin {
 
 	private static final Logger c_logger = LoggerFactory
 			.getLogger(ChannelAdmin.class);
+
 	private SelectorThread[] m_sts;
 	private int m_count;
 
-	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
-	private volatile IWorkshop m_workshop;
-
-	@Reference(name = "timeoutAdmin", policy = ReferencePolicy.DYNAMIC)
+	private IWorkshop m_workshop;
 	private ITimeoutAdmin m_tm;
 
 	final class SelectorThread implements Runnable, ISelector {
@@ -260,20 +256,22 @@ public final class ChannelAdmin implements IChannelAdmin {
 		return m_tm.createNotifier(channel);
 	}
 
-	synchronized void bindWorkshop(IWorkshop workshop) {
+	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
+	synchronized void setWorkshop(IWorkshop workshop) {
 		m_workshop = workshop;
 	}
 
-	synchronized void unbindWorkshop(IWorkshop workshop) {
+	synchronized void unsetWorkshop(IWorkshop workshop) {
 		if (m_workshop == workshop)
 			m_workshop = null;
 	}
 
-	synchronized void bindTimeoutAdmin(ITimeoutAdmin tm) {
+	@Reference(name = "timeoutAdmin", policy = ReferencePolicy.DYNAMIC)
+	synchronized void setTimeoutAdmin(ITimeoutAdmin tm) {
 		m_tm = tm;
 	}
 
-	synchronized void unbindTimeoutAdmin(ITimeoutAdmin tm) {
+	synchronized void unsetTimeoutAdmin(ITimeoutAdmin tm) {
 		if (m_tm == tm)
 			m_tm = null;
 	}
