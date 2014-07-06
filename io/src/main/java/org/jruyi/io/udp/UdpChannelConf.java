@@ -106,12 +106,12 @@ public class UdpChannelConf {
 	public final boolean isMandatoryChanged(UdpChannelConf newConf,
 			Method[] mProps) throws Exception {
 		for (Method m : mProps) {
-			Object v1 = m.invoke(this);
-			Object v2 = m.invoke(newConf);
+			final Object v1 = m.invoke(this);
+			final Object v2 = m.invoke(newConf);
 			if (v1 == v2)
 				continue;
 
-			if (!(v1 == null ? v2.equals(v1) : v1.equals(v2)))
+			if (v1 == null || !v1.equals(v2))
 				return true;
 		}
 

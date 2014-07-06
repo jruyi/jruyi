@@ -94,8 +94,8 @@ public final class TcpServer extends Service implements IChannelService,
 	}
 
 	@Override
-	public int readThreshold() {
-		return m_conf.readThreshold();
+	public int throttle() {
+		return m_conf.throttle();
 	}
 
 	@Override

@@ -203,17 +203,17 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 		@Override
 		public void run() {
-			Channel channel = m_channel;
-			IChannelService cs = channel.channelService();
-			IBuffer in = cs.getBufferFactory().create();
-			ScatteringByteChannel sbc = channel.scatteringByteChannel();
-			int n = 0;
+			final Channel channel = m_channel;
+			final IChannelService cs = channel.channelService();
+			final IBuffer in = cs.getBufferFactory().create();
+			final ScatteringByteChannel sbc = channel.scatteringByteChannel();
+			int n;
 			try {
-				int readThreshold = cs.readThreshold();
+				final int throttle = cs.throttle();
 				for (;;) {
 					n = in.readIn(sbc);
 					if (n > 0) {
-						if (in.length() > readThreshold)
+						if (in.length() > throttle)
 							break;
 					} else if (in.isEmpty()) {
 						in.close();
@@ -265,11 +265,11 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 		@Override
 		public void run() {
-			Channel channel = m_channel;
+			final Channel channel = m_channel;
 			IBuffer data = m_data;
 			try {
-				IChannelService cs = channel.channelService();
-				GatheringByteChannel gbc = channel.gatheringByteChannel();
+				final IChannelService cs = channel.channelService();
+				final GatheringByteChannel gbc = channel.gatheringByteChannel();
 				IArgList arg = peek();
 				do {
 					if (data == null) {
@@ -303,7 +303,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 		}
 
 		void write(Object msg, IFilter<?, ?>[] filters, int filterCount) {
-			IArgList out = ArgList.create(msg, filters, filterCount);
+			final IArgList out = ArgList.create(msg, filters, filterCount);
 			if (put(out))
 				return;
 
@@ -321,7 +321,10 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 					do {
 						ListNode<IArgList> node = head.next();
 						head.close();
-						Object msg = node.get();
+						final IArgList arg = node.get();
+						final Object msg = arg.arg(0);
+						arg.close();
+						node.set(null);
 						if (msg instanceof Closeable) {
 							try {
 								((Closeable) msg).close();
@@ -330,7 +333,6 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 										"Failed to close message: ", msg), t);
 							}
 						}
-						node.set(null);
 						head = node;
 					} while (head != tail);
 					m_head = head;
@@ -630,11 +632,11 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			onException(t);
 		}
 
-		ITimeoutNotifier tn = m_timeoutNotifier;
+		final ITimeoutNotifier tn = m_timeoutNotifier;
 		if (tn != null)
 			tn.close();
 
-		WriteThread wt = m_writeThread;
+		final WriteThread wt = m_writeThread;
 		if (wt != null)
 			wt.clear();
 
@@ -821,12 +823,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 		m_writeThread = wt;
 	}
 
-	/**
-	 * If returns false, this channel need be closed
-	 * 
-	 * @param in
-	 * @return
-	 */
+	// If returns false, this channel need be closed
 	final boolean onReadIn(Object in) {
 		MsgArrayList inMsgs = MsgArrayList.get();
 		MsgArrayList outMsgs = MsgArrayList.get();
@@ -887,7 +884,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 			msgLen = context.msgLen();
 			context.close();
-			context = null;
+			// context = null;
 		}
 		// mergeContext -end
 
@@ -995,7 +992,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			m_readThread = new ReadThread(this);
 	}
 
-	private final void generateId() {
+	private void generateId() {
 		m_id = c_sequence.incrementAndGet();
 	}
 }

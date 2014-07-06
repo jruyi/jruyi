@@ -21,7 +21,7 @@ public class TcpChannelConf {
 
 	private String m_ip;
 	private Integer m_port;
-	private Integer m_readThreshold;
+	private Integer m_throttle;
 	private String[] m_filters;
 	private Boolean m_reuseAddr;
 	private Boolean m_keepAlive;
@@ -35,7 +35,7 @@ public class TcpChannelConf {
 
 	public void initialize(Map<String, ?> properties) {
 		port((Integer) properties.get("port"));
-		readThreshold((Integer) properties.get("readThreshold"));
+		throttle((Integer) properties.get("throttle"));
 		filters((String[]) properties.get("filters"));
 		reuseAddr((Boolean) properties.get("reuseAddr"));
 		keepAlive((Boolean) properties.get("keepAlive"));
@@ -65,12 +65,12 @@ public class TcpChannelConf {
 		m_port = port;
 	}
 
-	public final Integer readThreshold() {
-		return m_readThreshold;
+	public final Integer throttle() {
+		return m_throttle;
 	}
 
-	public final void readThreshold(Integer readThreshold) {
-		m_readThreshold = readThreshold == null ? 0 : readThreshold;
+	public final void throttle(Integer throttle) {
+		m_throttle = throttle == null ? 0 : throttle;
 	}
 
 	public final String[] filters() {

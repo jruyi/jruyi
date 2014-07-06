@@ -56,9 +56,9 @@ public class UdpChannel extends Channel {
 		if (datagramChannel == null)
 			m_datagramChannel = datagramChannel = DatagramChannel.open();
 
-		DatagramSocket socket = datagramChannel.socket();
+		final DatagramSocket socket = datagramChannel.socket();
 
-		UdpChannelConf conf = (UdpChannelConf) channelService()
+		final UdpChannelConf conf = (UdpChannelConf) channelService()
 				.getConfiguration();
 
 		if (conf.reuseAddr())
@@ -90,10 +90,10 @@ public class UdpChannel extends Channel {
 
 	@Override
 	protected final void onConnected() throws Exception {
-		DatagramChannel datagramChannel = m_datagramChannel;
-		DatagramSocket socket = datagramChannel.socket();
+		final DatagramChannel datagramChannel = m_datagramChannel;
+		final DatagramSocket socket = datagramChannel.socket();
 
-		UdpChannelConf conf = (UdpChannelConf) channelService()
+		final UdpChannelConf conf = (UdpChannelConf) channelService()
 				.getConfiguration();
 
 		// IP_TOS
@@ -114,7 +114,7 @@ public class UdpChannel extends Channel {
 
 	@Override
 	protected final void onClose() throws Exception {
-		DatagramChannel datagramChannel = m_datagramChannel;
+		final DatagramChannel datagramChannel = m_datagramChannel;
 		if (datagramChannel != null) {
 			datagramChannel.disconnect();
 			datagramChannel.close();

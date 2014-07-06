@@ -14,13 +14,42 @@
 package org.jruyi.io.udpclient;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 
 import org.jruyi.io.udp.UdpChannelConf;
 
 final class Configuration extends UdpChannelConf {
 
+	private static final String[] M_PROPS = { "addr", "port" };
+	private static final Method[] c_mProps;
+
+	static {
+		c_mProps = new Method[M_PROPS.length];
+		Class<Configuration> clazz = Configuration.class;
+		try {
+			for (int i = 0; i < M_PROPS.length; ++i)
+				c_mProps[i] = clazz.getMethod(M_PROPS[i]);
+		} catch (NoSuchMethodException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	public static Method[] getMandatoryPropsAccessors() {
-		// TODO Auto-generated method stub
-		return null;
+		return c_mProps;
+	}
+
+	@Override
+	public void initialize(Map<String, ?> properties) {
+		super.initialize(properties);
+
+		addr((String) properties.get("addr"));
+	}
+
+	public String addr() {
+		return ip();
+	}
+
+	public void addr(String addr) {
+		ip(addr);
 	}
 }

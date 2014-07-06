@@ -35,7 +35,7 @@
 		<AD id="buffer.target" name="Filter for Selecting Buffer Factory" type="String" required="false"/>
 		<AD id="bindAddr" name="Bind Address" type="String" required="false"/>
 		<AD id="port" name="Port" type="Integer" min="0" max="65535"/>
-		<AD id="readThreshold" name="Read Threshold" type="Integer" min="0" default="0"/>
+		<AD id="throttle" name="Throttle" type="Integer" min="0" default="0"/>
 		<AD id="backlog" name="Backlog" type="Integer" min="1" required="false"/>
 		<AD id="sessionIdleTimeoutInSeconds" name="Session Idle Timeout(s)" type="Integer" min="-1" default="300"/>
 		<AD id="initCapacityOfChannelMap" name="Initial Capacity of Channel Map" type="Integer" min="4" default="2048"/>
@@ -59,7 +59,7 @@
 		<AD id="buffer.target" name="Filter for Selecting Buffer Factory" type="String" required="false"/>
 		<AD id="addr" name="Host Address" type="String" required="true"/>
 		<AD id="port" name="Port" type="Integer" min="0" max="65535" required="false"/>
-		<AD id="readThreshold" name="Read Threshold" type="Integer" min="0" default="0"/>
+		<AD id="throttle" name="Throttle" type="Integer" min="0" default="0"/>
 		<AD id="connectTimeoutInSeconds" name="Connect Timeout(s)" type="Integer" min="-1" default="10"/>
 		<AD id="readTimeoutInSeconds" name="Read Timeout(s)" type="Integer" min="-1" default="10"/>
 		<AD id="filters" name="Filter Chain" type="String" cardinality="65535" required="false"/>
@@ -82,7 +82,7 @@
 		<AD id="workshop.target" name="Filter for Selecting Workshop" type="String" required="false" default="(threadPrefix=Worker)"/>
 		<AD id="addr" name="Host Address" type="String" required="true"/>
 		<AD id="port" name="Port" type="Integer" min="0" max="65535" required="true"/>
-		<AD id="readThreshold" name="Read Threshold" type="Integer" min="0" default="0"/>
+		<AD id="throttle" name="Throttle" type="Integer" min="0" default="0"/>
 		<AD id="connectTimeoutInSeconds" name="Connect Timeout(s)" type="Integer" min="-1" default="10"/>
 		<AD id="readTimeoutInSeconds" name="Read Timeout(s)" type="Integer" min="-1" default="10"/>
 		<AD id="minPoolSize" name="Minimum Pool Size" type="Integer" min="0" default="5"/>
@@ -127,7 +127,7 @@
 		<AD id="broadcast" name="Broadcast" type="Boolean" default="false"/>
 		<AD id="trafficClass" name="Traffic Class" type="Integer" min="0" max="255" required="false"/>
 	</OCD>
-	
+
 	<OCD id="textLineFilter" name="Text Line Filter">
 		<AD id="jruyi.io.filter.id" name="Filter ID" type="String"/>
 		<AD id="charset" name="Charset" type="String" default="UTF-8"/>

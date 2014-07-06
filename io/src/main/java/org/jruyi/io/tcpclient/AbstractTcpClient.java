@@ -105,8 +105,8 @@ public abstract class AbstractTcpClient extends Service implements
 	}
 
 	@Override
-	public int readThreshold() {
-		return configuration().readThreshold();
+	public int throttle() {
+		return configuration().throttle();
 	}
 
 	@Override

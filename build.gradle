@@ -68,7 +68,7 @@ allprojects {
 		jruyi_api_version = '1.3.1-SNAPSHOT'
 		jruyi_cli_version = '1.0.5-SNAPSHOT'
 		jruyi_launcher_version = '1.0.5-SNAPSHOT'
-		jruyi_system_version = project.version
+		jruyi_system_version = rootProject.version
 		org_jruyi_clid_version = '1.1.3-SNAPSHOT'
 		org_jruyi_cmd_version = '1.1.4-SNAPSHOT'
 		org_jruyi_common_version = '1.3.1-SNAPSHOT'

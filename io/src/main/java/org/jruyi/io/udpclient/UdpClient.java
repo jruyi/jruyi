@@ -79,7 +79,7 @@ public final class UdpClient extends Service implements IChannelService,
 	}
 
 	@Override
-	public int readThreshold() {
+	public int throttle() {
 		return 0;
 	}
 
@@ -154,7 +154,7 @@ public final class UdpClient extends Service implements IChannelService,
 	public void onChannelException(IChannel channel, Throwable t) {
 		try {
 			c_logger.error(
-					StrUtil.join(this, " got an error on sending/recving"), t);
+					StrUtil.join(this, " got an error on sending/receiving"), t);
 
 			final ISessionListener listener = m_listener;
 			if (listener != null)
@@ -199,7 +199,7 @@ public final class UdpClient extends Service implements IChannelService,
 	@Override
 	public void write(ISession session, Object msg) {
 		// TODO: transfer out msgs
-		IChannel channel = getChannel();
+		final IChannel channel = getChannel();
 		if (channel != null) {
 			channel.write(msg);
 			return;
@@ -226,8 +226,8 @@ public final class UdpClient extends Service implements IChannelService,
 	@Override
 	protected boolean updateInternal(Map<String, ?> properties)
 			throws Exception {
-		Configuration oldConf = updateConf(properties);
-		Configuration newConf = m_conf;
+		final Configuration oldConf = updateConf(properties);
+		final Configuration newConf = m_conf;
 		updateFilters(oldConf, newConf);
 
 		return oldConf.isMandatoryChanged(newConf,
@@ -255,7 +255,7 @@ public final class UdpClient extends Service implements IChannelService,
 			writeLock.unlock();
 		}
 
-		IChannel channel = m_channel;
+		final IChannel channel = m_channel;
 		if (channel != null)
 			channel.close(); // m_channel will be set to null in method onClosed
 
@@ -304,11 +304,11 @@ public final class UdpClient extends Service implements IChannelService,
 	}
 
 	private Configuration updateConf(Map<String, ?> props) {
-		Configuration conf = m_conf;
+		final Configuration conf = m_conf;
 		if (props == null)
 			m_conf = null;
 		else {
-			Configuration newConf = new Configuration();
+			final Configuration newConf = new Configuration();
 			newConf.initialize(props);
 			m_conf = newConf;
 		}
@@ -345,10 +345,10 @@ public final class UdpClient extends Service implements IChannelService,
 	}
 
 	private void updateFilters(Configuration oldConf, Configuration newConf) {
-		String[] newNames = newConf == null ? StrUtil.getEmptyStringArray()
-				: newConf.filters();
+		final String[] newNames = newConf == null ? StrUtil
+				.getEmptyStringArray() : newConf.filters();
 		String[] oldNames = StrUtil.getEmptyStringArray();
-		IFilterManager fm = m_fm;
+		final IFilterManager fm = m_fm;
 		if (oldConf == null)
 			m_filters = fm.getFilters(oldNames);
 		else
