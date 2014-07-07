@@ -105,7 +105,7 @@ final class Bootstrap {
 
 		@Override
 		public void start(Attributes attributes) throws SAXException {
-			String v = attributes.getValue("startLevel");
+			final String v = attributes.getValue("startLevel");
 			changeStartLevel(Integer.parseInt(v));
 		}
 
@@ -120,9 +120,9 @@ final class Bootstrap {
 		@Override
 		public void start(Attributes attributes) throws SAXException {
 			try {
-				String bundleUrl = attributes.getValue("url");
-				String v = attributes.getValue("startLevel");
-				int startLevel = v == null ? getStartLevel() : Integer
+				final String bundleUrl = attributes.getValue("url");
+				final String v = attributes.getValue("startLevel");
+				final int startLevel = v == null ? getStartLevel() : Integer
 						.parseInt(v);
 				getBundleInfoList().add(new BundleInfo(bundleUrl, startLevel));
 
@@ -145,7 +145,7 @@ final class Bootstrap {
 	}
 
 	Map<String, IElementHandler> getHandlers() {
-		HashMap<String, IElementHandler> handlers = new HashMap<String, IElementHandler>();
+		final HashMap<String, IElementHandler> handlers = new HashMap<String, IElementHandler>();
 		handlers.put("property", new PropertyHandler());
 		handlers.put("local", new LocalHandler());
 		handlers.put("system", new SystemHandler());

@@ -46,17 +46,17 @@ final class BootLoader {
 
 	Framework loadFramework(String frameworkUrl, Map<String, String> osgiProps,
 			int initialBundleStartLevel) throws Exception {
-		URL url = new URL(frameworkUrl);
+		final URL url = new URL(frameworkUrl);
 		frameworkUrl = url.toString();
 
 		m_logger.info("OSGi Framework: {}", frameworkUrl);
 		m_logger.info("Loading bundles...");
 
-		ClassLoader classLoader = Ruyi.class.getClassLoader();
-		Method addUrl = URLClassLoader.class.getDeclaredMethod("addURL",
+		final ClassLoader classLoader = Ruyi.class.getClassLoader();
+		final Method addUrl = URLClassLoader.class.getDeclaredMethod("addURL",
 				URL.class);
 
-		boolean accessible = addUrl.isAccessible();
+		final boolean accessible = addUrl.isAccessible();
 		if (!accessible)
 			addUrl.setAccessible(true);
 
@@ -69,20 +69,20 @@ final class BootLoader {
 			osgiProps.put(FRAMEWORK_STORAGE, osgiProps.get(JRUYI_INST_DATA_DIR)
 					+ File.separator + "osgi");
 
-		Framework framework = getFrameworkFactory(classLoader).newFramework(
-				osgiProps);
+		final Framework framework = getFrameworkFactory(classLoader)
+				.newFramework(osgiProps);
 		framework.init();
 
-		BundleContext bundleContext = framework.getBundleContext();
+		final BundleContext bundleContext = framework.getBundleContext();
 
-		FrameworkStartLevel fsl = bundleContext.getBundle().adapt(
+		final FrameworkStartLevel fsl = bundleContext.getBundle().adapt(
 				FrameworkStartLevel.class);
 		fsl.setInitialBundleStartLevel(initialBundleStartLevel);
 
-		Bundle[] bundles = bundleContext.getBundles();
-		HashMap<String, Bundle> installedBundles = new HashMap<String, Bundle>(
+		final Bundle[] bundles = bundleContext.getBundles();
+		final HashMap<String, Bundle> installedBundles = new HashMap<String, Bundle>(
 				bundles.length);
-		for (Bundle bundle : bundles) {
+		for (final Bundle bundle : bundles) {
 			if (bundle.getBundleId() != 0)
 				installedBundles.put(bundle.getLocation(), bundle);
 		}
@@ -105,7 +105,7 @@ final class BootLoader {
 		m_logger.info("Done loading bundles");
 
 		// Start all installed bundles
-		ArrayList<Bundle> bundles = m_bundles;
+		final ArrayList<Bundle> bundles = m_bundles;
 		for (Bundle bundle : bundles)
 			bundle.start();
 
@@ -113,12 +113,12 @@ final class BootLoader {
 	}
 
 	private void loadBundle(String bundleUrl, int startLevel) throws Exception {
-		Bundle bundle = loadBundle(new URL(bundleUrl));
+		final Bundle bundle = loadBundle(new URL(bundleUrl));
 		bundle.adapt(BundleStartLevel.class).setStartLevel(startLevel);
 	}
 
 	private Bundle loadBundle(URL url) throws Exception {
-		String bundleUrl = url.toString();
+		final String bundleUrl = url.toString();
 		Bundle bundle = m_installedBundles.remove(bundleUrl);
 		if (bundle == null) {
 			m_logger.debug("Install bundle: {}", bundleUrl);
@@ -139,9 +139,9 @@ final class BootLoader {
 
 	private FrameworkFactory getFrameworkFactory(ClassLoader classLoader)
 			throws Exception {
-		ServiceLoader<FrameworkFactory> serviceLoader = ServiceLoader.load(
-				FrameworkFactory.class, classLoader);
-		Iterator<FrameworkFactory> iter = serviceLoader.iterator();
+		final ServiceLoader<FrameworkFactory> serviceLoader = ServiceLoader
+				.load(FrameworkFactory.class, classLoader);
+		final Iterator<FrameworkFactory> iter = serviceLoader.iterator();
 		if (!iter.hasNext())
 			throw new Exception("FrameworkFactory Not Found");
 

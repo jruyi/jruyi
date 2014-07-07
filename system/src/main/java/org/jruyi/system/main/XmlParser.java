@@ -65,7 +65,7 @@ public final class XmlParser {
 		}
 
 		void push(int i) {
-			int minCapacity = ++m_size;
+			final int minCapacity = ++m_size;
 			int[] stack = m_stack;
 			if (minCapacity > stack.length) {
 				int newCapacity = (stack.length * 3) / 2 + 1;
@@ -175,11 +175,11 @@ public final class XmlParser {
 			if (target.length() < 2)
 				return target;
 
-			Map<String, String> properties = m_properties;
-			StringBuilder builder = m_builder;
-			Stack stack = m_stack;
+			final Map<String, String> properties = m_properties;
+			final StringBuilder builder = m_builder;
+			final Stack stack = m_stack;
 			String propValue = null;
-			int j = target.length();
+			final int j = target.length();
 			for (int i = 0; i < j; ++i) {
 				char c = target.charAt(i);
 				switch (c) {
@@ -233,7 +233,7 @@ public final class XmlParser {
 		public final void startElement(String uri, String localName,
 				String qName, org.xml.sax.Attributes attributes)
 				throws SAXException {
-			IElementHandler handler = m_handlers.get(qName);
+			final IElementHandler handler = m_handlers.get(qName);
 			if (handler != null) {
 				handler.start(attributes);
 				m_validHandler = handler;
@@ -250,7 +250,7 @@ public final class XmlParser {
 		@Override
 		public final void endElement(String uri, String localName, String qName)
 				throws SAXException {
-			IElementHandler handler = m_handlers.get(qName);
+			final IElementHandler handler = m_handlers.get(qName);
 			if (handler != null) {
 				if (m_validHandler == handler) {
 					handler.setText(m_builder.toString());
@@ -302,7 +302,7 @@ public final class XmlParser {
 		public final void startElement(String uri, String localName,
 				String qName, org.xml.sax.Attributes attributes)
 				throws SAXException {
-			IElementHandler handler = m_handlers.get(qName);
+			final IElementHandler handler = m_handlers.get(qName);
 			if (handler != null) {
 				handler.start(new Attributes(attributes, m_properties));
 				m_validHandler = handler;
@@ -319,7 +319,7 @@ public final class XmlParser {
 		@Override
 		public final void endElement(String uri, String localName, String qName)
 				throws SAXException {
-			IElementHandler handler = m_handlers.get(qName);
+			final IElementHandler handler = m_handlers.get(qName);
 			if (handler != null) {
 				if (m_validHandler == handler) {
 					handler.setText(m_builder.toString());
@@ -351,11 +351,11 @@ public final class XmlParser {
 			if (target == null)
 				return;
 
-			StringBuilder builder = m_builder;
-			Map<String, String> properties = m_properties;
-			Stack stack = m_stack;
+			final StringBuilder builder = m_builder;
+			final Map<String, String> properties = m_properties;
+			final Stack stack = m_stack;
 
-			int end = start + length;
+			final int end = start + length;
 			for (; start < end; ++start) {
 				char c = target[start];
 				switch (c) {
@@ -392,7 +392,7 @@ public final class XmlParser {
 	}
 
 	static String getPropValue(String name, Map<String, String> properties) {
-		String value = null;
+		final String value;
 		if (properties != null && properties.size() > 0
 				&& (value = properties.get(name)) != null)
 			return value;
@@ -633,7 +633,7 @@ public final class XmlParser {
 	 */
 	public static XmlParser getInstance(boolean validating)
 			throws ParserConfigurationException, SAXException, IOException {
-		SAXParserFactory factory = SAXParserFactory.newInstance();
+		final SAXParserFactory factory = SAXParserFactory.newInstance();
 		factory.setNamespaceAware(true);
 		factory.setValidating(validating);
 		return new XmlParser(factory.newSAXParser());
@@ -657,11 +657,11 @@ public final class XmlParser {
 	 */
 	public static XmlParser getInstance(InputStream schema)
 			throws ParserConfigurationException, SAXException, IOException {
-		SAXParserFactory factory = SAXParserFactory.newInstance();
+		final SAXParserFactory factory = SAXParserFactory.newInstance();
 		factory.setNamespaceAware(true);
 		factory.setValidating(true);
 
-		SAXParser parser = factory.newSAXParser();
+		final SAXParser parser = factory.newSAXParser();
 		parser.setProperty(JAXP_SCHEMA_LANGUAGE, W3C_XML_SCHEMA);
 		parser.setProperty(JAXP_SCHEMA_SOURCE, schema);
 

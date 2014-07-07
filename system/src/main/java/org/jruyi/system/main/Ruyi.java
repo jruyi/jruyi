@@ -34,7 +34,6 @@ import static org.jruyi.system.Constants.JRUYI_VERSION;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -62,9 +61,10 @@ public final class Ruyi {
 	}
 
 	private static Properties getProductProps() throws Exception {
-		InputStream in = Ruyi.class.getResourceAsStream("product.properties");
+		final InputStream in = Ruyi.class
+				.getResourceAsStream("product.properties");
 		try {
-			Properties props = new Properties();
+			final Properties props = new Properties();
 			props.load(in);
 			return props;
 		} finally {
@@ -80,8 +80,7 @@ public final class Ruyi {
 		properties = properties == null ? new HashMap<String, String>(32)
 				: new HashMap<String, String>(properties);
 
-		String v = (String) properties
-				.get(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA);
+		String v = properties.get(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA);
 		if (v != null && (v = v.trim()).length() > 0) {
 			v = v.replaceAll("[\t\r\n ]", "");
 			properties.put(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA, v);
@@ -93,7 +92,7 @@ public final class Ruyi {
 	}
 
 	public String property(String name) {
-		String value = m_properties.get(name);
+		final String value = m_properties.get(name);
 		if (value != null)
 			return value;
 
@@ -114,12 +113,12 @@ public final class Ruyi {
 			logDir();
 			logAllSysProps();
 
-			Bootstrap bootstrap = loadBootstrap();
+			final Bootstrap bootstrap = loadBootstrap();
 
-			Map<String, String> osgiProps = bootstrap.getFrameworkProps();
+			final Map<String, String> osgiProps = bootstrap.getFrameworkProps();
 			initOsgiProps(osgiProps);
 
-			BootLoader loader = new BootLoader();
+			final BootLoader loader = new BootLoader();
 			m_framework = loader.loadFramework(bootstrap.getFrameworkUrl(),
 					osgiProps, bootstrap.getInitialBundleStartLevel());
 
@@ -137,7 +136,7 @@ public final class Ruyi {
 
 	public void startAndWait() throws Exception {
 		start();
-		Framework framework = m_framework;
+		final Framework framework = m_framework;
 		if (framework != null)
 			framework.waitForStop(0L);
 	}
@@ -177,11 +176,10 @@ public final class Ruyi {
 		}
 	}
 
-	private void initDirProps() throws UnsupportedEncodingException,
-			IOException {
+	private void initDirProps() throws IOException {
 
 		// Home Dir
-		File homeDir = null;
+		final File homeDir;
 		String temp = property(JRUYI_HOME_DIR);
 		if (temp == null) {
 			temp = Ruyi.class.getProtectionDomain().getCodeSource()
@@ -194,15 +192,17 @@ public final class Ruyi {
 
 		// Home URL
 		temp = property(JRUYI_HOME_URL);
-		URL homeUrl = (temp == null) ? homeDir.toURI().toURL() : new URL(temp);
+		final URL homeUrl = (temp == null) ? homeDir.toURI().toURL() : new URL(
+				temp);
 
 		// Bundle Base URL
-		URL bundleBaseUrl = getUrl(JRUYI_BUNDLE_BASE_URL, homeUrl, "bundles/");
+		final URL bundleBaseUrl = getUrl(JRUYI_BUNDLE_BASE_URL, homeUrl,
+				"bundles/");
 
 		// Instance Base Dir
-		File instBaseDir = getDir(JRUYI_INST_BASE_DIR, homeDir, "inst");
+		final File instBaseDir = getDir(JRUYI_INST_BASE_DIR, homeDir, "inst");
 		// Instance Base URL
-		URL instBaseUrl = getUrl(JRUYI_INST_BASE_URL, homeUrl, "inst/");
+		final URL instBaseUrl = getUrl(JRUYI_INST_BASE_URL, homeUrl, "inst/");
 
 		// Instance Name
 		String instName = property(JRUYI_INST_NAME);
@@ -210,22 +210,26 @@ public final class Ruyi {
 			instName = "default";
 
 		// Instance Home Dir
-		File instHomeDir = getDir(JRUYI_INST_HOME_DIR, instBaseDir, instName);
+		final File instHomeDir = getDir(JRUYI_INST_HOME_DIR, instBaseDir,
+				instName);
 		// Instance Home URL
-		URL instHomeUrl = getUrl(JRUYI_INST_HOME_URL, instBaseUrl, instName
-				+ "/");
+		final URL instHomeUrl = getUrl(JRUYI_INST_HOME_URL, instBaseUrl,
+				instName + "/");
 
 		// Instance Conf Dir
-		File instConfDir = getDir(JRUYI_INST_CONF_DIR, instHomeDir, "conf");
+		final File instConfDir = getDir(JRUYI_INST_CONF_DIR, instHomeDir,
+				"conf");
 		// Instance Conf URL
-		URL instConfUrl = getUrl(JRUYI_INST_CONF_URL, instHomeUrl, "conf/");
+		final URL instConfUrl = getUrl(JRUYI_INST_CONF_URL, instHomeUrl,
+				"conf/");
 
-		URL instBootstrapUrl = getUrl(JRUYI_INST_BOOTSTRAP_URL, instConfUrl,
-				"bootstrap.xml");
+		final URL instBootstrapUrl = getUrl(JRUYI_INST_BOOTSTRAP_URL,
+				instConfUrl, "bootstrap.xml");
 
-		File instDataDir = getDir(JRUYI_INST_DATA_DIR, instHomeDir, "data");
+		final File instDataDir = getDir(JRUYI_INST_DATA_DIR, instHomeDir,
+				"data");
 
-		Map<String, String> props = m_properties;
+		final Map<String, String> props = m_properties;
 		props.put(JRUYI_HOME_DIR, homeDir.getCanonicalPath());
 		props.put(JRUYI_HOME_URL, homeUrl.toString());
 		props.put(JRUYI_BUNDLE_BASE_URL, bundleBaseUrl.toString());
@@ -241,7 +245,7 @@ public final class Ruyi {
 	}
 
 	private void initProductProps() throws Exception {
-		Properties productProps = getProductProps();
+		final Properties productProps = getProductProps();
 		System.setProperty(JRUYI_NAME, productProps.getProperty(JRUYI_NAME));
 		System.setProperty(JRUYI_VERSION,
 				productProps.getProperty(JRUYI_VERSION));
@@ -275,9 +279,9 @@ public final class Ruyi {
 		if (bootstrapUrl == null)
 			bootstrapUrl = "file:bootstrap.xml";
 
-		Bootstrap bootstrap = new Bootstrap();
+		final Bootstrap bootstrap = new Bootstrap();
 		bootstrap.getLocalProps().putAll(m_properties);
-		InputStream in = Ruyi.class.getResourceAsStream("bootstrap.xsd");
+		final InputStream in = Ruyi.class.getResourceAsStream("bootstrap.xsd");
 		try {
 			XmlParser.getInstance(in).parse(bootstrapUrl,
 					bootstrap.getHandlers(), bootstrap.getLocalProps());
@@ -292,8 +296,8 @@ public final class Ruyi {
 	}
 
 	private void initOsgiProps(Map<String, String> osgiProps) {
-		Map<String, String> properties = m_properties;
-		String pkgExtra = (String) properties
+		final Map<String, String> properties = m_properties;
+		String pkgExtra = properties
 				.get(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA);
 
 		String v = (String) osgiProps
@@ -310,14 +314,14 @@ public final class Ruyi {
 
 	private File getDir(String key, File parent, String child)
 			throws IOException {
-		String pathName = property(key);
+		final String pathName = property(key);
 		return (pathName == null) ? new File(parent, child)
 				: new File(pathName).getCanonicalFile();
 	}
 
 	private URL getUrl(String key, URL context, String spec)
 			throws MalformedURLException {
-		String str = property(key);
+		final String str = property(key);
 		return (str == null) ? new URL(context, spec) : new URL(spec);
 	}
 }

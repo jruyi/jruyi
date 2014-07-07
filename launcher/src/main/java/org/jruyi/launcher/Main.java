@@ -89,15 +89,15 @@ public final class Main {
 		if (!(classLoader instanceof URLClassLoader))
 			classLoader = new URLClassLoader(new URL[0], classLoader);
 
-		Method addUrl = URLClassLoader.class.getDeclaredMethod("addURL",
+		final Method addUrl = URLClassLoader.class.getDeclaredMethod("addURL",
 				URL.class);
 		boolean accessible = addUrl.isAccessible();
 		if (!accessible)
 			addUrl.setAccessible(true);
 
-		ArrayList<String> pkgList = new ArrayList<String>();
-		File[] jars = getLibJars();
-		for (File jar : jars) {
+		final ArrayList<String> pkgList = new ArrayList<String>();
+		final File[] jars = getLibJars();
+		for (final File jar : jars) {
 			final String exportPackages;
 			final JarFile jf = new JarFile(jar);
 			try {
@@ -114,23 +114,27 @@ public final class Main {
 		if (!accessible)
 			addUrl.setAccessible(false);
 
-		int n = pkgList.size();
+		final int n = pkgList.size();
 		if (n < 1)
 			return;
 
-		StringBuilder builder = new StringBuilder(pkgList.get(0));
+		final StringBuilder builder = new StringBuilder(pkgList.get(0));
 		for (int i = 1; i < n; ++i)
 			builder.append(',').append(pkgList.get(i));
 
-		HashMap<String, String> props = new HashMap<String, String>(3);
+		final HashMap<String, String> props = new HashMap<String, String>(3);
 		props.put(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA, builder.toString());
 
-		Class<?> clazz = classLoader.loadClass("org.jruyi.system.main.Ruyi");
-		Object ruyi = clazz.getMethod("getInstance").invoke(null);
+		final Class<?> clazz = classLoader
+				.loadClass("org.jruyi.system.main.Ruyi");
+		final Object ruyi = clazz.getMethod("getInstance").invoke(null);
 		clazz.getMethod("setProperties", Map.class).invoke(ruyi, props);
-		String instConfUrl = (String) clazz.getMethod(RUYI_PROPERTY,
+		final String instConfUrl = (String) clazz.getMethod(RUYI_PROPERTY,
 				String.class).invoke(ruyi, JRUYI_INST_CONF_URL);
-		System.setProperty(LOGBACK_CONF, instConfUrl + "logback.xml");
+
+		final String logbackConf = System.getProperty(LOGBACK_CONF);
+		if (logbackConf == null || logbackConf.trim().isEmpty())
+			System.setProperty(LOGBACK_CONF, instConfUrl + "logback.xml");
 
 		m_ruyi = ruyi;
 	}
@@ -228,9 +232,9 @@ public final class Main {
 
 	private static void handleSystemProps(String[] args) {
 		for (String arg : args) {
-			String name = null;
-			String value = null;
-			int i = arg.indexOf('=');
+			final String name;
+			final String value;
+			final int i = arg.indexOf('=');
 			if (i < 0) {
 				name = arg;
 				value = "true";
@@ -243,7 +247,7 @@ public final class Main {
 	}
 
 	private void printVersion() throws Exception {
-		Object ruyi = m_ruyi;
+		final Object ruyi = m_ruyi;
 		Method property = ruyi.getClass()
 				.getMethod(RUYI_PROPERTY, String.class);
 
