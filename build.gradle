@@ -35,8 +35,6 @@ ext {
 
 allprojects {
 
-	apply plugin: 'maven'
-
 	group = 'org.jruyi'
 
 	ext {
@@ -82,6 +80,34 @@ allprojects {
 	repositories {
 		mavenCentral()
 	}
+}
+
+subprojects {
+
+	apply plugin: 'java'
+	apply plugin: 'maven'
+
+	configurations.compile {
+		transitive = false
+	}
+
+	compileJava {
+		sourceCompatibility = 1.6
+		targetCompatibility = 1.6
+		options.encoding = 'UTF-8'
+	}
+
+	compileTestJava {
+		sourceCompatibility = 1.8
+		targetCompatibility = 1.8
+		options.encoding = 'UTF-8'
+	}
+
+	processResources {
+		from(["$rootDir/LICENSE", 'NOTICE']) {
+			into 'META-INF'
+		}
+	}
 
 	uploadArchives {
 		repositories {
@@ -106,33 +132,6 @@ allprojects {
 					}
 				}
 			}
-		}
-	}
-}
-
-subprojects {
-
-	apply plugin: 'java'
-
-	configurations.compile {
-		transitive = false
-	}
-
-	compileJava {
-		sourceCompatibility = 1.6
-		targetCompatibility = 1.6
-		options.encoding = 'UTF-8'
-	}
-
-	compileTestJava {
-		sourceCompatibility = 1.8
-		targetCompatibility = 1.8
-		options.encoding = 'UTF-8'
-	}
-
-	processResources {
-		from(["$rootDir/LICENSE", 'NOTICE']) {
-			into 'META-INF'
 		}
 	}
 }

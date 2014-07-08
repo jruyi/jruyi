@@ -54,14 +54,14 @@ public final class RuyiCmd implements IManual {
 		// Java Runtime
 		System.out.print("        Java Runtime: ");
 		System.out.print(System.getProperty("java.runtime.name"));
-		System.out.print("(build ");
+		System.out.print(" (build ");
 		System.out.print(System.getProperty("java.runtime.version"));
 		System.out.println(')');
 
 		// Java VM
 		System.out.print("Java Virtual Machine: ");
 		System.out.print(System.getProperty("java.vm.name"));
-		System.out.print("(build ");
+		System.out.print(" (build ");
 		System.out.print(System.getProperty("java.vm.version"));
 		String v = System.getProperty("java.vm.info");
 		if (v != null && !v.isEmpty()) {
