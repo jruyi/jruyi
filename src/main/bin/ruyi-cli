@@ -16,7 +16,7 @@
 # JRuyi CLI Client
 # -------------------------------------------------------------------------
 
-JRUYI_HOME="`dirname \$0`"/..
+JRUYI_HOME="\$( cd "\$( dirname "\$0" )/.." && pwd )"
 PROGNAME="`basename \$0`"
 
 if [ "x\$JAVA_HOME" = "x" ]; then

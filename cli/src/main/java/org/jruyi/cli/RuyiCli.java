@@ -103,10 +103,10 @@ public final class RuyiCli {
 				return;
 			}
 
-			int i = welcome.lastIndexOf('\n');
-			String prompt = welcome.substring(i + 1);
-			int j = welcome.lastIndexOf('\r', i - 1);
-			String commandStr = welcome.substring(j + 2, i);
+			final int i = welcome.lastIndexOf('\n');
+			final String prompt = welcome.substring(i + 1);
+			final int j = welcome.lastIndexOf('\r', i - 1);
+			final String commandStr = welcome.substring(j + 2, i);
 			welcome = welcome.substring(0, j + 2);
 
 			reader.setPrompt(prompt);
@@ -119,6 +119,7 @@ public final class RuyiCli {
 			thread = new Thread(session);
 			thread.start();
 
+			StringBuilder builder = null;
 			String cmdLine;
 			for (;;) {
 				cmdLine = reader.readLine();
@@ -127,6 +128,29 @@ public final class RuyiCli {
 
 				if (session.isClosed())
 					break;
+
+				final int n = cmdLine.length() - 1;
+				if (!cmdLine.isEmpty() && cmdLine.charAt(n) == '\\') {
+					int m = n;
+					while (--m >= 0 && cmdLine.charAt(m) == '\\')
+						;
+					m = n - m;
+					if ((m & 0x01) != 0) {
+						reader.setPrompt("> ");
+						cmdLine = cmdLine.substring(0, n);
+						if (builder == null)
+							builder = new StringBuilder(cmdLine);
+						else
+							builder.append(cmdLine);
+						continue;
+					}
+				}
+
+				if (builder != null) {
+					cmdLine = builder.append(cmdLine).toString();
+					builder = null;
+					reader.setPrompt(prompt);
+				}
 
 				cmdLine = cmdLine.trim();
 				if (cmdLine.isEmpty())
