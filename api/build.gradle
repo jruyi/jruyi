@@ -37,7 +37,7 @@ processResources {
 }
 
 javadoc {
-	title = "$title $version"
+	title = "${project.title} $version"
 	options {
 		encoding = 'UTF-8'
 		bottom = "Copyright &copy; ${Calendar.instance.get(Calendar.YEAR)} " +
