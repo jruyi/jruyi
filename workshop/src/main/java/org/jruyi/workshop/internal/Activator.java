@@ -24,7 +24,7 @@ public final class Activator implements BundleActivator {
 	@Override
 	public void start(BundleContext context) throws Exception {
 		final Properties properties = new Properties();
-		properties.put(CommandProcessor.COMMAND_SCOPE, "io");
+		properties.put(CommandProcessor.COMMAND_SCOPE, "workshop");
 		properties.put(CommandProcessor.COMMAND_FUNCTION,
 				WorkshopCommand.commands());
 		context.registerService(WorkshopCommand.class.getName(),

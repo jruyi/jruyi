@@ -26,32 +26,27 @@ import org.slf4j.LoggerFactory;
 
 @Component(name = IoConstants.FID_MSGLOG, //
 configurationPolicy = ConfigurationPolicy.IGNORE, //
-property = { IoConstants.FILTER_ID + "=" + IoConstants.FID_MSGLOG }, //
 service = { IFilter.class }, //
+property = { IoConstants.FILTER_ID + "=" + IoConstants.FID_MSGLOG }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class MsgLogFilter extends Filter<Object, Object> {
 
-	private static final Logger c_logger = LoggerFactory
-			.getLogger(MsgLogFilter.class);
+	private static final Logger c_logger = LoggerFactory.getLogger(MsgLogFilter.class);
 
 	public static String[] getInterfaces() {
 		return new String[] { IFilter.class.getName() };
 	}
 
 	@Override
-	public boolean onMsgArrive(ISession session, Object msg,
-			IFilterOutput output) {
-		c_logger.info(StrUtil.join(session, " inbound >>",
-				StrUtil.getLineSeparator(), msg));
+	public boolean onMsgArrive(ISession session, Object msg, IFilterOutput output) {
+		c_logger.info(StrUtil.join(session, " inbound >>", StrUtil.getLineSeparator(), msg));
 		output.add(msg);
 		return true;
 	}
 
 	@Override
-	public boolean onMsgDepart(ISession session, Object msg,
-			IFilterOutput output) {
-		c_logger.info(StrUtil.join(session, " outbound <<",
-				StrUtil.getLineSeparator(), msg));
+	public boolean onMsgDepart(ISession session, Object msg, IFilterOutput output) {
+		c_logger.info(StrUtil.join(session, " outbound <<", StrUtil.getLineSeparator(), msg));
 		output.add(msg);
 		return true;
 	}

@@ -15,6 +15,7 @@ package org.jruyi.io.ssl;
 
 import java.util.Map;
 
+import org.jruyi.io.IFilter;
 import org.jruyi.io.ISslContextParameters;
 import org.jruyi.io.IoConstants;
 import org.osgi.service.component.annotations.Component;
@@ -22,6 +23,7 @@ import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 
 @Component(name = IoConstants.FID_SSL, //
+service = { IFilter.class }, //
 property = { IoConstants.FILTER_ID + "=" + IoConstants.FID_SSL }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.2.0")
 public final class SslFilter extends AbstractSslFilter {
@@ -38,8 +40,7 @@ public final class SslFilter extends AbstractSslFilter {
 	}
 
 	@Override
-	protected void updatedSslContextParameters(ISslContextParameters sslcp)
-			throws Exception {
+	protected void updatedSslContextParameters(ISslContextParameters sslcp) throws Exception {
 		super.updatedSslContextParameters(sslcp);
 	}
 
