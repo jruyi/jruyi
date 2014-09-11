@@ -154,15 +154,17 @@ final class SslCodec extends AbstractCodec<IBuffer> {
 		ByteBuffer netBuf;
 		final Buffer dstBuf;
 		final SSLSession session = engine.getSession();
-		if (dst instanceof Buffer) {
+		int n = session.getPacketBufferSize();
+		if (dst instanceof Buffer && (unit = Util.lastUnit((Buffer) dst)).capacity() >= n) {
 			dstBuf = (Buffer) dst;
-			unit = Util.lastUnit(dstBuf);
+			if (unit.available() < n)
+				unit = Util.appendNewUnit(dstBuf);
 			netBuf = unit.getByteBufferForWrite();
 			builder = null;
 			usedBuilder = false;
 		} else {
 			dstBuf = null;
-			builder = BytesBuilder.get(session.getPacketBufferSize());
+			builder = BytesBuilder.get(n);
 			netBuf = builder.getByteBuffer(0, builder.capacity());
 			usedBuilder = true;
 		}
@@ -170,18 +172,17 @@ final class SslCodec extends AbstractCodec<IBuffer> {
 		SSLEngineResult result;
 		try {
 			final ByteBuffer[] appData = bba.array();
-			int size = bba.size();
-			int i = 0;
-			wrap: for (;;) {
+			final int size = bba.size();
+			int len = size;
+			wrap: for (int i = 0;;) {
 				for (;;) {
-					result = engine.wrap(appData, i, size, netBuf);
+					result = engine.wrap(appData, i, len, netBuf);
 					final Status status = result.getStatus();
 					if (status != Status.BUFFER_OVERFLOW)
 						break;
 
 					if (builder == null)
-						builder = BytesBuilder.get(session
-								.getPacketBufferSize());
+						builder = BytesBuilder.get(session.getPacketBufferSize());
 					else
 						builder.ensureCapacity(session.getPacketBufferSize());
 
@@ -194,24 +195,20 @@ final class SslCodec extends AbstractCodec<IBuffer> {
 				} else
 					unit.size(netBuf.position() - unit.start());
 
-				for (; i < size; ++i) {
+				while (len > 0) {
 					if (appData[i].hasRemaining()) {
-						size -= i;
-						if (dstBuf != null) {
+						if (!usedBuilder) {
 							unit = Util.lastUnit(dstBuf);
+							n = session.getPacketBufferSize();
+							if (unit.available() < n && unit.capacity() >= n)
+								unit = Util.appendNewUnit(dstBuf);
 							netBuf = unit.getByteBufferForWrite();
-							usedBuilder = false;
-						} else {
-							if (builder == null)
-								builder = BytesBuilder.get(session
-										.getPacketBufferSize());
-							else
-								builder.ensureCapacity(session
-										.getPacketBufferSize());
-							usedBuilder = true;
-						}
+						} else
+							builder.ensureCapacity(session.getPacketBufferSize());
 						continue wrap;
 					}
+
+					len = size - ++i;
 				}
 				break;
 			}
