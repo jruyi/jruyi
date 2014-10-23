@@ -45,8 +45,7 @@ service = { IService.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class ConnPool extends AbstractTcpClient implements IRunnable {
 
-	private static final Logger c_logger = LoggerFactory
-			.getLogger(ConnPool.class);
+	private static final Logger c_logger = LoggerFactory.getLogger(ConnPool.class);
 
 	private IWorkshop m_workshop;
 
@@ -70,8 +69,7 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 
 			minPoolSize((Integer) properties.get("minPoolSize"));
 			maxPoolSize((Integer) properties.get("maxPoolSize"));
-			idleTimeoutInSeconds((Integer) properties
-					.get("idleTimeoutInSeconds"));
+			idleTimeoutInSeconds((Integer) properties.get("idleTimeoutInSeconds"));
 		}
 
 		public Integer minPoolSize() {
@@ -95,8 +93,7 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 		}
 
 		public void idleTimeoutInSeconds(Integer idleTimeoutInSeconds) {
-			m_idleTimeoutInSeconds = idleTimeoutInSeconds == null ? 60
-					: idleTimeoutInSeconds;
+			m_idleTimeoutInSeconds = idleTimeoutInSeconds == null ? 60 : idleTimeoutInSeconds;
 		}
 	}
 
@@ -182,9 +179,7 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 				try {
 					((Closeable) msg).close();
 				} catch (Throwable t) {
-					c_logger.error(
-							StrUtil.join("Failed to close message: ",
-									StrUtil.getLineSeparator(), msg), t);
+					c_logger.error(StrUtil.join("Failed to close message: ", StrUtil.getLineSeparator(), msg), t);
 				}
 			}
 			return;
@@ -200,8 +195,12 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 		}
 
 		msg = poolChannelIfNoMsg(channel);
-		if (msg != null)
-			writeInternal(channel, msg);
+		if (msg != null) {
+			if (!channel.isClosed())
+				writeInternal(channel, msg);
+			else
+				write(null, msg);
+		}
 	}
 
 	@Override
@@ -329,7 +328,10 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 	@Override
 	public void run(IArgList args) {
 		final IChannel channel = (IChannel) args.arg(0);
-		writeInternal(channel, args.arg(1));
+		if (!channel.isClosed())
+			writeInternal(channel, args.arg(1));
+		else
+			write(null, args.arg(1));
 	}
 
 	@Reference(name = "buffer", policy = ReferencePolicy.DYNAMIC)
@@ -471,6 +473,9 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 		Object msg = m_msgs.poll();
 		if (msg != null)
 			return msg;
+
+		if (channel.isClosed())
+			return null;
 
 		final Configuration conf = m_conf;
 		final int keepAliveTime = conf.idleTimeoutInSeconds();
