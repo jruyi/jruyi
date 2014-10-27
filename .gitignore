@@ -10,6 +10,19 @@ target
 .idea
 *.iml
 .gradle
-build
 .nb-gradle
+
+/build
+/api/build
+/cli/build
+/clid/build
+/cmd/build
+/common/build
+/io/build
+/launcher/build
+/me/build
+/osgi-log/build
+/system/build
+/timeoutadmin/build
+/workshop/build
 
