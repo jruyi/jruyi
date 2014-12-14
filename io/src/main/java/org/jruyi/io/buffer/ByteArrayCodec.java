@@ -79,7 +79,7 @@ public final class ByteArrayCodec implements ICodec<byte[]> {
 			length -= n;
 			unit = unitChain.nextUnit();
 			if (unit == null)
-				return dst.length - length;
+				return offset;
 		}
 		return dst.length;
 	}

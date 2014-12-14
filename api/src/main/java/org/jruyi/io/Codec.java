@@ -13,6 +13,8 @@
  */
 package org.jruyi.io;
 
+import java.nio.ByteBuffer;
+
 import org.jruyi.common.IByteSequence;
 import org.jruyi.io.internal.CodecProvider;
 
@@ -23,8 +25,7 @@ import org.jruyi.io.internal.CodecProvider;
  */
 public final class Codec {
 
-	private static final ICodecProvider c_provider = CodecProvider
-			.getInstance().getCodecProvider();
+	private static final ICodecProvider c_provider = CodecProvider.getInstance().getCodecProvider();
 
 	/**
 	 * {@code ICodec} provider. It is used to separate the implementation
@@ -45,6 +46,14 @@ public final class Codec {
 		 * @return a byte sequence codec
 		 */
 		public ICodec<IByteSequence> byteSequence();
+
+		/**
+		 * Returns a {@code ByteBuffer} codec.
+		 * 
+		 * @return a {@code ByteBuffer} codec
+		 * @since 1.4
+		 */
+		public ICodec<ByteBuffer> byteBuffer();
 
 		/**
 		 * Returns a utf-8 string codec.
@@ -221,6 +230,16 @@ public final class Codec {
 	 */
 	public static ICodec<IByteSequence> byteSequence() {
 		return c_provider.byteSequence();
+	}
+
+	/**
+	 * Returns a {@code ByteBuffer} codec.
+	 *
+	 * @return a {@code ByteBuffer} codec
+	 * @since 1.4
+	 */
+	public static ICodec<ByteBuffer> byteBuffer() {
+		return c_provider.byteBuffer();
 	}
 
 	/**

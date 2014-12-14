@@ -295,4 +295,55 @@ public interface IUnit extends IByteSequence {
 	 * @return the {@code ByteBuffer} as described
 	 */
 	public ByteBuffer getByteBufferForWrite();
+
+	/**
+	 * Copies the requested sequence of bytes to the given {@code dst}.
+	 *
+	 * @param srcBegin
+	 *            start copying at this offset.
+	 * @param srcEnd
+	 *            stop copying at this offset.
+	 * @param dst
+	 *            the {@code ByteBuffer} to copy the data into.
+	 * @throws NullPointerException
+	 *             if {@code dst} is {@code null}.
+	 * @throws IndexOutOfBoundsException
+	 *             if any of the following is true:
+	 *             <ul>
+	 *             <li>{@code srcBegin} is negative
+	 *             <li>{@code dstBegin} is negative
+	 *             <li>the {@code srcBegin} argument is greater than the
+	 *             {@code srcEnd} argument.
+	 *             <li>{@code srcEnd} is greater than {@code this.length()}.
+	 *             </ul>
+	 * @throws java.nio.ReadOnlyBufferException
+	 *             if the given {@code dst} is read-only
+	 * @throws java.nio.BufferOverflowException
+	 *             if {@code dstBegin+srcEnd-srcBegin} is greater than
+	 *             {@code dst.remaining()}
+	 * @since 1.4
+	 */
+	public void getBytes(int srcBegin, int srcEnd, ByteBuffer dst);
+
+	/**
+	 * Sets {@code length} bytes starting at the specified {@code index} to the
+	 * ones contained in the given byte buffer {@code src}.
+	 *
+	 * @param index
+	 *            the offset of the first byte to be set
+	 * @param length
+	 *            the number of bytes from {@code src} to set
+	 * @param src
+	 *            the bytes from which to set
+	 * @return this buffer unit
+	 * @throws NullPointerException
+	 *             if {@code src} is {@code null}.
+	 * @throws IndexOutOfBoundsException
+	 *             if {@code index} is negative or not smaller than
+	 *             {@code capacity()}, minus {@code length}, or {@code length}
+	 *             is negative
+	 * @throws java.nio.BufferUnderflowException
+	 *             if {@code length} is greater than {@code src.remaining())}
+	 */
+	public IUnit set(int index, int length, ByteBuffer src);
 }

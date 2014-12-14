@@ -46,7 +46,7 @@ public final class ByteBufferArray {
 	}
 
 	public static ByteBufferArray get(int capacity) {
-		ByteBufferArray bba = get();
+		final ByteBufferArray bba = get();
 		if (capacity > bba.m_array.length)
 			bba.expandCapacity(capacity);
 
@@ -62,7 +62,7 @@ public final class ByteBufferArray {
 	}
 
 	public void add(ByteBuffer buffer) {
-		int minCapacity = m_size + 1;
+		final int minCapacity = m_size + 1;
 		if (minCapacity > m_array.length)
 			expandCapacity(minCapacity);
 
@@ -71,8 +71,8 @@ public final class ByteBufferArray {
 	}
 
 	public void clear() {
-		int n = m_size;
-		ByteBuffer[] array = m_array;
+		final int n = m_size;
+		final ByteBuffer[] array = m_array;
 		for (int i = 0; i < n; ++i)
 			array[i] = null;
 
@@ -86,7 +86,7 @@ public final class ByteBufferArray {
 		else if (minCapacity > newCapacity)
 			newCapacity = minCapacity;
 
-		ByteBuffer[] array = new ByteBuffer[newCapacity];
+		final ByteBuffer[] array = new ByteBuffer[newCapacity];
 		System.arraycopy(m_array, 0, array, 0, m_size);
 		m_array = array;
 	}

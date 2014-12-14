@@ -78,9 +78,9 @@ final class HeapUnit implements IUnit {
 
 	@Override
 	public byte[] getBytes(int index) {
-		byte[] array = m_array;
-		int length = array.length - index;
-		byte[] data = new byte[length];
+		final byte[] array = m_array;
+		final int length = array.length - index;
+		final byte[] data = new byte[length];
 		System.arraycopy(array, index, data, 0, length);
 		return data;
 	}
@@ -95,6 +95,17 @@ final class HeapUnit implements IUnit {
 	@Override
 	public void getBytes(int srcBegin, int srcEnd, byte[] dst, int dstBegin) {
 		System.arraycopy(m_array, srcBegin, dst, dstBegin, srcEnd - srcBegin);
+	}
+
+	@Override
+	public void getBytes(int srcBegin, int srcEnd, ByteBuffer dst) {
+		dst.put(m_array, srcBegin, srcEnd - srcBegin);
+	}
+
+	@Override
+	public IUnit set(int index, int length, ByteBuffer src) {
+		src.get(m_array, index, length);
+		return this;
 	}
 
 	@Override
@@ -197,8 +208,8 @@ final class HeapUnit implements IUnit {
 
 	@Override
 	public ByteBuffer getByteBufferForRead() {
-		ByteBuffer bb = m_bb;
-		int start = m_start;
+		final ByteBuffer bb = m_bb;
+		final int start = m_start;
 		bb.limit(start + m_size);
 		bb.position(start + m_position);
 		return bb;
@@ -206,13 +217,13 @@ final class HeapUnit implements IUnit {
 
 	@Override
 	public ByteBuffer getByteBufferForRead(int offset, int length) {
-		ByteBuffer bb = m_bb;
+		final ByteBuffer bb = m_bb;
 		bb.rewind();
 		length += offset;
 		if (length > m_size)
 			length = m_size;
 
-		int start = m_start;
+		final int start = m_start;
 		bb.limit(start + length);
 		bb.position(start + offset);
 		return bb;
@@ -220,7 +231,7 @@ final class HeapUnit implements IUnit {
 
 	@Override
 	public ByteBuffer getByteBufferForWrite() {
-		ByteBuffer bb = m_bb;
+		final ByteBuffer bb = m_bb;
 		bb.limit(m_array.length);
 		bb.position(m_start + m_size);
 		return bb;
@@ -236,7 +247,7 @@ final class HeapUnit implements IUnit {
 
 	@Override
 	public void compact() {
-		int position = m_position;
+		final int position = m_position;
 		if (position < 1)
 			return;
 

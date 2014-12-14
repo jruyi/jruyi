@@ -13,19 +13,43 @@
  */
 package org.jruyi.io.internal;
 
+import java.nio.ByteBuffer;
+
 import org.jruyi.common.IByteSequence;
-import org.jruyi.io.*;
 import org.jruyi.io.Codec.ICodecProvider;
 import org.jruyi.io.DoubleCodec.IDoubleCodecProvider;
 import org.jruyi.io.FloatCodec.IFloatCodecProvider;
+import org.jruyi.io.ICodec;
+import org.jruyi.io.IDoubleCodec;
+import org.jruyi.io.IFloatCodec;
+import org.jruyi.io.IIntCodec;
+import org.jruyi.io.ILongCodec;
+import org.jruyi.io.IShortCodec;
 import org.jruyi.io.IntCodec.IIntCodecProvider;
 import org.jruyi.io.LongCodec.ILongCodecProvider;
 import org.jruyi.io.ShortCodec.IShortCodecProvider;
-import org.jruyi.io.buffer.*;
+import org.jruyi.io.buffer.BigEndianDoubleCodec;
+import org.jruyi.io.buffer.BigEndianFloatCodec;
+import org.jruyi.io.buffer.BigEndianIntCodec;
+import org.jruyi.io.buffer.BigEndianLongCodec;
+import org.jruyi.io.buffer.BigEndianShortCodec;
+import org.jruyi.io.buffer.ByteArrayCodec;
+import org.jruyi.io.buffer.ByteBufferCodec;
+import org.jruyi.io.buffer.ByteSequenceCodec;
+import org.jruyi.io.buffer.CharArrayCodec;
+import org.jruyi.io.buffer.CharSequenceCodec;
+import org.jruyi.io.buffer.LittleEndianDoubleCodec;
+import org.jruyi.io.buffer.LittleEndianFloatCodec;
+import org.jruyi.io.buffer.LittleEndianIntCodec;
+import org.jruyi.io.buffer.LittleEndianLongCodec;
+import org.jruyi.io.buffer.LittleEndianShortCodec;
+import org.jruyi.io.buffer.StringCodec;
+import org.jruyi.io.buffer.VarintIntCodec;
+import org.jruyi.io.buffer.VarintLongCodec;
+import org.jruyi.io.buffer.VarintShortCodec;
 
-public final class CodecProvider implements IShortCodecProvider,
-		IIntCodecProvider, ILongCodecProvider, IFloatCodecProvider,
-		IDoubleCodecProvider, ICodecProvider {
+public final class CodecProvider implements IShortCodecProvider, IIntCodecProvider, ILongCodecProvider,
+		IFloatCodecProvider, IDoubleCodecProvider, ICodecProvider {
 
 	private static final CodecProvider INST = new CodecProvider();
 
@@ -133,6 +157,11 @@ public final class CodecProvider implements IShortCodecProvider,
 	@Override
 	public ICodec<IByteSequence> byteSequence() {
 		return ByteSequenceCodec.INST;
+	}
+
+	@Override
+	public ICodec<ByteBuffer> byteBuffer() {
+		return ByteBufferCodec.INST;
 	}
 
 	@Override
