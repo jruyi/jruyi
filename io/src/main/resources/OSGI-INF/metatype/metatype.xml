@@ -19,11 +19,14 @@
 	xsi:schemaLocation="http://www.osgi.org/xmlns/metatype/v1.2.0 http://www.osgi.org/xmlns/metatype/v1.2.0/metatype.xsd">
 
 	<OCD id="buffer" name="Buffer Factory" description="The factory to create buffers">
+		<AD id="id" name="Buffer Factory ID" type="String" required="false"/>
 		<AD id="unitCapacity" name="Unit Capacity" type="Integer" default="8192" min="8" description="The capacity of a single buffer unit"/>
 	</OCD>
 
 	<OCD id="channelAdmin" name="Channel Admin">
 		<AD id="numberOfSelectorThreads" name="Number Of Selector Threads" type="Integer" required="false" min="1"/>
+		<AD id="initialCapacityOfRecvDirectBuffer" name="Initial Capacity of Receive DirectBuffer" type="Integer" default="65536" min="8"/>
+		<AD id="initialCapacityOfSendDirectBuffer" name="Initial Capacity of Send DirectBuffer" type="Integer" default="65536" min="8"/>
 		<AD id="workshop.target" name="Filter for Selecting Workshop" type="String" required="false" default="(threadPrefix=Worker)"/>
 	</OCD>
 
@@ -35,7 +38,7 @@
 		<AD id="buffer.target" name="Filter for Selecting Buffer Factory" type="String" required="false"/>
 		<AD id="bindAddr" name="Bind Address" type="String" required="false"/>
 		<AD id="port" name="Port" type="Integer" min="0" max="65535"/>
-		<AD id="throttle" name="Throttle" type="Integer" min="0" default="0"/>
+		<AD id="throttle" name="Throttle" type="Long" min="-1" default="0"/>
 		<AD id="backlog" name="Backlog" type="Integer" min="1" required="false"/>
 		<AD id="sessionIdleTimeoutInSeconds" name="Session Idle Timeout(s)" type="Integer" min="-1" default="300"/>
 		<AD id="initCapacityOfChannelMap" name="Initial Capacity of Channel Map" type="Integer" min="4" default="2048"/>
@@ -59,7 +62,7 @@
 		<AD id="buffer.target" name="Filter for Selecting Buffer Factory" type="String" required="false"/>
 		<AD id="addr" name="Host Address" type="String" required="true"/>
 		<AD id="port" name="Port" type="Integer" min="0" max="65535" required="false"/>
-		<AD id="throttle" name="Throttle" type="Integer" min="0" default="0"/>
+		<AD id="throttle" name="Throttle" type="Long" min="-1" default="0"/>
 		<AD id="connectTimeoutInSeconds" name="Connect Timeout(s)" type="Integer" min="-1" default="10"/>
 		<AD id="readTimeoutInSeconds" name="Read Timeout(s)" type="Integer" min="-1" default="10"/>
 		<AD id="filters" name="Filter Chain" type="String" cardinality="65535" required="false"/>
@@ -82,7 +85,7 @@
 		<AD id="workshop.target" name="Filter for Selecting Workshop" type="String" required="false" default="(threadPrefix=Worker)"/>
 		<AD id="addr" name="Host Address" type="String" required="true"/>
 		<AD id="port" name="Port" type="Integer" min="0" max="65535" required="true"/>
-		<AD id="throttle" name="Throttle" type="Integer" min="0" default="0"/>
+		<AD id="throttle" name="Throttle" type="Long" min="-1" default="0"/>
 		<AD id="connectTimeoutInSeconds" name="Connect Timeout(s)" type="Integer" min="-1" default="10"/>
 		<AD id="readTimeoutInSeconds" name="Read Timeout(s)" type="Integer" min="-1" default="10"/>
 		<AD id="minPoolSize" name="Minimum Pool Size" type="Integer" min="0" default="5"/>
