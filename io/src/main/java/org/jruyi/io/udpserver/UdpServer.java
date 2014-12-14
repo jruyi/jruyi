@@ -86,8 +86,8 @@ public final class UdpServer extends Service implements IChannelService,
 	}
 
 	@Override
-	public int throttle() {
-		return 0;
+	public long throttle() {
+		return 0L;
 	}
 
 	@Override

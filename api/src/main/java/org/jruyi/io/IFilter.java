@@ -37,6 +37,15 @@ public interface IFilter<I, O> {
 	public static final int E_ERROR = -1;
 
 	/**
+	 * Returns the minimum size of a message, usually the number of bytes that
+	 * are adequate to tell the length of the whole message.
+	 * 
+	 * @return the minimum size of a message
+	 * @since 1.4
+	 */
+	public int msgMinSize();
+
+	/**
 	 * Returns the message length by reading and parsing the specified
 	 * {@code bufferReader}.
 	 * 

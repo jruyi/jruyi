@@ -15,10 +15,10 @@ package org.jruyi.io.tcp;
 
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.nio.channels.GatheringByteChannel;
-import java.nio.channels.ScatteringByteChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.channels.WritableByteChannel;
 
 import org.jruyi.io.channel.Channel;
 import org.jruyi.io.channel.IChannelService;
@@ -31,8 +31,7 @@ public final class TcpChannel extends Channel {
 		super(channelService);
 	}
 
-	public TcpChannel(IChannelService channelService,
-			SocketChannel socketChannel) {
+	public TcpChannel(IChannelService channelService, SocketChannel socketChannel) {
 		super(channelService);
 		m_socketChannel = socketChannel;
 	}
@@ -48,12 +47,12 @@ public final class TcpChannel extends Channel {
 	}
 
 	@Override
-	protected ScatteringByteChannel scatteringByteChannel() {
+	protected ReadableByteChannel readableByteChannel() {
 		return m_socketChannel;
 	}
 
 	@Override
-	protected GatheringByteChannel gatheringByteChannel() {
+	protected WritableByteChannel writableByteChannel() {
 		return m_socketChannel;
 	}
 
@@ -66,8 +65,7 @@ public final class TcpChannel extends Channel {
 	protected void onAccepted() throws Exception {
 		Socket socket = m_socketChannel.socket();
 
-		TcpChannelConf conf = (TcpChannelConf) channelService()
-				.getConfiguration();
+		TcpChannelConf conf = (TcpChannelConf) channelService().getConfiguration();
 
 		// IP_TOS
 		Integer integer = conf.trafficClass();
@@ -107,8 +105,7 @@ public final class TcpChannel extends Channel {
 
 		Socket socket = socketChannel.socket();
 
-		TcpChannelConf conf = (TcpChannelConf) channelService()
-				.getConfiguration();
+		TcpChannelConf conf = (TcpChannelConf) channelService().getConfiguration();
 
 		// SO_SNDBUF
 		Integer integer = conf.sendBufSize();
@@ -143,8 +140,7 @@ public final class TcpChannel extends Channel {
 
 		Socket socket = socketChannel.socket();
 
-		TcpChannelConf conf = (TcpChannelConf) channelService()
-				.getConfiguration();
+		TcpChannelConf conf = (TcpChannelConf) channelService().getConfiguration();
 
 		if (conf.reuseAddr())
 			socket.setReuseAddress(true);
@@ -179,8 +175,7 @@ public final class TcpChannel extends Channel {
 			socket.setReceiveBufferSize(integer);
 
 		socketChannel.configureBlocking(false);
-		return socketChannel.connect(new InetSocketAddress(conf.ip(), conf
-				.port()));
+		return socketChannel.connect(new InetSocketAddress(conf.ip(), conf.port()));
 	}
 
 	@Override

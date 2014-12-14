@@ -14,10 +14,11 @@
 package org.jruyi.io.channel;
 
 import java.io.Closeable;
-import java.nio.channels.GatheringByteChannel;
-import java.nio.channels.ScatteringByteChannel;
+import java.nio.ByteBuffer;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
+import java.nio.channels.WritableByteChannel;
 import java.util.IdentityHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -32,7 +33,9 @@ import org.jruyi.common.ListNode;
 import org.jruyi.common.StrUtil;
 import org.jruyi.common.StringBuilder;
 import org.jruyi.common.ThreadLocalCache;
+import org.jruyi.io.Codec;
 import org.jruyi.io.IBuffer;
+import org.jruyi.io.IBufferFactory;
 import org.jruyi.io.IFilter;
 import org.jruyi.io.IFilterOutput;
 import org.jruyi.timeoutadmin.ITimeoutEvent;
@@ -43,8 +46,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class Channel implements IChannel, IDumpable, Runnable {
 
-	private static final Logger c_logger = LoggerFactory
-			.getLogger(Channel.class);
+	private static final Logger c_logger = LoggerFactory.getLogger(Channel.class);
 	private static final AtomicLong c_sequence = new AtomicLong(0L);
 	private Long m_id;
 	private final IChannelService m_channelService;
@@ -61,8 +63,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 	static final class MsgArrayList implements ICloseable, IFilterOutput {
 
-		private static final IThreadLocalCache<MsgArrayList> c_cache = ThreadLocalCache
-				.weakArrayCache();
+		private static final IThreadLocalCache<MsgArrayList> c_cache = ThreadLocalCache.weakArrayCache();
 		private Object[] m_msgs;
 		private int m_size;
 
@@ -94,7 +95,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 		}
 
 		Object take(int index) {
-			Object msg = m_msgs[index];
+			final Object msg = m_msgs[index];
 			m_msgs[index] = null;
 			return msg;
 		}
@@ -108,11 +109,11 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			if (msg == null)
 				throw new NullPointerException();
 
-			int minCapacity = ++m_size;
-			int oldCapacity = m_msgs.length;
+			final int minCapacity = ++m_size;
+			final int oldCapacity = m_msgs.length;
 			if (minCapacity > oldCapacity) {
-				int newCapacity = (oldCapacity * 3) / 2 + 1;
-				Object[] oldMsgs = m_msgs;
+				final int newCapacity = (oldCapacity * 3) / 2 + 1;
+				final Object[] oldMsgs = m_msgs;
 				m_msgs = new Object[newCapacity];
 				System.arraycopy(oldMsgs, 0, m_msgs, 0, oldCapacity);
 			}
@@ -120,17 +121,16 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 		}
 
 		void release() {
-			Object[] msgs = m_msgs;
-			int size = m_size;
+			final Object[] msgs = m_msgs;
+			final int size = m_size;
 			for (int i = 0; i < size; ++i) {
-				Object msg = msgs[i];
+				final Object msg = msgs[i];
 				if (msg != null) {
 					if (msg instanceof Closeable) {
 						try {
 							((Closeable) msg).close();
 						} catch (Throwable t) {
-							c_logger.error(StrUtil.join(
-									"Failed to close message: ", msg), t);
+							c_logger.error(StrUtil.join("Failed to close message: ", msg), t);
 						}
 					}
 					msgs[i] = null;
@@ -148,8 +148,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 	static final class FilterContext implements ICloseable {
 
-		private static final IThreadLocalCache<FilterContext> c_cache = ThreadLocalCache
-				.weakLinkedCache();
+		private static final IThreadLocalCache<FilterContext> c_cache = ThreadLocalCache.weakLinkedCache();
 		private int m_msgLen;
 		private IBuffer m_data;
 
@@ -205,38 +204,49 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 		public void run() {
 			final Channel channel = m_channel;
 			final IChannelService cs = channel.channelService();
-			final IBuffer in = cs.getBufferFactory().create();
-			final ScatteringByteChannel sbc = channel.scatteringByteChannel();
-			int n;
-			try {
-				final int throttle = cs.throttle();
-				for (;;) {
-					n = in.readIn(sbc);
-					if (n > 0) {
-						if (in.length() > throttle)
-							break;
-					} else if (in.isEmpty()) {
-						in.close();
-						channel.close();
-						return;
-					} else
-						break;
+			final ByteBuffer bb = cs.getChannelAdmin().recvDirectBuffer();
+			final ReadableByteChannel rbc = channel.readableByteChannel();
+			final long throttle = cs.throttle();
+			final int capacity = bb.capacity();
+			long length = 0L;
+			for (;;) {
+				int n;
+				try {
+					n = rbc.read(bb);
+				} catch (Throwable t) {
+					if (!channel.isClosed())
+						channel.onException(t);
+					return;
 				}
-			} catch (Throwable t) {
-				in.close();
-				if (!channel.isClosed())
+
+				if (n < 0) {
+					channel.close();
+					return;
+				} else if (n == 0)
+					break;
+
+				final boolean ok;
+				try {
+					bb.flip();
+					ok = channel.onReadIn(bb);
+				} catch (Throwable t) {
 					channel.onException(t);
-				return;
+					return;
+				}
+
+				if (!ok) {
+					channel.close();
+					return;
+				}
+
+				if (n < capacity || (length += n) >= throttle)
+					break;
+
+				bb.clear();
 			}
 
 			try {
-				if (n < 0) {
-					channel.close();
-					channel.onReadIn(in);
-				} else if (channel.onReadIn(in))
-					channel.onReadRequired();
-				else
-					channel.close();
+				channel.onReadRequired();
 			} catch (Throwable t) {
 				channel.onException(t);
 			}
@@ -269,21 +279,30 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			IBuffer data = m_data;
 			try {
 				final IChannelService cs = channel.channelService();
-				final GatheringByteChannel gbc = channel.gatheringByteChannel();
+				final ByteBuffer bb = cs.getChannelAdmin().sendDirectBuffer();
+				final WritableByteChannel wbc = channel.writableByteChannel();
 				IArgList arg = peek();
-				do {
-					if (data == null) {
-						data = filter(arg, channel);
-						if (data == null)
-							continue;
+				if (data == null) {
+					while ((data = filter(arg, channel)) == null) {
+						if ((arg = poll()) == null)
+							return;
 					}
+				}
 
-					while (data.remaining() > 0) {
-						if (data.writeOut(gbc) == 0) {
+				for (;;) {
+					while (!data.isEmpty()) {
+						data.mark();
+						data.read(bb, Codec.byteBuffer());
+						bb.flip();
+						int n = wbc.write(bb);
+						if (bb.hasRemaining()) {
+							data.reset();
+							data.skip(n);
 							channel.onWriteRequired();
 							m_data = data;
 							return;
 						}
+						bb.clear();
 					}
 
 					m_data = null;
@@ -292,7 +311,12 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 					data.close();
 					data = null;
 					arg.close();
-				} while ((arg = poll()) != null);
+
+					do {
+						if ((arg = poll()) == null)
+							return;
+					} while ((data = filter(arg, channel)) == null);
+				}
 			} catch (Throwable t) {
 				if (data != null)
 					data.close();
@@ -329,8 +353,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 							try {
 								((Closeable) msg).close();
 							} catch (Throwable t) {
-								c_logger.error(StrUtil.join(
-										"Failed to close message: ", msg), t);
+								c_logger.error(StrUtil.join("Failed to close message: ", msg), t);
 							}
 						}
 						head = node;
@@ -395,8 +418,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			int index = (Integer) arg.arg(2);
 			if (index > 0) {
 				@SuppressWarnings("unchecked")
-				IFilter<Object, Object>[] filters = (IFilter<Object, Object>[]) arg
-						.arg(1);
+				IFilter<Object, Object>[] filters = (IFilter<Object, Object>[]) arg.arg(1);
 				MsgArrayList inMsgs = MsgArrayList.get();
 				MsgArrayList outMsgs = MsgArrayList.get();
 				try {
@@ -408,8 +430,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 						outMsgs = temp;
 
 						for (int i = 0; i < n; ++i) {
-							if (!filters[--index].onMsgDepart(channel,
-									inMsgs.take(i), outMsgs))
+							if (!filters[--index].onMsgDepart(channel, inMsgs.take(i), outMsgs))
 								return null;
 						}
 
@@ -429,8 +450,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 							outMsgs.size(0);
 						} catch (ClassCastException e) {
 							throw new RuntimeException(StrUtil.join(filters[0],
-									"has to produce departure data of type ",
-									IBuffer.class.getName()));
+									"has to produce departure data of type ", IBuffer.class.getName()));
 						}
 					}
 				} finally {
@@ -441,9 +461,8 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 				try {
 					data = (IBuffer) msg;
 				} catch (ClassCastException e) {
-					throw new RuntimeException(StrUtil.join(
-							"Departure data has to be of type",
-							IBuffer.class.getName()));
+					throw new RuntimeException(
+							StrUtil.join("Departure data has to be of type", IBuffer.class.getName()));
 				}
 			}
 
@@ -457,7 +476,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 		@Override
 		public void onTimeout(ITimeoutEvent event) {
-			Channel channel = (Channel) event.getSubject();
+			final Channel channel = (Channel) event.getSubject();
 			try {
 				channel.channelService().onChannelIdleTimedOut(channel);
 			} catch (Throwable t) {
@@ -472,7 +491,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 		@Override
 		public void onTimeout(ITimeoutEvent event) {
-			Channel channel = (Channel) event.getSubject();
+			final Channel channel = (Channel) event.getSubject();
 			try {
 				channel.channelService().onChannelConnectTimedOut(channel);
 			} catch (Throwable t) {
@@ -487,7 +506,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 		@Override
 		public void onTimeout(ITimeoutEvent event) {
-			Channel channel = (Channel) event.getSubject();
+			final Channel channel = (Channel) event.getSubject();
 			try {
 				channel.channelService().onChannelReadTimedOut(channel);
 			} catch (Throwable t) {
@@ -715,8 +734,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 	@Override
 	public final void register(ISelector selector, int ops) {
 		try {
-			m_selectionKey = selectableChannel().register(selector.selector(),
-					ops, this);
+			m_selectionKey = selectableChannel().register(selector.selector(), ops, this);
 			m_selector = selector;
 		} catch (Throwable t) {
 			// Ignore
@@ -775,9 +793,9 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 	}
 
 	@Override
-	public final void receive(IBuffer in) {
+	public final void receive(ByteBuffer bb) {
 		try {
-			if (onReadIn(in))
+			if (onReadIn(bb))
 				return;
 			close();
 		} catch (Throwable t) {
@@ -808,9 +826,9 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 	protected abstract void onConnected() throws Exception;
 
-	protected abstract ScatteringByteChannel scatteringByteChannel();
+	protected abstract ReadableByteChannel readableByteChannel();
 
-	protected abstract GatheringByteChannel gatheringByteChannel();
+	protected abstract WritableByteChannel writableByteChannel();
 
 	protected ITimeoutNotifier createTimeoutNotifier(IChannelAdmin ca) {
 		return ca.createTimeoutNotifier(this);
@@ -824,23 +842,38 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 	}
 
 	// If returns false, this channel need be closed
-	final boolean onReadIn(Object in) {
-		MsgArrayList inMsgs = MsgArrayList.get();
+	final boolean onReadIn(ByteBuffer bb) {
 		MsgArrayList outMsgs = MsgArrayList.get();
-		IChannelService cs = m_channelService;
-		IFilter<?, ?>[] filters = cs.getFilterChain();
+		MsgArrayList inMsgs = null;
+		final IChannelService cs = m_channelService;
+		final IFilter<?, ?>[] filters = cs.getFilterChain();
+		final int m = filters.length;
 		try {
-			for (int k = 0, m = filters.length; k < m; ++k) {
+			if (!onAccumulate(filters, outMsgs, bb))
+				return false;
+
+			if (outMsgs.isEmpty())
+				return true;
+
+			if (m < 2) {
+				for (int i = 0, n = outMsgs.size(); i < n; ++i)
+					cs.onMessageReceived(this, outMsgs.take(i));
+				return true;
+			}
+
+			inMsgs = outMsgs;
+			outMsgs = MsgArrayList.get();
+			Object in = inMsgs.take(0);
+			for (int k = 1; k < m; ++k) {
 				if (in instanceof IBuffer) {
 					if (!onAccumulate(k, filters, inMsgs, outMsgs, (IBuffer) in))
 						return false;
 				} else {
-					int i = 0;
 					int n = inMsgs.size();
-					for (;;) {
+					for (int i = 1;; ++i) {
 						if (!onMsgArrive(k, filters, outMsgs, in))
 							return false;
-						if (++i >= n)
+						if (i >= n)
 							break;
 						in = inMsgs.take(i);
 					}
@@ -849,7 +882,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 				if (outMsgs.isEmpty())
 					return true;
 
-				MsgArrayList temp = inMsgs;
+				final MsgArrayList temp = inMsgs;
 				inMsgs = outMsgs;
 				outMsgs = temp;
 
@@ -860,22 +893,124 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			for (int i = 1, n = inMsgs.size(); i < n; ++i)
 				cs.onMessageReceived(this, inMsgs.take(i));
 		} finally {
-			inMsgs.close();
+			if (inMsgs != null)
+				inMsgs.close();
 			outMsgs.close();
 		}
+		return true;
+	}
+
+	private static void write(ByteBuffer src, IBuffer dst, int length) {
+		final int limit = src.limit();
+		src.limit(src.position() + length);
+		dst.write(src, Codec.byteBuffer());
+		src.limit(limit);
+	}
+
+	private boolean onAccumulate(IFilter<?, ?>[] filters, MsgArrayList outMsgs, ByteBuffer bb) {
+		final IFilter<?, ?> filter = filters[0];
+		final IBufferFactory bf = m_channelService.getBufferFactory();
+		// mergeContext -start
+		int msgLen;
+		IBuffer in;
+		FilterContext context = (FilterContext) withdraw(filter);
+		if (context != null) {
+			in = context.data();
+			msgLen = context.msgLen();
+			context.close();
+			context = null;
+		} else {
+			in = bf.create();
+			msgLen = 0;
+		}
+		// mergeContext -end
+
+		final int msgMinSize = filter.msgMinSize();
+		outer: for (;;) {
+			if (msgLen == 0) {
+				if (msgMinSize <= 0)
+					in.write(bb, Codec.byteBuffer());
+				else if (bb.hasRemaining()) {
+					final int n = msgMinSize - in.length();
+					if (n > 0 && bb.remaining() >= n)
+						write(bb, in, n);
+					else {
+						in.write(bb, Codec.byteBuffer());
+						break;
+					}
+				}
+
+				for (;;) {
+					msgLen = filter.tellBoundary(this, in);
+					if (msgLen < 0) { // error
+						in.close();
+						return false;
+					}
+
+					if (msgLen > 0)
+						break;
+
+					if (!bb.hasRemaining())
+						break outer;
+
+					in.write(bb, Codec.byteBuffer());
+				}
+			}
+
+			int inLen = in.length();
+			if (inLen < msgLen) {
+				final int remaining = bb.remaining();
+				if (remaining < 1)
+					break;
+				final int n = msgLen - inLen;
+				if (remaining > n) {
+					write(bb, in, n);
+					if (!onMsgArrive(0, filters, outMsgs, in))
+						return false;
+					in = bf.create();
+					msgLen = 0;
+				} else if (remaining == n) {
+					write(bb, in, n);
+					return onMsgArrive(0, filters, outMsgs, in);
+				} else {
+					in.write(bb, Codec.byteBuffer());
+					break;
+				}
+			} else if (inLen > msgLen) {
+				if (!onMsgArrive(0, filters, outMsgs, in.split(msgLen))) {
+					in.close();
+					return false;
+				}
+				in.rewind();
+				msgLen = 0;
+			} else {
+				if (!onMsgArrive(0, filters, outMsgs, in))
+					return false;
+				if (!bb.hasRemaining())
+					return true;
+				in = bf.create();
+				msgLen = 0;
+			}
+		}
+
+		// storeContext - start
+		context = FilterContext.get();
+		context.data(in);
+		context.msgLen(msgLen);
+		deposit(filter, context);
+		// storeContext - end
 
 		return true;
 	}
 
 	@SuppressWarnings("resource")
-	private boolean onAccumulate(int k, IFilter<?, ?>[] filters,
-			MsgArrayList inMsgs, MsgArrayList outMsgs, IBuffer in) {
-		IFilter<?, ?> filter = filters[k];
+	private boolean onAccumulate(int k, IFilter<?, ?>[] filters, MsgArrayList inMsgs, MsgArrayList outMsgs, IBuffer in) {
+		final IFilter<?, ?> filter = filters[k];
 		// mergeContext -start
 		int msgLen = 0;
 		FilterContext context = (FilterContext) withdraw(filter);
 		if (context != null) {
-			IBuffer prevData = context.data();
+			final IBuffer prevData = context.data();
 			if (prevData != null) {
 				in.drainTo(prevData);
 				in.close();
@@ -888,10 +1023,12 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 		}
 		// mergeContext -end
 
-		int i = 1;
+		int i = 1; // the given buffer "in" is actually inMsgs.take(0)
 		int n = inMsgs.size();
+		final int msgMinSize = filter.msgMinSize();
 		for (;;) {
-			if (msgLen == 0) {
+			final int inLen = in.length();
+			if (msgLen == 0 && inLen >= msgMinSize) {
 				msgLen = filter.tellBoundary(this, in);
 				if (msgLen < 0) { // ERROR
 					in.close();
@@ -899,18 +1036,19 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 				}
 			}
 
-			int inLen = in.length();
 			if (msgLen == 0 || inLen < msgLen) {
 				if (i < n) {
-					IBuffer data = (IBuffer) inMsgs.take(i);
+					final IBuffer data = (IBuffer) inMsgs.take(i);
 					++i;
 					data.drainTo(in);
 					data.close();
 					continue;
 				}
 			} else if (inLen > msgLen) {
-				if (!onMsgArrive(k, filters, outMsgs, in.split(msgLen)))
+				if (!onMsgArrive(k, filters, outMsgs, in.split(msgLen))) {
+					in.close();
 					return false;
+				}
 				in.rewind();
 				msgLen = 0;
 				continue;
@@ -963,13 +1101,11 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 		}
 	}
 
-	private boolean onMsgArrive(int index, IFilter<?, ?>[] filters,
-			MsgArrayList outMsgs, Object msg) {
+	private boolean onMsgArrive(int index, IFilter<?, ?>[] filters, MsgArrayList outMsgs, Object msg) {
 		int size = outMsgs.size();
 
 		@SuppressWarnings("unchecked")
-		boolean ok = ((IFilter<Object, ?>) filters[index]).onMsgArrive(this,
-				msg, outMsgs);
+		boolean ok = ((IFilter<Object, ?>) filters[index]).onMsgArrive(this, msg, outMsgs);
 		int n = outMsgs.size();
 		if (n == size || ok)
 			return ok;

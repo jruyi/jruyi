@@ -13,7 +13,6 @@
  */
 package org.jruyi.io.udpserver;
 
-import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -21,11 +20,6 @@ import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 
 import org.jruyi.common.StrUtil;
-import org.jruyi.io.AbstractCodec;
-import org.jruyi.io.IBuffer;
-import org.jruyi.io.IUnit;
-import org.jruyi.io.IUnitChain;
-import org.jruyi.io.buffer.Util;
 import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.ISelectableChannel;
 import org.jruyi.io.channel.ISelector;
@@ -33,11 +27,9 @@ import org.jruyi.io.udp.UdpChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class UdpServerChannel extends AbstractCodec<SocketAddress> implements
-		ISelectableChannel, Runnable {
+final class UdpServerChannel implements ISelectableChannel, Runnable {
 
-	private static final Logger c_logger = LoggerFactory
-			.getLogger(UdpServerChannel.class);
+	private static final Logger c_logger = LoggerFactory.getLogger(UdpServerChannel.class);
 	private static final Long ID = 0L;
 	private final UdpServer m_udpServer;
 	private final DatagramChannel m_datagramChannel;
@@ -49,27 +41,13 @@ final class UdpServerChannel extends AbstractCodec<SocketAddress> implements
 		return ID;
 	}
 
-	@Override
-	public SocketAddress read(IUnitChain unitChain) {
-		try {
-			IUnit unit = Util.lastUnit(unitChain);
-			ByteBuffer bb = unit.getByteBufferForWrite();
-			int n = bb.position();
-			SocketAddress address = m_datagramChannel.receive(bb);
-			unit.size(unit.size() + bb.position() - n);
-			return address;
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
 	// runs on read
 	@Override
 	public void run() {
 		UdpServer server = m_udpServer;
 		try {
-			IBuffer in = server.getBufferFactory().create();
-			SocketAddress remoteAddr = in.read(this);
+			final ByteBuffer bb = server.getChannelAdmin().recvDirectBuffer();
+			SocketAddress remoteAddr = m_datagramChannel.receive(bb);
 
 			IChannel channel = server.getChannel(remoteAddr);
 			if (channel == null) {
@@ -81,17 +59,16 @@ final class UdpServerChannel extends AbstractCodec<SocketAddress> implements
 				channel.connect(-1);
 			}
 
-			channel.receive(in);
+			bb.flip();
+			channel.receive(bb);
 			channel.onReadRequired();
 		} catch (Throwable t) {
-			c_logger.error(StrUtil.join(server, " failed to receive message"),
-					t);
+			c_logger.error(StrUtil.join(server, " failed to receive message"), t);
 			close();
 		}
 	}
 
-	public UdpServerChannel(UdpServer udpServer,
-			DatagramChannel datagramChannel, SocketAddress localAddr) {
+	public UdpServerChannel(UdpServer udpServer, DatagramChannel datagramChannel, SocketAddress localAddr) {
 		m_udpServer = udpServer;
 		m_datagramChannel = datagramChannel;
 		m_localAddr = localAddr;
@@ -126,8 +103,7 @@ final class UdpServerChannel extends AbstractCodec<SocketAddress> implements
 	@Override
 	public void register(ISelector selector, int ops) {
 		try {
-			m_selectionKey = m_datagramChannel.register(selector.selector(),
-					ops, this);
+			m_selectionKey = m_datagramChannel.register(selector.selector(), ops, this);
 		} catch (Throwable t) {
 			// Ignore
 		}

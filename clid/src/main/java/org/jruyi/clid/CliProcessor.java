@@ -89,6 +89,11 @@ public final class CliProcessor extends SessionListener implements
 	private byte[] m_welcome;
 
 	@Override
+	public int msgMinSize() {
+		return 0;
+	}
+
+	@Override
 	public int tellBoundary(ISession session, IBuffer in) {
 		int b;
 		int n = 0;

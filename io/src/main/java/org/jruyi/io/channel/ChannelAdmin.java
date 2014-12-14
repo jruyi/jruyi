@@ -14,6 +14,7 @@
 package org.jruyi.io.channel;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.CancelledKeyException;
 import java.nio.channels.ClosedSelectorException;
 import java.nio.channels.SelectionKey;
@@ -38,14 +39,33 @@ import org.slf4j.LoggerFactory;
 @Component(name = "jruyi.io.channeladmin", xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class ChannelAdmin implements IChannelAdmin {
 
-	private static final Logger c_logger = LoggerFactory
-			.getLogger(ChannelAdmin.class);
+	private static final Logger c_logger = LoggerFactory.getLogger(ChannelAdmin.class);
 
 	private SelectorThread[] m_sts;
 	private int m_count;
+	private BufferCache m_recvDirectBuffer;
+	private BufferCache m_sendDirectBuffer;
 
 	private IWorkshop m_workshop;
 	private ITimeoutAdmin m_tm;
+
+	static final class BufferCache extends ThreadLocal<ByteBuffer> {
+
+		private final int m_capacity;
+
+		BufferCache(int capacity) {
+			m_capacity = capacity;
+		}
+
+		public int capacity() {
+			return m_capacity;
+		}
+
+		@Override
+		protected ByteBuffer initialValue() {
+			return ByteBuffer.allocateDirect(m_capacity);
+		}
+	}
 
 	final class SelectorThread implements Runnable, ISelector {
 
@@ -106,8 +126,7 @@ public final class ChannelAdmin implements IChannelAdmin {
 					try {
 						n = selector.select();
 					} catch (IOException e) {
-						c_logger.warn(StrUtil.join(currentThread.getName(),
-								": selector error"), e);
+						c_logger.warn(StrUtil.join(currentThread.getName(), ": selector error"), e);
 						continue;
 					}
 
@@ -123,46 +142,37 @@ public final class ChannelAdmin implements IChannelAdmin {
 						continue;
 
 					final IWorkshop workshop = m_workshop;
-					final Iterator<SelectionKey> iter = selector.selectedKeys()
-							.iterator();
+					final Iterator<SelectionKey> iter = selector.selectedKeys().iterator();
 					while (iter.hasNext()) {
 						SelectionKey key = iter.next();
 						iter.remove();
 
-						ISelectableChannel channel = (ISelectableChannel) key
-								.attachment();
+						ISelectableChannel channel = (ISelectableChannel) key.attachment();
 						try {
 							if (key.isConnectable()) {
-								key.interestOps(key.interestOps()
-										& ~SelectionKey.OP_CONNECT);
+								key.interestOps(key.interestOps() & ~SelectionKey.OP_CONNECT);
 								channel.onConnect();
 							} else {
 								if (key.isReadable()) {
-									key.interestOps(key.interestOps()
-											& ~SelectionKey.OP_READ);
+									key.interestOps(key.interestOps() & ~SelectionKey.OP_READ);
 									workshop.run(channel.onRead());
 								}
-
 								if (key.isWritable()) {
-									key.interestOps(key.interestOps()
-											& ~SelectionKey.OP_WRITE);
+									key.interestOps(key.interestOps() & ~SelectionKey.OP_WRITE);
 									workshop.run(channel.onWrite());
 								}
 							}
 						} catch (RejectedExecutionException e) {
 						} catch (CancelledKeyException e) {
 						} catch (Throwable t) {
-							c_logger.warn(StrUtil.join(currentThread.getName(),
-									": ", channel), t);
+							c_logger.warn(StrUtil.join(currentThread.getName(), ": ", channel), t);
 						}
 					}
 				}
 			} catch (ClosedSelectorException e) {
-				c_logger.error(StrUtil.join(currentThread.getName(),
-						": selector closed unexpectedly"), e);
+				c_logger.error(StrUtil.join(currentThread.getName(), ": selector closed unexpectedly"), e);
 			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(currentThread.getName(),
-						": unexpected error"), t);
+				c_logger.error(StrUtil.join(currentThread.getName(), ": unexpected error"), t);
 			}
 
 			c_logger.info("{} stopped", currentThread.getName());
@@ -256,6 +266,20 @@ public final class ChannelAdmin implements IChannelAdmin {
 		return m_tm.createNotifier(channel);
 	}
 
+	@Override
+	public ByteBuffer recvDirectBuffer() {
+		final ByteBuffer bb = m_recvDirectBuffer.get();
+		bb.clear();
+		return bb;
+	}
+
+	@Override
+	public ByteBuffer sendDirectBuffer() {
+		final ByteBuffer bb = m_sendDirectBuffer.get();
+		bb.clear();
+		return bb;
+	}
+
 	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
 	synchronized void setWorkshop(IWorkshop workshop) {
 		m_workshop = workshop;
@@ -278,20 +302,27 @@ public final class ChannelAdmin implements IChannelAdmin {
 
 	@Modified
 	void modified(Map<String, ?> properties) throws Exception {
-		final int count = numberOfSelectors(properties);
-		if (count < 1)
-			throw new Exception("Number of selectors must be positive.");
 
+		final int recvDirectBufferSize = initialCapacityOfRecvDirectBuffer(properties);
+		if (recvDirectBufferSize != m_recvDirectBuffer.capacity())
+			m_recvDirectBuffer = new BufferCache(initialCapacityOfRecvDirectBuffer(properties));
+
+		final int sendDirectBufferSize = initialCapacityOfSendDirectBuffer(properties);
+		if (sendDirectBufferSize != m_sendDirectBuffer.capacity())
+			m_sendDirectBuffer = new BufferCache(initialCapacityOfSendDirectBuffer(properties));
+
+		final int count = numberOfSelectors(properties);
 		int curCount = m_count;
 		if (count == curCount)
 			return;
 
-		SelectorThread[] sts = m_sts;
+		final SelectorThread[] sts;
 		if (count > m_sts.length) {
 			sts = new SelectorThread[count];
 			System.arraycopy(m_sts, 0, sts, 0, curCount);
 			m_sts = sts;
-		}
+		} else
+			sts = m_sts;
 
 		while (count < curCount) {
 			sts[--curCount].close();
@@ -315,7 +346,10 @@ public final class ChannelAdmin implements IChannelAdmin {
 	void activate(Map<String, ?> properties) throws Exception {
 		c_logger.info("Activating ChannelAdmin...");
 
-		int count = numberOfSelectors(properties);
+		m_recvDirectBuffer = new BufferCache(initialCapacityOfRecvDirectBuffer(properties));
+		m_sendDirectBuffer = new BufferCache(initialCapacityOfSendDirectBuffer(properties));
+
+		final int count = numberOfSelectors(properties);
 		final SelectorThread[] sts = new SelectorThread[count];
 		for (int i = 0; i < count; ++i) {
 			SelectorThread st = new SelectorThread();
@@ -351,12 +385,28 @@ public final class ChannelAdmin implements IChannelAdmin {
 		return m_sts[channel.id().intValue() % m_count];
 	}
 
+	private static int initialCapacityOfRecvDirectBuffer(Map<String, ?> properties) {
+		final Object value = properties.get("initialCapacityOfRecvDirectBuffer");
+		int initialCapacityOfRecvDirectBuffer;
+		if (value == null || (initialCapacityOfRecvDirectBuffer = (Integer) value) < 8)
+			initialCapacityOfRecvDirectBuffer = 1024 * 64;
+
+		return initialCapacityOfRecvDirectBuffer;
+	}
+
+	private static int initialCapacityOfSendDirectBuffer(Map<String, ?> properties) {
+		final Object value = properties.get("initialCapacityOfSendDirectBuffer");
+		int initialCapacityOfSendDirectBuffer;
+		if (value == null || (initialCapacityOfSendDirectBuffer = (Integer) value) < 8)
+			initialCapacityOfSendDirectBuffer = 1024 * 64;
+
+		return initialCapacityOfSendDirectBuffer;
+	}
+
 	private static int numberOfSelectors(Map<String, ?> properties) {
-		Object numberOfSelectorThreads = properties
-				.get("numberOfSelectorThreads");
+		final Object numberOfSelectorThreads = properties.get("numberOfSelectorThreads");
 		int count;
-		if (numberOfSelectorThreads == null
-				|| (count = (Integer) numberOfSelectorThreads) < 1) {
+		if (numberOfSelectorThreads == null || (count = (Integer) numberOfSelectorThreads) < 1) {
 			int i = Runtime.getRuntime().availableProcessors();
 			count = 0;
 			while ((i >>>= 1) > 0)

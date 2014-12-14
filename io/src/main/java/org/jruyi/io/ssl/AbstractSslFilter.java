@@ -37,6 +37,7 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 	private static final Logger c_logger = LoggerFactory
 			.getLogger(AbstractSslFilter.class);
 
+	private static final int HEADER_SIZE = 5;
 	private static final Object SSL_CODEC = new Object();
 
 	private SSLContext m_sslContext;
@@ -127,6 +128,11 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 		}
 	}
 
+	@Override
+	public int msgMinSize() {
+		return HEADER_SIZE;
+	}
+
 	// Byte 0 = SSL record type, if type >= 0x80, SSLv2
 	// Bytes 1-2 = SSL version (major/minor)
 	// Bytes 3-4 = Length of data in the record (excluding the header itself).
@@ -135,17 +141,11 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 	public final int tellBoundary(ISession session, IBuffer in) {
 		int type = in.byteAt(0) & 0xFF;
 		if (type > 0x17) { // SSLv2
-			if (in.length() < 2)
-				return E_UNDERFLOW;
-
 			int mask = type < 0x80 ? 0x3F : 0x7F;
 			return ((type & mask) << 8 | (in.byteAt(1) & 0xFF)) + 2;
 		}
 
-		if (in.length() < 5)
-			return E_UNDERFLOW;
-
-		return in.getUnsignedShort(3, ShortCodec.bigEndian()) + 5;
+		return in.getUnsignedShort(3, ShortCodec.bigEndian()) + HEADER_SIZE;
 	}
 
 	@Override

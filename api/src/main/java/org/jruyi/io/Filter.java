@@ -26,6 +26,17 @@ package org.jruyi.io;
 public abstract class Filter<I, O> implements IFilter<I, O> {
 
 	/**
+	 * Returns {@code 0} to indicate no min size restriction.
+	 * 
+	 * @return zero
+	 * @since 1.4
+	 */
+	@Override
+	public int msgMinSize() {
+		return 0;
+	}
+
+	/**
 	 * Returns the current length of the given {@code in} as the message
 	 * boundary.
 	 * 

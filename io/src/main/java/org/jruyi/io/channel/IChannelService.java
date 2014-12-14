@@ -24,7 +24,7 @@ public interface IChannelService {
 
 	public IBufferFactory getBufferFactory();
 
-	public int throttle();
+	public long throttle();
 
 	public IFilter<?, ?>[] getFilterChain();
 

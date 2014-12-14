@@ -31,6 +31,11 @@ final class FilterDelegator<I, O> implements IFilter<I, O> {
 	}
 
 	@Override
+	public int msgMinSize() {
+		return m_holder.getService().msgMinSize();
+	}
+
+	@Override
 	public int tellBoundary(ISession session, IBuffer in) {
 		return m_holder.getService().tellBoundary(session, in);
 	}

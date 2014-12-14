@@ -17,9 +17,9 @@ import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.channels.DatagramChannel;
-import java.nio.channels.GatheringByteChannel;
-import java.nio.channels.ScatteringByteChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.SelectableChannel;
+import java.nio.channels.WritableByteChannel;
 
 import org.jruyi.io.channel.Channel;
 import org.jruyi.io.channel.IChannelService;
@@ -33,8 +33,7 @@ public class UdpChannel extends Channel {
 		super(channelService);
 	}
 
-	public UdpChannel(IChannelService channelService,
-			DatagramChannel datagramChannel, SocketAddress remoteAddress) {
+	public UdpChannel(IChannelService channelService, DatagramChannel datagramChannel, SocketAddress remoteAddress) {
 		super(channelService);
 		m_datagramChannel = datagramChannel;
 		m_remoteAddress = remoteAddress;
@@ -58,8 +57,7 @@ public class UdpChannel extends Channel {
 
 		final DatagramSocket socket = datagramChannel.socket();
 
-		final UdpChannelConf conf = (UdpChannelConf) channelService()
-				.getConfiguration();
+		final UdpChannelConf conf = (UdpChannelConf) channelService().getConfiguration();
 
 		if (conf.reuseAddr())
 			socket.setReuseAddress(true);
@@ -80,8 +78,7 @@ public class UdpChannel extends Channel {
 		datagramChannel.configureBlocking(false);
 		SocketAddress remoteAddress = m_remoteAddress;
 		if (remoteAddress == null)
-			m_remoteAddress = remoteAddress = new InetSocketAddress(conf.ip(),
-					conf.port());
+			m_remoteAddress = remoteAddress = new InetSocketAddress(conf.ip(), conf.port());
 
 		datagramChannel.connect(remoteAddress);
 
@@ -93,8 +90,7 @@ public class UdpChannel extends Channel {
 		final DatagramChannel datagramChannel = m_datagramChannel;
 		final DatagramSocket socket = datagramChannel.socket();
 
-		final UdpChannelConf conf = (UdpChannelConf) channelService()
-				.getConfiguration();
+		final UdpChannelConf conf = (UdpChannelConf) channelService().getConfiguration();
 
 		// IP_TOS
 		Integer integer = conf.trafficClass();
@@ -122,12 +118,12 @@ public class UdpChannel extends Channel {
 	}
 
 	@Override
-	protected final ScatteringByteChannel scatteringByteChannel() {
+	protected final ReadableByteChannel readableByteChannel() {
 		return m_datagramChannel;
 	}
 
 	@Override
-	protected final GatheringByteChannel gatheringByteChannel() {
+	protected final WritableByteChannel writableByteChannel() {
 		return m_datagramChannel;
 	}
 

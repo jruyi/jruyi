@@ -15,6 +15,8 @@ package org.jruyi.io.channel;
 
 import org.jruyi.timeoutadmin.ITimeoutNotifier;
 
+import java.nio.ByteBuffer;
+
 public interface IChannelAdmin {
 
 	public void onRegisterRequired(ISelectableChannel channel);
@@ -24,4 +26,8 @@ public interface IChannelAdmin {
 	public void onWrite(ISelectableChannel channel);
 
 	public ITimeoutNotifier createTimeoutNotifier(ISelectableChannel channel);
+
+	public ByteBuffer recvDirectBuffer();
+
+	public ByteBuffer sendDirectBuffer();
 }

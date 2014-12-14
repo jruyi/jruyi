@@ -105,7 +105,7 @@ public abstract class AbstractTcpClient extends Service implements
 	}
 
 	@Override
-	public int throttle() {
+	public long throttle() {
 		return configuration().throttle();
 	}
 
