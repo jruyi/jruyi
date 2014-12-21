@@ -108,8 +108,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 	public void prepend(IUnit unit) {
 		final BiListNode<IUnit> head = m_head;
 		if (m_positionNode != head || head.get().position() > 0)
-			throw new UnsupportedOperationException(
-					"prepend is not allowed when position() > 0");
+			throw new UnsupportedOperationException("prepend is not allowed when position() > 0");
 
 		final BiListNode<IUnit> node = BiListNode.create();
 		node.set(unit);
@@ -578,8 +577,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		fromIndex -= index;
 		Blob blob = Blob.get();
 		try {
-			for (BiListNode<IUnit> node = head; node != last; node = node
-					.next()) {
+			for (BiListNode<IUnit> node = head; node != last; node = node.next()) {
 				IUnit temp = node.get();
 				blob.add(temp, temp.start(), temp.size());
 			}
@@ -618,8 +616,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		fromIndex -= index;
 		Blob blob = Blob.get();
 		try {
-			for (BiListNode<IUnit> node = head; node != last; node = node
-					.next()) {
+			for (BiListNode<IUnit> node = head; node != last; node = node.next()) {
 				IUnit temp = node.get();
 				blob.add(temp, temp.start(), temp.size());
 			}
@@ -862,16 +859,18 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 	@Override
 	public int reserveHead(int size) {
-		if (size == 0)
-			return 0;
-
-		IUnit unit = m_head.get();
+		final IUnit unit = m_head.get();
 		if (unit.size() > 0)
 			return unit.start();
 
-		size %= unit.capacity();
-		if (size < 0)
-			size += unit.capacity();
+		final int capacity = unit.capacity();
+		if (size > capacity)
+			size = capacity;
+		else if (size < 0) {
+			size += capacity;
+			if (size < 0)
+				size = 0;
+		}
 		unit.start(size);
 		return size;
 	}
@@ -1204,8 +1203,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 	}
 
 	@Override
-	public <T> IBuffer set(int index, T src, int offset, int length,
-			ICodec<T> codec) {
+	public <T> IBuffer set(int index, T src, int offset, int length, ICodec<T> codec) {
 		BiListNode<IUnit> temp = m_head;
 		BiListNode<IUnit> node = temp;
 		IUnit unit = node.get();
@@ -1523,8 +1521,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 	}
 
 	@Override
-	public <T> void get(int index, T dst, int offset, int length,
-			ICodec<T> codec) {
+	public <T> void get(int index, T dst, int offset, int length, ICodec<T> codec) {
 		BiListNode<IUnit> temp = m_head;
 		BiListNode<IUnit> node = temp;
 		IUnit unit = node.get();
@@ -1878,8 +1875,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 					unit = node.get();
 					bba.add(unit.getByteBufferForRead());
 				}
-				n = (int) ((GatheringByteChannel) out).write(bba.array(), 0,
-						bba.size());
+				n = (int) ((GatheringByteChannel) out).write(bba.array(), 0, bba.size());
 			} finally {
 				bba.clear();
 			}
@@ -2116,8 +2112,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		return n;
 	}
 
-	private static int compare(IUnit unit, IByteSequence sequence, int from,
-			int len) {
+	private static int compare(IUnit unit, IByteSequence sequence, int from, int len) {
 		int i = unit.start() + unit.position();
 		len += i;
 		for (; i < len; ++i, ++from) {

@@ -19,7 +19,7 @@ buildscript {
 
 	dependencies {
 		classpath 'org.jruyi.gradle:osgibnd-gradle-plugin:0.2.0'
-		classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:0.6"
+		classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.6'
 	}
 }
 
