@@ -13,8 +13,12 @@
  */
 package org.jruyi.cmd.conf;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Set;
 
 import org.jruyi.cmd.internal.RuyiCmd;
 import org.jruyi.common.Properties;
@@ -81,8 +85,7 @@ public final class Conf {
 		props = PropUtil.normalize(props, ocd);
 
 		final ConfigurationAdmin ca = (ConfigurationAdmin) ca();
-		Configuration conf = factory[0] ? ca.createFactoryConfiguration(id,
-				null) : ca.getConfiguration(id, null);
+		Configuration conf = factory[0] ? ca.createFactoryConfiguration(id, null) : ca.getConfiguration(id, null);
 
 		conf.update(props);
 	}
@@ -103,36 +106,61 @@ public final class Conf {
 		}
 
 		final ConfigurationAdmin ca = (ConfigurationAdmin) ca();
-		final Configuration[] confs = ca
-				.listConfigurations(normalizeFilter(filter));
+		final Configuration[] confs = ca.listConfigurations(normalizeFilter(filter));
 
 		if (confs == null || confs.length < 1)
 			throw new Exception("Configuration(s) NOT Found: " + filter);
 
-		for (final Configuration conf : confs) {
-			Dictionary<String, Object> props = conf.getProperties();
-			boolean modified = false;
-			for (String arg : args) {
-				int i = arg.indexOf('=');
-				String name = i < 0 ? arg : arg.substring(0, i).trim();
-				if (i < 0) {
-					if (props.remove(name) != null)
-						modified = true;
-				} else {
-					Object newValue = arg.substring(i + 1).trim();
-					Object oldValue = props.put(name, newValue);
-					if (!newValue.equals(oldValue))
-						modified = true;
-				}
-			}
+		final int n = args.length;
+		ArrayList<String> removedProps = null;
+		final HashMap<String, Object> props = new HashMap<String, Object>(n);
+		for (String arg : args) {
+			int i = arg.indexOf('=');
+			String name = i < 0 ? arg : arg.substring(0, i).trim();
+			if (i < 0) {
+				removedProps = getList(removedProps);
+				removedProps.add(name);
+			} else
+				props.put(name, arg.substring(i + 1).trim());
+		}
+		final Set<String> keys = props.keySet();
 
-			if (modified) {
-				String factoryPid = conf.getFactoryPid();
-				ObjectClassDefinition ocd = factoryPid == null ? getOcd(
-						conf.getPid(), PID, null) : getOcd(factoryPid,
-						FACTORYPID, null);
-				props = PropUtil.normalize(props, ocd);
-				conf.update(props);
+		for (final Configuration conf : confs) {
+			final String factoryPid = conf.getFactoryPid();
+			final String id;
+			final ObjectClassDefinition ocd;
+			if (factoryPid == null) {
+				id = conf.getPid();
+				ocd = getOcd(id, PID, null);
+			} else {
+				id = factoryPid;
+				ocd = getOcd(id, FACTORYPID, null);
+			}
+			if (ocd == null)
+				throw new Exception("Metatype NOT Found: " + id);
+
+			boolean modified = false;
+			final Dictionary<String, Object> oldProps = conf.getProperties();
+			Properties newProps = new Properties(props);
+			for (Enumeration e = oldProps.keys(); e.hasMoreElements();) {
+				final String key = (String) e.nextElement();
+				if (removedProps == null || !removedProps.contains(key)) {
+					if (!props.containsKey(key))
+						newProps.put(key, oldProps.get(key));
+				} else
+					modified = true;
+			}
+			newProps = PropUtil.normalize(newProps, ocd);
+
+			if (modified)
+				conf.update(newProps);
+			else {
+				for (String key : keys) {
+					if (!equals(newProps.get(key), oldProps.get(key))) {
+						conf.update(newProps);
+						break;
+					}
+				}
 			}
 		}
 	}
@@ -146,8 +174,7 @@ public final class Conf {
 	 */
 	public void delete(String filter) throws Exception {
 		final ConfigurationAdmin ca = (ConfigurationAdmin) ca();
-		final Configuration[] confs = ca
-				.listConfigurations(normalizeFilter(filter));
+		final Configuration[] confs = ca.listConfigurations(normalizeFilter(filter));
 		if (confs == null || confs.length == 0) {
 			System.err.print("Configuration(s) NOT Found: ");
 			System.err.println(filter);
@@ -204,8 +231,7 @@ public final class Conf {
 	 */
 	public boolean exists(String filter) throws Exception {
 		final ConfigurationAdmin ca = (ConfigurationAdmin) ca();
-		final Configuration[] confs = ca
-				.listConfigurations(normalizeFilter(filter));
+		final Configuration[] confs = ca.listConfigurations(normalizeFilter(filter));
 		return (confs != null && confs.length > 0);
 	}
 
@@ -215,14 +241,12 @@ public final class Conf {
 
 		filter = filter.trim();
 		if (filter.charAt(0) != '(')
-			filter = StrUtil.join("(" + Constants.SERVICE_PID + "=", filter,
-					')');
+			filter = StrUtil.join("(" + Constants.SERVICE_PID + "=", filter, ')');
 
 		return filter;
 	}
 
-	private ObjectClassDefinition getOcd(final String id, final int type,
-			boolean[] factory) {
+	private ObjectClassDefinition getOcd(final String id, final int type, boolean[] factory) {
 
 		final MetaTypeService mts = (MetaTypeService) mts();
 		final Bundle[] bundles = m_context.getBundles();
@@ -258,11 +282,9 @@ public final class Conf {
 		Dictionary<String, ?> props = conf.getProperties();
 
 		String id = conf.getFactoryPid();
-		ObjectClassDefinition ocd = id == null ? getOcd(conf.getPid(), PID,
-				null) : getOcd(id, FACTORYPID, null);
+		ObjectClassDefinition ocd = id == null ? getOcd(conf.getPid(), PID, null) : getOcd(id, FACTORYPID, null);
 		if (ocd != null) {
-			AttributeDefinition[] ads = ocd
-					.getAttributeDefinitions(ObjectClassDefinition.ALL);
+			AttributeDefinition[] ads = ocd.getAttributeDefinitions(ObjectClassDefinition.ALL);
 			int n;
 			if (ads != null && (n = ads.length) > 0) {
 				boolean first = true;
@@ -317,8 +339,7 @@ public final class Conf {
 		System.out.println("properties: ");
 		Dictionary<String, ?> props = conf.getProperties();
 		if (ocd != null) {
-			AttributeDefinition[] ads = ocd
-					.getAttributeDefinitions(ObjectClassDefinition.ALL);
+			AttributeDefinition[] ads = ocd.getAttributeDefinitions(ObjectClassDefinition.ALL);
 			if (ads != null) {
 				for (AttributeDefinition ad : ads) {
 					String id = ad.getID();
@@ -373,17 +394,44 @@ public final class Conf {
 		System.out.print(']');
 	}
 
+	private static ArrayList<String> getList(ArrayList<String> list) {
+		if (list == null)
+			list = new ArrayList<String>();
+		return list;
+	}
+
+	private static boolean equals(Object o1, Object o2) {
+		final Class<?> clazz = o1.getClass();
+		if (!clazz.isArray())
+			return o1.equals(o2);
+
+		if (clazz == byte[].class)
+			return Arrays.equals((byte[]) o1, (byte[]) o2);
+		if (clazz == boolean[].class)
+			return Arrays.equals((boolean[]) o1, (boolean[]) o2);
+		if (clazz == short[].class)
+			return Arrays.equals((short[]) o1, (short[]) o2);
+		if (clazz == int[].class)
+			return Arrays.equals((int[]) o1, (int[]) o2);
+		if (clazz == long[].class)
+			return Arrays.equals((long[]) o1, (long[]) o2);
+		if (clazz == float[].class)
+			return Arrays.equals((float[]) o1, (float[]) o2);
+		if (clazz == double[].class)
+			return Arrays.equals((double[]) o1, (double[]) o2);
+
+		return Arrays.equals((Object[]) o1, (Object[]) o2);
+	}
+
 	private Object ca() {
 		final BundleContext context = m_context;
-		final ServiceReference<ConfigurationAdmin> reference = context
-				.getServiceReference(ConfigurationAdmin.class);
+		final ServiceReference<ConfigurationAdmin> reference = context.getServiceReference(ConfigurationAdmin.class);
 		return context.getService(reference);
 	}
 
 	private Object mts() {
 		final BundleContext context = m_context;
-		final ServiceReference<MetaTypeService> reference = context
-				.getServiceReference(MetaTypeService.class);
+		final ServiceReference<MetaTypeService> reference = context.getServiceReference(MetaTypeService.class);
 		return context.getService(reference);
 	}
 }

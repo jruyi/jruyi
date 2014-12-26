@@ -334,15 +334,12 @@ public final class PropUtil {
 	private PropUtil() {
 	}
 
-	public static Properties normalize(Dictionary<String, ?> props,
-			ObjectClassDefinition ocd) throws Exception {
-		AttributeDefinition[] ads = ocd
-				.getAttributeDefinitions(ObjectClassDefinition.REQUIRED);
+	public static Properties normalize(Dictionary<String, ?> props, ObjectClassDefinition ocd) throws Exception {
+		AttributeDefinition[] ads = ocd.getAttributeDefinitions(ObjectClassDefinition.REQUIRED);
 		if (ads != null && ads.length > 0 && props == null)
-			throw new RuntimeException(StrUtil.join("Property[",
-					ads[0].getID(), "] is required"));
+			throw new RuntimeException(StrUtil.join("Property[", ads[0].getID(), "] is required"));
 
-		Properties conf = new Properties();
+		final Properties conf = new Properties();
 		if (ads != null)
 			normalize(props, conf, ads, true);
 
@@ -353,8 +350,7 @@ public final class PropUtil {
 		return conf;
 	}
 
-	private static void normalize(Dictionary<String, ?> props,
-			Map<String, Object> conf, AttributeDefinition[] ads,
+	private static void normalize(Dictionary<String, ?> props, Map<String, Object> conf, AttributeDefinition[] ads,
 			boolean required) throws Exception {
 		for (AttributeDefinition ad : ads) {
 			String id = ad.getID();
@@ -375,36 +371,30 @@ public final class PropUtil {
 				Object[] values = (Object[]) value;
 				if (values.length > 0) {
 					if (!type.checkType(values[0].getClass()))
-						throw new Exception(StrUtil.join("Property[", id,
-								"] should be of type: ", type));
+						throw new Exception(StrUtil.join("Property[", id, "] should be of type: ", type));
 					for (Object obj : values) {
 						String message = ad.validate(String.valueOf(obj));
 						if (message != null && message.length() > 0)
-							throw new Exception(StrUtil.join("Error Property[",
-									id, "]: ", message));
+							throw new Exception(StrUtil.join("Error Property[", id, "]: ", message));
 					}
 				}
 			} else if (!Iterable.class.isAssignableFrom(clazz)) {
 				if (!type.checkType(clazz))
-					throw new Exception(StrUtil.join("Property[", id,
-							"] should be of type: ", type));
+					throw new Exception(StrUtil.join("Property[", id, "] should be of type: ", type));
 				String message = ad.validate(String.valueOf(value));
 				if (message != null && message.length() > 0)
-					throw new Exception(StrUtil.join("Error Property[", id,
-							"]: ", message));
+					throw new Exception(StrUtil.join("Error Property[", id, "]: ", message));
 			} else {
 				@SuppressWarnings("unchecked")
 				Iterator<Object> iter = ((Iterable<Object>) value).iterator();
 				for (int i = 0; iter.hasNext(); ++i) {
 					Object obj = iter.next();
 					if (!type.checkType(obj.getClass()))
-						throw new Exception(StrUtil.join("Property[", id, "](",
-								i, ") should be of type: ", type));
+						throw new Exception(StrUtil.join("Property[", id, "](", i, ") should be of type: ", type));
 
 					String message = ad.validate(String.valueOf(obj));
 					if (message != null && message.length() > 0)
-						throw new Exception(StrUtil.join("Error Property[", id,
-								"](", i, "): ", message));
+						throw new Exception(StrUtil.join("Error Property[", id, "](", i, "): ", message));
 				}
 			}
 
@@ -412,8 +402,8 @@ public final class PropUtil {
 		}
 	}
 
-	private static void handleStringValue(AttributeDefinition ad, String value,
-			Map<String, Object> conf, boolean required) throws Exception {
+	private static void handleStringValue(AttributeDefinition ad, String value, Map<String, Object> conf,
+			boolean required) throws Exception {
 		String id = ad.getID();
 		String[] values = ad.getCardinality() != 0 ? split(value) : null;
 		String[] optionValues = ad.getOptionValues();
@@ -440,8 +430,8 @@ public final class PropUtil {
 			conf.put(id, type.convertToVector(values));
 	}
 
-	private static void handleDefaultValues(AttributeDefinition ad,
-			Map<String, Object> conf, boolean required) throws Exception {
+	private static void handleDefaultValues(AttributeDefinition ad, Map<String, Object> conf, boolean required)
+			throws Exception {
 		String id = ad.getID();
 		String[] defaultValues = ad.getDefaultValue();
 		if (defaultValues != null) {
@@ -510,8 +500,7 @@ public final class PropUtil {
 			builder.append(',').append(values[i]);
 	}
 
-	private static void validate(String id, String value, String[] optionValues)
-			throws Exception {
+	private static void validate(String id, String value, String[] optionValues) throws Exception {
 		for (String optionValue : optionValues) {
 			if (optionValue.equals(value))
 				return;
@@ -519,8 +508,7 @@ public final class PropUtil {
 
 		StringBuilder builder = StringBuilder.get();
 		try {
-			builder.append("Illegal Property[").append(id).append('=')
-					.append(value).append("]: {");
+			builder.append("Illegal Property[").append(id).append('=').append(value).append("]: {");
 			makeStringTo(builder, optionValues);
 			builder.append('}');
 			throw new Exception(builder.toString());
@@ -529,11 +517,9 @@ public final class PropUtil {
 		}
 	}
 
-	private static void validate(String id, String value, AttributeDefinition ad)
-			throws Exception {
+	private static void validate(String id, String value, AttributeDefinition ad) throws Exception {
 		String message = ad.validate(value);
 		if (message != null && message.length() > 0)
-			throw new Exception(StrUtil.join("Error Property[", id, "]: ",
-					message));
+			throw new Exception(StrUtil.join("Error Property[", id, "]: ", message));
 	}
 }
