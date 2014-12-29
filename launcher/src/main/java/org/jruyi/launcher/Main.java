@@ -37,7 +37,7 @@ import org.osgi.framework.Constants;
 public final class Main {
 
 	private static final String RUYI_PROPERTY = "property";
-	private static final String LOGBACK_CONF = "logback.configurationFile";
+	private static final String LOG4J_CONF = "log4j.configurationFile";
 	private Object m_ruyi;
 
 	static final class MainHolder {
@@ -89,8 +89,7 @@ public final class Main {
 		if (!(classLoader instanceof URLClassLoader))
 			classLoader = new URLClassLoader(new URL[0], classLoader);
 
-		final Method addUrl = URLClassLoader.class.getDeclaredMethod("addURL",
-				URL.class);
+		final Method addUrl = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
 		boolean accessible = addUrl.isAccessible();
 		if (!accessible)
 			addUrl.setAccessible(true);
@@ -101,8 +100,7 @@ public final class Main {
 			final String exportPackages;
 			final JarFile jf = new JarFile(jar);
 			try {
-				exportPackages = jf.getManifest().getMainAttributes()
-						.getValue("Export-Package");
+				exportPackages = jf.getManifest().getMainAttributes().getValue("Export-Package");
 			} finally {
 				jf.close();
 			}
@@ -125,16 +123,15 @@ public final class Main {
 		final HashMap<String, String> props = new HashMap<String, String>(3);
 		props.put(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA, builder.toString());
 
-		final Class<?> clazz = classLoader
-				.loadClass("org.jruyi.system.main.Ruyi");
+		final Class<?> clazz = classLoader.loadClass("org.jruyi.system.main.Ruyi");
 		final Object ruyi = clazz.getMethod("getInstance").invoke(null);
 		clazz.getMethod("setProperties", Map.class).invoke(ruyi, props);
-		final String instConfUrl = (String) clazz.getMethod(RUYI_PROPERTY,
-				String.class).invoke(ruyi, JRUYI_INST_CONF_URL);
+		final String instConfUrl = (String) clazz.getMethod(RUYI_PROPERTY, String.class).invoke(ruyi,
+				JRUYI_INST_CONF_URL);
 
-		final String logbackConf = System.getProperty(LOGBACK_CONF);
-		if (logbackConf == null || logbackConf.trim().isEmpty())
-			System.setProperty(LOGBACK_CONF, instConfUrl + "logback.xml");
+		final String confFile = System.getProperty(LOG4J_CONF);
+		if (confFile == null || confFile.trim().isEmpty())
+			System.setProperty(LOG4J_CONF, instConfUrl + "log4j2.xml");
 
 		m_ruyi = ruyi;
 	}
@@ -220,13 +217,10 @@ public final class Main {
 		System.out.println("Usage: " + programName + " [options]");
 		System.out.println();
 		System.out.println("options:");
-		System.out
-				.println("    -?, --help              print this help message");
-		System.out
-				.println("    -v, --version           print version information");
+		System.out.println("    -?, --help              print this help message");
+		System.out.println("    -v, --version           print version information");
 		System.out.println("    -D<name>[=<value>]      add a system property");
-		System.out
-				.println("    -r, --run=<instance>    run the specified instance");
+		System.out.println("    -r, --run=<instance>    run the specified instance");
 		System.out.println();
 	}
 
@@ -248,8 +242,7 @@ public final class Main {
 
 	private void printVersion() throws Exception {
 		final Object ruyi = m_ruyi;
-		Method property = ruyi.getClass()
-				.getMethod(RUYI_PROPERTY, String.class);
+		Method property = ruyi.getClass().getMethod(RUYI_PROPERTY, String.class);
 
 		System.out.print("JRuyi version: ");
 		System.out.println(property.invoke(ruyi, JRUYI_VERSION));

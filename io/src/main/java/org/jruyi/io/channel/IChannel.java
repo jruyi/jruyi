@@ -13,10 +13,9 @@
  */
 package org.jruyi.io.channel;
 
-import org.jruyi.io.IBuffer;
-import org.jruyi.io.ISession;
-
 import java.nio.ByteBuffer;
+
+import org.jruyi.io.ISession;
 
 public interface IChannel extends ISession, ISelectableChannel {
 
