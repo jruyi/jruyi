@@ -32,6 +32,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
+import org.apache.logging.log4j.core.util.ShutdownCallbackRegistry;
 import org.osgi.framework.Constants;
 
 public final class Main {
@@ -129,6 +130,7 @@ public final class Main {
 		final String instConfUrl = (String) clazz.getMethod(RUYI_PROPERTY, String.class).invoke(ruyi,
 				JRUYI_INST_CONF_URL);
 
+		System.setProperty(ShutdownCallbackRegistry.SHUTDOWN_CALLBACK_REGISTRY, Log4jCallback.class.getName());
 		final String confFile = System.getProperty(LOG4J_CONF);
 		if (confFile == null || confFile.trim().isEmpty())
 			System.setProperty(LOG4J_CONF, instConfUrl + "log4j2.xml");
@@ -150,6 +152,8 @@ public final class Main {
 			m_ruyi.getClass().getMethod("stop").invoke(m_ruyi);
 		} catch (Throwable t) {
 			t.printStackTrace();
+		} finally {
+			Log4jCallback.shutdown();
 		}
 	}
 

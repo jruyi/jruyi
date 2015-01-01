@@ -61,8 +61,7 @@ public final class Ruyi {
 	}
 
 	private static Properties getProductProps() throws Exception {
-		final InputStream in = Ruyi.class
-				.getResourceAsStream("product.properties");
+		final InputStream in = Ruyi.class.getResourceAsStream("product.properties");
 		try {
 			final Properties props = new Properties();
 			props.load(in);
@@ -77,8 +76,7 @@ public final class Ruyi {
 	}
 
 	public void setProperties(Map<String, String> properties) {
-		properties = properties == null ? new HashMap<String, String>(32)
-				: new HashMap<String, String>(properties);
+		properties = properties == null ? new HashMap<String, String>(32) : new HashMap<String, String>(properties);
 
 		String v = properties.get(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA);
 		if (v != null && (v = v.trim()).length() > 0) {
@@ -119,8 +117,8 @@ public final class Ruyi {
 			initOsgiProps(osgiProps);
 
 			final BootLoader loader = new BootLoader();
-			m_framework = loader.loadFramework(bootstrap.getFrameworkUrl(),
-					osgiProps, bootstrap.getInitialBundleStartLevel());
+			m_framework = loader.loadFramework(bootstrap.getFrameworkUrl(), osgiProps,
+					bootstrap.getInitialBundleStartLevel());
 
 			loader.startBundles(bootstrap.getBundleInfoList());
 
@@ -182,22 +180,18 @@ public final class Ruyi {
 		final File homeDir;
 		String temp = property(JRUYI_HOME_DIR);
 		if (temp == null) {
-			temp = Ruyi.class.getProtectionDomain().getCodeSource()
-					.getLocation().getFile();
+			temp = Ruyi.class.getProtectionDomain().getCodeSource().getLocation().getFile();
 			temp = URLDecoder.decode(temp, "UTF-8");
-			homeDir = new File(temp).getParentFile().getParentFile()
-					.getCanonicalFile();
+			homeDir = new File(temp).getParentFile().getParentFile().getCanonicalFile();
 		} else
 			homeDir = new File(temp).getCanonicalFile();
 
 		// Home URL
 		temp = property(JRUYI_HOME_URL);
-		final URL homeUrl = (temp == null) ? homeDir.toURI().toURL() : new URL(
-				temp);
+		final URL homeUrl = (temp == null) ? homeDir.toURI().toURL() : new URL(temp);
 
 		// Bundle Base URL
-		final URL bundleBaseUrl = getUrl(JRUYI_BUNDLE_BASE_URL, homeUrl,
-				"bundles/");
+		final URL bundleBaseUrl = getUrl(JRUYI_BUNDLE_BASE_URL, homeUrl, "bundles/");
 
 		// Instance Base Dir
 		final File instBaseDir = getDir(JRUYI_INST_BASE_DIR, homeDir, "inst");
@@ -210,24 +204,18 @@ public final class Ruyi {
 			instName = "default";
 
 		// Instance Home Dir
-		final File instHomeDir = getDir(JRUYI_INST_HOME_DIR, instBaseDir,
-				instName);
+		final File instHomeDir = getDir(JRUYI_INST_HOME_DIR, instBaseDir, instName);
 		// Instance Home URL
-		final URL instHomeUrl = getUrl(JRUYI_INST_HOME_URL, instBaseUrl,
-				instName + "/");
+		final URL instHomeUrl = getUrl(JRUYI_INST_HOME_URL, instBaseUrl, instName + "/");
 
 		// Instance Conf Dir
-		final File instConfDir = getDir(JRUYI_INST_CONF_DIR, instHomeDir,
-				"conf");
+		final File instConfDir = getDir(JRUYI_INST_CONF_DIR, instHomeDir, "conf");
 		// Instance Conf URL
-		final URL instConfUrl = getUrl(JRUYI_INST_CONF_URL, instHomeUrl,
-				"conf/");
+		final URL instConfUrl = getUrl(JRUYI_INST_CONF_URL, instHomeUrl, "conf/");
 
-		final URL instBootstrapUrl = getUrl(JRUYI_INST_BOOTSTRAP_URL,
-				instConfUrl, "bootstrap.xml");
+		final URL instBootstrapUrl = getUrl(JRUYI_INST_BOOTSTRAP_URL, instConfUrl, "bootstrap.xml");
 
-		final File instDataDir = getDir(JRUYI_INST_DATA_DIR, instHomeDir,
-				"data");
+		final File instDataDir = getDir(JRUYI_INST_DATA_DIR, instHomeDir, "data");
 
 		final Map<String, String> props = m_properties;
 		props.put(JRUYI_HOME_DIR, homeDir.getCanonicalPath());
@@ -247,12 +235,10 @@ public final class Ruyi {
 	private void initProductProps() throws Exception {
 		final Properties productProps = getProductProps();
 		System.setProperty(JRUYI_NAME, productProps.getProperty(JRUYI_NAME));
-		System.setProperty(JRUYI_VERSION,
-				productProps.getProperty(JRUYI_VERSION));
+		System.setProperty(JRUYI_VERSION, productProps.getProperty(JRUYI_VERSION));
 		System.setProperty(JRUYI_URL, productProps.getProperty(JRUYI_URL));
 		System.setProperty(JRUYI_VENDOR, productProps.getProperty(JRUYI_VENDOR));
-		System.setProperty(JRUYI_VENDOR_URL,
-				productProps.getProperty(JRUYI_VENDOR_URL));
+		System.setProperty(JRUYI_VENDOR_URL, productProps.getProperty(JRUYI_VENDOR_URL));
 	}
 
 	private void logDir() {
@@ -283,12 +269,11 @@ public final class Ruyi {
 		bootstrap.getLocalProps().putAll(m_properties);
 		final InputStream in = Ruyi.class.getResourceAsStream("bootstrap.xsd");
 		try {
-			XmlParser.getInstance(in).parse(bootstrapUrl,
-					bootstrap.getHandlers(), bootstrap.getLocalProps());
+			XmlParser.getInstance(in).parse(bootstrapUrl, bootstrap.getHandlers(), bootstrap.getLocalProps());
 		} finally {
 			try {
 				in.close();
-			} catch (Exception e) {
+			} catch (Throwable t) {
 			}
 		}
 
@@ -297,11 +282,9 @@ public final class Ruyi {
 
 	private void initOsgiProps(Map<String, String> osgiProps) {
 		final Map<String, String> properties = m_properties;
-		String pkgExtra = properties
-				.get(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA);
+		String pkgExtra = properties.get(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA);
 
-		String v = (String) osgiProps
-				.get(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA);
+		String v = osgiProps.get(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA);
 		if (v != null && (v = v.trim()).length() > 0) {
 			v = v.replaceAll("[\t\r\n ]", "");
 			pkgExtra = pkgExtra == null ? v : pkgExtra + "," + v;
@@ -312,15 +295,12 @@ public final class Ruyi {
 			osgiProps.put(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA, pkgExtra);
 	}
 
-	private File getDir(String key, File parent, String child)
-			throws IOException {
+	private File getDir(String key, File parent, String child) throws IOException {
 		final String pathName = property(key);
-		return (pathName == null) ? new File(parent, child)
-				: new File(pathName).getCanonicalFile();
+		return (pathName == null) ? new File(parent, child) : new File(pathName).getCanonicalFile();
 	}
 
-	private URL getUrl(String key, URL context, String spec)
-			throws MalformedURLException {
+	private URL getUrl(String key, URL context, String spec) throws MalformedURLException {
 		final String str = property(key);
 		return (str == null) ? new URL(context, spec) : new URL(spec);
 	}

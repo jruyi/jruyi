@@ -88,10 +88,8 @@ final class Bootstrap {
 		@Override
 		public void start(Attributes attributes) throws SAXException {
 			setFrameworkUrl(attributes.getValue("url"));
-			setInitialBundleStartLevel(Integer.parseInt(attributes
-					.getValue("initialBundleStartLevel")));
-			getFrameworkProps().put(Constants.FRAMEWORK_BEGINNING_STARTLEVEL,
-					attributes.getValue("startLevel"));
+			setInitialBundleStartLevel(Integer.parseInt(attributes.getValue("initialBundleStartLevel")));
+			getFrameworkProps().put(Constants.FRAMEWORK_BEGINNING_STARTLEVEL, attributes.getValue("startLevel"));
 			changePropType(PT_FRAMEWORK);
 		}
 
@@ -122,8 +120,7 @@ final class Bootstrap {
 			try {
 				final String bundleUrl = attributes.getValue("url");
 				final String v = attributes.getValue("startLevel");
-				final int startLevel = v == null ? getStartLevel() : Integer
-						.parseInt(v);
+				final int startLevel = v == null ? getStartLevel() : Integer.parseInt(v);
 				getBundleInfoList().add(new BundleInfo(bundleUrl, startLevel));
 
 				changePropType(PT_FRAMEWORK);

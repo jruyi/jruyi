@@ -100,8 +100,7 @@ public final class XmlParser {
 			this(attributes, null);
 		}
 
-		Attributes(org.xml.sax.Attributes attributes,
-				Map<String, String> properties) {
+		Attributes(org.xml.sax.Attributes attributes, Map<String, String> properties) {
 			m_attributes = attributes;
 			m_properties = properties;
 			m_builder = new StringBuilder(64);
@@ -195,8 +194,7 @@ public final class XmlParser {
 				case '}':
 					if (!stack.isEmpty()) {
 						int index = stack.pop();
-						propValue = getPropValue(builder.substring(index + 2),
-								properties);
+						propValue = getPropValue(builder.substring(index + 2), properties);
 						if (propValue != null) {
 							builder.setLength(index);
 							builder.append(propValue);
@@ -230,8 +228,7 @@ public final class XmlParser {
 		}
 
 		@Override
-		public final void startElement(String uri, String localName,
-				String qName, org.xml.sax.Attributes attributes)
+		public final void startElement(String uri, String localName, String qName, org.xml.sax.Attributes attributes)
 				throws SAXException {
 			final IElementHandler handler = m_handlers.get(qName);
 			if (handler != null) {
@@ -241,15 +238,13 @@ public final class XmlParser {
 		}
 
 		@Override
-		public final void characters(char[] ch, int start, int length)
-				throws SAXException {
+		public final void characters(char[] ch, int start, int length) throws SAXException {
 			if (m_validHandler != null)
 				m_builder.append(ch, start, length);
 		}
 
 		@Override
-		public final void endElement(String uri, String localName, String qName)
-				throws SAXException {
+		public final void endElement(String uri, String localName, String qName) throws SAXException {
 			final IElementHandler handler = m_handlers.get(qName);
 			if (handler != null) {
 				if (m_validHandler == handler) {
@@ -290,8 +285,7 @@ public final class XmlParser {
 			this(handlers, null);
 		}
 
-		XMLFilterHandler(Map<String, IElementHandler> handlers,
-				Map<String, String> properties) {
+		XMLFilterHandler(Map<String, IElementHandler> handlers, Map<String, String> properties) {
 			m_handlers = handlers;
 			m_properties = properties;
 			m_builder = new StringBuilder(128);
@@ -299,8 +293,7 @@ public final class XmlParser {
 		}
 
 		@Override
-		public final void startElement(String uri, String localName,
-				String qName, org.xml.sax.Attributes attributes)
+		public final void startElement(String uri, String localName, String qName, org.xml.sax.Attributes attributes)
 				throws SAXException {
 			final IElementHandler handler = m_handlers.get(qName);
 			if (handler != null) {
@@ -310,15 +303,13 @@ public final class XmlParser {
 		}
 
 		@Override
-		public final void characters(char[] ch, int start, int length)
-				throws SAXException {
+		public final void characters(char[] ch, int start, int length) throws SAXException {
 			if (m_validHandler != null)
 				filterToBuilder(ch, start, length);
 		}
 
 		@Override
-		public final void endElement(String uri, String localName, String qName)
-				throws SAXException {
+		public final void endElement(String uri, String localName, String qName) throws SAXException {
 			final IElementHandler handler = m_handlers.get(qName);
 			if (handler != null) {
 				if (m_validHandler == handler) {
@@ -371,8 +362,7 @@ public final class XmlParser {
 				case '}':
 					if (!stack.isEmpty()) {
 						int index = stack.pop();
-						String propValue = getPropValue(
-								builder.substring(index + 2), properties);
+						String propValue = getPropValue(builder.substring(index + 2), properties);
 						if (propValue != null) {
 							builder.setLength(index);
 							builder.append(propValue);
@@ -393,8 +383,7 @@ public final class XmlParser {
 
 	static String getPropValue(String name, Map<String, String> properties) {
 		final String value;
-		if (properties != null && properties.size() > 0
-				&& (value = properties.get(name)) != null)
+		if (properties != null && properties.size() > 0 && (value = properties.get(name)) != null)
 			return value;
 
 		return System.getProperty(name);
@@ -420,10 +409,9 @@ public final class XmlParser {
 	 * @throws IOException
 	 *             if any IO errors occur
 	 */
-	public void parse(File file, Map<String, IElementHandler> handlers,
-			boolean filtering) throws SAXException, IOException {
-		m_saxParser.parse(file, filtering ? new XMLFilterHandler(handlers)
-				: new XMLHandler(handlers));
+	public void parse(File file, Map<String, IElementHandler> handlers, boolean filtering) throws SAXException,
+			IOException {
+		m_saxParser.parse(file, filtering ? new XMLFilterHandler(handlers) : new XMLHandler(handlers));
 	}
 
 	/**
@@ -446,10 +434,9 @@ public final class XmlParser {
 	 * @throws IOException
 	 *             if any IO errors occur
 	 */
-	public void parse(InputSource is, Map<String, IElementHandler> handlers,
-			boolean filtering) throws SAXException, IOException {
-		m_saxParser.parse(is, filtering ? new XMLFilterHandler(handlers)
-				: new XMLHandler(handlers));
+	public void parse(InputSource is, Map<String, IElementHandler> handlers, boolean filtering) throws SAXException,
+			IOException {
+		m_saxParser.parse(is, filtering ? new XMLFilterHandler(handlers) : new XMLHandler(handlers));
 	}
 
 	/**
@@ -472,10 +459,9 @@ public final class XmlParser {
 	 * @throws IOException
 	 *             if any IO errors occur
 	 */
-	public void parse(InputStream is, Map<String, IElementHandler> handlers,
-			boolean filtering) throws SAXException, IOException {
-		m_saxParser.parse(is, filtering ? new XMLFilterHandler(handlers)
-				: new XMLHandler(handlers));
+	public void parse(InputStream is, Map<String, IElementHandler> handlers, boolean filtering) throws SAXException,
+			IOException {
+		m_saxParser.parse(is, filtering ? new XMLFilterHandler(handlers) : new XMLHandler(handlers));
 	}
 
 	/**
@@ -498,10 +484,9 @@ public final class XmlParser {
 	 * @throws IOException
 	 *             if any IO errors occur
 	 */
-	public void parse(String uri, Map<String, IElementHandler> handlers,
-			boolean filtering) throws SAXException, IOException {
-		m_saxParser.parse(uri, filtering ? new XMLFilterHandler(handlers)
-				: new XMLHandler(handlers));
+	public void parse(String uri, Map<String, IElementHandler> handlers, boolean filtering) throws SAXException,
+			IOException {
+		m_saxParser.parse(uri, filtering ? new XMLFilterHandler(handlers) : new XMLHandler(handlers));
 	}
 
 	/**
@@ -525,11 +510,10 @@ public final class XmlParser {
 	 * @throws IOException
 	 *             if any IO errors occur
 	 */
-	public void parse(File file, Map<String, IElementHandler> handlers,
-			Map<String, String> properties)
+	public void parse(File file, Map<String, IElementHandler> handlers, Map<String, String> properties)
 			throws ParserConfigurationException, SAXException, IOException {
-		m_saxParser.parse(file, properties == null ? new XMLFilterHandler(
-				handlers) : new XMLFilterHandler(handlers, properties));
+		m_saxParser.parse(file, properties == null ? new XMLFilterHandler(handlers) : new XMLFilterHandler(handlers,
+				properties));
 	}
 
 	/**
@@ -553,11 +537,10 @@ public final class XmlParser {
 	 * @throws IOException
 	 *             if any IO errors occur
 	 */
-	public void parse(InputSource is, Map<String, IElementHandler> handlers,
-			Map<String, String> properties)
+	public void parse(InputSource is, Map<String, IElementHandler> handlers, Map<String, String> properties)
 			throws ParserConfigurationException, SAXException, IOException {
-		m_saxParser.parse(is, properties == null ? new XMLFilterHandler(
-				handlers) : new XMLFilterHandler(handlers, properties));
+		m_saxParser.parse(is, properties == null ? new XMLFilterHandler(handlers) : new XMLFilterHandler(handlers,
+				properties));
 	}
 
 	/**
@@ -581,11 +564,10 @@ public final class XmlParser {
 	 * @throws IOException
 	 *             if any IO errors occur
 	 */
-	public void parse(InputStream is, Map<String, IElementHandler> handlers,
-			Map<String, String> properties)
+	public void parse(InputStream is, Map<String, IElementHandler> handlers, Map<String, String> properties)
 			throws ParserConfigurationException, SAXException, IOException {
-		m_saxParser.parse(is, properties == null ? new XMLFilterHandler(
-				handlers) : new XMLFilterHandler(handlers, properties));
+		m_saxParser.parse(is, properties == null ? new XMLFilterHandler(handlers) : new XMLFilterHandler(handlers,
+				properties));
 	}
 
 	/**
@@ -609,11 +591,10 @@ public final class XmlParser {
 	 * @throws IOException
 	 *             if any IO errors occur
 	 */
-	public void parse(String uri, Map<String, IElementHandler> handlers,
-			Map<String, String> properties)
+	public void parse(String uri, Map<String, IElementHandler> handlers, Map<String, String> properties)
 			throws ParserConfigurationException, SAXException, IOException {
-		m_saxParser.parse(uri, properties == null ? new XMLFilterHandler(
-				handlers) : new XMLFilterHandler(handlers, properties));
+		m_saxParser.parse(uri, properties == null ? new XMLFilterHandler(handlers) : new XMLFilterHandler(handlers,
+				properties));
 	}
 
 	/**
@@ -631,8 +612,8 @@ public final class XmlParser {
 	 * @throws IOException
 	 *             if any IO errors occur
 	 */
-	public static XmlParser getInstance(boolean validating)
-			throws ParserConfigurationException, SAXException, IOException {
+	public static XmlParser getInstance(boolean validating) throws ParserConfigurationException, SAXException,
+			IOException {
 		final SAXParserFactory factory = SAXParserFactory.newInstance();
 		factory.setNamespaceAware(true);
 		factory.setValidating(validating);
@@ -655,8 +636,8 @@ public final class XmlParser {
 	 * @throws IOException
 	 *             if any IO errors occur
 	 */
-	public static XmlParser getInstance(InputStream schema)
-			throws ParserConfigurationException, SAXException, IOException {
+	public static XmlParser getInstance(InputStream schema) throws ParserConfigurationException, SAXException,
+			IOException {
 		final SAXParserFactory factory = SAXParserFactory.newInstance();
 		factory.setNamespaceAware(true);
 		factory.setValidating(true);

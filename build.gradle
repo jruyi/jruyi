@@ -224,7 +224,7 @@ distributions {
 			}
 
 			from('src/main/conf') {
-				include 'log4j2.xml'
+				exclude 'bootstrap.xml'
 				into 'inst/default/conf'
 			}
 
