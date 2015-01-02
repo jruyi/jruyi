@@ -59,6 +59,8 @@ import org.osgi.service.component.ComponentInstance;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,7 +74,6 @@ public final class CliProcessor extends SessionListener implements IFilter<IBuff
 
 	private static final Logger c_logger = LoggerFactory.getLogger(CliProcessor.class);
 
-	private static final String PROVISIONING_URL = "jruyi.clid.provisioning.url";
 	private static final String BRANDING_URL = "jruyi.clid.branding.url";
 	private static final String BINDADDR = "jruyi.clid.bindAddr";
 	private static final String PORT = "jruyi.clid.port";
@@ -211,13 +212,25 @@ public final class CliProcessor extends SessionListener implements IFilter<IBuff
 		out.writeOut(status);
 	}
 
-	@Reference(name = "tsf", target = "(component.name=" + IoConstants.CN_TCPSERVER_FACTORY + ")")
-	void setTcpServerFactory(ComponentFactory tsf) {
+	@Reference(name = "tsf", //
+	policy = ReferencePolicy.DYNAMIC,//
+	cardinality = ReferenceCardinality.OPTIONAL,//
+	target = "(component.name=" + IoConstants.CN_TCPSERVER_FACTORY + ")")
+	synchronized void setTcpServerFactory(ComponentFactory tsf) throws Throwable {
+		if (m_tcpServer != null)
+			stopTcpServer();
+
 		m_tsf = tsf;
+
+		if (m_conf != null)
+			startTcpServer(tsf);
 	}
 
-	void unsetTcpServerFactory(ComponentFactory tsf) {
-		m_tsf = null;
+	synchronized void unsetTcpServerFactory(ComponentFactory tsf) {
+		if (m_tsf == tsf) {
+			m_tsf = null;
+			stopTcpServer();
+		}
 	}
 
 	@Reference(name = "cp")
@@ -275,26 +288,17 @@ public final class CliProcessor extends SessionListener implements IFilter<IBuff
 			conf.put(P_SESSION_IDLE_TIMEOUT, sessionIdleTimeout);
 		}
 
-		final ComponentInstance tcpServer = m_tsf.newInstance(conf);
-		final ISessionService ss = (ISessionService) tcpServer.getInstance();
-		ss.setSessionListener(this);
-		try {
-			ss.start();
-		} catch (Exception e) {
-			ss.setSessionListener(null);
-			tcpServer.dispose();
-			throw e;
-		}
-		m_tcpServer = tcpServer;
+		if (m_tsf != null)
+			startTcpServer(m_tsf);
+
 		m_context = bundleContext;
 
 		System.gc();
 	}
 
-	void deactivate(ComponentContext context) {
+	void deactivate() {
+		stopTcpServer();
 		m_context = null;
-		m_tcpServer.dispose();
-		m_tcpServer = null;
 		m_conf = null;
 	}
 
@@ -453,6 +457,28 @@ public final class CliProcessor extends SessionListener implements IFilter<IBuff
 		conf.put("filters", FILTERS);
 		conf.put("reuseAddr", Boolean.TRUE);
 		return conf;
+	}
+
+	private void startTcpServer(ComponentFactory tsf) throws Throwable {
+		final ComponentInstance tcpServer = tsf.newInstance(m_conf);
+		final ISessionService ss = (ISessionService) tcpServer.getInstance();
+		ss.setSessionListener(this);
+		try {
+			ss.start();
+		} catch (Throwable t) {
+			ss.setSessionListener(null);
+			tcpServer.dispose();
+			throw t;
+		}
+		m_tcpServer = tcpServer;
+	}
+
+	private void stopTcpServer() {
+		final ComponentInstance tcpServer = m_tcpServer;
+		if (tcpServer != null) {
+			m_tcpServer = null;
+			tcpServer.dispose();
+		}
 	}
 
 	private void loadBrandingInfo(String url, BundleContext context) throws Throwable {
