@@ -25,6 +25,7 @@ import static org.jruyi.system.Constants.JRUYI_INST_DATA_DIR;
 import static org.jruyi.system.Constants.JRUYI_INST_HOME_DIR;
 import static org.jruyi.system.Constants.JRUYI_INST_HOME_URL;
 import static org.jruyi.system.Constants.JRUYI_INST_NAME;
+import static org.jruyi.system.Constants.JRUYI_INST_PROV_DIR;
 import static org.jruyi.system.Constants.JRUYI_NAME;
 import static org.jruyi.system.Constants.JRUYI_URL;
 import static org.jruyi.system.Constants.JRUYI_VENDOR;
@@ -212,9 +213,13 @@ public final class Ruyi {
 		final File instConfDir = getDir(JRUYI_INST_CONF_DIR, instHomeDir, "conf");
 		// Instance Conf URL
 		final URL instConfUrl = getUrl(JRUYI_INST_CONF_URL, instHomeUrl, "conf/");
-
+		// Instance Bootstrap URL
 		final URL instBootstrapUrl = getUrl(JRUYI_INST_BOOTSTRAP_URL, instConfUrl, "bootstrap.xml");
 
+		// Instance Provisioning Dir
+		final File instProvDir = getDir(JRUYI_INST_PROV_DIR, instConfDir, "prov");
+
+		// Instance Data Dir
 		final File instDataDir = getDir(JRUYI_INST_DATA_DIR, instHomeDir, "data");
 
 		final Map<String, String> props = m_properties;
@@ -229,6 +234,7 @@ public final class Ruyi {
 		props.put(JRUYI_INST_CONF_DIR, instConfDir.getCanonicalPath());
 		props.put(JRUYI_INST_CONF_URL, instConfUrl.toString());
 		props.put(JRUYI_INST_BOOTSTRAP_URL, instBootstrapUrl.toString());
+		props.put(JRUYI_INST_PROV_DIR, instProvDir.getCanonicalPath());
 		props.put(JRUYI_INST_DATA_DIR, instDataDir.getCanonicalPath());
 	}
 

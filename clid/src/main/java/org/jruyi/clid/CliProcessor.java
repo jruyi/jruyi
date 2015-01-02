@@ -13,16 +13,29 @@
  */
 package org.jruyi.clid;
 
+import static org.osgi.framework.Constants.FRAMEWORK_STORAGE;
+
 import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.RandomAccessFile;
 import java.net.URL;
 import java.nio.BufferUnderflowException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.felix.service.command.CommandProcessor;
 import org.apache.felix.service.command.CommandSession;
+import org.jruyi.common.BytesBuilder;
 import org.jruyi.common.CharsetCodec;
+import org.jruyi.common.ICharsetCodec;
 import org.jruyi.common.IntStack;
 import org.jruyi.common.Properties;
 import org.jruyi.common.StrUtil;
@@ -53,14 +66,13 @@ import org.slf4j.LoggerFactory;
 immediate = true, //
 property = { IoConstants.FILTER_ID + "=jruyi.clid.filter" }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class CliProcessor extends SessionListener implements
-		IFilter<IBuffer, Object> {
+public final class CliProcessor extends SessionListener implements IFilter<IBuffer, Object> {
 
 	public static final String SERVICE_ID = "jruyi.clid";
 
-	private static final Logger c_logger = LoggerFactory
-			.getLogger(CliProcessor.class);
+	private static final Logger c_logger = LoggerFactory.getLogger(CliProcessor.class);
 
+	private static final String PROVISIONING_URL = "jruyi.clid.provisioning.url";
 	private static final String BRANDING_URL = "jruyi.clid.branding.url";
 	private static final String BINDADDR = "jruyi.clid.bindAddr";
 	private static final String PORT = "jruyi.clid.port";
@@ -110,29 +122,27 @@ public final class CliProcessor extends SessionListener implements
 	}
 
 	@Override
-	public boolean onMsgArrive(ISession session, IBuffer msg,
-			IFilterOutput output) {
+	public boolean onMsgArrive(ISession session, IBuffer msg, IFilterOutput output) {
 		msg.compact();
 		output.add(msg);
 		return true;
 	}
 
 	@Override
-	public boolean onMsgDepart(ISession session, Object msg,
-			IFilterOutput output) {
+	public boolean onMsgDepart(ISession session, Object msg, IFilterOutput output) {
 		output.add(msg);
 		return true;
 	}
 
 	@Override
 	public void onSessionOpened(ISession session) {
-		ISessionService ss = (ISessionService) m_tcpServer.getInstance();
-		ITimeoutNotifier tn = m_ta.createNotifier(null);
-		OutBufferStream outBufferStream = new OutBufferStream(ss, session, tn);
-		ErrBufferStream errBufferStream = new ErrBufferStream(outBufferStream);
-		PrintStream out = new PrintStream(outBufferStream, true);
-		PrintStream err = new PrintStream(errBufferStream, true);
-		CommandSession cs = m_cp.createSession(null, out, err);
+		final ISessionService ss = (ISessionService) m_tcpServer.getInstance();
+		final ITimeoutNotifier tn = m_ta.createNotifier(null);
+		final OutBufferStream outBufferStream = new OutBufferStream(ss, session, tn);
+		final ErrBufferStream errBufferStream = new ErrBufferStream(outBufferStream);
+		final PrintStream out = new PrintStream(outBufferStream, true);
+		final PrintStream err = new PrintStream(errBufferStream, true);
+		final CommandSession cs = m_cp.createSession(null, out, err);
 		cs.put(SCOPE, "builtin:*");
 
 		session.deposit(this, new Context(cs, errBufferStream));
@@ -141,13 +151,12 @@ public final class CliProcessor extends SessionListener implements
 		outBufferStream.write(ClidConstants.CR[0]);
 		outBufferStream.write(ClidConstants.LF[0]);
 		writeCommands(outBufferStream);
-		outBufferStream.writeOut(System.getProperty(Constants.JRUYI_INST_NAME)
-				+ "> ");
+		outBufferStream.writeOut(System.getProperty(Constants.JRUYI_INST_NAME) + "> ");
 	}
 
 	@Override
 	public void onSessionClosed(ISession session) {
-		Context context = (Context) session.withdraw(this);
+		final Context context = (Context) session.withdraw(this);
 		if (context != null) {
 			CommandSession cs = context.commandSession();
 			cs.getConsole().close();
@@ -157,26 +166,25 @@ public final class CliProcessor extends SessionListener implements
 
 	@Override
 	public void onMessageReceived(ISession session, Object message) {
-		IBuffer buffer = (IBuffer) message;
+		final IBuffer buffer = (IBuffer) message;
 		String cmdline;
 		try {
-			cmdline = buffer.remaining() > 0 ? buffer.read(Codec.utf_8())
-					: null;
+			cmdline = buffer.remaining() > 0 ? buffer.read(Codec.utf_8()) : null;
 		} finally {
 			buffer.close();
 		}
 
-		Context context = (Context) session.inquiry(this);
-		CommandSession cs = context.commandSession();
-		ErrBufferStream err = context.errBufferStream();
-		OutBufferStream out = err.outBufferStream();
+		final Context context = (Context) session.inquiry(this);
+		final CommandSession cs = context.commandSession();
+		final ErrBufferStream err = context.errBufferStream();
+		final OutBufferStream out = err.outBufferStream();
 		out.reset();
 
 		int status = 0;
 		if (cmdline != null) {
 			cmdline = filterProps(cmdline, cs, m_context);
 			try {
-				Object result = cs.execute(cmdline);
+				final Object result = cs.execute(cmdline);
 				if (result != null)
 					out.write(String.valueOf(result));
 			} catch (Throwable t) {
@@ -203,75 +211,72 @@ public final class CliProcessor extends SessionListener implements
 		out.writeOut(status);
 	}
 
-	@Reference(name = "tsf", target = "(component.name="
-			+ IoConstants.CN_TCPSERVER_FACTORY + ")")
-	protected void setTcpServerFactory(ComponentFactory tsf) {
+	@Reference(name = "tsf", target = "(component.name=" + IoConstants.CN_TCPSERVER_FACTORY + ")")
+	void setTcpServerFactory(ComponentFactory tsf) {
 		m_tsf = tsf;
 	}
 
-	protected void unsetTcpServerFactory(ComponentFactory tsf) {
+	void unsetTcpServerFactory(ComponentFactory tsf) {
 		m_tsf = null;
 	}
 
 	@Reference(name = "cp")
-	protected void setCommandProcessor(CommandProcessor cp) {
+	void setCommandProcessor(CommandProcessor cp) {
 		m_cp = cp;
 	}
 
-	protected void unsetCommandProcessor(CommandProcessor cp) {
+	void unsetCommandProcessor(CommandProcessor cp) {
 		m_cp = null;
 	}
 
 	@Reference(name = "ta")
-	protected void setTimeoutAdmin(ITimeoutAdmin ta) {
+	void setTimeoutAdmin(ITimeoutAdmin ta) {
 		m_ta = ta;
 	}
 
-	protected void unsetTimeoutAdmin(ITimeoutAdmin ta) {
+	void unsetTimeoutAdmin(ITimeoutAdmin ta) {
 		m_ta = null;
 	}
 
 	@Modified
-	protected void modified(Map<String, ?> properties) throws Exception {
-		ISessionService inst = (ISessionService) m_tcpServer.getInstance();
+	void modified(Map<String, ?> properties) throws Exception {
+		final ISessionService inst = (ISessionService) m_tcpServer.getInstance();
 		inst.update(normalizeConf(properties));
 
-		OutBufferStream.flushThreshold((Integer) properties
-				.get(P_FLUSH_THRESHOLD));
+		OutBufferStream.flushThreshold((Integer) properties.get(P_FLUSH_THRESHOLD));
 	}
 
-	protected void activate(ComponentContext context, Map<String, ?> properties)
-			throws Exception {
+	void activate(ComponentContext context, Map<String, ?> properties) throws Throwable {
 
 		final BundleContext bundleContext = context.getBundleContext();
+
+		provision(bundleContext);
 		loadBrandingInfo(bundleContext.getProperty(BRANDING_URL), bundleContext);
 
-		OutBufferStream.flushThreshold((Integer) properties
-				.get(P_FLUSH_THRESHOLD));
+		OutBufferStream.flushThreshold((Integer) properties.get(P_FLUSH_THRESHOLD));
 
-		Properties conf = normalizeConf(properties);
+		final Properties conf = normalizeConf(properties);
 		if (conf.get(P_BIND_ADDR) == null) {
-			String bindAddr = context.getBundleContext().getProperty(BINDADDR);
+			String bindAddr = bundleContext.getProperty(BINDADDR);
 			if (bindAddr == null || (bindAddr = bindAddr.trim()).length() < 1)
 				bindAddr = "localhost";
 			conf.put(P_BIND_ADDR, bindAddr);
 		}
 
 		if (conf.get(P_PORT) == null) {
-			String v = context.getBundleContext().getProperty(PORT);
+			String v = bundleContext.getProperty(PORT);
 			Integer port = v == null ? 6060 : Integer.valueOf(v);
 			conf.put(P_PORT, port);
 		}
 
 		if (conf.get(P_SESSION_IDLE_TIMEOUT) == null) {
-			String v = context.getBundleContext().getProperty(
-					SESSIONIDLETIMEOUT);
+			String v = bundleContext.getProperty(SESSIONIDLETIMEOUT);
 			Integer sessionIdleTimeout = v == null ? 300 : Integer.valueOf(v);
 			conf.put(P_SESSION_IDLE_TIMEOUT, sessionIdleTimeout);
 		}
 
 		final ComponentInstance tcpServer = m_tsf.newInstance(conf);
-		ISessionService ss = (ISessionService) tcpServer.getInstance();
+		final ISessionService ss = (ISessionService) tcpServer.getInstance();
 		ss.setSessionListener(this);
 		try {
 			ss.start();
@@ -282,13 +287,157 @@ public final class CliProcessor extends SessionListener implements
 		}
 		m_tcpServer = tcpServer;
 		m_context = bundleContext;
+
+		System.gc();
 	}
 
-	protected void deactivate(ComponentContext context) {
+	void deactivate(ComponentContext context) {
 		m_context = null;
 		m_tcpServer.dispose();
 		m_tcpServer = null;
 		m_conf = null;
+	}
+
+	static class LoggerOutStream extends OutputStream {
+
+		private final BytesBuilder m_builder;
+		private final ICharsetCodec m_codec;
+
+		public LoggerOutStream(BytesBuilder builder, ICharsetCodec codec) {
+			m_builder = builder;
+			m_codec = codec;
+		}
+
+		@Override
+		public void write(int b) {
+			m_builder.append((byte) b);
+		}
+
+		@Override
+		public void write(byte[] b) {
+			m_builder.append(b);
+		}
+
+		@Override
+		public void write(byte[] b, int off, int len) {
+			m_builder.append(b, off, len);
+		}
+
+		@Override
+		public void flush() {
+			String msg = toMsg();
+			if (msg != null && !(msg = msg.trim()).isEmpty())
+				c_logger.info(msg);
+		}
+
+		@Override
+		public void close() {
+			flush();
+		}
+
+		protected String toMsg() {
+			final BytesBuilder builder = m_builder;
+			final int n = builder.length();
+			if (n < 1)
+				return null;
+
+			try {
+				return m_codec.toString(builder.getByteBuffer(0, n));
+			} finally {
+				builder.setLength(0);
+			}
+		}
+	}
+
+	static final class LoggerErrStream extends LoggerOutStream {
+
+		public LoggerErrStream(BytesBuilder builder, ICharsetCodec codec) {
+			super(builder, codec);
+		}
+
+		@Override
+		public void flush() {
+			String msg = toMsg();
+			if (msg != null && !(msg = msg.trim()).isEmpty())
+				c_logger.error(msg);
+		}
+	}
+
+	static final class ScriptFilter implements FileFilter {
+
+		private final Matcher m_matcher;
+		private final ArrayList<String> m_provisioned;
+
+		public ScriptFilter(ArrayList<String> provisioned) {
+			m_matcher = Pattern.compile("\\d\\d-\\w+\\.ry").matcher("");
+			m_provisioned = provisioned;
+		}
+
+		@Override
+		public boolean accept(File pathname) {
+			final String name = pathname.getName();
+			return pathname.isFile() && !m_provisioned.contains(name) && m_matcher.reset(name).matches();
+		}
+	}
+
+	private void provision(BundleContext context) throws Throwable {
+		File provisioned = context.getBundle().getDataFile(".provisioned");
+		if (provisioned == null)
+			provisioned = new File(context.getProperty(FRAMEWORK_STORAGE), ".provisioned");
+		final ArrayList<String> provisionedScripts = new ArrayList<String>();
+		final RandomAccessFile raf = new RandomAccessFile(provisioned, "rw");
+		try {
+			if (provisioned.exists()) {
+				String line;
+				while ((line = raf.readLine()) != null)
+					provisionedScripts.add(line);
+			}
+
+			final File provDir = new File(context.getProperty(Constants.JRUYI_INST_PROV_DIR));
+			if (!provDir.exists())
+				return;
+
+			final File[] files = provDir.listFiles(new ScriptFilter(provisionedScripts));
+			if (files == null || files.length < 1)
+				return;
+
+			c_logger.info("Provisioning...");
+
+			Arrays.sort(files);
+			for (File file : files) {
+				c_logger.info("Execute script: {}", file.getCanonicalPath());
+				execute(file, context);
+				raf.writeBytes(file.getName());
+				raf.writeBytes(StrUtil.getLineSeparator());
+			}
+		} finally {
+			raf.close();
+		}
+		c_logger.info("Done provisioning");
+	}
+
+	private void execute(File file, BundleContext context) throws Throwable {
+		final BytesBuilder builder;
+		final InputStream in = new FileInputStream(file);
+		try {
+			builder = BytesBuilder.get((int) file.length() + 1);
+			builder.read(in);
+		} finally {
+			in.close();
+		}
+
+		final ICharsetCodec codec = CharsetCodec.get("UTF-8");
+		String script = codec.toString(builder.getByteBuffer(0, builder.length()));
+		builder.setLength(0);
+		final CommandSession cs = m_cp.createSession(null, new PrintStream(new LoggerOutStream(builder, codec)),
+				new PrintStream(new LoggerErrStream(builder, codec)));
+		try {
+			script = filterProps(script, cs, context);
+			cs.execute(script);
+		} finally {
+			cs.close();
+			builder.close();
+		}
 	}
 
 	private Properties normalizeConf(Map<String, ?> properties) {
@@ -306,10 +455,8 @@ public final class CliProcessor extends SessionListener implements
 		return conf;
 	}
 
-	private void loadBrandingInfo(String url, BundleContext context)
-			throws Exception {
-		java.util.Properties branding = loadBrandingProps(CliProcessor.class
-				.getResourceAsStream("branding.properties"));
+	private void loadBrandingInfo(String url, BundleContext context) throws Throwable {
+		java.util.Properties branding = loadBrandingProps(CliProcessor.class.getResourceAsStream("branding.properties"));
 		if (url != null)
 			branding.putAll(loadBrandingProps(new URL(url).openStream()));
 
@@ -317,8 +464,7 @@ public final class CliProcessor extends SessionListener implements
 				StrUtil.filterProps(branding.getProperty(WELCOME), context));
 	}
 
-	private static java.util.Properties loadBrandingProps(InputStream in)
-			throws Exception {
+	private static java.util.Properties loadBrandingProps(InputStream in) throws Throwable {
 		java.util.Properties props = new java.util.Properties();
 		try {
 			props.load(new BufferedInputStream(in));
@@ -328,15 +474,14 @@ public final class CliProcessor extends SessionListener implements
 		return props;
 	}
 
-	private static String filterProps(String target, CommandSession cs,
-			BundleContext context) {
+	private static String filterProps(String target, CommandSession cs, BundleContext context) {
 		if (target.length() < 2)
 			return target;
 
-		StringBuilder builder = StringBuilder.get();
-		IntStack stack = IntStack.get();
+		final StringBuilder builder = StringBuilder.get();
+		final IntStack stack = IntStack.get();
+		final int j = target.length();
 		String propValue = null;
-		int j = target.length();
 		for (int i = 0; i < j; ++i) {
 			char c = target.charAt(i);
 			switch (c) {
@@ -348,8 +493,7 @@ public final class CliProcessor extends SessionListener implements
 			case '}':
 				if (!stack.isEmpty()) {
 					int index = stack.pop();
-					propValue = getPropValue(builder.substring(index + 2), cs,
-							context);
+					propValue = getPropValue(builder.substring(index + 2), cs, context);
 					if (propValue != null) {
 						builder.setLength(index);
 						builder.append(propValue);
@@ -370,9 +514,8 @@ public final class CliProcessor extends SessionListener implements
 		return target;
 	}
 
-	private static String getPropValue(String name, CommandSession cs,
-			BundleContext context) {
-		Object value = cs.get(name);
+	private static String getPropValue(String name, CommandSession cs, BundleContext context) {
+		final Object value = cs.get(name);
 		if (value != null)
 			return value.toString();
 
@@ -380,7 +523,7 @@ public final class CliProcessor extends SessionListener implements
 	}
 
 	private static int parseErrorMessage(String errorMessage) {
-		int len = errorMessage.length();
+		final int len = errorMessage.length();
 		int i = 0;
 		for (; i < len; ++i) {
 			char c = errorMessage.charAt(i);
@@ -392,10 +535,9 @@ public final class CliProcessor extends SessionListener implements
 	}
 
 	private void writeCommands(OutBufferStream bs) {
-		ServiceReference<?>[] references;
+		final ServiceReference<?>[] references;
 		try {
-			references = m_context.getAllServiceReferences(null, "(&("
-					+ CommandProcessor.COMMAND_SCOPE + "=*)(!("
+			references = m_context.getAllServiceReferences(null, "(&(" + CommandProcessor.COMMAND_SCOPE + "=*)(!("
 					+ CommandProcessor.COMMAND_SCOPE + "=builtin)))");
 		} catch (Throwable t) {
 			// should never go here
@@ -404,11 +546,10 @@ public final class CliProcessor extends SessionListener implements
 		}
 
 		for (ServiceReference<?> reference : references) {
-			String scope = String.valueOf(reference
-					.getProperty(CommandProcessor.COMMAND_SCOPE));
-			Object v = reference.getProperty(CommandProcessor.COMMAND_FUNCTION);
+			final String scope = String.valueOf(reference.getProperty(CommandProcessor.COMMAND_SCOPE));
+			final Object v = reference.getProperty(CommandProcessor.COMMAND_FUNCTION);
 			if (v instanceof String[]) {
-				String[] funcs = (String[]) v;
+				final String[] funcs = (String[]) v;
 				for (String func : funcs)
 					writeCommand(bs, scope, func);
 			} else
@@ -416,8 +557,7 @@ public final class CliProcessor extends SessionListener implements
 		}
 	}
 
-	private static void writeCommand(OutBufferStream bs, String scope,
-			String func) {
+	private static void writeCommand(OutBufferStream bs, String scope, String func) {
 		bs.write(scope);
 		bs.write(COLON);
 		bs.write(func);

@@ -1,0 +1,4 @@
+# Workshop for NIO
+if {not {conf:exists "(threadPrefix=Worker)"}} {
+	conf:create jruyi.workshop threadPrefix=Worker
+}

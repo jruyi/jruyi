@@ -70,7 +70,7 @@ allprojects {
 		jruyi_launcher_version = '1.4.0-SNAPSHOT'
 		org_jruyi_clid_version = '1.4.0-SNAPSHOT'
 		org_jruyi_cmd_version = '1.1.6-SNAPSHOT'
-		org_jruyi_common_version = '1.3.2'
+		org_jruyi_common_version = '1.4.0-SNAPSHOT'
 		org_jruyi_io_version = '1.4.0-SNAPSHOT'
 		org_jruyi_me_version = '1.1.5'
 		org_jruyi_osgi_log_version = '1.0.4'

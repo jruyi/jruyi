@@ -32,13 +32,11 @@ import java.nio.charset.UnsupportedCharsetException;
  * method {@code release} is used to recycle this instance into the local cache
  * of the current thread for it can be reused in this thread before being GC'ed.
  */
-public final class BytesBuilder implements Serializable, IByteSequence,
-		ICloseable {
+public final class BytesBuilder implements Serializable, IByteSequence, ICloseable {
 
 	private static final long serialVersionUID = -3381784872368302825L;
 	private static final int DEFAULT_CAPACITY = 256;
-	private static final IThreadLocalCache<BytesBuilder> c_cache = ThreadLocalCache
-			.weakArrayCache();
+	private static final IThreadLocalCache<BytesBuilder> c_cache = ThreadLocalCache.weakArrayCache();
 	private byte[] m_value;
 	private int m_length;
 	private transient ByteBuffer m_byteBuffer;
@@ -1288,8 +1286,7 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 	 *             if {@code charsetCodec} is {@code null}
 	 */
 	public BytesBuilder append(String str, ICharsetCodec charsetCodec) {
-		final StringBuilder sb = str == null ? StringBuilder.get()
-				: StringBuilder.get(str.length());
+		final StringBuilder sb = str == null ? StringBuilder.get() : StringBuilder.get(str.length());
 		try {
 			sb.append(str);
 			charsetCodec.encode(sb, this);
@@ -1345,8 +1342,7 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 	 * @throws NullPointerException
 	 *             if {@code charset} is {@code null}
 	 */
-	public BytesBuilder append(String str, int offset, int length,
-			Charset charset) {
+	public BytesBuilder append(String str, int offset, int length, Charset charset) {
 		return append(str, offset, length, CharsetCodec.get(charset));
 	}
 
@@ -1373,8 +1369,7 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 	 * @throws NullPointerException
 	 *             if {@code charsetName} is {@code null}
 	 */
-	public BytesBuilder append(String str, int offset, int length,
-			String charsetName) {
+	public BytesBuilder append(String str, int offset, int length, String charsetName) {
 		return append(str, offset, length, CharsetCodec.get(charsetName));
 	}
 
@@ -1401,8 +1396,7 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 	 * @throws NullPointerException
 	 *             if {@code charsetCodec} is {@code null}
 	 */
-	public BytesBuilder append(String str, int offset, int length,
-			ICharsetCodec charsetCodec) {
+	public BytesBuilder append(String str, int offset, int length, ICharsetCodec charsetCodec) {
 		StringBuilder sb = StringBuilder.get(length);
 		try {
 			sb.append(str, offset, offset + length);
@@ -1500,8 +1494,7 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 	 *            the charset to encode the given {@code chars}
 	 * @return this object
 	 */
-	public BytesBuilder append(char[] chars, int offset, int length,
-			Charset charset) {
+	public BytesBuilder append(char[] chars, int offset, int length, Charset charset) {
 		return append(chars, offset, length, CharsetCodec.get(charset));
 	}
 
@@ -1520,8 +1513,7 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 	 *            the name of the charset to encode the given {@code chars}
 	 * @return this object
 	 */
-	public BytesBuilder append(char[] chars, int offset, int length,
-			String charsetName) {
+	public BytesBuilder append(char[] chars, int offset, int length, String charsetName) {
 		return append(chars, offset, length, CharsetCodec.get(charsetName));
 	}
 
@@ -1540,8 +1532,7 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 	 *            the charset codec to encode
 	 * @return this object
 	 */
-	public BytesBuilder append(char[] chars, int offset, int length,
-			ICharsetCodec charsetCodec) {
+	public BytesBuilder append(char[] chars, int offset, int length, ICharsetCodec charsetCodec) {
 		charsetCodec.encode(chars, offset, length, this);
 		return this;
 	}
@@ -1872,8 +1863,7 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 	 *            the number of bytes to insert
 	 * @return this object
 	 */
-	public BytesBuilder insert(int index, IByteSequence bs, int offset,
-			int length) {
+	public BytesBuilder insert(int index, IByteSequence bs, int offset, int length) {
 		int newLength = m_length;
 		if (index > newLength || length < 0)
 			throw new IndexOutOfBoundsException();
@@ -2226,8 +2216,7 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 	 *            the charset to encode
 	 * @return this object
 	 */
-	public BytesBuilder insert(int index, String str, int offset, int length,
-			Charset charset) {
+	public BytesBuilder insert(int index, String str, int offset, int length, Charset charset) {
 		return insert(index, str, CharsetCodec.get(charset));
 	}
 
@@ -2250,8 +2239,7 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 	 *            the name of the charset to encode
 	 * @return this object
 	 */
-	public BytesBuilder insert(int index, String str, int offset, int length,
-			String charsetName) {
+	public BytesBuilder insert(int index, String str, int offset, int length, String charsetName) {
 		return insert(index, str, CharsetCodec.get(charsetName));
 	}
 
@@ -2274,8 +2262,7 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 	 *            the charset codec to encode
 	 * @return this object
 	 */
-	public BytesBuilder insert(int index, String str, int offset, int length,
-			ICharsetCodec charsetCodec) {
+	public BytesBuilder insert(int index, String str, int offset, int length, ICharsetCodec charsetCodec) {
 		BytesBuilder bb = BytesBuilder.get();
 		StringBuilder sb = StringBuilder.get();
 		try {
@@ -2346,8 +2333,7 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 	 *            the charset codec to encode
 	 * @return this object
 	 */
-	public BytesBuilder insert(int index, char[] chars,
-			ICharsetCodec charsetCodec) {
+	public BytesBuilder insert(int index, char[] chars, ICharsetCodec charsetCodec) {
 		BytesBuilder bb = BytesBuilder.get();
 		try {
 			charsetCodec.encode(chars, bb);
@@ -2397,8 +2383,7 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 	 *            the charset to encode
 	 * @return this object
 	 */
-	public BytesBuilder insert(int index, char[] chars, int offset, int length,
-			Charset charset) {
+	public BytesBuilder insert(int index, char[] chars, int offset, int length, Charset charset) {
 		return insert(index, chars, offset, length, CharsetCodec.get(charset));
 	}
 
@@ -2421,10 +2406,8 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 	 *            the name of the charset to encode
 	 * @return this object
 	 */
-	public BytesBuilder insert(int index, char[] chars, int offset, int length,
-			String charsetName) {
-		return insert(index, chars, offset, length,
-				CharsetCodec.get(charsetName));
+	public BytesBuilder insert(int index, char[] chars, int offset, int length, String charsetName) {
+		return insert(index, chars, offset, length, CharsetCodec.get(charsetName));
 	}
 
 	/**
@@ -2446,8 +2429,7 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 	 *            the charset codec to encode
 	 * @return this object
 	 */
-	public BytesBuilder insert(int index, char[] chars, int offset, int length,
-			ICharsetCodec charsetCodec) {
+	public BytesBuilder insert(int index, char[] chars, int offset, int length, ICharsetCodec charsetCodec) {
 		BytesBuilder bb = BytesBuilder.get();
 		try {
 			charsetCodec.encode(chars, offset, length, bb);
@@ -2703,8 +2685,7 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 	 *             if any IO error occurs
 	 * @since 1.2
 	 */
-	public void write(OutputStream out, int offset, int length)
-			throws IOException {
+	public void write(OutputStream out, int offset, int length) throws IOException {
 		if (offset < 0 || offset + length > m_length)
 			throw new IndexOutOfBoundsException();
 
@@ -2731,8 +2712,7 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 	 */
 	public void read(InputStream in, int length) throws IOException {
 		if (length < 0)
-			throw new IllegalArgumentException("Length must not be negative: "
-					+ length);
+			throw new IllegalArgumentException("Length must not be negative: " + length);
 		int offset = m_length;
 		ensureCapacity(offset + length);
 		final byte[] value = m_value;
@@ -2746,6 +2726,41 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 			throw new EOFException();
 
 		m_length = offset;
+	}
+
+	/**
+	 * Reads all bytes from the specified {@code in} into this
+	 * {@code  BytesBuilder}.
+	 *
+	 * @param in
+	 *            the {@code InputStream} to read from
+	 * @return number of bytes read from the given {@code in}
+	 * @throws IOException
+	 *             if any IO error occurs
+	 * @since 1.4
+	 */
+	public int read(InputStream in) throws IOException {
+		byte[] value = m_value;
+		final int count = m_length;
+		int offset = count;
+		int length = value.length - offset;
+		for (;;) {
+			if (length < 1) {
+				ensureCapacity(offset + 512);
+				value = m_value;
+				length = value.length - offset;
+			}
+
+			final int n = in.read(value, offset, length);
+			offset += n;
+			if (n < 1)
+				break;
+
+			length -= n;
+		}
+		m_length = offset;
+
+		return offset - count;
 	}
 
 	private void expandCapacity(int minCapacity) {
@@ -2771,8 +2786,7 @@ public final class BytesBuilder implements Serializable, IByteSequence,
 		byte[] value = new byte[newCapacity];
 		System.arraycopy(m_value, 0, value, 0, index);
 		if (index < m_length)
-			System.arraycopy(m_value, index, value, index + len, m_length
-					- index);
+			System.arraycopy(m_value, index, value, index + len, m_length - index);
 		m_value = value;
 		m_byteBuffer = null;
 	}

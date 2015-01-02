@@ -75,6 +75,13 @@ public final class Constants {
 	 */
 	public static final String JRUYI_INST_DATA_DIR = "jruyi.inst.data.dir";
 	/**
+	 * Framework property (named "jruyi.inst.prov.dir") identifying the
+	 * provisioning directory of the current running instance.
+	 * 
+	 * @since 1.4
+	 */
+	public static final String JRUYI_INST_PROV_DIR = "jruyi.inst.prov.dir";
+	/**
 	 * Framework property (named "jruyi.home.url") identifying the home URL.
 	 */
 	public static final String JRUYI_HOME_URL = "jruyi.home.url";
