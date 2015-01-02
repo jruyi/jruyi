@@ -25,26 +25,48 @@ import org.apache.felix.bundlerepository.RepositoryAdmin;
 import org.apache.felix.bundlerepository.Requirement;
 import org.apache.felix.bundlerepository.Resolver;
 import org.apache.felix.bundlerepository.Resource;
+import org.apache.felix.service.command.CommandProcessor;
 import org.apache.felix.service.command.Parameter;
 import org.jruyi.cmd.internal.RuyiCmd;
 import org.jruyi.cmd.util.Util;
+import org.jruyi.common.Properties;
 import org.jruyi.common.StringBuilder;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.Version;
+import org.osgi.util.tracker.ServiceTracker;
 
-public final class Obr {
+public final class Obr extends ServiceTracker<RepositoryAdmin, Object> {
 
+	private static final String[] COMMANDS = { "deploy", "info", "list", "repos" };
 	private static final char VERSION_SEPARATOR = '@';
-	private final BundleContext m_context;
+	private ServiceRegistration<?> m_registration;
 
 	public Obr(BundleContext context) {
-		m_context = context;
+		super(context, "org.apache.felix.bundlerepository.RepositoryAdmin", null);
 	}
 
-	public static String[] commands() {
-		return new String[] { "deploy", "info", "list", "repos" };
+	@Override
+	public Object addingService(ServiceReference<RepositoryAdmin> reference) {
+		if (m_registration == null) {
+			final Properties properties = new Properties();
+			properties.put(CommandProcessor.COMMAND_SCOPE, "obr");
+			properties.put(CommandProcessor.COMMAND_FUNCTION, COMMANDS);
+			m_registration = context.registerService(Obr.class.getName(), this, properties);
+		}
+		return super.addingService(reference);
+	}
+
+	@Override
+	public void removedService(ServiceReference<RepositoryAdmin> reference, Object service) {
+		final ServiceRegistration<?> registration = m_registration;
+		if (registration != null) {
+			m_registration = null;
+			registration.unregister();
+		}
+		super.removedService(reference, service);
 	}
 
 	/**
@@ -58,7 +80,7 @@ public final class Obr {
 	 */
 	public void repos(String action, String[] args) throws Exception {
 
-		final RepositoryAdmin ra = (RepositoryAdmin) ra();
+		final RepositoryAdmin ra = (RepositoryAdmin) getService();
 
 		int n = args.length;
 		if (n > 0) {
@@ -104,7 +126,7 @@ public final class Obr {
 			return;
 		}
 
-		final RepositoryAdmin ra = (RepositoryAdmin) ra();
+		final RepositoryAdmin ra = (RepositoryAdmin) getService();
 		for (String targetName : args) {
 			// Find the target's bundle resource.
 			String targetVersion = null;
@@ -113,8 +135,7 @@ public final class Obr {
 				targetVersion = targetName.substring(i + 1);
 				targetName = targetName.substring(0, i);
 			}
-			final Resource[] resources = searchRepository(ra, targetName,
-					targetVersion);
+			final Resource[] resources = searchRepository(ra, targetName, targetVersion);
 			if ((resources == null) || (resources.length == 0)) {
 				System.err.print("Unknown bundle and/or version: ");
 				System.err.println(targetName);
@@ -142,7 +163,7 @@ public final class Obr {
 	public void list(
 			@Parameter(names = { "-v", "--verbose" }, presentValue = "true", absentValue = "false") boolean verbose,
 			String[] args) throws Exception {
-		final RepositoryAdmin ra = (RepositoryAdmin) ra();
+		final RepositoryAdmin ra = (RepositoryAdmin) getService();
 		final Resource[] resources;
 		// Create a filter that will match presentation name or symbolic name.
 		StringBuilder builder = StringBuilder.get();
@@ -242,7 +263,7 @@ public final class Obr {
 			@Parameter(names = { "-ro", "--required-only" }, presentValue = "true", absentValue = "false") boolean requiredOnly,
 			@Parameter(names = { "-f", "--force" }, presentValue = "true", absentValue = "false") boolean force,
 			String[] args) throws Exception {
-		final RepositoryAdmin ra = (RepositoryAdmin) ra();
+		final RepositoryAdmin ra = (RepositoryAdmin) getService();
 		final Resolver resolver = ra.resolver();
 		if (args != null) {
 			for (String arg : args) {
@@ -254,8 +275,7 @@ public final class Obr {
 					targetName = arg.substring(0, idx);
 					targetVersion = arg.substring(idx + 1);
 				}
-				Resource resource = selectNewestVersion(searchRepository(ra,
-						targetName, targetVersion));
+				Resource resource = selectNewestVersion(searchRepository(ra, targetName, targetVersion));
 				if (resource != null)
 					resolver.add(resource);
 				else {
@@ -281,8 +301,7 @@ public final class Obr {
 				printUnderlineString(21);
 				printResources(resources);
 				if (force)
-					bundlesToUninstall = addToUninstall(bundlesToUninstall,
-							resources);
+					bundlesToUninstall = addToUninstall(bundlesToUninstall, resources);
 			}
 			if (!requiredOnly) {
 				resources = resolver.getOptionalResources();
@@ -292,8 +311,7 @@ public final class Obr {
 					printUnderlineString(21);
 					printResources(resources);
 					if (force)
-						bundlesToUninstall = addToUninstall(bundlesToUninstall,
-								resources);
+						bundlesToUninstall = addToUninstall(bundlesToUninstall, resources);
 				}
 			}
 
@@ -336,11 +354,10 @@ public final class Obr {
 			builder.append(' ').append(args[i]);
 	}
 
-	private Resource[] searchRepository(RepositoryAdmin ra, String targetId,
-			String targetVersion) throws Exception {
+	private Resource[] searchRepository(RepositoryAdmin ra, String targetId, String targetVersion) throws Exception {
 		// Try to see if the targetId is a bundle ID.
 		if (Util.isBundleId(targetId)) {
-			final Bundle bundle = m_context.getBundle(Long.parseLong(targetId));
+			final Bundle bundle = context.getBundle(Long.parseLong(targetId));
 			if (bundle == null)
 				return null;
 
@@ -448,8 +465,7 @@ public final class Obr {
 		}
 	}
 
-	private static HashSet<String> addToUninstall(
-			HashSet<String> bundlesToUninstall, Resource[] resources) {
+	private static HashSet<String> addToUninstall(HashSet<String> bundlesToUninstall, Resource[] resources) {
 		if (bundlesToUninstall == null)
 			bundlesToUninstall = new HashSet<String>();
 		for (Resource resource : resources)
@@ -458,7 +474,7 @@ public final class Obr {
 	}
 
 	private void uninstall(HashSet<String> bundlesToUninstall) {
-		final Bundle[] bundles = m_context.getBundles();
+		final Bundle[] bundles = context.getBundles();
 		if (bundles == null)
 			return;
 
@@ -473,12 +489,5 @@ public final class Obr {
 				}
 			}
 		}
-	}
-
-	private Object ra() {
-		final BundleContext context = m_context;
-		final ServiceReference<RepositoryAdmin> reference = context
-				.getServiceReference(RepositoryAdmin.class);
-		return context.getService(reference);
 	}
 }

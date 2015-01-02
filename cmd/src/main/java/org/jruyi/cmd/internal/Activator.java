@@ -23,6 +23,8 @@ import org.osgi.framework.BundleContext;
 
 public final class Activator implements BundleActivator {
 
+	private Obr m_obr;
+
 	@Override
 	public void start(BundleContext context) throws Exception {
 		final Properties properties = new Properties();
@@ -30,37 +32,38 @@ public final class Activator implements BundleActivator {
 		// builtin command
 		properties.put(CommandProcessor.COMMAND_SCOPE, "builtin");
 		properties.put(CommandProcessor.COMMAND_FUNCTION, Builtin.commands());
-		context.registerService(Builtin.class.getName(), Builtin.INST,
-				properties);
+		context.registerService(Builtin.class.getName(), Builtin.INST, properties);
 
 		// ruyi command
 		RuyiCmd.INST.context(context);
 		properties.put(CommandProcessor.COMMAND_SCOPE, "jruyi");
 		properties.put(CommandProcessor.COMMAND_FUNCTION, RuyiCmd.commands());
-		context.registerService(IManual.class.getName(), RuyiCmd.INST,
-				properties);
+		context.registerService(IManual.class.getName(), RuyiCmd.INST, properties);
 
 		// bundle command
 		properties.put(CommandProcessor.COMMAND_SCOPE, "bundle");
 		properties.put(CommandProcessor.COMMAND_FUNCTION, BundleCmd.commands());
-		context.registerService(BundleCmd.class.getName(), new BundleCmd(
-				context), properties);
+		context.registerService(BundleCmd.class.getName(), new BundleCmd(context), properties);
 
 		// conf command
 		properties.put(CommandProcessor.COMMAND_SCOPE, "conf");
 		properties.put(CommandProcessor.COMMAND_FUNCTION, Conf.commands());
-		context.registerService(Conf.class.getName(), new Conf(context),
-				properties);
+		context.registerService(Conf.class.getName(), new Conf(context), properties);
 
 		// Obr command
-		properties.put(CommandProcessor.COMMAND_SCOPE, "obr");
-		properties.put(CommandProcessor.COMMAND_FUNCTION, Obr.commands());
-		context.registerService(Obr.class.getName(), new Obr(context),
-				properties);
+		final Obr obr = new Obr(context);
+		obr.open();
+		m_obr = obr;
 	}
 
 	@Override
 	public void stop(BundleContext context) throws Exception {
+		final Obr obr = m_obr;
+		if (obr != null) {
+			m_obr = null;
+			obr.close();
+		}
+
 		RuyiCmd.INST.context(null);
 	}
 }
