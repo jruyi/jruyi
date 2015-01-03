@@ -12,15 +12,17 @@
  * limitations under the License.
  */
 
-include 'api'
-include 'cmd'
-include 'clid'
-include 'cli'
-include 'common'
-include 'io'
-include 'launcher'
-include 'me'
-include 'osgi-log'
-include 'system'
-include 'timeoutadmin'
-include 'tpe'
+package org.jruyi.tpe.internal;
+
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicLong;
+
+final class PooledThreadFactory implements ThreadFactory {
+
+	private final AtomicLong m_sequence = new AtomicLong(-1);
+
+	@Override
+	public Thread newThread(Runnable r) {
+		return new Thread(r, "jruyi-executor-" + m_sequence.incrementAndGet());
+	}
+}

@@ -58,12 +58,11 @@ final class LinkedList<E> {
 		return newNode;
 	}
 
-	void syncMoveAfter(BiListNode<E> posNode, BiListNode<E> node,
-			ReentrantLock lock1, ReentrantLock lock2) {
+	void syncMoveAfter(BiListNode<E> posNode, BiListNode<E> node, ReentrantLock lock1, ReentrantLock lock2) {
 		lock1.lock();
 		lock2.lock();
 		try {
-			BiListNode<E> previous = node.previous();
+			final BiListNode<E> previous = node.previous();
 			BiListNode<E> next = node.next();
 
 			previous.next(next);

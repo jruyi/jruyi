@@ -25,10 +25,8 @@ import org.slf4j.LoggerFactory;
 
 final class TimeoutEvent implements ITimeoutEvent, Runnable {
 
-	private static final Logger c_logger = LoggerFactory
-			.getLogger(TimeoutEvent.class);
-	private static final IThreadLocalCache<TimeoutEvent> c_cache = ThreadLocalCache
-			.weakLinkedCache();
+	private static final Logger c_logger = LoggerFactory.getLogger(TimeoutEvent.class);
+	private static final IThreadLocalCache<TimeoutEvent> c_cache = ThreadLocalCache.weakLinkedCache();
 	private int m_timeout;
 	private long m_expireTime;
 	private TimeoutAdmin.TimeWheel m_timeWheel;
@@ -45,8 +43,7 @@ final class TimeoutEvent implements ITimeoutEvent, Runnable {
 
 		event.m_notifier = notifier;
 		event.m_timeout = timeout;
-		event.m_expireTime = System.currentTimeMillis()
-				+ TimeUnit.SECONDS.toMillis(timeout);
+		event.m_expireTime = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(timeout);
 		return event;
 	}
 

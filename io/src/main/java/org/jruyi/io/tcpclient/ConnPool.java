@@ -19,7 +19,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.jruyi.common.BiListNode;
-import org.jruyi.common.IArgList;
 import org.jruyi.common.IService;
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.IBufferFactory;
@@ -31,7 +30,6 @@ import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.channel.IIoTask;
 import org.jruyi.io.filter.IFilterManager;
-import org.jruyi.workshop.IRunnable;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferencePolicy;
@@ -42,7 +40,7 @@ import org.slf4j.LoggerFactory;
 factory = "tcpclient.connpool", //
 service = { IService.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class ConnPool extends AbstractTcpClient implements IRunnable, IIoTask {
+public final class ConnPool extends AbstractTcpClient implements IIoTask {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(ConnPool.class);
 
@@ -119,7 +117,7 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable, IIoT
 		// fetch an idle channel in the pool if any
 		final IChannel channel = fetchChannel();
 		if (channel != null) {
-			writeInternal(channel, msg);
+			channel.write(msg);
 			return;
 		}
 
@@ -184,7 +182,7 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable, IIoT
 	@Override
 	public void onChannelOpened(IChannel channel) {
 		super.onChannelOpened(channel);
-		writeInternal(channel, channel.detach());
+		channel.write(channel.detach());
 	}
 
 	@Override
@@ -275,15 +273,6 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable, IIoT
 		super.stopInternal();
 
 		c_logger.info(StrUtil.join(this, " stopped"));
-	}
-
-	@Override
-	public void run(IArgList args) {
-		final IChannel channel = (IChannel) args.arg(0);
-		if (!channel.isClosed())
-			writeInternal(channel, args.arg(1));
-		else
-			write(null, args.arg(1));
 	}
 
 	@Reference(name = "buffer", policy = ReferencePolicy.DYNAMIC)

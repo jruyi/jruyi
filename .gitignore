@@ -6,7 +6,6 @@
 .project
 .classpath
 .settings
-target
 .idea
 *.iml
 .gradle
@@ -24,7 +23,7 @@ target
 /osgi-log/build
 /system/build
 /timeoutadmin/build
-/workshop/build
+/tpe/build
 
 /bin
 /api/bin
@@ -38,5 +37,5 @@ target
 /osgi-log/bin
 /system/bin
 /timeoutadmin/bin
-/workshop/bin
+/tpe/bin
 

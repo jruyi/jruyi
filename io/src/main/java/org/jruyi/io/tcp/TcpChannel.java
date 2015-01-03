@@ -25,7 +25,6 @@ import org.jruyi.io.channel.IChannelService;
 
 public final class TcpChannel extends Channel {
 
-	private int m_readTimerState;
 	private SocketChannel m_socketChannel;
 
 	public TcpChannel(IChannelService channelService) {
@@ -35,16 +34,6 @@ public final class TcpChannel extends Channel {
 	public TcpChannel(IChannelService channelService, SocketChannel socketChannel) {
 		super(channelService);
 		m_socketChannel = socketChannel;
-	}
-
-	@Override
-	public void setReadTimerState(int readTimerState) {
-		m_readTimerState = readTimerState;
-	}
-
-	@Override
-	public int readTimerState() {
-		return m_readTimerState;
 	}
 
 	@Override

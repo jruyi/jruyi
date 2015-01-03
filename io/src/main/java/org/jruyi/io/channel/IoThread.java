@@ -44,7 +44,7 @@ final class IoThread implements ICloseable, EventHandler<IoEvent>, IIoWorker {
 
 		@Override
 		public Thread newThread(Runnable r) {
-			return new Thread(r, StrUtil.join("IoWorker-", m_id));
+			return new Thread(r, StrUtil.join("jruyi-io- ", m_id));
 		}
 	}
 

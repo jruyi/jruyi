@@ -1,0 +1,7 @@
+Usage: tpe:profiling <action>
+
+Manage the profiler of thread pool executor.
+
+Action:
+    start   Start profiling
+    stop    Stop profiling

@@ -13,7 +13,7 @@
  */
 package org.jruyi.timeoutadmin.internal;
 
-import java.util.Map;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -21,14 +21,15 @@ import org.jruyi.common.BiListNode;
 import org.jruyi.common.IScheduler;
 import org.jruyi.timeoutadmin.ITimeoutAdmin;
 import org.jruyi.timeoutadmin.ITimeoutNotifier;
-import org.jruyi.workshop.IWorkshop;
-import org.jruyi.workshop.WorkshopConstants;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
-@Component(name = "jruyi.timeoutadmin", xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
+@Component(name = "jruyi.timeoutadmin", //
+configurationPolicy = ConfigurationPolicy.IGNORE, //
+xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class TimeoutAdmin implements ITimeoutAdmin {
 
 	// 1 hour
@@ -42,7 +43,7 @@ public final class TimeoutAdmin implements ITimeoutAdmin {
 	private TimeWheel m_tw2;
 
 	private IScheduler m_scheduler;
-	private IWorkshop m_workshop;
+	private Executor m_executor;
 
 	static {
 		int n = 1;
@@ -61,7 +62,7 @@ public final class TimeoutAdmin implements ITimeoutAdmin {
 		private final ReentrantLock[] m_locks;
 		private final int m_capacityMask;
 
-		// The hand that points to the current timeout sublist, nodes of witch
+		// The hand that points to the current timeout sublist, nodes of which
 		// are between m_wheel[m_hand] and m_wheel[m_hand + 1].
 		private int m_hand;
 
@@ -113,12 +114,10 @@ public final class TimeoutAdmin implements ITimeoutAdmin {
 		void schedule(TimeoutNotifier notifier, TimeoutEvent event, int offset) {
 			final int n = getEffectiveIndex(m_hand + offset);
 			event.setTimeWheelAndIndex(this, n);
-			notifier.setNode(m_list.syncInsertAfter(m_wheel[n], event,
-					getLock(n)));
+			notifier.setNode(m_list.syncInsertAfter(m_wheel[n], event, getLock(n)));
 		}
 
-		void reschedule(TimeoutNotifier notifier, int offset,
-				ReentrantLock srcLock) {
+		void reschedule(TimeoutNotifier notifier, int offset, ReentrantLock srcLock) {
 			final BiListNode<TimeoutEvent> node = notifier.getNode();
 			final TimeoutEvent event = node.get();
 			final int n = getEffectiveIndex(m_hand + offset);
@@ -143,45 +142,38 @@ public final class TimeoutAdmin implements ITimeoutAdmin {
 	}
 
 	@Reference(name = "scheduler", policy = ReferencePolicy.DYNAMIC)
-	protected synchronized void setScheduler(IScheduler scheduler) {
+	synchronized void setScheduler(IScheduler scheduler) {
 		m_scheduler = scheduler;
 	}
 
-	protected synchronized void unsetScheduler(IScheduler scheduler) {
+	synchronized void unsetScheduler(IScheduler scheduler) {
 		if (m_scheduler == scheduler)
 			m_scheduler = null;
 	}
 
-	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
-	protected synchronized void setWorkshop(IWorkshop workshop) {
-		m_workshop = workshop;
+	@Reference(name = "executor", policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.OPTIONAL)
+	synchronized void setExecutor(Executor executor) {
+		m_executor = executor;
 	}
 
-	protected synchronized void unsetWorkshop(IWorkshop workshop) {
-		if (m_workshop == workshop)
-			m_workshop = null;
+	synchronized void unsetExecutor(Executor executor) {
+		if (m_executor == executor)
+			m_executor = null;
 	}
 
-	@Modified
-	protected void modified(Map<String, ?> properties) {
-		// This empty modified method is for changing the property
-		// "workshop.target" dynamically.
-	}
-
-	protected void activate() {
+	void activate() {
 		m_list = new LinkedList<TimeoutEvent>();
 
 		final TimeWheel tw1 = new TimeWheel(UNIT_TW2 * 2);
 		final TimeWheel tw2 = new TimeWheel(SCALE_TW2);
 		final IScheduler scheduler = m_scheduler;
 		scheduler.scheduleAtFixedRate(tw1, 1, 1, TimeUnit.SECONDS);
-		scheduler
-				.scheduleAtFixedRate(tw2, UNIT_TW2, UNIT_TW2, TimeUnit.SECONDS);
+		scheduler.scheduleAtFixedRate(tw2, UNIT_TW2, UNIT_TW2, TimeUnit.SECONDS);
 		m_tw1 = tw1;
 		m_tw2 = tw2;
 	}
 
-	protected void deactivate() {
+	void deactivate() {
 		m_tw2 = null;
 		m_tw1 = null;
 		m_list = null;
@@ -201,8 +193,7 @@ public final class TimeoutAdmin implements ITimeoutAdmin {
 
 	void reschedule(TimeoutNotifier notifier, int timeout) {
 		final TimeoutEvent event = notifier.getNode().get();
-		final ReentrantLock srcLock = event.getTimeWheel().getLock(
-				event.getIndex());
+		final ReentrantLock srcLock = event.getTimeWheel().getLock(event.getIndex());
 		if (timeout < UNIT_TW2 * 2)
 			m_tw1.reschedule(notifier, timeout, srcLock);
 		else {
@@ -217,8 +208,7 @@ public final class TimeoutAdmin implements ITimeoutAdmin {
 		final BiListNode<TimeoutEvent> node = notifier.getNode();
 		notifier.clearNode();
 		final TimeoutEvent event = node.get();
-		final ReentrantLock lock = event.getTimeWheel().getLock(
-				event.getIndex());
+		final ReentrantLock lock = event.getTimeWheel().getLock(event.getIndex());
 		m_list.syncRemove(node, lock);
 
 		// release the timeout event
@@ -229,10 +219,11 @@ public final class TimeoutAdmin implements ITimeoutAdmin {
 		final BiListNode<TimeoutEvent> node = notifier.getNode();
 		notifier.clearNode();
 		final TimeoutEvent event = node.get();
-		final ReentrantLock lock = event.getTimeWheel().getLock(
-				event.getIndex());
+		final ReentrantLock lock = event.getTimeWheel().getLock(event.getIndex());
 		m_list.syncRemove(node, lock);
 
-		m_workshop.run(event);
+		final Executor executor = m_executor;
+		if (executor != null)
+			executor.execute(event);
 	}
 }

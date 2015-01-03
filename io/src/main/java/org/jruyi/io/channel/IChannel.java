@@ -19,10 +19,6 @@ import org.jruyi.io.ISession;
 
 public interface IChannel extends ISession, ISelectableChannel {
 
-	public static final int UNSCHED = 0;
-	public static final int SCHED = 1;
-	public static final int CANCELED = 2;
-
 	public IChannelService channelService();
 
 	public void connect(int timeout);
@@ -40,10 +36,6 @@ public interface IChannel extends ISession, ISelectableChannel {
 	public boolean scheduleReadTimeout(int timeout);
 
 	public boolean cancelTimeout();
-
-	public int readTimerState();
-
-	public void setReadTimerState(int readTimerState);
 
 	/**
 	 * Tests whether this session is closed.

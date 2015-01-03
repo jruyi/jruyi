@@ -430,8 +430,14 @@ public final class CliProcessor extends SessionListener implements IFilter<IBuff
 			in.close();
 		}
 
+		final int len = builder.length();
+		if (len < 1) {
+			builder.close();
+			return;
+		}
+
 		final ICharsetCodec codec = CharsetCodec.get("UTF-8");
-		String script = codec.toString(builder.getByteBuffer(0, builder.length()));
+		String script = codec.toString(builder.getByteBuffer(0, len));
 		builder.setLength(0);
 		final CommandSession cs = m_cp.createSession(null, new PrintStream(new LoggerOutStream(builder, codec)),
 				new PrintStream(new LoggerErrStream(builder, codec)));

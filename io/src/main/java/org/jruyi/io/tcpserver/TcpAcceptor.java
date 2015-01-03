@@ -126,7 +126,7 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable, IVisitor<TcpSe
 
 		m_selector = Selector.open();
 		m_queue = new SyncPutQueue<TcpServer>();
-		m_thread = new Thread(this, "TcpAcceptor");
+		m_thread = new Thread(this, "jruyi-acceptor");
 		m_thread.start();
 
 		c_logger.info("TcpAcceptor started");

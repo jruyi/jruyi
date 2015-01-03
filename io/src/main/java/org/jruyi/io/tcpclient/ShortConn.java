@@ -38,8 +38,7 @@ service = { IService.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class ShortConn extends AbstractTcpClient {
 
-	private static final Logger c_logger = LoggerFactory
-			.getLogger(ShortConn.class);
+	private static final Logger c_logger = LoggerFactory.getLogger(ShortConn.class);
 
 	private static final Method[] EMTPY_MANDATORY_PROPS = new Method[0];
 
@@ -48,7 +47,7 @@ public final class ShortConn extends AbstractTcpClient {
 	@Override
 	public void onChannelOpened(IChannel channel) {
 		super.onChannelOpened(channel);
-		writeInternal(channel, channel.detach());
+		channel.write(channel.detach());
 	}
 
 	@Override
@@ -79,17 +78,14 @@ public final class ShortConn extends AbstractTcpClient {
 				try {
 					listener.onMessageReceived(channel, msg);
 				} catch (Throwable t) {
-					c_logger.error(
-							StrUtil.join(channel, " Unexpected Error: "), t);
+					c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
 				}
 			}
 		} else if (msg instanceof Closeable) {
 			try {
 				((Closeable) msg).close();
 			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(channel,
-						"Failed to close message: ",
-						StrUtil.getLineSeparator(), msg), t);
+				c_logger.error(StrUtil.join(channel, "Failed to close message: ", StrUtil.getLineSeparator(), msg), t);
 			}
 		}
 	}

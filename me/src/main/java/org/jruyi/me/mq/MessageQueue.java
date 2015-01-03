@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.jruyi.common.BiListNode;
@@ -34,8 +35,6 @@ import org.jruyi.timeoutadmin.ITimeoutAdmin;
 import org.jruyi.timeoutadmin.ITimeoutEvent;
 import org.jruyi.timeoutadmin.ITimeoutListener;
 import org.jruyi.timeoutadmin.ITimeoutNotifier;
-import org.jruyi.workshop.IWorkshop;
-import org.jruyi.workshop.WorkshopConstants;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
@@ -50,15 +49,13 @@ import org.slf4j.LoggerFactory;
 
 @Component(name = "jruyi.me.mq", //
 service = {}, //
-property = { "endpoint.target=(" + MeConstants.EP_ID + "=*)",
-		"processor.target=(" + MeConstants.EP_ID + "=*)", }, //
+property = { "endpoint.target=(" + MeConstants.EP_ID + "=*)", "processor.target=(" + MeConstants.EP_ID + "=*)", }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.2.0")
 public final class MessageQueue implements ITimeoutListener {
 
 	static final PreHandlerDelegator[] EMPTY_PREHANDLERS = new PreHandlerDelegator[0];
 	static final PostHandlerDelegator[] EMPTY_POSTHANDLERS = new PostHandlerDelegator[0];
-	private static final Logger c_logger = LoggerFactory
-			.getLogger(MessageQueue.class);
+	private static final Logger c_logger = LoggerFactory.getLogger(MessageQueue.class);
 
 	private static final String P_MSG_TIMEOUT = "msgTimeoutInSeconds";
 
@@ -70,7 +67,7 @@ public final class MessageQueue implements ITimeoutListener {
 	private IServiceHolderManager<IPostHandler> m_postHandlerManager;
 
 	private IRouterManager m_rm;
-	private IWorkshop m_workshop;
+	private Executor m_executor;
 	private ITimeoutAdmin m_ta;
 
 	private volatile ComponentContext m_context;
@@ -112,46 +109,44 @@ public final class MessageQueue implements ITimeoutListener {
 	@Override
 	public void onTimeout(ITimeoutEvent event) {
 		@SuppressWarnings("unchecked")
-		BiListNode<MsgNotifier> node = (BiListNode<MsgNotifier>) event
-				.getSubject();
-		Message msg = removeNode(node);
+		final BiListNode<MsgNotifier> node = (BiListNode<MsgNotifier>) event.getSubject();
+		final Message msg = removeNode(node);
 		c_logger.warn(StrUtil.join("Message timed out:", msg));
 		msg.close();
 	}
 
 	@Reference(name = "routerManager", policy = ReferencePolicy.DYNAMIC)
-	protected synchronized void setRouterManager(IRouterManager rm) {
+	synchronized void setRouterManager(IRouterManager rm) {
 		m_rm = rm;
 	}
 
-	protected synchronized void unsetRouterManager(IRouterManager rm) {
+	synchronized void unsetRouterManager(IRouterManager rm) {
 		if (m_rm == rm)
 			m_rm = null;
 	}
 
 	@Reference(name = "timeoutAdmin", policy = ReferencePolicy.DYNAMIC)
-	protected synchronized void setTimeoutAdmin(ITimeoutAdmin ta) {
+	synchronized void setTimeoutAdmin(ITimeoutAdmin ta) {
 		m_ta = ta;
 	}
 
-	protected synchronized void unsetTimeoutAdmin(ITimeoutAdmin ta) {
+	synchronized void unsetTimeoutAdmin(ITimeoutAdmin ta) {
 		if (m_ta == ta)
 			m_ta = null;
 	}
 
-	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
-	protected synchronized void setWorkshop(IWorkshop workshop) {
-		m_workshop = workshop;
+	@Reference(name = "executor", policy = ReferencePolicy.DYNAMIC)
+	synchronized void setExecutor(Executor executor) {
+		m_executor = executor;
 	}
 
-	protected synchronized void unsetWorkshop(IWorkshop workshop) {
-		if (m_workshop == workshop)
-			m_workshop = null;
+	synchronized void unsetExecutor(Executor executor) {
+		if (m_executor == executor)
+			m_executor = null;
 	}
 
 	@Reference(name = "endpoint", service = IEndpoint.class, cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
-	protected synchronized void setEndpoint(
-			ServiceReference<IEndpoint> reference) throws Exception {
+	synchronized void setEndpoint(ServiceReference<IEndpoint> reference) throws Exception {
 		final String id = getId(reference);
 		if (id == null)
 			return;
@@ -159,8 +154,7 @@ public final class MessageQueue implements ITimeoutListener {
 		final Map<String, Endpoint> endpoints = m_endpoints;
 		Endpoint endpoint = endpoints.get(id);
 		if (endpoint != null) {
-			c_logger.error(StrUtil.join(endpoint,
-					" has already been registered"));
+			c_logger.error(StrUtil.join(endpoint, " has already been registered"));
 			return;
 		}
 
@@ -178,8 +172,7 @@ public final class MessageQueue implements ITimeoutListener {
 		wakeMsgs(endpoint);
 	}
 
-	protected synchronized void unsetEndpoint(
-			ServiceReference<IEndpoint> reference) {
+	synchronized void unsetEndpoint(ServiceReference<IEndpoint> reference) {
 		final Endpoint endpoint = m_refEps.remove(reference);
 		if (endpoint != null) {
 			m_endpoints.remove(endpoint.id());
@@ -187,8 +180,7 @@ public final class MessageQueue implements ITimeoutListener {
 		}
 	}
 
-	protected synchronized void updatedEndpoint(
-			ServiceReference<IEndpoint> reference) throws Exception {
+	synchronized void updatedEndpoint(ServiceReference<IEndpoint> reference) throws Exception {
 		final Endpoint endpoint = m_refEps.get(reference);
 		if (endpoint != null) {
 			updated(endpoint, reference);
@@ -199,8 +191,7 @@ public final class MessageQueue implements ITimeoutListener {
 	}
 
 	@Reference(name = "processor", service = IProcessor.class, cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
-	protected synchronized void setProcessor(
-			ServiceReference<IProcessor> reference) {
+	synchronized void setProcessor(ServiceReference<IProcessor> reference) {
 		final String id = getId(reference);
 		if (id == null)
 			return;
@@ -208,8 +199,7 @@ public final class MessageQueue implements ITimeoutListener {
 		final Map<String, Endpoint> endpoints = m_endpoints;
 		Endpoint endpoint = endpoints.get(id);
 		if (endpoint != null) {
-			c_logger.error(StrUtil.join(endpoint,
-					" has already been registered"));
+			c_logger.error(StrUtil.join(endpoint, " has already been registered"));
 			return;
 		}
 
@@ -224,8 +214,7 @@ public final class MessageQueue implements ITimeoutListener {
 		wakeMsgs(endpoint);
 	}
 
-	protected synchronized void unsetProcessor(
-			ServiceReference<IProcessor> reference) {
+	synchronized void unsetProcessor(ServiceReference<IProcessor> reference) {
 		final Endpoint endpoint = m_refEps.remove(reference);
 		if (endpoint != null) {
 			m_endpoints.remove(endpoint.id());
@@ -233,8 +222,7 @@ public final class MessageQueue implements ITimeoutListener {
 		}
 	}
 
-	protected synchronized void updatedProcessor(
-			ServiceReference<IProcessor> reference) {
+	synchronized void updatedProcessor(ServiceReference<IProcessor> reference) {
 		final Endpoint endpoint = m_refEps.get(reference);
 		if (endpoint != null) {
 			updated(endpoint, reference);
@@ -245,20 +233,20 @@ public final class MessageQueue implements ITimeoutListener {
 	}
 
 	@Modified
-	protected void modified(Map<String, ?> properties) {
+	void modified(Map<String, ?> properties) {
 		final Integer v = (Integer) properties.get(P_MSG_TIMEOUT);
 		if (v != null)
 			m_msgTimeout = v;
 	}
 
-	protected void activate(ComponentContext context, Map<String, ?> properties) {
+	void activate(ComponentContext context, Map<String, ?> properties) {
 		m_context = context;
 
 		final BundleContext bc = context.getBundleContext();
-		IServiceHolderManager<IPreHandler> preHandlerManager = ServiceHolderManager
-				.newInstance(bc, IPreHandler.class, MeConstants.HANDLER_ID);
-		IServiceHolderManager<IPostHandler> postHandlerManager = ServiceHolderManager
-				.newInstance(bc, IPostHandler.class, MeConstants.HANDLER_ID);
+		final IServiceHolderManager<IPreHandler> preHandlerManager = ServiceHolderManager.newInstance(bc,
+				IPreHandler.class, MeConstants.HANDLER_ID);
+		final IServiceHolderManager<IPostHandler> postHandlerManager = ServiceHolderManager.newInstance(bc,
+				IPostHandler.class, MeConstants.HANDLER_ID);
 
 		preHandlerManager.open();
 		postHandlerManager.open();
@@ -280,8 +268,8 @@ public final class MessageQueue implements ITimeoutListener {
 	}
 
 	@SuppressWarnings("resource")
-	protected void deactivate() {
-		Collection<BiListNode<MsgNotifier>> nodes = m_nodes.values();
+	void deactivate() {
+		final Collection<BiListNode<MsgNotifier>> nodes = m_nodes.values();
 		for (BiListNode<MsgNotifier> head : nodes) {
 			BiListNode<MsgNotifier> node = head.next();
 			while (node != head) {
@@ -314,19 +302,18 @@ public final class MessageQueue implements ITimeoutListener {
 			Endpoint mqProxy = m_endpoints.get(dst);
 			if (mqProxy != null) {
 				message.setEndpoint(mqProxy);
-				m_workshop.run(message);
+				m_executor.execute(message);
 			} else {
 				BiListNode<MsgNotifier> node = schedule(message);
 				mqProxy = m_endpoints.get(dst);
 				if (mqProxy != null && node.get().notifier().cancel()) {
 					removeNode(node);
 					message.setEndpoint(mqProxy);
-					m_workshop.run(message);
+					m_executor.execute(message);
 				}
 			}
 		} catch (Throwable t) {
-			c_logger.error(StrUtil.join("Endpoint[", dst,
-					"] failed to consume: ", message), t);
+			c_logger.error(StrUtil.join("Endpoint[", dst, "] failed to consume: ", message), t);
 			message.close();
 		}
 	}
@@ -343,8 +330,7 @@ public final class MessageQueue implements ITimeoutListener {
 		final IServiceHolderManager<IPreHandler> manager = m_preHandlerManager;
 		IPreHandler[] preHandlers = new IPreHandler[n];
 		for (int i = 0; i < n; ++i)
-			preHandlers[i] = new PreHandlerDelegator(
-					manager.getServiceHolder(preHandlerIds[i]));
+			preHandlers[i] = new PreHandlerDelegator(manager.getServiceHolder(preHandlerIds[i]));
 
 		return preHandlers;
 	}
@@ -363,8 +349,7 @@ public final class MessageQueue implements ITimeoutListener {
 		final IServiceHolderManager<IPostHandler> manager = m_postHandlerManager;
 		IPostHandler[] postHandlers = new IPostHandler[n];
 		for (int i = 0; i < n; ++i)
-			postHandlers[i] = new PostHandlerDelegator(
-					manager.getServiceHolder(postHandlerIds[i]));
+			postHandlers[i] = new PostHandlerDelegator(manager.getServiceHolder(postHandlerIds[i]));
 
 		return postHandlers;
 	}
@@ -383,17 +368,13 @@ public final class MessageQueue implements ITimeoutListener {
 	private String getId(ServiceReference<?> reference) {
 		String id = (String) reference.getProperty(MeConstants.EP_ID);
 		if (id == null) {
-			c_logger.error(StrUtil.join(
-					reference.getProperty(Constants.SERVICE_PID), ": Missing "
-							+ MeConstants.EP_ID));
+			c_logger.error(StrUtil.join(reference.getProperty(Constants.SERVICE_PID), ": Missing " + MeConstants.EP_ID));
 			return null;
 		}
 
 		id = id.trim();
 		if (id.length() < 1) {
-			c_logger.error(StrUtil.join(
-					reference.getProperty(Constants.SERVICE_PID), ": Empty "
-							+ MeConstants.EP_ID));
+			c_logger.error(StrUtil.join(reference.getProperty(Constants.SERVICE_PID), ": Empty " + MeConstants.EP_ID));
 			return null;
 		}
 
@@ -413,34 +394,30 @@ public final class MessageQueue implements ITimeoutListener {
 		String id = getId(reference);
 		if (id == null) {
 			unregister(endpoint, reference);
-			c_logger.error(StrUtil.join(endpoint, " is unregistered: Illegal "
-					+ MeConstants.EP_ID));
+			c_logger.error(StrUtil.join(endpoint, " is unregistered: Illegal " + MeConstants.EP_ID));
 		} else if (!endpoint.id().equals(id)) {
 			if (m_endpoints.containsKey(id)) {
 				unregister(endpoint, reference);
-				c_logger.error(StrUtil
-						.join(endpoint, " is unregistered: Existing "
-								+ MeConstants.EP_ID + "=", id));
+				c_logger.error(StrUtil.join(endpoint, " is unregistered: Existing " + MeConstants.EP_ID + "=", id));
 			} else {
 				String oldId = endpoint.id();
 				endpoint.id(id);
 				m_endpoints.put(id, endpoint);
 				m_endpoints.remove(oldId);
 
-				c_logger.info(StrUtil.join(endpoint, " is reregistered from ",
-						oldId));
+				c_logger.info(StrUtil.join(endpoint, " is reregistered from ", oldId));
 			}
 		}
 	}
 
 	private BiListNode<MsgNotifier> schedule(Message message) {
-		BiListNode<MsgNotifier> node = BiListNode.create();
-		ITimeoutNotifier notifier = m_ta.createNotifier(node);
+		final BiListNode<MsgNotifier> node = BiListNode.create();
+		final ITimeoutNotifier notifier = m_ta.createNotifier(node);
 		notifier.setListener(this);
-		MsgNotifier mn = new MsgNotifier(message, notifier);
+		final MsgNotifier mn = new MsgNotifier(message, notifier);
 		node.set(mn);
 
-		BiListNode<MsgNotifier> head = getHead(message.to());
+		final BiListNode<MsgNotifier> head = getHead(message.to());
 		final ReentrantLock lock = m_lock;
 		lock.lock();
 		try {
@@ -463,8 +440,7 @@ public final class MessageQueue implements ITimeoutListener {
 			head = BiListNode.<MsgNotifier> create();
 			head.previous(head);
 			head.next(head);
-			BiListNode<MsgNotifier> node = m_nodes
-					.putIfAbsent(endpointId, head);
+			BiListNode<MsgNotifier> node = m_nodes.putIfAbsent(endpointId, head);
 			if (node != null) {
 				head.close();
 				head = node;
@@ -495,7 +471,7 @@ public final class MessageQueue implements ITimeoutListener {
 		if (head == null)
 			return;
 
-		final IWorkshop workshop = m_workshop;
+		final Executor executor = m_executor;
 		final ReentrantLock lock = m_lock;
 		lock.lock();
 		try {
@@ -511,7 +487,7 @@ public final class MessageQueue implements ITimeoutListener {
 
 				Message msg = node.get().msg();
 				msg.setEndpoint(endpoint);
-				workshop.run(msg);
+				executor.execute(msg);
 
 				node.close();
 				node = next;

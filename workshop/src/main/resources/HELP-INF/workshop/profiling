@@ -1,7 +1,0 @@
-Usage: workshop:profiling <action> [workshop-profiler-id] ...
-
-Manage the specified profilers or all the profilers if not provided.
-
-Action:
-    start   Start profiling
-    stop    Stop profiling

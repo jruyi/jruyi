@@ -565,16 +565,6 @@ public abstract class Channel implements IChannel, IDumpable, IIoTask {
 	}
 
 	@Override
-	public int readTimerState() {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void setReadTimerState(int readTimerState) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
 	public final Object deposit(Object id, Object something) {
 		return m_storage.put(id, something);
 	}

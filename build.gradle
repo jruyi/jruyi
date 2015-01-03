@@ -73,10 +73,10 @@ allprojects {
 		org_jruyi_cmd_version = '1.1.6-SNAPSHOT'
 		org_jruyi_common_version = '2.0.0-SNAPSHOT'
 		org_jruyi_io_version = '2.0.0-SNAPSHOT'
-		org_jruyi_me_version = '1.1.5'
+		org_jruyi_me_version = '2.0.0-SNAPSHOT'
 		org_jruyi_osgi_log_version = '1.0.4'
-		org_jruyi_timeoutadmin_version = '1.1.4'
-		org_jruyi_workshop_version = '1.1.5'
+		org_jruyi_timeoutadmin_version = '2.0.0-SNAPSHOT'
+		org_jruyi_tpe_version = '2.0.0-SNAPSHOT'
 	}
 
 	repositories {
@@ -178,7 +178,7 @@ dependencies {
 	bundle project(':me')
 	bundle project(':osgi-log')
 	bundle project(':timeoutadmin')
-	bundle project(':workshop')
+	bundle project(':tpe')
 }
 
 distributions {
@@ -208,20 +208,20 @@ distributions {
 				include 'bootstrap.xml'
 				into 'inst/default/conf'
 				expand([
-						felixFrameworkVersion   : org_apache_felix_framework_version,
-						felixMetatypeVersion    : org_apache_felix_metatype_version,
 						felixConfigAdminVersion : org_apache_felix_configadmin_version,
-						felixScrVersion         : org_apache_felix_scr_version,
+						felixFrameworkVersion   : org_apache_felix_framework_version,
 						felixGogoRuntimeVersion : org_apache_felix_gogo_runtime_version,
+						felixMetatypeVersion    : org_apache_felix_metatype_version,
+						felixScrVersion         : org_apache_felix_scr_version,
 
-						jruyiOsgiLogVersion     : org_jruyi_osgi_log_version,
-						jruyiCommonVersion      : org_jruyi_common_version,
-						jruyiWorkshopVersion    : org_jruyi_workshop_version,
-						jruyiTimeoutAdminVersion: org_jruyi_timeoutadmin_version,
-						jruyiMeVersion          : org_jruyi_me_version,
-						jruyiIoVersion          : org_jruyi_io_version,
 						jruyiCmdVersion         : org_jruyi_cmd_version,
 						jruyiClidVersion        : org_jruyi_clid_version,
+						jruyiCommonVersion      : org_jruyi_common_version,
+						jruyiMeVersion          : org_jruyi_me_version,
+						jruyiIoVersion          : org_jruyi_io_version,
+						jruyiOsgiLogVersion     : org_jruyi_osgi_log_version,
+						jruyiTimeoutAdminVersion: org_jruyi_timeoutadmin_version,
+						jruyiTpeVersion         : org_jruyi_tpe_version,
 				])
 			}
 

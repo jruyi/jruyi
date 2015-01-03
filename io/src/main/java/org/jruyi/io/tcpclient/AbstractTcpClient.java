@@ -270,28 +270,12 @@ public abstract class AbstractTcpClient extends Service implements IChannelServi
 		channel.connect(configuration().connectTimeoutInSeconds());
 	}
 
-	final void writeInternal(IChannel channel, Object msg) {
-		channel.setReadTimerState(IChannel.UNSCHED);
-		channel.write(msg);
-	}
-
 	final boolean cancelReadTimeout(IChannel channel) {
-		if (channel.readTimerState() == IChannel.SCHED)
-			return channel.cancelTimeout();
-
-		synchronized (channel) {
-			channel.setReadTimerState(IChannel.CANCELED);
-			return channel.cancelTimeout();
-		}
+		return channel.cancelTimeout();
 	}
 
 	final void scheduleReadTimeout(IChannel channel, int timeout) {
-		synchronized (channel) {
-			if (channel.readTimerState() == IChannel.CANCELED)
-				return;
-			channel.scheduleReadTimeout(timeout);
-			channel.setReadTimerState(IChannel.SCHED);
-		}
+		channel.scheduleReadTimeout(timeout);
 	}
 
 	private void updateFilters(TcpChannelConf oldConf, TcpChannelConf newConf) {

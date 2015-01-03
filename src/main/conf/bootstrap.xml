@@ -30,7 +30,7 @@
 	<bundle startLevel="3" url="\${jruyi.bundle.base.url}org.apache.felix.scr-${felixScrVersion}.jar"/>
 
 	<bundle url="\${jruyi.bundle.base.url}org.jruyi.common-${jruyiCommonVersion}.jar"/>
-	<bundle url="\${jruyi.bundle.base.url}org.jruyi.workshop-${jruyiWorkshopVersion}.jar"/>
+	<bundle url="\${jruyi.bundle.base.url}org.jruyi.tpe-${jruyiTpeVersion}.jar"/>
 	<bundle url="\${jruyi.bundle.base.url}org.jruyi.timeoutadmin-${jruyiTimeoutAdminVersion}.jar"/>
 	<bundle url="\${jruyi.bundle.base.url}org.jruyi.me-${jruyiMeVersion}.jar"/>
 	<bundle url="\${jruyi.bundle.base.url}org.jruyi.io-${jruyiIoVersion}.jar"/>

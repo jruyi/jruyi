@@ -258,7 +258,7 @@ final class TimeoutNotifier implements ITimeoutNotifier {
 	void onTimeout(TimeoutAdmin.TimeWheel timeWheel, int hand) {
 		final ReentrantLock lock = m_lock;
 		// If the lock cannot be acquired, which means this notifier is being
-		// cancelled or rescheduled or closed, just skip.
+		// cancelled, rescheduled or closed, just skip.
 		if (!lock.tryLock())
 			return;
 
@@ -267,8 +267,7 @@ final class TimeoutNotifier implements ITimeoutNotifier {
 			// which means it has been cancelled or rescheduled,
 			// then skip.
 			final TimeoutEvent event = m_node.get();
-			if (event == null || timeWheel != event.getTimeWheel()
-					|| hand != event.getIndex())
+			if (event == null || timeWheel != event.getTimeWheel() || hand != event.getIndex())
 				return;
 
 			long difference = event.expireTime() - System.currentTimeMillis();
@@ -276,8 +275,7 @@ final class TimeoutNotifier implements ITimeoutNotifier {
 				changeState(TimedOut.INST);
 				m_admin.fireTimeout(this);
 			} else {
-				int timeout = (int) TimeUnit.MILLISECONDS.toSeconds(difference
-						+ HALF_SEC);
+				int timeout = (int) TimeUnit.MILLISECONDS.toSeconds(difference + HALF_SEC);
 				m_admin.reschedule(this, timeout);
 			}
 		} finally {

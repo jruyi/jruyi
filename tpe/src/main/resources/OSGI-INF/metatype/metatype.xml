@@ -18,12 +18,16 @@
 	xmlns:metatype="http://www.osgi.org/xmlns/metatype/v1.2.0"
 	xsi:schemaLocation="http://www.osgi.org/xmlns/metatype/v1.2.0 http://www.osgi.org/xmlns/metatype/v1.2.0/metatype.xsd">
 
-	<OCD id="mq" name="Message Queue">
-		<AD id="msgTimeoutInSeconds" name="Message Timeout(s)" type="Integer" default="10" />
+	<OCD id="tpe" name="Thread Pool Executor">
+		<AD id="corePoolSize" name="Core Pool Size" type="Integer" min="1" required="false"/>
+		<AD id="maxPoolSize" name="Maximum Pool Size" type="Integer" min="1" required="false"/>
+		<AD id="keepAliveTimeInSeconds" name="Keep Alive Time(s)" type="Integer" min="0" default="10"/>
+		<AD id="queueCapacity" name="Queue Capacity" type="Integer" default="8192"/>
+		<AD id="terminationWaitTimeInSeconds" name="Termination Wait Time(s)" type="Integer" default="60"/>
 	</OCD>
 
-	<Designate pid="jruyi.me.mq">
-		<Object ocdref="mq" />
+	<Designate pid="jruyi.tpe">
+		<Object ocdref="tpe"/>
 	</Designate>
 
 </metatype:MetaData>

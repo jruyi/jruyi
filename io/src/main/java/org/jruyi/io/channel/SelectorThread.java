@@ -47,7 +47,7 @@ final class SelectorThread implements ICloseable, Runnable, ISelector, EventPoll
 
 	public void open(int id, int capacity) throws Exception {
 		m_selector = Selector.open();
-		m_thread = new Thread(this, "Selector-" + id);
+		m_thread = new Thread(this, "jruyi-selector-" + id);
 		m_ringBuffer = RingBuffer.createMultiProducer(SelectorEventFactory.INST, capacity);
 
 		m_thread.start();
