@@ -198,7 +198,6 @@ public final class UdpClient extends Service implements IChannelService,
 
 	@Override
 	public void write(ISession session, Object msg) {
-		// TODO: transfer out msgs
 		final IChannel channel = getChannel();
 		if (channel != null) {
 			channel.write(msg);

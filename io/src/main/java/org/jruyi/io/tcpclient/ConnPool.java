@@ -15,24 +15,23 @@ package org.jruyi.io.tcpclient;
 
 import java.io.Closeable;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.jruyi.common.ArgList;
 import org.jruyi.common.BiListNode;
 import org.jruyi.common.IArgList;
 import org.jruyi.common.IService;
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.IBufferFactory;
+import org.jruyi.io.IFilter;
 import org.jruyi.io.ISession;
 import org.jruyi.io.ISessionListener;
 import org.jruyi.io.IoConstants;
 import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.IChannelAdmin;
-import org.jruyi.io.common.SyncQueue;
+import org.jruyi.io.channel.IIoTask;
 import org.jruyi.io.filter.IFilterManager;
 import org.jruyi.workshop.IRunnable;
-import org.jruyi.workshop.IWorkshop;
-import org.jruyi.workshop.WorkshopConstants;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferencePolicy;
@@ -43,19 +42,15 @@ import org.slf4j.LoggerFactory;
 factory = "tcpclient.connpool", //
 service = { IService.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class ConnPool extends AbstractTcpClient implements IRunnable {
+public final class ConnPool extends AbstractTcpClient implements IRunnable, IIoTask {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(ConnPool.class);
 
-	private IWorkshop m_workshop;
-
 	private Configuration m_conf;
-	private final SyncQueue<Object> m_msgs;
-	private final ReentrantLock m_channelQueueLock;
 	private final BiListNode<IChannel> m_channelQueueHead;
 	private int m_channelQueueSize;
-	private volatile int m_poolSize;
-	private final ReentrantLock m_poolSizeLock;
+	private final ReentrantLock m_channelQueueLock;
+	private final AtomicInteger m_poolSize;
 
 	static final class Configuration extends TcpClientConf {
 
@@ -103,21 +98,26 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 		node.next(node);
 		m_channelQueueHead = node;
 
-		m_msgs = new SyncQueue<Object>();
+		m_poolSize = new AtomicInteger(0);
+
 		m_channelQueueLock = new ReentrantLock();
-		m_poolSizeLock = new ReentrantLock();
 	}
 
 	@Override
-	public void write(ISession session, Object msg) {
-		Configuration conf = m_conf;
+	public void run(Object msg, IFilter<?, ?>[] filters, int filterCount) {
+		write(null, msg);
+	}
+
+	@Override
+	public void write(ISession session/* =null */, Object msg) {
+		final Configuration conf = m_conf;
 		if (compareAndIncrement(conf.minPoolSize())) {
 			connect(msg);
 			return;
 		}
 
 		// fetch an idle channel in the pool if any
-		IChannel channel = fetchChannel();
+		final IChannel channel = fetchChannel();
 		if (channel != null) {
 			writeInternal(channel, msg);
 			return;
@@ -129,20 +129,7 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 			return;
 		}
 
-		// Enqueue the message for being processed on any channel available.
-		// The message has to be enqueued before polling the channel pool again.
-		// Otherwise, if a free channel is put into the pool after polling out
-		// a null channel but before the message is enqueued, then the message
-		// could be left in the queue with never being processed.
-		m_msgs.put(msg);
-		channel = fetchChannel();
-		if (channel != null) {
-			msg = m_msgs.poll();
-			if (msg != null)
-				writeInternal(channel, msg);
-			else
-				poolChannel(channel);
-		}
+		getChannelAdmin().performIoTask(this, msg);
 	}
 
 	@Override
@@ -162,12 +149,9 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 
 		if (timeout > 0)
 			scheduleReadTimeout(channel, timeout);
-		else {
+		else
 			// readTimeout == 0, means no response is expected
-			msg = poolChannelIfNoMsg(channel);
-			if (msg != null)
-				m_workshop.run(this, ArgList.create(channel, msg));
-		}
+			poolChannel(channel);
 	}
 
 	@Override
@@ -194,13 +178,7 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 			}
 		}
 
-		msg = poolChannelIfNoMsg(channel);
-		if (msg != null) {
-			if (!channel.isClosed())
-				writeInternal(channel, msg);
-			else
-				write(null, msg);
-		}
+		poolChannel(channel);
 	}
 
 	@Override
@@ -212,33 +190,7 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 	@Override
 	public void onChannelClosed(IChannel channel) {
 		super.onChannelClosed(channel);
-
-		final ReentrantLock poolSizeLock = m_poolSizeLock;
-		poolSizeLock.lock();
-		try {
-			--m_poolSize;
-		} finally {
-			poolSizeLock.unlock();
-		}
-
-		// If all the channels are closing and there are still some messages
-		// left in queue with no new messages coming, those messages will never
-		// be processed. So when the channel pool size is below minPoolSize and
-		// the message queue is not empty, then make a new connection to process
-		// the message.
-		int minPoolSize = m_conf.minPoolSize();
-		Object msg = null;
-		SyncQueue<Object> messages = m_msgs;
-		poolSizeLock.lock();
-		try {
-			if (m_poolSize < minPoolSize && (msg = messages.poll()) != null)
-				++m_poolSize;
-		} finally {
-			poolSizeLock.unlock();
-		}
-
-		if (msg != null)
-			connect(msg);
+		m_poolSize.decrementAndGet();
 	}
 
 	@Override
@@ -367,16 +319,6 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 		super.unsetFilterManager(fm);
 	}
 
-	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
-	protected synchronized void setWorkshop(IWorkshop workshop) {
-		m_workshop = workshop;
-	}
-
-	protected synchronized void unsetWorkshop(IWorkshop workshop) {
-		if (m_workshop == workshop)
-			m_workshop = null;
-	}
-
 	@Override
 	TcpClientConf configuration() {
 		return m_conf;
@@ -402,19 +344,12 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 	 * @return true if pool size is incremented, otherwise false
 	 */
 	private boolean compareAndIncrement(int limit) {
-		if (m_poolSize < limit) {
-			final ReentrantLock poolSizeLock = m_poolSizeLock;
-			poolSizeLock.lock();
-			try {
-				if (m_poolSize < limit) {
-					++m_poolSize;
-					return true;
-				}
-			} finally {
-				poolSizeLock.unlock();
-			}
+		final AtomicInteger poolSize = m_poolSize;
+		int n;
+		while ((n = poolSize.get()) < limit) {
+			if (poolSize.compareAndSet(n, n + 1))
+				return true;
 		}
-
 		return false;
 	}
 
@@ -446,54 +381,20 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 	}
 
 	private void poolChannel(IChannel channel) {
-		Configuration conf = m_conf;
-		final int keepAliveTime = conf.idleTimeoutInSeconds();
-		final ReentrantLock lock = m_channelQueueLock;
-		lock.lock();
-		try {
-			if (m_channelQueueSize < conf.minPoolSize() || keepAliveTime < 0) {
-				putNode(newNode(channel));
-				return;
-			}
-
-			if (keepAliveTime > 0) {
-				putNode(newNode(channel));
-				channel.scheduleIdleTimeout(keepAliveTime);
-				return;
-			}
-		} finally {
-			lock.unlock();
-		}
-
-		// keepAliveTime == 0, the channel need be closed immediately
-		channel.close();
-	}
-
-	private Object poolChannelIfNoMsg(IChannel channel) {
-		Object msg = m_msgs.poll();
-		if (msg != null)
-			return msg;
-
-		if (channel.isClosed())
-			return null;
-
 		final Configuration conf = m_conf;
 		final int keepAliveTime = conf.idleTimeoutInSeconds();
 		final ReentrantLock lock = m_channelQueueLock;
 		lock.lock();
 		try {
-			if ((msg = m_msgs.poll()) != null)
-				return msg;
-
 			if (m_channelQueueSize < conf.minPoolSize() || keepAliveTime < 0) {
 				putNode(newNode(channel));
-				return null;
+				return;
 			}
 
 			if (keepAliveTime > 0) {
 				putNode(newNode(channel));
 				channel.scheduleIdleTimeout(keepAliveTime);
-				return null;
+				return;
 			}
 		} finally {
 			lock.unlock();
@@ -501,7 +402,6 @@ public final class ConnPool extends AbstractTcpClient implements IRunnable {
 
 		// keepAliveTime == 0, the channel need be closed immediately
 		channel.close();
-		return null;
 	}
 
 	private BiListNode<IChannel> newNode(IChannel channel) {

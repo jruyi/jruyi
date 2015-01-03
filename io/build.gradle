@@ -23,6 +23,7 @@ ext {
 }
 
 dependencies {
+	compile "com.lmax:disruptor:$disruptor_version"
 	compile "org.osgi:org.osgi.core:$org_osgi_core_version"
 	compile "org.osgi:org.osgi.compendium:$org_osgi_compendium_version"
 	compile "org.apache.felix:org.apache.felix.gogo.runtime:$org_apache_felix_gogo_runtime_version"

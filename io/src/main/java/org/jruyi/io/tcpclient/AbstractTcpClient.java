@@ -40,13 +40,9 @@ import org.jruyi.io.tcp.TcpChannelConf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractTcpClient extends Service implements
-		IChannelService, ISessionService {
+public abstract class AbstractTcpClient extends Service implements IChannelService, ISessionService {
 
-	private static final Logger c_logger = LoggerFactory
-			.getLogger(AbstractTcpClient.class);
-
-	private static final Object TRIED_CANCEL = new Object();
+	private static final Logger c_logger = LoggerFactory.getLogger(AbstractTcpClient.class);
 
 	private String m_caption;
 	private IChannelAdmin m_ca;
@@ -91,15 +87,13 @@ public abstract class AbstractTcpClient extends Service implements
 			return;
 		}
 
-		c_logger.warn(StrUtil.join(session,
-				" failed to send(channel closed): ", msg));
+		c_logger.warn(StrUtil.join(session, " failed to send(channel closed): ", msg));
 
 		if (msg instanceof Closeable) {
 			try {
 				((Closeable) msg).close();
 			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(session,
-						" failed to close message: ", msg), t);
+				c_logger.error(StrUtil.join(session, " failed to close message: ", msg), t);
 			}
 		}
 	}
@@ -133,15 +127,13 @@ public abstract class AbstractTcpClient extends Service implements
 		try {
 			Object attachment = channel.detach();
 			if (attachment != null) {
-				c_logger.error(
-						StrUtil.join(channel, " got an error: ", attachment), t);
+				c_logger.error(StrUtil.join(channel, " got an error: ", attachment), t);
 
 				if (attachment instanceof Closeable) {
 					try {
 						((Closeable) attachment).close();
 					} catch (Throwable e) {
-						c_logger.error(StrUtil.join(channel,
-								"Failed to close: ", attachment), e);
+						c_logger.error(StrUtil.join(channel, "Failed to close: ", attachment), e);
 					}
 				}
 			} else
@@ -184,8 +176,7 @@ public abstract class AbstractTcpClient extends Service implements
 	}
 
 	@Override
-	protected boolean updateInternal(Map<String, ?> properties)
-			throws Exception {
+	protected boolean updateInternal(Map<String, ?> properties) throws Exception {
 		TcpClientConf oldConf = updateConf(properties);
 		TcpClientConf newConf = configuration();
 		updateFilters(oldConf, newConf);
@@ -280,28 +271,31 @@ public abstract class AbstractTcpClient extends Service implements
 	}
 
 	final void writeInternal(IChannel channel, Object msg) {
-		channel.deposit(TRIED_CANCEL, Boolean.FALSE);
+		channel.setReadTimerState(IChannel.UNSCHED);
 		channel.write(msg);
 	}
 
 	final boolean cancelReadTimeout(IChannel channel) {
+		if (channel.readTimerState() == IChannel.SCHED)
+			return channel.cancelTimeout();
+
 		synchronized (channel) {
-			channel.deposit(TRIED_CANCEL, Boolean.TRUE);
+			channel.setReadTimerState(IChannel.CANCELED);
 			return channel.cancelTimeout();
 		}
 	}
 
 	final void scheduleReadTimeout(IChannel channel, int timeout) {
 		synchronized (channel) {
-			if ((Boolean) channel.inquiry(TRIED_CANCEL))
+			if (channel.readTimerState() == IChannel.CANCELED)
 				return;
 			channel.scheduleReadTimeout(timeout);
+			channel.setReadTimerState(IChannel.SCHED);
 		}
 	}
 
 	private void updateFilters(TcpChannelConf oldConf, TcpChannelConf newConf) {
-		String[] newNames = newConf == null ? StrUtil.getEmptyStringArray()
-				: newConf.filters();
+		String[] newNames = newConf == null ? StrUtil.getEmptyStringArray() : newConf.filters();
 		String[] oldNames = StrUtil.getEmptyStringArray();
 		IFilterManager fm = m_fm;
 		if (oldConf == null)

@@ -21,35 +21,32 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
-import java.util.Map;
 
 import org.jruyi.common.StrUtil;
-import org.jruyi.io.common.StopThread;
+import org.jruyi.io.channel.IChannelAdmin;
+import org.jruyi.io.common.IVisitor;
 import org.jruyi.io.common.SyncPutQueue;
 import org.jruyi.io.tcp.TcpChannel;
-import org.jruyi.workshop.IWorkshop;
-import org.jruyi.workshop.WorkshopConstants;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Component(name = "jruyi.io.tcpserver.tcpacceptor", //
-configurationPid = "jruyi.io.channeladmin", //
+configurationPolicy = ConfigurationPolicy.IGNORE, //
 service = { ITcpAcceptor.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.2.0")
-public final class TcpAcceptor implements ITcpAcceptor, Runnable {
+public final class TcpAcceptor implements ITcpAcceptor, Runnable, IVisitor<TcpServer> {
 
-	private static final Logger c_logger = LoggerFactory
-			.getLogger(TcpAcceptor.class);
+	private static final Logger c_logger = LoggerFactory.getLogger(TcpAcceptor.class);
 
 	private Selector m_selector;
 	private Thread m_thread;
 	private SyncPutQueue<TcpServer> m_queue;
 
-	private IWorkshop m_workshop;
+	private IChannelAdmin m_ca;
 
 	@Override
 	public void doAccept(TcpServer server) throws Exception {
@@ -60,38 +57,36 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 	}
 
 	@Override
+	public void visit(TcpServer server) {
+		final SelectableChannel channel = server.getSelectableChannel();
+		try {
+			channel.register(m_selector, SelectionKey.OP_ACCEPT, server);
+		} catch (Throwable t) {
+			c_logger.error(StrUtil.join("Failed to register ", channel), t);
+			// stop tcp server
+			server.stop();
+		}
+	}
+
+	@Override
 	public void run() {
 		final SyncPutQueue<TcpServer> queue = m_queue;
 		final Selector selector = m_selector;
+		final IChannelAdmin ca = m_ca;
 		final Thread currentThread = Thread.currentThread();
-		TcpServer server;
 		for (;;) {
 			try {
 				final int n = selector.select();
 				if (currentThread.isInterrupted())
 					break;
 
-				final IWorkshop workshop = m_workshop;
-
 				// Register
-				while ((server = queue.poll()) != null) {
-					SelectableChannel channel = server.getSelectableChannel();
-					try {
-						channel.register(selector, SelectionKey.OP_ACCEPT,
-								server);
-					} catch (Exception e) {
-						c_logger.error(
-								StrUtil.join("Failed to register ", channel), e);
-						// stop tcp server
-						workshop.run(new StopThread(server));
-					}
-				}
+				queue.accept(this);
 
 				if (n < 1)
 					continue;
 
-				final Iterator<SelectionKey> iter = selector.selectedKeys()
-						.iterator();
+				final Iterator<SelectionKey> iter = selector.selectedKeys().iterator();
 				while (iter.hasNext()) {
 					final SelectionKey key = iter.next();
 					iter.remove();
@@ -99,19 +94,13 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 					if (!key.isValid())
 						continue;
 
+					final TcpServer server = (TcpServer) key.attachment();
 					try {
-						server = (TcpServer) key.attachment();
-						final SocketChannel socketChannel = ((ServerSocketChannel) key
-								.channel()).accept();
-
-						@SuppressWarnings("resource")
-						final TcpChannel channel = new TcpChannel(server,
-								socketChannel);
-						workshop.run(channel.onAccept());
+						final SocketChannel socketChannel = ((ServerSocketChannel) key.channel()).accept();
+						ca.onAccept(new TcpChannel(server, socketChannel));
 					} catch (ClosedChannelException e) {
 					} catch (Throwable t) {
-						c_logger.error(
-								StrUtil.join(server, " failed to accept"), t);
+						c_logger.error(StrUtil.join(server, " failed to accept"), t);
 					}
 				}
 			} catch (ClosedSelectorException e) {
@@ -122,21 +111,17 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 		}
 	}
 
-	@Modified
-	protected void modified() {
+	@Reference(name = "channelAdmin", policy = ReferencePolicy.DYNAMIC)
+	synchronized void setChannelAdmin(IChannelAdmin ca) {
+		m_ca = ca;
 	}
 
-	@Reference(name = "workshop", policy = ReferencePolicy.DYNAMIC, target = WorkshopConstants.DEFAULT_WORKSHOP_TARGET)
-	protected synchronized void setWorkshop(IWorkshop workshop) {
-		m_workshop = workshop;
+	synchronized void unsetChannelAdmin(IChannelAdmin ca) {
+		if (m_ca == ca)
+			m_ca = null;
 	}
 
-	protected synchronized void unsetWorkshop(IWorkshop workshop) {
-		if (m_workshop == workshop)
-			m_workshop = null;
-	}
-
-	protected void activate(Map<String, ?> properties) throws Exception {
+	void activate() throws Exception {
 		c_logger.info("Starting TcpAcceptor...");
 
 		m_selector = Selector.open();
@@ -147,7 +132,7 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 		c_logger.info("TcpAcceptor started");
 	}
 
-	protected void deactivate() {
+	void deactivate() {
 		c_logger.info("Stopping TcpAcceptor...");
 
 		m_thread.interrupt();

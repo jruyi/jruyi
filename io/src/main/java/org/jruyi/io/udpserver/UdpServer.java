@@ -51,11 +51,9 @@ import org.slf4j.LoggerFactory;
 factory = "udpserver", //
 service = { IService.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class UdpServer extends Service implements IChannelService,
-		ISessionService {
+public final class UdpServer extends Service implements IChannelService, ISessionService {
 
-	private static final Logger c_logger = LoggerFactory
-			.getLogger(UdpServer.class);
+	private static final Logger c_logger = LoggerFactory.getLogger(UdpServer.class);
 	private String m_caption;
 	private Configuration m_conf;
 	private DatagramChannel m_datagramChannel;
@@ -245,17 +243,13 @@ public final class UdpServer extends Service implements IChannelService,
 			return;
 		}
 
-		c_logger.warn(StrUtil.join(session,
-				" failed to send(channel closed): ",
-				StrUtil.getLineSeparator(), msg));
+		c_logger.warn(StrUtil.join(session, " failed to send(channel closed): ", StrUtil.getLineSeparator(), msg));
 
 		if (msg instanceof Closeable) {
 			try {
 				((Closeable) msg).close();
 			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(session,
-						" failed to close message: ",
-						StrUtil.getLineSeparator(), msg), t);
+				c_logger.error(StrUtil.join(session, " failed to close message: ", StrUtil.getLineSeparator(), msg), t);
 			}
 		}
 
@@ -268,8 +262,7 @@ public final class UdpServer extends Service implements IChannelService,
 	}
 
 	@Override
-	protected boolean updateInternal(Map<String, ?> properties)
-			throws Exception {
+	protected boolean updateInternal(Map<String, ?> properties) throws Exception {
 
 		final Configuration newConf = new Configuration();
 		newConf.initialize(properties);
@@ -277,8 +270,7 @@ public final class UdpServer extends Service implements IChannelService,
 		final Configuration oldConf = m_conf;
 		updateConf(newConf);
 
-		return oldConf.isMandatoryChanged(newConf,
-				Configuration.getMandatoryPropsAccessors());
+		return oldConf.isMandatoryChanged(newConf, Configuration.getMandatoryPropsAccessors());
 	}
 
 	@Override
@@ -293,8 +285,7 @@ public final class UdpServer extends Service implements IChannelService,
 		if (host != null)
 			bindAddr = InetAddress.getByName(host);
 
-		m_channels = new ConcurrentHashMap<Object, IChannel>(
-				conf.initCapacityOfChannelMap());
+		m_channels = new ConcurrentHashMap<Object, IChannel>(conf.initCapacityOfChannelMap());
 
 		final SocketAddress localAddr;
 		final DatagramChannel datagramChannel = DatagramChannel.open();
@@ -316,8 +307,7 @@ public final class UdpServer extends Service implements IChannelService,
 		}
 
 		m_datagramChannel = datagramChannel;
-		m_ca.onRegisterRequired(new UdpServerChannel(this, datagramChannel,
-				localAddr));
+		m_ca.onRegisterRequired(new UdpServerChannel(this, datagramChannel, localAddr));
 
 		c_logger.info(StrUtil.join(this, " started: ", conf.port()));
 	}
@@ -329,8 +319,7 @@ public final class UdpServer extends Service implements IChannelService,
 		try {
 			m_datagramChannel.close();
 		} catch (Throwable t) {
-			c_logger.error(
-					StrUtil.join(this, " failed to close DatagramChannel"), t);
+			c_logger.error(StrUtil.join(this, " failed to close DatagramChannel"), t);
 		}
 
 		final WriteLock writeLock = m_lock.writeLock();
@@ -398,8 +387,7 @@ public final class UdpServer extends Service implements IChannelService,
 		return m_channels.get(key);
 	}
 
-	private static void initSocket(DatagramSocket socket, Configuration conf)
-			throws SocketException {
+	private static void initSocket(DatagramSocket socket, Configuration conf) throws SocketException {
 
 		socket.setReuseAddress(true);
 
@@ -409,8 +397,7 @@ public final class UdpServer extends Service implements IChannelService,
 	}
 
 	private void updateConf(Configuration newConf) {
-		final String[] newNames = newConf == null ? StrUtil
-				.getEmptyStringArray() : newConf.filters();
+		final String[] newNames = newConf == null ? StrUtil.getEmptyStringArray() : newConf.filters();
 		String[] oldNames = StrUtil.getEmptyStringArray();
 		final IFilterManager fm = m_fm;
 		if (m_conf == null)

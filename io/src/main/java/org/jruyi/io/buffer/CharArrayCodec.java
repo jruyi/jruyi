@@ -13,11 +13,7 @@
  */
 package org.jruyi.io.buffer;
 
-import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CoderResult;
 
 import org.jruyi.common.BytesBuilder;
 import org.jruyi.common.CharsetCodec;
@@ -29,18 +25,12 @@ import org.jruyi.io.IUnitChain;
 
 public final class CharArrayCodec extends AbstractCodec<char[]> {
 
-	public static final ICodec<char[]> UTF_8 = new CharArrayCodec(
-			CharsetCodec.UTF_8);
-	public static final ICodec<char[]> UTF_16 = new CharArrayCodec(
-			CharsetCodec.UTF_16);
-	public static final ICodec<char[]> UTF_16LE = new CharArrayCodec(
-			CharsetCodec.UTF_16LE);
-	public static final ICodec<char[]> UTF_16BE = new CharArrayCodec(
-			CharsetCodec.UTF_16BE);
-	public static final ICodec<char[]> US_ASCII = new CharArrayCodec(
-			CharsetCodec.US_ASCII);
-	public static final ICodec<char[]> ISO_8859_1 = new CharArrayCodec(
-			CharsetCodec.ISO_8859_1);
+	public static final ICodec<char[]> UTF_8 = new CharArrayCodec(CharsetCodec.UTF_8);
+	public static final ICodec<char[]> UTF_16 = new CharArrayCodec(CharsetCodec.UTF_16);
+	public static final ICodec<char[]> UTF_16LE = new CharArrayCodec(CharsetCodec.UTF_16LE);
+	public static final ICodec<char[]> UTF_16BE = new CharArrayCodec(CharsetCodec.UTF_16BE);
+	public static final ICodec<char[]> US_ASCII = new CharArrayCodec(CharsetCodec.US_ASCII);
+	public static final ICodec<char[]> ISO_8859_1 = new CharArrayCodec(CharsetCodec.ISO_8859_1);
 
 	private final String m_charsetName;
 
@@ -56,8 +46,7 @@ public final class CharArrayCodec extends AbstractCodec<char[]> {
 			bba.add(unit.getByteBufferForRead(unit.position(), unit.remaining()));
 			unit.position(unit.size());
 			while ((unit = unitChain.nextUnit()) != null) {
-				bba.add(unit.getByteBufferForRead(unit.position(),
-						unit.remaining()));
+				bba.add(unit.getByteBufferForRead(unit.position(), unit.remaining()));
 				unit.position(unit.size());
 			}
 			final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
@@ -158,8 +147,7 @@ public final class CharArrayCodec extends AbstractCodec<char[]> {
 	}
 
 	@Override
-	public void prepend(char[] chars, int offset, int length,
-			IUnitChain unitChain) {
+	public void prepend(char[] chars, int offset, int length, IUnitChain unitChain) {
 		final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
 		final BytesBuilder bb = BytesBuilder.get();
 		try {

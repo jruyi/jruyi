@@ -78,7 +78,7 @@ public final class Constants {
 	 * Framework property (named "jruyi.inst.prov.dir") identifying the
 	 * provisioning directory of the current running instance.
 	 * 
-	 * @since 1.4
+	 * @since 2.0
 	 */
 	public static final String JRUYI_INST_PROV_DIR = "jruyi.inst.prov.dir";
 	/**

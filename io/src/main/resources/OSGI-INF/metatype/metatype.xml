@@ -24,10 +24,11 @@
 	</OCD>
 
 	<OCD id="channelAdmin" name="Channel Admin">
-		<AD id="numberOfSelectorThreads" name="Number Of Selector Threads" type="Integer" required="false" min="1"/>
-		<AD id="initialCapacityOfRecvDirectBuffer" name="Initial Capacity of Receive DirectBuffer" type="Integer" default="65536" min="8"/>
-		<AD id="initialCapacityOfSendDirectBuffer" name="Initial Capacity of Send DirectBuffer" type="Integer" default="65536" min="8"/>
-		<AD id="workshop.target" name="Filter for Selecting Workshop" type="String" required="false" default="(threadPrefix=Worker)"/>
+		<AD id="numberOfSelectorThreads" name="Number of Selector Threads" type="Integer" required="false" min="0"/>
+		<AD id="numberOfIoThreads" name="Number of IO Threads" type="Integer" required="false" min="0"/>
+		<AD id="capacityOfIoRingBuffer" name="Capacity of IO RingBuffer" type="Integer" required="false" min="0"/>
+		<AD id="initCapacityOfRecvDirectBuffer" name="Initial Capacity of DirectBuffer for Reading" type="Integer" default="65536" min="8"/>
+		<AD id="initCapacityOfSendDirectBuffer" name="Initial Capacity of DirectBuffer for Writing" type="Integer" default="65536" min="8"/>
 	</OCD>
 
 	<OCD id="tcpServer" name="TCP Server">
@@ -63,8 +64,8 @@
 		<AD id="addr" name="Host Address" type="String" required="true"/>
 		<AD id="port" name="Port" type="Integer" min="0" max="65535" required="false"/>
 		<AD id="throttle" name="Throttle" type="Long" min="-1" default="0"/>
-		<AD id="connectTimeoutInSeconds" name="Connect Timeout(s)" type="Integer" min="-1" default="10"/>
-		<AD id="readTimeoutInSeconds" name="Read Timeout(s)" type="Integer" min="-1" default="10"/>
+		<AD id="connectTimeoutInSeconds" name="Connect Timeout(s)" type="Integer" min="-1" default="6"/>
+		<AD id="readTimeoutInSeconds" name="Read Timeout(s)" type="Integer" min="-1" default="30"/>
 		<AD id="filters" name="Filter Chain" type="String" cardinality="65535" required="false"/>
 		<AD id="reuseAddr" name="Reuse Address" type="Boolean" default="false"/>
 		<AD id="soLinger" name="Linger" type="Integer" min="0" required="false"/>
@@ -86,8 +87,8 @@
 		<AD id="addr" name="Host Address" type="String" required="true"/>
 		<AD id="port" name="Port" type="Integer" min="0" max="65535" required="true"/>
 		<AD id="throttle" name="Throttle" type="Long" min="-1" default="0"/>
-		<AD id="connectTimeoutInSeconds" name="Connect Timeout(s)" type="Integer" min="-1" default="10"/>
-		<AD id="readTimeoutInSeconds" name="Read Timeout(s)" type="Integer" min="-1" default="10"/>
+		<AD id="connectTimeoutInSeconds" name="Connect Timeout(s)" type="Integer" min="-1" default="6"/>
+		<AD id="readTimeoutInSeconds" name="Read Timeout(s)" type="Integer" min="-1" default="30"/>
 		<AD id="minPoolSize" name="Minimum Pool Size" type="Integer" min="0" default="5"/>
 		<AD id="maxPoolSize" name="Maximum Pool Size" type="Integer" min="0" default="10"/>
 		<AD id="idleTimeoutInSeconds" name="Idle Timeout(s)" type="Integer" min="-1" default="60"/>

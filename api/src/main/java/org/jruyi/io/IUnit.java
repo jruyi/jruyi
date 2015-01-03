@@ -321,7 +321,7 @@ public interface IUnit extends IByteSequence {
 	 * @throws java.nio.BufferOverflowException
 	 *             if {@code dstBegin+srcEnd-srcBegin} is greater than
 	 *             {@code dst.remaining()}
-	 * @since 1.4
+	 * @since 2.0
 	 */
 	public void getBytes(int srcBegin, int srcEnd, ByteBuffer dst);
 

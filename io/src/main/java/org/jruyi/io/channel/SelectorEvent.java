@@ -11,20 +11,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jruyi.io.common;
 
-import org.jruyi.common.IService;
+package org.jruyi.io.channel;
 
-public final class StopThread implements Runnable {
+final class SelectorEvent {
 
-	private final IService m_service;
+	private SelectorOp m_op;
+	private ISelectableChannel m_channel;
 
-	public StopThread(IService service) {
-		m_service = service;
+	public void op(SelectorOp selectorOp) {
+		m_op = selectorOp;
 	}
 
-	@Override
-	public void run() {
-		m_service.stop();
+	public SelectorOp op() {
+		return m_op;
+	}
+
+	public void channel(ISelectableChannel channel) {
+		m_channel = channel;
+	}
+
+	public ISelectableChannel channel() {
+		final ISelectableChannel channel = m_channel;
+		m_channel = null;
+		return channel;
 	}
 }

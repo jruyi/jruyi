@@ -52,11 +52,9 @@ import org.slf4j.LoggerFactory;
 factory = "tcpserver", //
 service = { IService.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class TcpServer extends Service implements IChannelService,
-		ISessionService {
+public final class TcpServer extends Service implements IChannelService, ISessionService {
 
-	private static final Logger c_logger = LoggerFactory
-			.getLogger(TcpServer.class);
+	private static final Logger c_logger = LoggerFactory.getLogger(TcpServer.class);
 
 	private String m_caption;
 	private Configuration m_conf;
@@ -229,13 +227,6 @@ public final class TcpServer extends Service implements IChannelService,
 
 	@Override
 	public void closeSession(ISession session) {
-		// final ConcurrentHashMap<Object, IChannel> channels = m_channels;
-		// if (channels == null)
-		// return;
-		//
-		// IChannel channel = channels.get(session.id());
-		// if (channel != null)
-		// channel.close();
 		((IChannel) session).close();
 	}
 
@@ -251,17 +242,13 @@ public final class TcpServer extends Service implements IChannelService,
 			return;
 		}
 
-		c_logger.warn(StrUtil.join(session,
-				" failed to send(channel closed): ",
-				StrUtil.getLineSeparator(), msg));
+		c_logger.warn(StrUtil.join(session, " failed to send(channel closed): ", StrUtil.getLineSeparator(), msg));
 
 		if (msg instanceof Closeable) {
 			try {
 				((Closeable) msg).close();
 			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(session,
-						" failed to close message: ",
-						StrUtil.getLineSeparator(), msg), t);
+				c_logger.error(StrUtil.join(session, " failed to close message: ", StrUtil.getLineSeparator(), msg), t);
 			}
 		}
 
@@ -281,8 +268,7 @@ public final class TcpServer extends Service implements IChannelService,
 			bindAddr = InetAddress.getByName(host);
 
 		if (m_channels == null)
-			m_channels = new ConcurrentHashMap<Object, IChannel>(
-					conf.initCapacityOfChannelMap());
+			m_channels = new ConcurrentHashMap<Object, IChannel>(conf.initCapacityOfChannelMap());
 
 		ServerSocketChannel ssc = ServerSocketChannel.open();
 		try {
@@ -299,8 +285,7 @@ public final class TcpServer extends Service implements IChannelService,
 
 			m_acceptor.doAccept(this);
 
-			c_logger.info(StrUtil.join(this, " started, listening on ",
-					socket.getLocalSocketAddress()));
+			c_logger.info(StrUtil.join(this, " started, listening on ", socket.getLocalSocketAddress()));
 		} catch (Exception e) {
 			try {
 				ssc.close();
@@ -324,9 +309,7 @@ public final class TcpServer extends Service implements IChannelService,
 		try {
 			m_ssc.close();
 		} catch (Throwable t) {
-			c_logger.error(
-					StrUtil.join(this, " failed to close ServerSocketChannel"),
-					t);
+			c_logger.error(StrUtil.join(this, " failed to close ServerSocketChannel"), t);
 		}
 		m_ssc = null;
 
@@ -350,8 +333,7 @@ public final class TcpServer extends Service implements IChannelService,
 	}
 
 	@Override
-	protected boolean updateInternal(Map<String, ?> properties)
-			throws Exception {
+	protected boolean updateInternal(Map<String, ?> properties) throws Exception {
 
 		String id = (String) properties.get(IoConstants.SERVICE_ID);
 		m_caption = StrUtil.join("TcpServer[", id, "]");
@@ -435,8 +417,7 @@ public final class TcpServer extends Service implements IChannelService,
 	}
 
 	private void updateConf(Configuration newConf) {
-		String[] newNames = newConf == null ? StrUtil.getEmptyStringArray()
-				: newConf.filters();
+		String[] newNames = newConf == null ? StrUtil.getEmptyStringArray() : newConf.filters();
 		String[] oldNames = StrUtil.getEmptyStringArray();
 		IFilterManager fm = m_fm;
 		if (m_conf == null)
@@ -466,9 +447,8 @@ public final class TcpServer extends Service implements IChannelService,
 		m_channels = null;
 	}
 
-	private static void initSocket(ServerSocket socket, Configuration conf)
-			throws SocketException {
-		Integer[] performancePreferences = conf.performancePreferences();
+	private static void initSocket(ServerSocket socket, Configuration conf) throws SocketException {
+		final Integer[] performancePreferences = conf.performancePreferences();
 		if (performancePreferences != null) {
 			int n = performancePreferences.length;
 			int connectionTime = 0;
@@ -490,7 +470,7 @@ public final class TcpServer extends Service implements IChannelService,
 		if (conf.reuseAddr())
 			socket.setReuseAddress(true);
 
-		Integer recvBufSize = conf.recvBufSize();
+		final Integer recvBufSize = conf.recvBufSize();
 		if (recvBufSize != null)
 			socket.setReceiveBufferSize(recvBufSize);
 	}

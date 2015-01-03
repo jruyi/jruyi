@@ -41,7 +41,7 @@ public interface IFilter<I, O> {
 	 * are adequate to tell the length of the whole message.
 	 * 
 	 * @return the minimum size of a message
-	 * @since 1.4
+	 * @since 2.0
 	 */
 	public int msgMinSize();
 

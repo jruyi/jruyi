@@ -142,7 +142,7 @@ public final class Conf {
 			boolean modified = false;
 			final Dictionary<String, Object> oldProps = conf.getProperties();
 			Properties newProps = new Properties(props);
-			for (Enumeration e = oldProps.keys(); e.hasMoreElements();) {
+			for (Enumeration<String> e = oldProps.keys(); e.hasMoreElements();) {
 				final String key = (String) e.nextElement();
 				if (removedProps == null || !removedProps.contains(key)) {
 					if (!props.containsKey(key))

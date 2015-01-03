@@ -4,41 +4,41 @@
 	xsi:schemaLocation="http://www.jruyi.org/schema/jruyi/bootstrap/1.0 http://www.jruyi.org/schema/jruyi/bootstrap_1_0.xsd">
 
 	<framework url="\${jruyi.bundle.base.url}org.apache.felix.framework-${felixFrameworkVersion}.jar">
-		<!-- OSGi Framework Properties -->
-		<!--
+		<!-- OSGi Framework Properties
 		<property name="org.osgi.framework.system.packages.extra">
+			sun.misc
 		</property>
 		-->
-		<!-- CLI bindAddr -->
-		<!--
+		<!-- CLID bindAddr
 		<property name="jruyi.clid.bindAddr">localhost</property>
+		-->
+		<!-- CLID port
 		<property name="jruyi.clid.port">6060</property>
 		-->
-		<!-- customized brand -->
-		<!--
+		<!-- Customized brand
 		<property name="jruyi.clid.branding.url">\${jruyi.inst.conf.url}branding.properties</property>
 		-->
 	</framework>
 
-	<bundle startLevel="1" url="\${jruyi.bundle.base.url}org.jruyi.osgi.log-${jruyiOsgiLogVersion}.jar" />
+	<bundle startLevel="1" url="\${jruyi.bundle.base.url}org.jruyi.osgi.log-${jruyiOsgiLogVersion}.jar"/>
 
 	<bundles startLevel="2">
-		<bundle url="\${jruyi.bundle.base.url}org.apache.felix.metatype-${felixMetatypeVersion}.jar" />
-		<bundle url="\${jruyi.bundle.base.url}org.apache.felix.configadmin-${felixConfigAdminVersion}.jar" />
+		<bundle url="\${jruyi.bundle.base.url}org.apache.felix.metatype-${felixMetatypeVersion}.jar"/>
+		<bundle url="\${jruyi.bundle.base.url}org.apache.felix.configadmin-${felixConfigAdminVersion}.jar"/>
 	</bundles>
 
-	<bundle startLevel="3" url="\${jruyi.bundle.base.url}org.apache.felix.scr-${felixScrVersion}.jar" />
+	<bundle startLevel="3" url="\${jruyi.bundle.base.url}org.apache.felix.scr-${felixScrVersion}.jar"/>
 
-	<bundle url="\${jruyi.bundle.base.url}org.jruyi.common-${jruyiCommonVersion}.jar" />
-	<bundle url="\${jruyi.bundle.base.url}org.jruyi.workshop-${jruyiWorkshopVersion}.jar" />
-	<bundle url="\${jruyi.bundle.base.url}org.jruyi.timeoutadmin-${jruyiTimeoutAdminVersion}.jar" />
-	<bundle url="\${jruyi.bundle.base.url}org.jruyi.me-${jruyiMeVersion}.jar" />
-	<bundle url="\${jruyi.bundle.base.url}org.jruyi.io-${jruyiIoVersion}.jar" />
+	<bundle url="\${jruyi.bundle.base.url}org.jruyi.common-${jruyiCommonVersion}.jar"/>
+	<bundle url="\${jruyi.bundle.base.url}org.jruyi.workshop-${jruyiWorkshopVersion}.jar"/>
+	<bundle url="\${jruyi.bundle.base.url}org.jruyi.timeoutadmin-${jruyiTimeoutAdminVersion}.jar"/>
+	<bundle url="\${jruyi.bundle.base.url}org.jruyi.me-${jruyiMeVersion}.jar"/>
+	<bundle url="\${jruyi.bundle.base.url}org.jruyi.io-${jruyiIoVersion}.jar"/>
 
 	<bundles startLevel="10">
-		<bundle url="\${jruyi.bundle.base.url}org.apache.felix.gogo.runtime-${felixGogoRuntimeVersion}.jar" />
-		<bundle url="\${jruyi.bundle.base.url}org.jruyi.cmd-${jruyiCmdVersion}.jar" />
-		<bundle url="\${jruyi.bundle.base.url}org.jruyi.clid-${jruyiClidVersion}.jar" />
+		<bundle url="\${jruyi.bundle.base.url}org.apache.felix.gogo.runtime-${felixGogoRuntimeVersion}.jar"/>
+		<bundle url="\${jruyi.bundle.base.url}org.jruyi.cmd-${jruyiCmdVersion}.jar"/>
+		<bundle url="\${jruyi.bundle.base.url}org.jruyi.clid-${jruyiClidVersion}.jar"/>
 	</bundles>
 
 </bootstrap>

@@ -11,25 +11,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.channel;
 
-import org.jruyi.timeoutadmin.ITimeoutNotifier;
+import com.lmax.disruptor.EventFactory;
 
-import java.nio.ByteBuffer;
+final class IoEventFactory implements EventFactory<IoEvent> {
 
-public interface IChannelAdmin {
+	static final IoEventFactory INST = new IoEventFactory();
 
-	public void onRegisterRequired(ISelectableChannel channel);
+	private IoEventFactory() {
+	}
 
-	public void onConnectRequired(ISelectableChannel channel);
-
-	public void onAccept(ISelectableChannel channel);
-
-	public void performIoTask(IIoTask task, Object msg);
-
-	public ITimeoutNotifier createTimeoutNotifier(ISelectableChannel channel);
-
-	public ByteBuffer recvDirectBuffer();
-
-	public ByteBuffer sendDirectBuffer();
+	@Override
+	public IoEvent newInstance() {
+		return new IoEvent();
+	}
 }

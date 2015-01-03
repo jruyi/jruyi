@@ -13,6 +13,10 @@ This product includes software(JLine) developed at
 JLine (http://jline.github.io/jline2/).
 Licensed under the BSD License.
 
+This product includes software(Disruptor) developed at
+The LMAX Exchange (http://www.lmax.com/).
+Licensed under the Apache License 2.0.
+
 This product includes software(Log4j 2) developed at
 The Apache Software Foundation (http://www.apache.org/).
 Licensed under the Apache License 2.0.

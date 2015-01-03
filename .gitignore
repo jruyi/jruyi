@@ -26,3 +26,17 @@ target
 /timeoutadmin/build
 /workshop/build
 
+/bin
+/api/bin
+/cli/bin
+/clid/bin
+/cmd/bin
+/common/bin
+/io/bin
+/launcher/bin
+/me/bin
+/osgi-log/bin
+/system/bin
+/timeoutadmin/bin
+/workshop/bin
+

@@ -20,34 +20,47 @@ import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 
 import org.jruyi.common.StrUtil;
+import org.jruyi.io.IFilter;
 import org.jruyi.io.channel.IChannel;
+import org.jruyi.io.channel.IIoTask;
+import org.jruyi.io.channel.IIoWorker;
 import org.jruyi.io.channel.ISelectableChannel;
 import org.jruyi.io.channel.ISelector;
 import org.jruyi.io.udp.UdpChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class UdpServerChannel implements ISelectableChannel, Runnable {
+final class UdpServerChannel implements ISelectableChannel, IIoTask {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(UdpServerChannel.class);
-	private static final Long ID = 0L;
+	private static long s_sequence = -99L;
+	private final Long m_id;
 	private final UdpServer m_udpServer;
 	private final DatagramChannel m_datagramChannel;
 	private final SocketAddress m_localAddr;
 	private SelectionKey m_selectionKey;
+	private IIoWorker m_ioWorker;
+
+	public UdpServerChannel(UdpServer udpServer, DatagramChannel datagramChannel, SocketAddress localAddr) {
+		m_id = s_sequence++;
+		m_udpServer = udpServer;
+		m_datagramChannel = datagramChannel;
+		m_localAddr = localAddr;
+	}
 
 	@Override
 	public Long id() {
-		return ID;
+		return m_id;
 	}
 
 	// runs on read
+
 	@Override
-	public void run() {
-		UdpServer server = m_udpServer;
+	public void run(Object msg, IFilter<?, ?>[] filters, int filterCount) {
+		final UdpServer server = m_udpServer;
 		try {
 			final ByteBuffer bb = server.getChannelAdmin().recvDirectBuffer();
-			SocketAddress remoteAddr = m_datagramChannel.receive(bb);
+			final SocketAddress remoteAddr = m_datagramChannel.receive(bb);
 
 			IChannel channel = server.getChannel(remoteAddr);
 			if (channel == null) {
@@ -68,12 +81,6 @@ final class UdpServerChannel implements ISelectableChannel, Runnable {
 		}
 	}
 
-	public UdpServerChannel(UdpServer udpServer, DatagramChannel datagramChannel, SocketAddress localAddr) {
-		m_udpServer = udpServer;
-		m_datagramChannel = datagramChannel;
-		m_localAddr = localAddr;
-	}
-
 	@Override
 	public void close() {
 		m_udpServer.stop();
@@ -85,12 +92,22 @@ final class UdpServerChannel implements ISelectableChannel, Runnable {
 	}
 
 	@Override
-	public Runnable onRead() {
-		return this;
+	public void onAccept() {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public Runnable onWrite() {
+	public void ioWorker(IIoWorker ioWorker) {
+		m_ioWorker = ioWorker;
+	}
+
+	@Override
+	public void onRead() {
+		m_ioWorker.perform(this);
+	}
+
+	@Override
+	public void onWrite() {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

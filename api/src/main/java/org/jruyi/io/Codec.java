@@ -51,7 +51,7 @@ public final class Codec {
 		 * Returns a {@code ByteBuffer} codec.
 		 * 
 		 * @return a {@code ByteBuffer} codec
-		 * @since 1.4
+		 * @since 2.0
 		 */
 		public ICodec<ByteBuffer> byteBuffer();
 
@@ -236,7 +236,7 @@ public final class Codec {
 	 * Returns a {@code ByteBuffer} codec.
 	 *
 	 * @return a {@code ByteBuffer} codec
-	 * @since 1.4
+	 * @since 2.0
 	 */
 	public static ICodec<ByteBuffer> byteBuffer() {
 		return c_provider.byteBuffer();

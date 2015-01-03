@@ -2737,7 +2737,7 @@ public final class BytesBuilder implements Serializable, IByteSequence, ICloseab
 	 * @return number of bytes read from the given {@code in}
 	 * @throws IOException
 	 *             if any IO error occurs
-	 * @since 1.4
+	 * @since 2.0
 	 */
 	public int read(InputStream in) throws IOException {
 		byte[] value = m_value;

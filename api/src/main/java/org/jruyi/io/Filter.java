@@ -29,7 +29,7 @@ public abstract class Filter<I, O> implements IFilter<I, O> {
 	 * Returns {@code 0} to indicate no min size restriction.
 	 * 
 	 * @return zero
-	 * @since 1.4
+	 * @since 2.0
 	 */
 	@Override
 	public int msgMinSize() {

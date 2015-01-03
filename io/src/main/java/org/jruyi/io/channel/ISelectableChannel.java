@@ -21,9 +21,13 @@ public interface ISelectableChannel extends ICloseable {
 
 	public void onConnect();
 
-	public Runnable onRead();
+	public void onAccept();
 
-	public Runnable onWrite();
+	public void onRead();
+
+	public void onWrite();
+
+	public void ioWorker(IIoWorker ioWorker);
 
 	public void onException(Throwable t);
 

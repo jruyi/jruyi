@@ -45,8 +45,7 @@ class TcpClientConf extends TcpChannelConf {
 		super.initialize(properties);
 
 		addr((String) properties.get("addr"));
-		connectTimeoutInSeconds((Integer) properties
-				.get("connectTimeoutInSeconds"));
+		connectTimeoutInSeconds((Integer) properties.get("connectTimeoutInSeconds"));
 		readTimeoutInSeconds((Integer) properties.get("readTimeoutInSeconds"));
 	}
 
@@ -63,8 +62,7 @@ class TcpClientConf extends TcpChannelConf {
 	}
 
 	public final void connectTimeoutInSeconds(Integer connectTimeoutInSeconds) {
-		m_connectTimeoutInSeconds = connectTimeoutInSeconds == null ? 10
-				: connectTimeoutInSeconds;
+		m_connectTimeoutInSeconds = connectTimeoutInSeconds == null ? 6 : connectTimeoutInSeconds;
 	}
 
 	public final Integer readTimeoutInSeconds() {
@@ -72,12 +70,10 @@ class TcpClientConf extends TcpChannelConf {
 	}
 
 	public final void readTimeoutInSeconds(Integer readTimeoutInSeconds) {
-		m_readTimeoutInSeconds = readTimeoutInSeconds == null ? 10
-				: readTimeoutInSeconds;
+		m_readTimeoutInSeconds = readTimeoutInSeconds == null ? 30 : readTimeoutInSeconds;
 	}
 
-	public final boolean isMandatoryChanged(TcpClientConf newConf)
-			throws Exception {
+	public final boolean isMandatoryChanged(TcpClientConf newConf) throws Exception {
 		for (Method m : c_mProps) {
 			Object v1 = m.invoke(this);
 			Object v2 = m.invoke(newConf);
