@@ -1,0 +1,24 @@
+# Scheduler
+if {not {conf:exists jruyi.common.scheduler}} {
+	conf:create jruyi.common.scheduler
+}
+
+# TimeoutAdmin
+if {not {conf:exists jruyi.timeoutadmin}} {
+	conf:create jruyi.timeoutadmin
+}
+
+# ChannelAdmin
+if {not {conf:exists jruyi.io.channeladmin}} {
+	conf:create jruyi.io.channeladmin
+}
+
+# ExecutorService, Thread Pool Executor
+if {not {conf:exists jruyi.tpe}} {
+	conf:create jruyi.tpe
+}
+
+# MessagingEngine
+if {not {conf:exists jruyi.me.mq}} {
+	conf:create jruyi.me.mq
+}

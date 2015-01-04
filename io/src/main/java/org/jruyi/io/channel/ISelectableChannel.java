@@ -33,5 +33,5 @@ public interface ISelectableChannel extends ICloseable {
 
 	public void interestOps(int ops);
 
-	public void register(ISelector selector, int ops);
+	public void register(ISelector selector, int ops) throws Throwable;
 }

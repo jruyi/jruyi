@@ -13,24 +13,39 @@
  */
 package org.jruyi.timeoutadmin.internal;
 
+import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.jruyi.common.BiListNode;
 import org.jruyi.common.IScheduler;
+import org.jruyi.common.StrUtil;
 import org.jruyi.timeoutadmin.ITimeoutAdmin;
 import org.jruyi.timeoutadmin.ITimeoutNotifier;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Component(name = "jruyi.timeoutadmin", //
-configurationPolicy = ConfigurationPolicy.IGNORE, //
-xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
+@Component(name = "jruyi.timeoutadmin", xmlns = "http://www.osgi.org/xmlns/scr/v1.2.0")
 public final class TimeoutAdmin implements ITimeoutAdmin {
+
+	private static final Logger c_logger = LoggerFactory.getLogger(TimeoutAdmin.class);
+
+	private static final String P_ALLOW_CORETHREAD_TIMEOUT = "allowCoreThreadTimeOut";
+	private static final String P_CORE_POOLSIZE = "corePoolSize";
+	private static final String P_MAX_POOLSIZE = "maxPoolSize";
+	private static final String P_KEEPALIVE_TIME = "keepAliveTimeInSeconds";
+	private static final String P_QUEUE_CAPACITY = "queueCapacity";
+	private static final String P_TERM_WAITTIME = "terminationWaitTimeInSeconds";
 
 	// 1 hour
 	private static final int SCALE = 60 * 60;
@@ -43,7 +58,9 @@ public final class TimeoutAdmin implements ITimeoutAdmin {
 	private TimeWheel m_tw2;
 
 	private IScheduler m_scheduler;
-	private Executor m_executor;
+	private ThreadPoolExecutor m_executor;
+	private int m_queueCapacity = 2048;
+	private int m_terminationWaitTime = 60;
 
 	static {
 		int n = 1;
@@ -54,6 +71,19 @@ public final class TimeoutAdmin implements ITimeoutAdmin {
 		for (int i = (COVER_DAYS * 24 * 60 * 60 + UNIT_TW2 - 1) / UNIT_TW2 + 1; i != 0; i >>= 1)
 			n <<= 1;
 		SCALE_TW2 = n;
+	}
+
+	static final class DeliveryThreadFactory implements ThreadFactory {
+
+		static final DeliveryThreadFactory INST = new DeliveryThreadFactory();
+
+		private DeliveryThreadFactory() {
+		}
+
+		@Override
+		public Thread newThread(Runnable r) {
+			return new Thread(r, "jruyi-to-delivery");
+		}
 	}
 
 	final class TimeWheel implements Runnable {
@@ -93,7 +123,6 @@ public final class TimeoutAdmin implements ITimeoutAdmin {
 			final BiListNode<TimeoutEvent> begin = wheel[hand];
 			final BiListNode<TimeoutEvent> end = wheel[nextHand];
 			BiListNode<TimeoutEvent> node;
-
 			while ((node = begin.next()) != end) {
 				final TimeoutNotifier notifier;
 				final TimeoutEvent event = node.get();
@@ -151,17 +180,52 @@ public final class TimeoutAdmin implements ITimeoutAdmin {
 			m_scheduler = null;
 	}
 
-	@Reference(name = "executor", policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.OPTIONAL)
-	synchronized void setExecutor(Executor executor) {
-		m_executor = executor;
+	@Modified
+	void modified(Map<String, ?> properties) throws Exception {
+		final ThreadPoolExecutor executor = m_executor;
+		final boolean allowCoreThreadTimeOut = getAllowCoreThreadTimeOut(properties);
+		final int keepAliveTime = getKeepAliveTime(properties, (int) executor.getKeepAliveTime(TimeUnit.SECONDS));
+		final int corePoolSize = getCorePoolSize(properties);
+		final int maxPoolSize = getMaxPoolSize(properties, corePoolSize);
+		final int queueCapacity = getQueueCapacity(properties);
+		final int terminationWaitTime = getTerminationWaitTime(properties);
+
+		final int oldQueueCapacity = m_queueCapacity;
+		if (queueCapacity != oldQueueCapacity && (queueCapacity >= 0 || oldQueueCapacity >= 0)) {
+			m_executor = newExecutor(corePoolSize, maxPoolSize, keepAliveTime, queueCapacity, allowCoreThreadTimeOut);
+			m_queueCapacity = queueCapacity;
+			executor.shutdown();
+		} else {
+			executor.allowCoreThreadTimeOut(allowCoreThreadTimeOut);
+			if (corePoolSize > executor.getMaximumPoolSize()) {
+				executor.setMaximumPoolSize(maxPoolSize);
+				executor.setCorePoolSize(corePoolSize);
+			} else {
+				executor.setCorePoolSize(corePoolSize);
+				executor.setMaximumPoolSize(maxPoolSize);
+			}
+			executor.setKeepAliveTime(keepAliveTime, TimeUnit.SECONDS);
+		}
+
+		m_terminationWaitTime = terminationWaitTime;
+
+		c_logger.info(StrUtil.join("TimeoutAdmin was updated: ", this));
 	}
 
-	synchronized void unsetExecutor(Executor executor) {
-		if (m_executor == executor)
-			m_executor = null;
-	}
+	void activate(Map<String, ?> properties) throws Throwable {
 
-	void activate() {
+		final boolean allowCoreThreadTimeOut = getAllowCoreThreadTimeOut(properties);
+		final int keepAliveTime = getKeepAliveTime(properties, 10);
+		final int corePoolSize = getCorePoolSize(properties);
+		final int maxPoolSize = getMaxPoolSize(properties, corePoolSize);
+		final int queueCapacity = getQueueCapacity(properties);
+		final int terminationWaitTime = getTerminationWaitTime(properties);
+
+		m_executor = newExecutor(corePoolSize, maxPoolSize, keepAliveTime, queueCapacity, allowCoreThreadTimeOut);
+		m_executor.allowCoreThreadTimeOut(allowCoreThreadTimeOut);
+		m_queueCapacity = queueCapacity;
+		m_terminationWaitTime = terminationWaitTime;
+
 		m_list = new LinkedList<TimeoutEvent>();
 
 		final TimeWheel tw1 = new TimeWheel(UNIT_TW2 * 2);
@@ -171,12 +235,32 @@ public final class TimeoutAdmin implements ITimeoutAdmin {
 		scheduler.scheduleAtFixedRate(tw2, UNIT_TW2, UNIT_TW2, TimeUnit.SECONDS);
 		m_tw1 = tw1;
 		m_tw2 = tw2;
+
+		c_logger.info("TimeoutAdmin activated");
 	}
 
 	void deactivate() {
+		c_logger.info("Deactivating TimeoutAdmin...");
+
+		try {
+			m_executor.shutdown();
+			if (m_executor.awaitTermination(m_terminationWaitTime, TimeUnit.SECONDS))
+				c_logger.debug("Timeout delivery executor terminated");
+			else
+				c_logger.debug("Termination of timeout delivery executor timed out");
+		} catch (InterruptedException e) {
+			c_logger.warn("Going here is abnormal");
+		} catch (Throwable t) {
+			c_logger.error("TimeoutAdmin Deactivation Error", t);
+		} finally {
+			m_executor = null;
+		}
+
 		m_tw2 = null;
 		m_tw1 = null;
 		m_list = null;
+
+		c_logger.info("TimeoutAdmin deactivated");
 	}
 
 	void schedule(TimeoutNotifier notifier, int timeout) {
@@ -222,8 +306,67 @@ public final class TimeoutAdmin implements ITimeoutAdmin {
 		final ReentrantLock lock = event.getTimeWheel().getLock(event.getIndex());
 		m_list.syncRemove(node, lock);
 
-		final Executor executor = m_executor;
+		final Executor executor = notifier.getExecutor();
 		if (executor != null)
 			executor.execute(event);
+		else
+			m_executor.execute(event);
+	}
+
+	private static boolean getAllowCoreThreadTimeOut(Map<String, ?> properties) {
+		final Object v = properties.get(P_ALLOW_CORETHREAD_TIMEOUT);
+		return v == null ? true : (Boolean) v;
+	}
+
+	private static int getCorePoolSize(Map<String, ?> properties) {
+		final Object v = properties.get(P_CORE_POOLSIZE);
+		return v == null ? 1 : (Integer) v;
+	}
+
+	private static int getMaxPoolSize(Map<String, ?> properties, int corePoolSize) throws Exception {
+		final Object v = properties.get(P_MAX_POOLSIZE);
+		int maxPoolSize = v == null ? 4 : (Integer) v;
+		if (maxPoolSize < corePoolSize)
+			throw new Exception("Property[" + P_MAX_POOLSIZE + "] cannot be less than Property[" + P_CORE_POOLSIZE
+					+ "]");
+
+		return maxPoolSize;
+	}
+
+	private static Integer getKeepAliveTime(Map<String, ?> properties, Integer defaultValue) throws Exception {
+		final Integer keepAliveTime = (Integer) properties.get(P_KEEPALIVE_TIME);
+		if (keepAliveTime == null)
+			return defaultValue;
+
+		if (keepAliveTime < 0)
+			throw new Exception("Property[" + P_KEEPALIVE_TIME + "] has to be non-negative");
+		return keepAliveTime;
+	}
+
+	private Integer getTerminationWaitTime(Map<String, ?> properties) {
+		final Integer terminationWaitTime = (Integer) properties.get(P_TERM_WAITTIME);
+		if (terminationWaitTime == null)
+			return m_terminationWaitTime;
+
+		return terminationWaitTime;
+	}
+
+	private Integer getQueueCapacity(Map<String, ?> properties) {
+		final Integer queueCapacity = (Integer) properties.get(P_QUEUE_CAPACITY);
+		if (queueCapacity == null)
+			return m_queueCapacity;
+
+		return queueCapacity;
+	}
+
+	private static ThreadPoolExecutor newExecutor(int corePoolSize, int maxPoolSize, long keepAliveTime,
+			int queueCapacity, boolean allowCoreThreadTimeOut) {
+		final ThreadPoolExecutor executor = new ThreadPoolExecutor(corePoolSize, maxPoolSize, keepAliveTime,
+				TimeUnit.SECONDS, queueCapacity < 0 ? new LinkedBlockingQueue<Runnable>()
+						: (queueCapacity > 0 ? new ArrayBlockingQueue<Runnable>(queueCapacity)
+								: new SynchronousQueue<Runnable>()), DeliveryThreadFactory.INST,
+				new ThreadPoolExecutor.CallerRunsPolicy());
+		executor.allowCoreThreadTimeOut(allowCoreThreadTimeOut);
+		return executor;
 	}
 }

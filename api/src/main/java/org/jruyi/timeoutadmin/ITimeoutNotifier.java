@@ -11,7 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.timeoutadmin;
+
+import java.util.concurrent.Executor;
 
 /**
  * A {@code ITimeoutNotifier} is used to schedule a timeout notification of the
@@ -112,4 +115,14 @@ public interface ITimeoutNotifier {
 	 *            the notification receiver
 	 */
 	public void setListener(ITimeoutListener listener);
+
+	/**
+	 * Sets the executor that is used to deliver timeout notifications from this
+	 * notifier.
+	 * 
+	 * @param executor
+	 *            the executor to set
+	 * @since 2.0
+	 */
+	public void setExecutor(Executor executor);
 }

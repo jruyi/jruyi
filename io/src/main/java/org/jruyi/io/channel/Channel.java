@@ -42,23 +42,22 @@ import org.jruyi.timeoutadmin.ITimeoutNotifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class Channel implements IChannel, IDumpable, IIoTask {
+public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(Channel.class);
 	private static final AtomicLong c_sequence = new AtomicLong(0L);
 	private final Long m_id;
 	private final IChannelService m_channelService;
+	private final AtomicBoolean m_closed;
 	private ConcurrentHashMap<String, Object> m_attributes;
 	private IdentityHashMap<Object, Object> m_storage;
 	private Object m_attachment;
-	private final AtomicBoolean m_closed;
 	private ISelector m_selector;
 	private IIoWorker m_ioWorker;
 	private SelectionKey m_selectionKey;
 	private ITimeoutNotifier m_timeoutNotifier;
 	private ReadThread m_readThread;
 	private WriteThread m_writeThread;
-	private WriteThreadFinal m_writeThreadFinal;
 
 	static final class MsgArrayList implements ICloseable, IFilterOutput {
 
@@ -87,10 +86,6 @@ public abstract class Channel implements IChannel, IDumpable, IIoTask {
 
 		void size(int newSize) {
 			m_size = newSize;
-		}
-
-		Object[] msgs() {
-			return m_msgs;
 		}
 
 		Object take(int index) {
@@ -191,7 +186,7 @@ public abstract class Channel implements IChannel, IDumpable, IIoTask {
 		}
 	}
 
-	static final class ReadThread implements IIoTask {
+	static final class ReadThread implements Runnable {
 
 		private final Channel m_channel;
 
@@ -200,7 +195,7 @@ public abstract class Channel implements IChannel, IDumpable, IIoTask {
 		}
 
 		@Override
-		public void run(Object msg, IFilter<?, ?>[] filters, int filterCount) {
+		public void run() {
 			final Channel channel = m_channel;
 			final IChannelService cs = channel.channelService();
 			final ByteBuffer bb = cs.getChannelAdmin().recvDirectBuffer();
@@ -252,30 +247,119 @@ public abstract class Channel implements IChannel, IDumpable, IIoTask {
 		}
 	}
 
+	static final class OutMsg implements ICloseable {
+
+		private static final IThreadLocalCache<OutMsg> c_cache = ThreadLocalCache.weakLinkedCache();
+
+		private Object m_msg;
+		private IFilter<?, ?>[] m_filters;
+		private int m_filterCount;
+
+		private OutMsg() {
+		}
+
+		static OutMsg get(Object msg, IFilter<?, ?>[] filters, int filterCount) {
+			OutMsg outMsg = c_cache.take();
+			if (outMsg == null)
+				outMsg = new OutMsg();
+
+			outMsg.m_msg = msg;
+			outMsg.m_filters = filters;
+			outMsg.m_filterCount = filterCount;
+
+			return outMsg;
+		}
+
+		Object attachMsg(Object msg) {
+			final Object oldMsg = m_msg;
+			m_msg = msg;
+			return oldMsg;
+		}
+
+		IFilter<?, ?>[] attachFilters(IFilter<?, ?>[] filters) {
+			final IFilter<?, ?>[] oldFilters = m_filters;
+			m_filters = filters;
+			return oldFilters;
+		}
+
+		int attachFilterCount(int filterCount) {
+			final int oldFilterCount = m_filterCount;
+			m_filterCount = filterCount;
+			return oldFilterCount;
+		}
+
+		Object msg() {
+			return m_msg;
+		}
+
+		IFilter<?, ?>[] filters() {
+			return m_filters;
+		}
+
+		int filterCount() {
+			return m_filterCount;
+		}
+
+		@Override
+		public void close() {
+			m_msg = null;
+			m_filters = null;
+			c_cache.put(this);
+		}
+	}
+
 	static final class WriteThread implements IIoTask {
 
 		private final Channel m_channel;
+		private final LinkedQueue<OutMsg> m_queue;
+		private IBuffer m_data;
+		private Object m_msg;
 
 		WriteThread(Channel channel) {
 			m_channel = channel;
+			m_queue = new LinkedQueue<OutMsg>();
 		}
 
 		@Override
 		public void run(Object msg, IFilter<?, ?>[] filters, int filterCount) {
 			final Channel channel = m_channel;
+			final boolean newMsg;
+			IBuffer data = m_data;
+			if (data == null) {
+				final OutMsg outMsg = m_queue.poll();
+				if (outMsg != null) {
+					if (msg != null) {
+						msg = outMsg.attachMsg(msg);
+						filters = outMsg.attachFilters(filters);
+						filterCount = outMsg.attachFilterCount(filterCount);
+						m_queue.put(outMsg);
+					} else {
+						msg = outMsg.msg();
+						filters = outMsg.filters();
+						filterCount = outMsg.filterCount();
+						outMsg.close();
+					}
+				}
+
+				try {
+					data = filter(msg, filters, filterCount, channel);
+				} catch (Throwable t) {
+					if (!channel.isClosed())
+						channel.onException(t);
+					return;
+				}
+				if (data == null)
+					return;
+				newMsg = true;
+			} else {
+				m_queue.put(OutMsg.get(msg, filters, filterCount));
+				newMsg = false;
+				msg = m_msg;
+			}
+
 			final IChannelService cs = channel.channelService();
 			final ByteBuffer bb = cs.getChannelAdmin().sendDirectBuffer();
 			final WritableByteChannel wbc = channel.writableByteChannel();
-			IBuffer data;
-			try {
-				data = filter(msg, filters, filterCount, channel);
-			} catch (Throwable t) {
-				if (!channel.isClosed())
-					channel.onException(t);
-				return;
-			}
-			if (data == null)
-				return;
 			try {
 				while (!data.isEmpty()) {
 					data.mark();
@@ -289,7 +373,10 @@ public abstract class Channel implements IChannel, IDumpable, IIoTask {
 							data.reset();
 							data.skip(len);
 							data.compact();
-							channel.createWriteThreadFinal().put(WriteTask.get(data, msg));
+							if (newMsg) {
+								m_data = data;
+								m_msg = msg;
+							}
 							channel.onWriteRequired();
 							return;
 						}
@@ -297,12 +384,20 @@ public abstract class Channel implements IChannel, IDumpable, IIoTask {
 					bb.clear();
 				}
 				cs.onMessageSent(channel, msg);
-				data.close();
+				clear(newMsg, data);
 			} catch (Throwable t) {
-				data.close();
+				clear(newMsg, data);
 				if (!channel.isClosed())
 					channel.onException(t);
 			}
+		}
+
+		private void clear(boolean newMsg, IBuffer data) {
+			if (!newMsg) {
+				m_data = null;
+				m_msg = null;
+			}
+			data.close();
 		}
 
 		private IBuffer filter(Object msg, IFilter<?, ?>[] filterArray, int index, Channel channel) {
@@ -393,7 +488,7 @@ public abstract class Channel implements IChannel, IDumpable, IIoTask {
 		}
 	}
 
-	static final class WriteThreadFinal implements IIoTask {
+	static final class WriteThreadFinal implements Runnable {
 
 		private final Channel m_channel;
 		private final LinkedQueue<WriteTask> m_queue;
@@ -408,7 +503,7 @@ public abstract class Channel implements IChannel, IDumpable, IIoTask {
 		}
 
 		@Override
-		public void run(Object msg, IFilter<?, ?>[] filters, int filterCount) {
+		public void run() {
 			final Channel channel = m_channel;
 			final IChannelService cs = channel.channelService();
 			final ByteBuffer bb = cs.getChannelAdmin().sendDirectBuffer();
@@ -499,10 +594,9 @@ public abstract class Channel implements IChannel, IDumpable, IIoTask {
 	}
 
 	@Override
-	public final void run(Object msg, IFilter<?, ?>[] filters, int filterCount) {
+	public final void run() {
 		final IChannelService channelService = m_channelService;
 		try {
-			m_attributes = new ConcurrentHashMap<String, Object>();
 			m_storage = new IdentityHashMap<Object, Object>();
 
 			onAccepted();
@@ -535,6 +629,7 @@ public abstract class Channel implements IChannel, IDumpable, IIoTask {
 			return false;
 
 		timeoutNotifier.setListener(IdleTimeoutListener.INST);
+		timeoutNotifier.setExecutor(m_ioWorker);
 		return timeoutNotifier.schedule(timeout);
 	}
 
@@ -545,6 +640,7 @@ public abstract class Channel implements IChannel, IDumpable, IIoTask {
 			return false;
 
 		timeoutNotifier.setListener(ConnectTimeoutListener.INST);
+		timeoutNotifier.setExecutor(m_ioWorker);
 		return timeoutNotifier.schedule(timeout);
 	}
 
@@ -555,6 +651,7 @@ public abstract class Channel implements IChannel, IDumpable, IIoTask {
 			return false;
 
 		timeoutNotifier.setListener(ReadTimeoutListener.INST);
+		timeoutNotifier.setExecutor(m_ioWorker);
 		return timeoutNotifier.schedule(timeout);
 	}
 
@@ -643,17 +740,22 @@ public abstract class Channel implements IChannel, IDumpable, IIoTask {
 
 	@Override
 	public final Object get(String name) {
-		return m_attributes.get(name);
+		return m_attributes == null ? null : m_attributes.get(name);
 	}
 
 	@Override
 	public final Object put(String name, Object value) {
-		return m_attributes.put(name, value);
+		ConcurrentHashMap<String, Object> attributes = m_attributes;
+		if (attributes == null) {
+			attributes = new ConcurrentHashMap<String, Object>();
+			m_attributes = attributes;
+		}
+		return attributes.put(name, value);
 	}
 
 	@Override
 	public final Object remove(String name) {
-		return m_attributes.remove(name);
+		return m_attributes == null ? null : m_attributes.remove(name);
 	}
 
 	@Override
@@ -686,29 +788,20 @@ public abstract class Channel implements IChannel, IDumpable, IIoTask {
 	}
 
 	@Override
-	public final void register(ISelector selector, int ops) {
-		try {
-			m_selectionKey = selectableChannel().register(selector.selector(), ops, this);
-			m_selector = selector;
-		} catch (Throwable t) {
-			// Ignore
-		}
+	public final void register(ISelector selector, int ops) throws Throwable {
+		m_selectionKey = selectableChannel().register(selector.selector(), ops, this);
+		m_selector = selector;
 	}
 
 	@Override
 	public final void interestOps(int ops) {
 		final SelectionKey selectionKey = m_selectionKey;
-		try {
-			selectionKey.interestOps(selectionKey.interestOps() | ops);
-		} catch (Throwable t) {
-			// Ignore
-		}
+		selectionKey.interestOps(selectionKey.interestOps() | ops);
 	}
 
 	@Override
 	public final void connect(int timeout) {
 		try {
-			m_attributes = new ConcurrentHashMap<String, Object>();
 			m_storage = new IdentityHashMap<Object, Object>();
 
 			final IChannelAdmin ca = m_channelService.getChannelAdmin();
@@ -736,7 +829,7 @@ public abstract class Channel implements IChannel, IDumpable, IIoTask {
 
 	@Override
 	public final void onRead() {
-		m_ioWorker.perform(m_readThread);
+		m_ioWorker.execute(m_readThread);
 	}
 
 	@Override
@@ -771,7 +864,7 @@ public abstract class Channel implements IChannel, IDumpable, IIoTask {
 
 	@Override
 	public final void onAccept() {
-		m_ioWorker.perform(this);
+		m_ioWorker.execute(this);
 	}
 
 	protected abstract SelectableChannel selectableChannel();
@@ -1075,22 +1168,12 @@ public abstract class Channel implements IChannel, IDumpable, IIoTask {
 		return true;
 	}
 
-	private WriteThread createWriteThread() {
-		if (m_writeThread == null)
-			m_writeThread = new WriteThread(this);
-		return m_writeThread;
+	private void createWriteThread() {
+		m_writeThread = new WriteThread(this);
 	}
 
-	private ReadThread createReadThread() {
-		if (m_readThread == null)
-			m_readThread = new ReadThread(this);
-		return m_readThread;
-	}
-
-	private WriteThreadFinal createWriteThreadFinal() {
-		if (m_writeThreadFinal == null)
-			m_writeThreadFinal = new WriteThreadFinal(this);
-		return m_writeThreadFinal;
+	private void createReadThread() {
+		m_readThread = new ReadThread(this);
 	}
 
 	private long generateId() {

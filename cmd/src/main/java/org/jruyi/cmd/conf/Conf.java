@@ -62,19 +62,18 @@ public final class Conf {
 	 * @throws Exception
 	 */
 	public void create(String id, String[] args) throws Exception {
-
+		Properties props;
 		if (args == null || args.length < 1) {
-			RuyiCmd.INST.help("conf:create");
-			return;
-		}
+			props = new Properties(1);
+		} else {
+			props = new Properties(args.length);
+			for (String arg : args) {
+				int i = arg.indexOf('=');
+				if (i < 1 || i >= arg.length() - 1)
+					continue;
 
-		Properties props = new Properties(args.length);
-		for (String arg : args) {
-			int i = arg.indexOf('=');
-			if (i < 1 || i >= arg.length() - 1)
-				continue;
-
-			props.put(arg.substring(0, i).trim(), arg.substring(i + 1).trim());
+				props.put(arg.substring(0, i).trim(), arg.substring(i + 1).trim());
+			}
 		}
 
 		final boolean[] factory = new boolean[1];

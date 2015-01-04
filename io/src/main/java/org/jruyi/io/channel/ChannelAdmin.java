@@ -15,7 +15,6 @@ package org.jruyi.io.channel;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jruyi.timeoutadmin.ITimeoutAdmin;
 import org.jruyi.timeoutadmin.ITimeoutNotifier;
@@ -32,7 +31,7 @@ public final class ChannelAdmin implements IChannelAdmin {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(ChannelAdmin.class);
 
-	private static final AtomicInteger c_msgId = new AtomicInteger(-1);
+	private static int s_msgId = -1;
 
 	private BufferCache m_recvDirectBuffer;
 	private BufferCache m_sendDirectBuffer;
@@ -100,7 +99,7 @@ public final class ChannelAdmin implements IChannelAdmin {
 
 	@Override
 	public void performIoTask(IIoTask task, Object msg) {
-		getIoThread(c_msgId.incrementAndGet()).perform(task, msg, null, 0);
+		getIoThread(++s_msgId).perform(task, msg, null, 0);
 	}
 
 	@Reference(name = "timeoutAdmin", policy = ReferencePolicy.DYNAMIC)

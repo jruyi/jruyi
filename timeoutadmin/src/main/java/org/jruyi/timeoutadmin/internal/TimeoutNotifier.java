@@ -13,6 +13,7 @@
  */
 package org.jruyi.timeoutadmin.internal;
 
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -25,10 +26,11 @@ final class TimeoutNotifier implements ITimeoutNotifier {
 	private static final long HALF_SEC = 500L;
 	private final Object m_subject;
 	private final TimeoutAdmin m_admin;
+	private final ReentrantLock m_lock;
 	private BiListNode<TimeoutEvent> m_node;
 	private ITimeoutListener m_listener;
 	private IState m_state = Unscheduled.INST;
-	private final ReentrantLock m_lock;
+	private Executor m_executor;
 
 	TimeoutNotifier(Object subject, TimeoutAdmin admin) {
 		m_subject = subject;
@@ -255,6 +257,11 @@ final class TimeoutNotifier implements ITimeoutNotifier {
 		m_listener = listener;
 	}
 
+	@Override
+	public void setExecutor(Executor executor) {
+		m_executor = executor;
+	}
+
 	void onTimeout(TimeoutAdmin.TimeWheel timeWheel, int hand) {
 		final ReentrantLock lock = m_lock;
 		// If the lock cannot be acquired, which means this notifier is being
@@ -285,6 +292,10 @@ final class TimeoutNotifier implements ITimeoutNotifier {
 
 	ITimeoutListener getListener() {
 		return m_listener;
+	}
+
+	Executor getExecutor() {
+		return m_executor;
 	}
 
 	// Set when scheduled

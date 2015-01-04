@@ -14,8 +14,7 @@
 
 package org.jruyi.io.channel;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.Executor;
 
 import org.jruyi.common.ICloseable;
 import org.jruyi.common.StrUtil;
@@ -34,29 +33,28 @@ final class IoThread implements ICloseable, EventHandler<IoEvent>, IIoWorker {
 
 	private Disruptor<IoEvent> m_disruptor;
 
-	static final class IoWorkerFactory implements ThreadFactory {
+	static final class IoExecutor implements Executor {
 
-		private final int m_id;
-
-		public IoWorkerFactory(int id) {
-			m_id = id;
-		}
+		private int m_id;
 
 		@Override
-		public Thread newThread(Runnable r) {
-			return new Thread(r, StrUtil.join("jruyi-io- ", m_id));
+		public void execute(Runnable command) {
+			new Thread(command, StrUtil.join("jruyi-io-", m_id++)).start();
 		}
 	}
 
 	@Override
 	public void onEvent(IoEvent event, long sequence, boolean endOfBatch) {
-		event.task().run(event.msg(), event.filters(), event.filterCount());
+		final Runnable command = event.command();
+		if (command == null)
+			event.task().run(event.msg(), event.filters(), event.filterCount());
+		else
+			command.run();
 	}
 
 	@SuppressWarnings("unchecked")
-	public void open(int id, int capacityOfRingBuffer) {
-		final Disruptor<IoEvent> disruptor = new Disruptor<IoEvent>(IoEventFactory.INST, capacityOfRingBuffer,
-				Executors.newCachedThreadPool(new IoWorkerFactory(id)));
+	public void open(int id, int capacity) {
+		final Disruptor<IoEvent> disruptor = new Disruptor<IoEvent>(IoEventFactory.INST, capacity, new IoExecutor());
 		m_disruptor = disruptor;
 		disruptor.handleEventsWith(this);
 		disruptor.start();
@@ -64,10 +62,11 @@ final class IoThread implements ICloseable, EventHandler<IoEvent>, IIoWorker {
 
 	@Override
 	public void close() {
-		if (m_disruptor == null)
-			return;
-
-		m_disruptor.shutdown();
+		final Disruptor<IoEvent> disruptor = m_disruptor;
+		if (disruptor != null) {
+			m_disruptor = null;
+			disruptor.shutdown();
+		}
 	}
 
 	@Override
@@ -101,6 +100,24 @@ final class IoThread implements ICloseable, EventHandler<IoEvent>, IIoWorker {
 		try {
 			final IoEvent event = ringBuffer.get(sequence);
 			event.task(task).msg(msg).filters(filters).filterCount(filterCount);
+		} finally {
+			ringBuffer.publish(sequence);
+		}
+	}
+
+	@Override
+	public void execute(Runnable command) {
+		final RingBuffer<IoEvent> ringBuffer = m_disruptor.getRingBuffer();
+		long sequence;
+		try {
+			sequence = ringBuffer.tryNext();
+		} catch (InsufficientCapacityException e) {
+			c_logger.warn("If you see this message quite a few, please try increasing numberOfIoThreads");
+			sequence = ringBuffer.next();
+		}
+		try {
+			final IoEvent event = ringBuffer.get(sequence);
+			event.command(command);
 		} finally {
 			ringBuffer.publish(sequence);
 		}

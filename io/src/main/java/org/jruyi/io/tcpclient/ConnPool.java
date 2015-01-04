@@ -91,7 +91,7 @@ public final class ConnPool extends AbstractTcpClient implements IIoTask {
 	}
 
 	public ConnPool() {
-		BiListNode<IChannel> node = BiListNode.create();
+		final BiListNode<IChannel> node = BiListNode.create();
 		node.previous(node);
 		node.next(node);
 		m_channelQueueHead = node;

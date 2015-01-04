@@ -200,9 +200,9 @@ public final class ExecutorService implements Executor, IExecutorProfiler, IDump
 		try {
 			m_executor.shutdown();
 			if (m_executor.awaitTermination(m_terminationWaitTime, TimeUnit.SECONDS))
-				c_logger.debug("Executor terminated");
+				c_logger.debug("TPE executor terminated");
 			else
-				c_logger.debug("Executor was time out");
+				c_logger.debug("Termination of TPE executor timed out");
 
 			c_logger.info("ExecutorService was deactivated");
 		} catch (InterruptedException e) {

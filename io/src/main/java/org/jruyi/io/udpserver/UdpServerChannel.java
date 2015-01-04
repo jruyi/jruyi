@@ -20,9 +20,7 @@ import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 
 import org.jruyi.common.StrUtil;
-import org.jruyi.io.IFilter;
 import org.jruyi.io.channel.IChannel;
-import org.jruyi.io.channel.IIoTask;
 import org.jruyi.io.channel.IIoWorker;
 import org.jruyi.io.channel.ISelectableChannel;
 import org.jruyi.io.channel.ISelector;
@@ -30,10 +28,13 @@ import org.jruyi.io.udp.UdpChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class UdpServerChannel implements ISelectableChannel, IIoTask {
+final class UdpServerChannel implements ISelectableChannel, Runnable {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(UdpServerChannel.class);
-	private static long s_sequence = -99L;
+
+	// Preserved (-100, 0] for UdpServerChannel
+	private static long s_sequence = -100L;
+
 	private final Long m_id;
 	private final UdpServer m_udpServer;
 	private final DatagramChannel m_datagramChannel;
@@ -42,7 +43,7 @@ final class UdpServerChannel implements ISelectableChannel, IIoTask {
 	private IIoWorker m_ioWorker;
 
 	public UdpServerChannel(UdpServer udpServer, DatagramChannel datagramChannel, SocketAddress localAddr) {
-		m_id = s_sequence++;
+		m_id = ++s_sequence;
 		m_udpServer = udpServer;
 		m_datagramChannel = datagramChannel;
 		m_localAddr = localAddr;
@@ -54,9 +55,8 @@ final class UdpServerChannel implements ISelectableChannel, IIoTask {
 	}
 
 	// runs on read
-
 	@Override
-	public void run(Object msg, IFilter<?, ?>[] filters, int filterCount) {
+	public void run() {
 		final UdpServer server = m_udpServer;
 		try {
 			final ByteBuffer bb = server.getChannelAdmin().recvDirectBuffer();
@@ -88,12 +88,12 @@ final class UdpServerChannel implements ISelectableChannel, IIoTask {
 
 	@Override
 	public void onConnect() {
-		throw new UnsupportedOperationException("Not supported yet.");
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public void onAccept() {
-		throw new UnsupportedOperationException("Not supported yet.");
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -103,12 +103,12 @@ final class UdpServerChannel implements ISelectableChannel, IIoTask {
 
 	@Override
 	public void onRead() {
-		m_ioWorker.perform(this);
+		m_ioWorker.execute(this);
 	}
 
 	@Override
 	public void onWrite() {
-		throw new UnsupportedOperationException("Not supported yet.");
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -118,21 +118,13 @@ final class UdpServerChannel implements ISelectableChannel, IIoTask {
 	}
 
 	@Override
-	public void register(ISelector selector, int ops) {
-		try {
-			m_selectionKey = m_datagramChannel.register(selector.selector(), ops, this);
-		} catch (Throwable t) {
-			// Ignore
-		}
+	public void register(ISelector selector, int ops) throws Throwable {
+		m_selectionKey = m_datagramChannel.register(selector.selector(), ops, this);
 	}
 
 	@Override
 	public void interestOps(int ops) {
-		SelectionKey selectionKey = m_selectionKey;
-		try {
-			selectionKey.interestOps(selectionKey.interestOps() | ops);
-		} catch (Throwable t) {
-			// Ignore
-		}
+		final SelectionKey selectionKey = m_selectionKey;
+		selectionKey.interestOps(selectionKey.interestOps() | ops);
 	}
 }

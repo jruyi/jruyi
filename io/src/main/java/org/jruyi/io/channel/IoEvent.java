@@ -18,10 +18,22 @@ import org.jruyi.io.IFilter;
 
 final class IoEvent {
 
+	private Runnable m_command;
 	private IIoTask m_task;
 	private Object m_msg;
 	private IFilter<?, ?>[] m_filters;
 	private int m_filterCount;
+
+	public IoEvent command(Runnable command) {
+		m_command = command;
+		return this;
+	}
+
+	public Runnable command() {
+		final Runnable command = m_command;
+		m_command = null;
+		return command;
+	}
 
 	public IoEvent task(IIoTask task) {
 		m_task = task;

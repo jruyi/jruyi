@@ -14,9 +14,11 @@
 
 package org.jruyi.io.channel;
 
+import java.util.concurrent.Executor;
+
 import org.jruyi.io.IFilter;
 
-public interface IIoWorker {
+public interface IIoWorker extends Executor {
 
 	public void perform(IIoTask task);
 

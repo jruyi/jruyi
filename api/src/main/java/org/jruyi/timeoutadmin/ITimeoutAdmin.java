@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.timeoutadmin;
 
 /**
@@ -22,7 +23,7 @@ public interface ITimeoutAdmin {
 	 * Creates a notifier with the specified {@code subject}.
 	 * 
 	 * @param subject
-	 *            the subject of the timeout event sent by this notifier
+	 *            the subject of the timeout event to be sent by this notifier
 	 * @return a notifier object
 	 */
 	public ITimeoutNotifier createNotifier(Object subject);

@@ -15,6 +15,7 @@
 package org.jruyi.io.channel;
 
 import java.nio.channels.CancelledKeyException;
+import java.nio.channels.ClosedSelectorException;
 import java.nio.channels.SelectionKey;
 
 enum SelectorOp {
@@ -22,13 +23,23 @@ enum SelectorOp {
 	REGISTER {
 		@Override
 		public void run(ISelector selector, ISelectableChannel channel) {
-			channel.register(selector, SelectionKey.OP_READ);
+			try {
+				channel.register(selector, SelectionKey.OP_READ);
+			} catch (ClosedSelectorException e) {
+			} catch (Throwable t) {
+				channel.onException(t);
+			}
 		}
 	},
 	CONNECT {
 		@Override
 		public void run(ISelector selector, ISelectableChannel channel) {
-			channel.register(selector, SelectionKey.OP_CONNECT);
+			try {
+				channel.register(selector, SelectionKey.OP_CONNECT);
+			} catch (ClosedSelectorException e) {
+			} catch (Throwable t) {
+				channel.onException(t);
+			}
 		}
 	},
 	READ {
