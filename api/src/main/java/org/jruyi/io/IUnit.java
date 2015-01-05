@@ -36,8 +36,11 @@ import org.jruyi.common.IByteSequence;
  * </ul>
  *
  * <p>
- * All operations defined in this interface may not do bounds check. So caller
- * has to do bounds check when consuming this interface.
+ * <B>Note</B>
+ * </p>
+ * <p>
+ * All operations defined in this interface may not do bounds checking. So
+ * caller/consumer has to do bounds checking when consuming this interface.
  * </p>
  * 
  * @see IUnitChain

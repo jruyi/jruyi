@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import org.jruyi.common.IScheduler;
@@ -28,8 +29,7 @@ import org.slf4j.LoggerFactory;
 @Component(name = "jruyi.common.scheduler", xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class Scheduler implements IScheduler {
 
-	private static final Logger c_logger = LoggerFactory
-			.getLogger(Scheduler.class);
+	private static final Logger c_logger = LoggerFactory.getLogger(Scheduler.class);
 
 	private Configuration m_conf;
 	private ScheduledThreadPoolExecutor m_executor;
@@ -48,8 +48,7 @@ public final class Scheduler implements IScheduler {
 		static Configuration create(Map<String, ?> properties) {
 			final Configuration conf = new Configuration();
 			conf.numberOfThreads((Integer) properties.get(P_NUMBER_OF_THREADS));
-			conf.terminationWaitTimeInSeconds((Integer) properties
-					.get(P_TERM_WAITTIME_IN_SECONDS));
+			conf.terminationWaitTimeInSeconds((Integer) properties.get(P_TERM_WAITTIME_IN_SECONDS));
 			return conf;
 		}
 
@@ -67,38 +66,46 @@ public final class Scheduler implements IScheduler {
 			return m_terminationWaitTimeInSeconds;
 		}
 
-		public void terminationWaitTimeInSeconds(
-				Integer terminationWaitTimeInSeconds) {
+		public void terminationWaitTimeInSeconds(Integer terminationWaitTimeInSeconds) {
 			if (terminationWaitTimeInSeconds == null)
 				return;
 			m_terminationWaitTimeInSeconds = terminationWaitTimeInSeconds;
 		}
 	}
 
+	static final class SchedulerThreadFactory implements ThreadFactory {
+
+		static final SchedulerThreadFactory INST = new SchedulerThreadFactory();
+
+		private int s_id = -1;
+
+		private SchedulerThreadFactory() {
+		}
+
+		@Override
+		public Thread newThread(Runnable r) {
+			return new Thread(r, "jruyi-scheduler-" + (++s_id));
+		}
+	}
+
 	@Override
-	public ScheduledFuture<?> schedule(Runnable command, long delay,
-			TimeUnit unit) {
+	public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
 		return m_executor.schedule(command, delay, unit);
 	}
 
 	@Override
-	public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay,
-			TimeUnit unit) {
+	public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
 		return m_executor.schedule(callable, delay, unit);
 	}
 
 	@Override
-	public ScheduledFuture<?> scheduleAtFixedRate(Runnable command,
-			long initialDelay, long period, TimeUnit unit) {
-		return m_executor.scheduleAtFixedRate(command, initialDelay, period,
-				unit);
+	public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
+		return m_executor.scheduleAtFixedRate(command, initialDelay, period, unit);
 	}
 
 	@Override
-	public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command,
-			long initialDelay, long delay, TimeUnit unit) {
-		return m_executor.scheduleWithFixedDelay(command, initialDelay, delay,
-				unit);
+	public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
+		return m_executor.scheduleWithFixedDelay(command, initialDelay, delay, unit);
 	}
 
 	@Modified
@@ -115,19 +122,17 @@ public final class Scheduler implements IScheduler {
 	public void activate(Map<String, ?> properties) {
 		final Configuration conf = Configuration.create(properties);
 		final int numberOfThreads = conf.numberOfThreads();
-		m_executor = new ScheduledThreadPoolExecutor(numberOfThreads);
+		m_executor = new ScheduledThreadPoolExecutor(numberOfThreads, SchedulerThreadFactory.INST);
 		m_conf = conf;
 
-		c_logger.info("Scheduler activated: numberOfThreads={}",
-				numberOfThreads);
+		c_logger.info("Scheduler activated: numberOfThreads={}", numberOfThreads);
 	}
 
 	public void deactivate() {
 		final ScheduledThreadPoolExecutor executor = m_executor;
 		executor.shutdown();
 		try {
-			executor.awaitTermination(m_conf.terminationWaitTimeInSeconds(),
-					TimeUnit.SECONDS);
+			executor.awaitTermination(m_conf.terminationWaitTimeInSeconds(), TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
 			// Ignore
 		}
