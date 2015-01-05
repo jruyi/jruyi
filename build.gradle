@@ -95,8 +95,12 @@ subprojects {
 	}
 
 	compileJava {
-		sourceCompatibility = 1.6
-		targetCompatibility = 1.6
+		options.compilerArgs << '-XDignore.symbol.file'
+		options.fork = true
+		options.forkOptions.executable = 'javac'
+
+		sourceCompatibility = 1.7
+		targetCompatibility = 1.7
 		options.encoding = 'UTF-8'
 	}
 

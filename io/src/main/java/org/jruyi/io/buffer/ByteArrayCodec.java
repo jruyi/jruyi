@@ -230,7 +230,7 @@ public final class ByteArrayCodec implements ICodec<byte[]> {
 
 	@Override
 	public void set(byte[] src, IUnitChain unitChain, int index) {
-		if (index < 0)
+		if (index < 0 )
 			throw new IndexOutOfBoundsException();
 
 		int length = src.length;
@@ -253,7 +253,7 @@ public final class ByteArrayCodec implements ICodec<byte[]> {
 	@Override
 	public void set(byte[] src, int offset, int length, IUnitChain unitChain,
 			int index) {
-		if (index < 0)
+		if ((offset | length | (offset + length) | (src.length - (offset + length))) < 0 || index < 0)
 			throw new IndexOutOfBoundsException();
 
 		if (length == 0)

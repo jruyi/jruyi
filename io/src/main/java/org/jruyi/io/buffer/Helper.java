@@ -14,6 +14,7 @@
 package org.jruyi.io.buffer;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CharsetEncoder;
@@ -30,6 +31,17 @@ public final class Helper {
 
 	public static final char[] EMPTY_CHARS = new char[0];
 
+	public static final int B_SIZE_OF_SHORT = 1;
+	public static final int B_SIZE_OF_INT = 2;
+	public static final int B_SIZE_OF_LONG = 3;
+
+	public static final int SIZE_OF_SHORT = 1 << B_SIZE_OF_SHORT;
+	public static final int SIZE_OF_INT = 1 << B_SIZE_OF_INT;
+	public static final int SIZE_OF_LONG = 1 << B_SIZE_OF_LONG;
+
+	public static final boolean BE_NATIVE = ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN;
+	public static final boolean LE_NATIVE = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN;
+
 	private Helper() {
 	}
 
@@ -42,8 +54,7 @@ public final class Helper {
 			boolean flush = false;
 			encoder.reset();
 			for (;;) {
-				CoderResult cr = flush ? encoder.flush(bb) : encoder.encode(cb,
-						bb, true);
+				CoderResult cr = flush ? encoder.flush(bb) : encoder.encode(cb, bb, true);
 				unit.size(bb.position() - unit.start());
 				if (cr.isOverflow()) {
 					unit = Util.appendNewUnit(unitChain);
@@ -105,8 +116,7 @@ public final class Helper {
 		}
 	}
 
-	static void prepend(ICharsetCodec cc, StringBuilder sb, int offset,
-			int len, IUnitChain unitChain) {
+	static void prepend(ICharsetCodec cc, StringBuilder sb, int offset, int len, IUnitChain unitChain) {
 		final BytesBuilder bb = BytesBuilder.get();
 		try {
 			cc.encode(sb, offset, len, bb);

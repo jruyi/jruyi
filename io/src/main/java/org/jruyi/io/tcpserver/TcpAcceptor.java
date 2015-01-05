@@ -25,6 +25,7 @@ import java.util.Iterator;
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.common.IVisitor;
+import org.jruyi.io.common.StopThread;
 import org.jruyi.io.common.SyncPutQueue;
 import org.jruyi.io.tcp.TcpChannel;
 import org.osgi.service.component.annotations.Component;
@@ -64,7 +65,11 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable, IVisitor<TcpSe
 		} catch (Throwable t) {
 			c_logger.error(StrUtil.join("Failed to register ", channel), t);
 			// stop tcp server
-			server.stop();
+			try {
+				new StopThread(server).start();
+			} catch (Throwable t1) {
+				// Ignore
+			}
 		}
 	}
 

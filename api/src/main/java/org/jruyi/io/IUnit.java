@@ -34,6 +34,11 @@ import org.jruyi.common.IByteSequence;
  * negative and is never greater than <i>position</i>. Its initial value is
  * {@code 0}.
  * </ul>
+ *
+ * <p>
+ * All operations defined in this interface may not do bounds check. So caller
+ * has to do bounds check when consuming this interface.
+ * </p>
  * 
  * @see IUnitChain
  * @see IBuffer
@@ -49,11 +54,86 @@ public interface IUnit extends IByteSequence {
 	 * @param b
 	 *            the byte to set
 	 * @return this buffer unit
-	 * @throws IndexOutOfBoundsException
-	 *             if {@code index} is negative or not smaller than
-	 *             {@link #capacity()}
 	 */
 	public IUnit set(int index, byte b);
+
+	/**
+	 * Sets the bytes starting at the specified {@code index} to the ones
+	 * encoded from the specified {@code short} value {@code s} in the native
+	 * byte order.
+	 *
+	 * @param index
+	 *            the index of the first byte to be set
+	 * @param s
+	 *            the {@code short} value to be encoded
+	 * @return this buffer unit
+	 * @since 2.0
+	 */
+	public IUnit set(int index, short s);
+
+	/**
+	 * Sets the bytes starting at the specified {@code index} to the ones
+	 * encoded from the specified {@code int} value {@code i} in the native byte
+	 * order.
+	 * 
+	 * @param index
+	 *            the index of the first byte to be set
+	 * @param i
+	 *            the {@code int} value to be encoded
+	 * @return this buffer unit
+	 * @since 2.0
+	 */
+	public IUnit set(int index, int i);
+
+	/**
+	 * Sets the bytes starting at the specified {@code index} to the ones
+	 * encoded from the specified {@code long} value {@code l} in the native
+	 * byte order.
+	 * 
+	 * @param index
+	 *            the index of the first byte to be set
+	 * @param l
+	 *            the {@code long} value to be encoded
+	 * @return this buffer unit
+	 * @since 2.0
+	 */
+	public IUnit set(int index, long l);
+
+	/**
+	 * Decodes 2 bytes starting at the specified {@code index} from the
+	 * underlying buffer into a {@code short} value in the native byte order and
+	 * returns the resultant {@code short} value.
+	 * 
+	 * @param index
+	 *            the index of the first byte to be decoded
+	 * @return the resultant {@code short} value
+	 * @since 2.0
+	 */
+	public short getShort(int index);
+
+	/**
+	 * Decodes 4 bytes starting at the specified {@code index} from the
+	 * underlying buffer into an {@code int} value in the native byte order and
+	 * returns the resultant {@code int} value.
+	 *
+	 * @param index
+	 *            the index of the first byte to be decoded
+	 * @return the resultant {@code int} value
+	 * @since 2.0
+	 */
+	public int getInt(int index);
+
+	/**
+	 * Decodes 8 bytes starting at the specified {@code index} from the
+	 * underlying buffer into a {@code long} value in the native byte order and
+	 * returns the resultant {@code long} value.
+	 *
+	 * @param index
+	 *            the index of the first byte to be decoded
+	 * @return the resultant {@code long} value
+	 * @since 2.0
+	 */
+	public long getLong(int index);
 
 	/**
 	 * Sets {@code (srcEnd - srcBegin)} bytes starting at the specified
@@ -92,11 +172,6 @@ public interface IUnit extends IByteSequence {
 	 * @param length
 	 *            the number of bytes from {@code src} to set
 	 * @return this buffer unit
-	 * @throws IndexOutOfBoundsException
-	 *             if {@code index} is negative or not smaller than
-	 *             {@code capacity()}, minus {@code length}, or {@code offset}
-	 *             is negative, or {@code length} is negative, or {@code length}
-	 *             is greater than {@code (src.length - offset)}
 	 */
 	public IUnit set(int index, byte[] src, int offset, int length);
 
@@ -111,11 +186,6 @@ public interface IUnit extends IByteSequence {
 	 * @param count
 	 *            the number of bytes to set
 	 * @return this buffer unit
-	 * @throws IndexOutOfBoundsException
-	 *             if {@code index} is negative or not smaller than
-	 *             {@code capacity()}, minus {@code count}, or
-	 *             {@code (index + count)} is negative or greater than
-	 *             {@code capacity()}
 	 */
 	public IUnit setFill(int index, byte b, int count);
 
@@ -307,20 +377,6 @@ public interface IUnit extends IByteSequence {
 	 *            the {@code ByteBuffer} to copy the data into.
 	 * @throws NullPointerException
 	 *             if {@code dst} is {@code null}.
-	 * @throws IndexOutOfBoundsException
-	 *             if any of the following is true:
-	 *             <ul>
-	 *             <li>{@code srcBegin} is negative
-	 *             <li>{@code dstBegin} is negative
-	 *             <li>the {@code srcBegin} argument is greater than the
-	 *             {@code srcEnd} argument.
-	 *             <li>{@code srcEnd} is greater than {@code this.length()}.
-	 *             </ul>
-	 * @throws java.nio.ReadOnlyBufferException
-	 *             if the given {@code dst} is read-only
-	 * @throws java.nio.BufferOverflowException
-	 *             if {@code dstBegin+srcEnd-srcBegin} is greater than
-	 *             {@code dst.remaining()}
 	 * @since 2.0
 	 */
 	public void getBytes(int srcBegin, int srcEnd, ByteBuffer dst);
@@ -338,12 +394,6 @@ public interface IUnit extends IByteSequence {
 	 * @return this buffer unit
 	 * @throws NullPointerException
 	 *             if {@code src} is {@code null}.
-	 * @throws IndexOutOfBoundsException
-	 *             if {@code index} is negative or not smaller than
-	 *             {@code capacity()}, minus {@code length}, or {@code length}
-	 *             is negative
-	 * @throws java.nio.BufferUnderflowException
-	 *             if {@code length} is greater than {@code src.remaining())}
 	 */
 	public IUnit set(int index, int length, ByteBuffer src);
 }

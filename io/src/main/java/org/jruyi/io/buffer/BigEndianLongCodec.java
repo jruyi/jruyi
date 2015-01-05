@@ -13,6 +13,9 @@
  */
 package org.jruyi.io.buffer;
 
+import static org.jruyi.io.buffer.Helper.BE_NATIVE;
+import static org.jruyi.io.buffer.Helper.SIZE_OF_LONG;
+
 import java.nio.BufferUnderflowException;
 
 import org.jruyi.io.ILongCodec;
@@ -28,13 +31,20 @@ public final class BigEndianLongCodec implements ILongCodec {
 
 	@Override
 	public long read(IUnitChain unitChain) {
-		long l = 0L;
 		IUnit unit = unitChain.currentUnit();
 		int start = unit.start();
 		int position = start + unit.position();
 		int size = unit.size();
 		int end = start + size;
-		for (int n = 0; n < 8;) {
+		int n = position + SIZE_OF_LONG;
+		if (BE_NATIVE && n <= end) {
+			final long l = unit.getLong(position);
+			unit.position(n - start);
+			return l;
+		}
+
+		long l = 0;
+		for (n = 0; n < 8;) {
 			if (position < end) {
 				l = (l << 8) | (unit.byteAt(position) & 0xFF);
 				++position;
@@ -60,9 +70,22 @@ public final class BigEndianLongCodec implements ILongCodec {
 		int start = unit.start();
 		int size = start + unit.size();
 		int end = unit.capacity();
-		for (int n = 56; n >= 0;) {
+		int n = size + SIZE_OF_LONG;
+		if (BE_NATIVE) {
+			if (n <= end) {
+				unit.set(size, l);
+				unit.size(n - start);
+			} else {
+				unit = Util.appendNewUnit(unitChain);
+				unit.set(unit.start(), l);
+				unit.size(SIZE_OF_LONG);
+			}
+			return;
+		}
+
+		for (n = 56; n >= 0;) {
 			if (size < end) {
-				unit.set(size, (byte) (l >>> n));
+				unit.set(size, (byte) (l >> n));
 				++size;
 				n -= 8;
 			} else {
@@ -80,11 +103,14 @@ public final class BigEndianLongCodec implements ILongCodec {
 	public long get(IUnitChain unitChain, int index) {
 		if (index < 0)
 			throw new IndexOutOfBoundsException();
-		long l = 0L;
 		IUnit unit = unitChain.currentUnit();
 		int size = unit.start();
 		index += size;
 		size += unit.size();
+		if (BE_NATIVE && index + SIZE_OF_LONG <= size)
+			return unit.getLong(index);
+
+		long l = 0L;
 		for (int n = 0; n < 8;) {
 			if (index < size) {
 				l = (l << 8) | (unit.byteAt(index) & 0xFF);
@@ -109,9 +135,14 @@ public final class BigEndianLongCodec implements ILongCodec {
 		int size = unit.start();
 		index += size;
 		size += unit.size();
+		if (BE_NATIVE && index + SIZE_OF_LONG <= size) {
+			unit.set(index, l);
+			return;
+		}
+
 		for (int n = 56; n >= 0;) {
 			if (index < size) {
-				unit.set(index, (byte) (l >>> n));
+				unit.set(index, (byte) (l >> n));
 				++index;
 				n -= 8;
 			} else {
@@ -128,10 +159,22 @@ public final class BigEndianLongCodec implements ILongCodec {
 	public void prepend(long l, IUnitChain unitChain) {
 		IUnit unit = Util.firstUnit(unitChain);
 		int start = unit.start();
+		if (BE_NATIVE) {
+			if (start < SIZE_OF_LONG) {
+				unit = Util.prependNewUnit(unitChain);
+				start = unit.start();
+			}
+			start -= SIZE_OF_LONG;
+			unit.set(start, l);
+			unit.start(start);
+			unit.size(unit.size() + SIZE_OF_LONG);
+			return;
+		}
+
 		for (int n = 0; n < 8;) {
 			if (start > 0) {
 				unit.set(--start, (byte) l);
-				l >>>= 8;
+				l >>= 8;
 				++n;
 			} else {
 				unit.size(unit.size() + unit.start());

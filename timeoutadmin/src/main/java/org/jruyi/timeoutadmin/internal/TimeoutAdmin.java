@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.jruyi.common.BiListNode;
+import org.jruyi.common.IDumpable;
 import org.jruyi.common.IScheduler;
 import org.jruyi.common.StrUtil;
 import org.jruyi.timeoutadmin.ITimeoutAdmin;
@@ -36,7 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Component(name = "jruyi.timeoutadmin", xmlns = "http://www.osgi.org/xmlns/scr/v1.2.0")
-public final class TimeoutAdmin implements ITimeoutAdmin {
+public final class TimeoutAdmin implements ITimeoutAdmin, IDumpable {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(TimeoutAdmin.class);
 
@@ -170,6 +171,17 @@ public final class TimeoutAdmin implements ITimeoutAdmin {
 		return new TimeoutNotifier(subject, this);
 	}
 
+	@Override
+	public void dump(org.jruyi.common.StringBuilder builder) {
+		final ThreadPoolExecutor executor = m_executor;
+		builder.append("{" + P_ALLOW_CORETHREAD_TIMEOUT + "=").append(executor.allowsCoreThreadTimeOut())
+				.append(", " + P_CORE_POOLSIZE + "=").append(executor.getCorePoolSize())
+				.append(", " + P_MAX_POOLSIZE + "=").append(executor.getMaximumPoolSize())
+				.append(", " + P_KEEPALIVE_TIME + "=").append(executor.getKeepAliveTime(TimeUnit.SECONDS))
+				.append(", " + P_QUEUE_CAPACITY + "=").append(m_queueCapacity).append(", " + P_TERM_WAITTIME + "=")
+				.append(m_terminationWaitTime).append('}');
+	}
+
 	@Reference(name = "scheduler", policy = ReferencePolicy.DYNAMIC)
 	synchronized void setScheduler(IScheduler scheduler) {
 		m_scheduler = scheduler;
@@ -209,7 +221,7 @@ public final class TimeoutAdmin implements ITimeoutAdmin {
 
 		m_terminationWaitTime = terminationWaitTime;
 
-		c_logger.info(StrUtil.join("TimeoutAdmin was updated: ", this));
+		c_logger.info(StrUtil.join("TimeoutAdmin updated: ", this));
 	}
 
 	void activate(Map<String, ?> properties) throws Throwable {
@@ -236,7 +248,7 @@ public final class TimeoutAdmin implements ITimeoutAdmin {
 		m_tw1 = tw1;
 		m_tw2 = tw2;
 
-		c_logger.info("TimeoutAdmin activated");
+		c_logger.info(StrUtil.join("TimeoutAdmin activated: ", this));
 	}
 
 	void deactivate() {

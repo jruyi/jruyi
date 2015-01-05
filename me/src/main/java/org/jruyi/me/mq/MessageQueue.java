@@ -414,6 +414,7 @@ public final class MessageQueue implements ITimeoutListener {
 		final BiListNode<MsgNotifier> node = BiListNode.create();
 		final ITimeoutNotifier notifier = m_ta.createNotifier(node);
 		notifier.setListener(this);
+		notifier.setExecutor(m_executor);
 		final MsgNotifier mn = new MsgNotifier(message, notifier);
 		node.set(mn);
 

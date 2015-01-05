@@ -147,7 +147,7 @@ public abstract class AbstractTcpClient extends Service implements IChannelServi
 	public void onChannelOpened(IChannel channel) {
 		c_logger.debug("{}: OPENED", channel);
 
-		Object id = channel.id();
+		final Object id = channel.id();
 		final ReadLock readLock = m_lock.readLock();
 		if (!readLock.tryLock()) {
 			channel.close();
@@ -177,8 +177,8 @@ public abstract class AbstractTcpClient extends Service implements IChannelServi
 
 	@Override
 	protected boolean updateInternal(Map<String, ?> properties) throws Exception {
-		TcpClientConf oldConf = updateConf(properties);
-		TcpClientConf newConf = configuration();
+		final TcpClientConf oldConf = updateConf(properties);
+		final TcpClientConf newConf = configuration();
 		updateFilters(oldConf, newConf);
 
 		return oldConf.isMandatoryChanged(newConf);
@@ -200,7 +200,7 @@ public abstract class AbstractTcpClient extends Service implements IChannelServi
 			writeLock.unlock();
 		}
 
-		Collection<IChannel> channels = m_channels.values();
+		final Collection<IChannel> channels = m_channels.values();
 		m_channels = null;
 
 		for (IChannel channel : channels)
@@ -233,7 +233,7 @@ public abstract class AbstractTcpClient extends Service implements IChannelServi
 	}
 
 	protected void activate(Map<String, ?> properties) throws Exception {
-		String id = (String) properties.get(IoConstants.SERVICE_ID);
+		final String id = (String) properties.get(IoConstants.SERVICE_ID);
 
 		m_caption = StrUtil.join("TcpClient[", id, "]");
 		updateFilters(updateConf(properties), configuration());
@@ -259,13 +259,13 @@ public abstract class AbstractTcpClient extends Service implements IChannelServi
 
 	final void connect() {
 		@SuppressWarnings("resource")
-		TcpChannel channel = new TcpChannel(this);
+		final TcpChannel channel = new TcpChannel(this);
 		channel.connect(configuration().connectTimeoutInSeconds());
 	}
 
 	final void connect(Object attachment) {
 		@SuppressWarnings("resource")
-		TcpChannel channel = new TcpChannel(this);
+		final TcpChannel channel = new TcpChannel(this);
 		channel.attach(attachment);
 		channel.connect(configuration().connectTimeoutInSeconds());
 	}
@@ -279,9 +279,9 @@ public abstract class AbstractTcpClient extends Service implements IChannelServi
 	}
 
 	private void updateFilters(TcpChannelConf oldConf, TcpChannelConf newConf) {
-		String[] newNames = newConf == null ? StrUtil.getEmptyStringArray() : newConf.filters();
+		final String[] newNames = newConf == null ? StrUtil.getEmptyStringArray() : newConf.filters();
 		String[] oldNames = StrUtil.getEmptyStringArray();
-		IFilterManager fm = m_fm;
+		final IFilterManager fm = m_fm;
 		if (oldConf == null)
 			m_filters = fm.getFilters(oldNames);
 		else

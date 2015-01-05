@@ -175,7 +175,7 @@ public final class ExecutorService implements Executor, IExecutorProfiler, IDump
 
 		m_terminationWaitTime = terminationWaitTime;
 
-		c_logger.info(StrUtil.join("ExecutorService was updated: ", this));
+		c_logger.info(StrUtil.join("ExecutorService updated: ", this));
 	}
 
 	void activate(Map<String, ?> properties) throws Exception {
@@ -191,7 +191,7 @@ public final class ExecutorService implements Executor, IExecutorProfiler, IDump
 		m_queueCapacity = queueCapacity;
 		m_terminationWaitTime = terminationWaitTime;
 
-		c_logger.info(StrUtil.join("ExecutorService was activated: ", this));
+		c_logger.info(StrUtil.join("ExecutorService activated: ", this));
 	}
 
 	void deactivate() {

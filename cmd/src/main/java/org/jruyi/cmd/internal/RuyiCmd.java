@@ -17,6 +17,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -41,8 +42,7 @@ public final class RuyiCmd implements IManual {
 	}
 
 	public static String[] commands() {
-		return new String[] { "echo", "gc", "grep", "help", "shutdown",
-				"sysinfo" };
+		return new String[] { "echo", "gc", "grep", "help", "shutdown", "sysinfo" };
 	}
 
 	public void context(BundleContext context) {
@@ -100,6 +100,10 @@ public final class RuyiCmd implements IManual {
 		System.out.print("Available Processors: ");
 		System.out.println(runtime.availableProcessors());
 
+		// Native Byte Order
+		System.out.print("   Native Byte Order: ");
+		System.out.println(ByteOrder.nativeOrder());
+
 		// Used Memory
 		long totalMemory = runtime.totalMemory();
 		long freeMemory = runtime.freeMemory();
@@ -120,13 +124,11 @@ public final class RuyiCmd implements IManual {
 	}
 
 	public void help() throws Exception {
-		ServiceReference<?>[] references = m_context.getAllServiceReferences(
-				null, "(&(" + CommandProcessor.COMMAND_SCOPE + "=*)(!("
-						+ CommandProcessor.COMMAND_SCOPE + "=builtin)))");
+		final ServiceReference<?>[] references = m_context.getAllServiceReferences(null, "(&("
+				+ CommandProcessor.COMMAND_SCOPE + "=*)(!(" + CommandProcessor.COMMAND_SCOPE + "=builtin)))");
 		final ListNode<String> head = ListNode.create();
 		for (ServiceReference<?> reference : references) {
-			String scope = String.valueOf(reference
-					.getProperty(CommandProcessor.COMMAND_SCOPE));
+			String scope = String.valueOf(reference.getProperty(CommandProcessor.COMMAND_SCOPE));
 			Object v = reference.getProperty(CommandProcessor.COMMAND_FUNCTION);
 			if (v instanceof String[]) {
 				String[] funcs = (String[]) v;
@@ -148,7 +150,7 @@ public final class RuyiCmd implements IManual {
 	}
 
 	public void help(String command) throws Exception {
-		int i = command.indexOf(':');
+		final int i = command.indexOf(':');
 		if (i == command.length() - 1) {
 			System.err.print("Illegal Command: ");
 			System.err.println(command);
@@ -165,13 +167,11 @@ public final class RuyiCmd implements IManual {
 		if (scope.length() < 1)
 			scope = "*";
 
-		String filter = StrUtil.join("(&(" + CommandProcessor.COMMAND_SCOPE
-				+ "=", scope, ")(" + CommandProcessor.COMMAND_FUNCTION + "=",
-				function, "))");
+		final String filter = StrUtil.join("(&(" + CommandProcessor.COMMAND_SCOPE + "=", scope, ")("
+				+ CommandProcessor.COMMAND_FUNCTION + "=", function, "))");
 
 		final BundleContext context = m_context;
-		ServiceReference<?>[] references = context.getAllServiceReferences(
-				null, filter);
+		ServiceReference<?>[] references = context.getAllServiceReferences(null, filter);
 		if (references == null || references.length < 1) {
 			System.err.print("Command Not Found: ");
 			System.err.println(command);
@@ -181,14 +181,12 @@ public final class RuyiCmd implements IManual {
 		ServiceReference<?> reference = references[0];
 		scope = (String) reference.getProperty(CommandProcessor.COMMAND_SCOPE);
 		Bundle bundle = reference.getBundle();
-		URL url = bundle.getEntry(StrUtil.join("/HELP-INF/", scope, "/",
-				function));
+		URL url = bundle.getEntry(StrUtil.join("/HELP-INF/", scope, "/", function));
 		if (url == null) {
 			if (bundle.equals(context.getBundle()))
 				return;
 			bundle = context.getBundle();
-			url = bundle.getEntry(StrUtil.join("/HELP-INF/", scope, "/",
-					function));
+			url = bundle.getEntry(StrUtil.join("/HELP-INF/", scope, "/", function));
 			if (url == null)
 				return;
 		}
@@ -232,17 +230,17 @@ public final class RuyiCmd implements IManual {
 	 * @param regex
 	 * @throws Exception
 	 */
-	public void grep(@Parameter(names = { "-i", "--ignore-case" }, presentValue = "true", absentValue = "false")boolean ignoreCase,
-					 @Parameter(names = { "-v", "--invert-match" }, presentValue = "true", absentValue = "false")boolean invertMatch, String regex)
-			throws Exception {
+	public void grep(
+			@Parameter(names = { "-i", "--ignore-case" }, presentValue = "true", absentValue = "false") boolean ignoreCase,
+			@Parameter(names = { "-v", "--invert-match" }, presentValue = "true", absentValue = "false") boolean invertMatch,
+			String regex) throws Exception {
 
 		if (ignoreCase)
 			regex = StrUtil.join("(?i)", regex);
 
-		Pattern pattern = Pattern.compile(regex);
-		Matcher matcher = pattern.matcher("");
-		BufferedReader reader = new BufferedReader(new InputStreamReader(
-				System.in));
+		final Pattern pattern = Pattern.compile(regex);
+		final Matcher matcher = pattern.matcher("");
+		final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 		try {
 			String line;
 			while ((line = reader.readLine()) != null) {
@@ -263,7 +261,7 @@ public final class RuyiCmd implements IManual {
 		while ((node = prev.next()) != null && node.get().compareTo(cmd) < 0)
 			prev = node;
 
-		ListNode<String> newNode = ListNode.create();
+		final ListNode<String> newNode = ListNode.create();
 		newNode.set(cmd);
 		prev.next(newNode);
 		newNode.next(node);

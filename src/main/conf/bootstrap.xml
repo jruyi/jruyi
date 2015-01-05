@@ -4,11 +4,11 @@
 	xsi:schemaLocation="http://www.jruyi.org/schema/jruyi/bootstrap/1.0 http://www.jruyi.org/schema/jruyi/bootstrap_1_0.xsd">
 
 	<framework url="\${jruyi.bundle.base.url}org.apache.felix.framework-${felixFrameworkVersion}.jar">
-		<!-- OSGi Framework Properties
+		<!-- OSGi Framework Properties -->
 		<property name="org.osgi.framework.system.packages.extra">
-			sun.misc
+			sun.misc,
+			sun.nio.ch
 		</property>
-		-->
 		<!-- CLID bindAddr
 		<property name="jruyi.clid.bindAddr">localhost</property>
 		-->

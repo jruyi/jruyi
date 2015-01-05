@@ -13,6 +13,9 @@
  */
 package org.jruyi.io.buffer;
 
+import static org.jruyi.io.buffer.Helper.BE_NATIVE;
+import static org.jruyi.io.buffer.Helper.SIZE_OF_INT;
+
 import java.nio.BufferUnderflowException;
 
 import org.jruyi.io.IIntCodec;
@@ -28,13 +31,20 @@ public final class BigEndianIntCodec implements IIntCodec {
 
 	@Override
 	public int read(IUnitChain unitChain) {
-		int i = 0;
 		IUnit unit = unitChain.currentUnit();
 		int start = unit.start();
 		int position = start + unit.position();
 		int size = unit.size();
 		int end = start + size;
-		for (int n = 0; n < 4;) {
+		int n = position + SIZE_OF_INT;
+		if (BE_NATIVE && n <= end) {
+			final int i = unit.getInt(position);
+			unit.position(n - start);
+			return i;
+		}
+
+		int i = 0;
+		for (n = 0; n < 4;) {
 			if (position < end) {
 				i = (i << 8) | (unit.byteAt(position) & 0xFF);
 				++position;
@@ -60,9 +70,22 @@ public final class BigEndianIntCodec implements IIntCodec {
 		int start = unit.start();
 		int size = start + unit.size();
 		int end = unit.capacity();
-		for (int n = 24; n >= 0;) {
+		int n = size + SIZE_OF_INT;
+		if (BE_NATIVE) {
+			if (n <= end) {
+				unit.set(size, i);
+				unit.size(n - start);
+			} else {
+				unit = Util.appendNewUnit(unitChain);
+				unit.set(unit.start(), i);
+				unit.size(SIZE_OF_INT);
+			}
+			return;
+		}
+
+		for (n = 24; n >= 0;) {
 			if (size < end) {
-				unit.set(size, (byte) (i >>> n));
+				unit.set(size, (byte) (i >> n));
 				++size;
 				n -= 8;
 			} else {
@@ -80,11 +103,14 @@ public final class BigEndianIntCodec implements IIntCodec {
 	public int get(IUnitChain unitChain, int index) {
 		if (index < 0)
 			throw new IndexOutOfBoundsException();
-		int i = 0;
 		IUnit unit = unitChain.currentUnit();
 		int size = unit.start();
 		index += size;
 		size += unit.size();
+		if (BE_NATIVE && index + SIZE_OF_INT <= size)
+			return unit.getInt(index);
+
+		int i = 0;
 		for (int n = 0; n < 4;) {
 			if (index < size) {
 				i = (i << 8) | (unit.byteAt(index) & 0xFF);
@@ -109,9 +135,14 @@ public final class BigEndianIntCodec implements IIntCodec {
 		int size = unit.start();
 		index += size;
 		size += unit.size();
+		if (BE_NATIVE && index + SIZE_OF_INT <= size) {
+			unit.set(index, i);
+			return;
+		}
+
 		for (int n = 24; n >= 0;) {
 			if (index < size) {
-				unit.set(index, (byte) (i >>> n));
+				unit.set(index, (byte) (i >> n));
 				++index;
 				n -= 8;
 			} else {
@@ -128,10 +159,22 @@ public final class BigEndianIntCodec implements IIntCodec {
 	public void prepend(int i, IUnitChain unitChain) {
 		IUnit unit = Util.firstUnit(unitChain);
 		int start = unit.start();
+		if (BE_NATIVE) {
+			if (start < SIZE_OF_INT) {
+				unit = Util.prependNewUnit(unitChain);
+				start = unit.start();
+			}
+			start -= SIZE_OF_INT;
+			unit.set(start, i);
+			unit.start(start);
+			unit.size(unit.size() + SIZE_OF_INT);
+			return;
+		}
+
 		for (int n = 0; n < 4;) {
 			if (start > 0) {
 				unit.set(--start, (byte) i);
-				i >>>= 8;
+				i >>= 8;
 				++n;
 			} else {
 				unit.size(unit.size() + unit.start());
