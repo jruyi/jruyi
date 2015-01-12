@@ -13,6 +13,16 @@
  */
 package org.jruyi.io.buffer;
 
+import static org.jruyi.io.buffer.Helper.SIZE_OF_INT;
+import static org.jruyi.io.buffer.Helper.SIZE_OF_LONG;
+import static org.jruyi.io.buffer.Helper.SIZE_OF_SHORT;
+import static sun.misc.Unsafe.ARRAY_BYTE_BASE_OFFSET;
+import static sun.misc.Unsafe.ARRAY_DOUBLE_BASE_OFFSET;
+import static sun.misc.Unsafe.ARRAY_FLOAT_BASE_OFFSET;
+import static sun.misc.Unsafe.ARRAY_INT_BASE_OFFSET;
+import static sun.misc.Unsafe.ARRAY_LONG_BASE_OFFSET;
+import static sun.misc.Unsafe.ARRAY_SHORT_BASE_OFFSET;
+
 import java.nio.ByteBuffer;
 
 import org.jruyi.common.IByteSequence;
@@ -24,7 +34,6 @@ import sun.nio.ch.DirectBuffer;
 final class HeapUnit implements IUnit {
 
 	private static final Unsafe c_unsafe = com.lmax.disruptor.util.Util.getUnsafe();
-	private static final long BYTE_ARRAY_BASE_OFFSET = c_unsafe.arrayBaseOffset(byte[].class);
 
 	// offset of the next byte to be read
 	private int m_position;
@@ -76,6 +85,18 @@ final class HeapUnit implements IUnit {
 	}
 
 	@Override
+	public HeapUnit set(int index, float f) {
+		c_unsafe.putFloat(m_array, byteArrayOffset(index), f);
+		return this;
+	}
+
+	@Override
+	public HeapUnit set(int index, double d) {
+		c_unsafe.putDouble(m_array, byteArrayOffset(index), d);
+		return this;
+	}
+
+	@Override
 	public short getShort(int index) {
 		return c_unsafe.getShort(m_array, byteArrayOffset(index));
 	}
@@ -91,6 +112,16 @@ final class HeapUnit implements IUnit {
 	}
 
 	@Override
+	public float getFloat(int index) {
+		return c_unsafe.getFloat(m_array, byteArrayOffset(index));
+	}
+
+	@Override
+	public double getDouble(int index) {
+		return c_unsafe.getDouble(m_array, byteArrayOffset(index));
+	}
+
+	@Override
 	public HeapUnit set(int index, IByteSequence src, int srcBegin, int srcEnd) {
 		src.getBytes(srcBegin, srcEnd, m_array, index);
 		return this;
@@ -99,6 +130,61 @@ final class HeapUnit implements IUnit {
 	@Override
 	public HeapUnit set(int index, byte[] src, int offset, int length) {
 		c_unsafe.copyMemory(src, byteArrayOffset(offset), m_array, byteArrayOffset(index), length);
+		return this;
+	}
+
+	@Override
+	public void get(int index, int length, long[] dst, int dstBegin) {
+		c_unsafe.copyMemory(m_array, byteArrayOffset(index), dst, longArrayOffset(dstBegin), length);
+	}
+
+	@Override
+	public HeapUnit set(int index, long[] src, int offset, int length) {
+		c_unsafe.copyMemory(src, longArrayOffset(offset), m_array, byteArrayOffset(index), SIZE_OF_LONG * length);
+		return this;
+	}
+
+	@Override
+	public void get(int index, int length, int[] dst, int dstBegin) {
+		c_unsafe.copyMemory(m_array, byteArrayOffset(index), dst, intArrayOffset(dstBegin), length);
+	}
+
+	@Override
+	public HeapUnit set(int index, int[] src, int offset, int length) {
+		c_unsafe.copyMemory(src, intArrayOffset(offset), m_array, byteArrayOffset(index), SIZE_OF_INT * length);
+		return this;
+	}
+
+	@Override
+	public void get(int index, int length, short[] dst, int dstBegin) {
+		c_unsafe.copyMemory(m_array, byteArrayOffset(index), dst, shortArrayOffset(dstBegin), length);
+	}
+
+	@Override
+	public HeapUnit set(int index, short[] src, int offset, int length) {
+		c_unsafe.copyMemory(src, shortArrayOffset(offset), m_array, byteArrayOffset(index), SIZE_OF_SHORT * length);
+		return this;
+	}
+
+	@Override
+	public void get(int index, int length, float[] dst, int dstBegin) {
+		c_unsafe.copyMemory(m_array, byteArrayOffset(index), dst, floatArrayOffset(dstBegin), length);
+	}
+
+	@Override
+	public HeapUnit set(int index, float[] src, int offset, int length) {
+		c_unsafe.copyMemory(src, floatArrayOffset(offset), m_array, byteArrayOffset(index), SIZE_OF_INT * length);
+		return this;
+	}
+
+	@Override
+	public void get(int index, int length, double[] dst, int dstBegin) {
+		c_unsafe.copyMemory(m_array, byteArrayOffset(index), dst, doubleArrayOffset(dstBegin), length);
+	}
+
+	@Override
+	public HeapUnit set(int index, double[] src, int offset, int length) {
+		c_unsafe.copyMemory(src, doubleArrayOffset(offset), m_array, byteArrayOffset(index), SIZE_OF_LONG * length);
 		return this;
 	}
 
@@ -118,14 +204,14 @@ final class HeapUnit implements IUnit {
 		final byte[] array = m_array;
 		final int length = array.length - index;
 		final byte[] data = new byte[length];
-		c_unsafe.copyMemory(array, byteArrayOffset(index), data, BYTE_ARRAY_BASE_OFFSET, length);
+		c_unsafe.copyMemory(array, byteArrayOffset(index), data, ARRAY_BYTE_BASE_OFFSET, length);
 		return data;
 	}
 
 	@Override
 	public byte[] getBytes(int index, int length) {
 		final byte[] data = new byte[length];
-		c_unsafe.copyMemory(m_array, byteArrayOffset(index), data, BYTE_ARRAY_BASE_OFFSET, length);
+		c_unsafe.copyMemory(m_array, byteArrayOffset(index), data, ARRAY_BYTE_BASE_OFFSET, length);
 		return data;
 	}
 
@@ -318,6 +404,26 @@ final class HeapUnit implements IUnit {
 	}
 
 	private static long byteArrayOffset(long index) {
-		return BYTE_ARRAY_BASE_OFFSET + index;
+		return ARRAY_BYTE_BASE_OFFSET + index;
+	}
+
+	private static long longArrayOffset(long index) {
+		return ARRAY_LONG_BASE_OFFSET + index * SIZE_OF_LONG;
+	}
+
+	private static long intArrayOffset(long index) {
+		return ARRAY_INT_BASE_OFFSET + index * SIZE_OF_INT;
+	}
+
+	private static long shortArrayOffset(long index) {
+		return ARRAY_SHORT_BASE_OFFSET + index * SIZE_OF_SHORT;
+	}
+
+	private static long floatArrayOffset(long index) {
+		return ARRAY_FLOAT_BASE_OFFSET + index * SIZE_OF_INT;
+	}
+
+	private static long doubleArrayOffset(long index) {
+		return ARRAY_DOUBLE_BASE_OFFSET + index * SIZE_OF_LONG;
 	}
 }

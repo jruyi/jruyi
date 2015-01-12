@@ -18,6 +18,7 @@ import java.io.OutputStream;
 
 import org.jruyi.io.Codec;
 import org.jruyi.io.IBuffer;
+import org.jruyi.io.StringCodec;
 
 final class ErrBufferStream extends OutputStream {
 
@@ -40,9 +41,9 @@ final class ErrBufferStream extends OutputStream {
 				return;
 
 			IBuffer buffer = out.buffer();
-			buffer.write(RED, Codec.utf_8());
-			buffer.write(str, Codec.utf_8());
-			buffer.write(RESET, Codec.utf_8());
+			buffer.write(RED, StringCodec.utf_8());
+			buffer.write(str, StringCodec.utf_8());
+			buffer.write(RESET, StringCodec.utf_8());
 		}
 	}
 
@@ -63,9 +64,9 @@ final class ErrBufferStream extends OutputStream {
 				return;
 
 			IBuffer buffer = out.buffer();
-			buffer.write(RED, Codec.utf_8());
+			buffer.write(RED, StringCodec.utf_8());
 			buffer.write(b, off, len, Codec.byteArray());
-			buffer.write(RESET, Codec.utf_8());
+			buffer.write(RESET, StringCodec.utf_8());
 		}
 	}
 
@@ -77,9 +78,9 @@ final class ErrBufferStream extends OutputStream {
 				return;
 
 			IBuffer buffer = out.buffer();
-			buffer.write(RED, Codec.utf_8());
+			buffer.write(RED, StringCodec.utf_8());
 			buffer.write(b, Codec.byteArray());
-			buffer.write(RESET, Codec.utf_8());
+			buffer.write(RESET, StringCodec.utf_8());
 		}
 	}
 
@@ -91,9 +92,9 @@ final class ErrBufferStream extends OutputStream {
 				return;
 
 			IBuffer buffer = out.buffer();
-			buffer.write(RED, Codec.utf_8());
+			buffer.write(RED, StringCodec.utf_8());
 			buffer.write((byte) b);
-			buffer.write(RESET, Codec.utf_8());
+			buffer.write(RESET, StringCodec.utf_8());
 		}
 	}
 }

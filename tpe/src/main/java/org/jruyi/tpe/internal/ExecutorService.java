@@ -204,7 +204,7 @@ public final class ExecutorService implements Executor, IExecutorProfiler, IDump
 			else
 				c_logger.debug("Termination of TPE executor timed out");
 
-			c_logger.info("ExecutorService was deactivated");
+			c_logger.info("ExecutorService deactivated");
 		} catch (InterruptedException e) {
 			c_logger.warn("Going here is abnormal");
 		} catch (Exception e) {

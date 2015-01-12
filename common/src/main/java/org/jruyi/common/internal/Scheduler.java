@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.common.internal;
 
 import java.util.Map;
@@ -40,7 +41,7 @@ public final class Scheduler implements IScheduler {
 		private static final String P_TERM_WAITTIME_IN_SECONDS = "terminationWaitTimeInSeconds";
 
 		private int m_numberOfThreads = 1;
-		private int m_terminationWaitTimeInSeconds = 300;
+		private int m_terminationWaitTimeInSeconds = 60;
 
 		private Configuration() {
 		}

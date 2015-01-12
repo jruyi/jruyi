@@ -13,13 +13,21 @@
  */
 package org.jruyi.io.internal;
 
-import org.jruyi.io.CharCodec.ICharCodecProvider;
-import org.jruyi.io.Codec.ICodecProvider;
-import org.jruyi.io.DoubleCodec.IDoubleCodecProvider;
-import org.jruyi.io.FloatCodec.IFloatCodecProvider;
-import org.jruyi.io.IntCodec.IIntCodecProvider;
-import org.jruyi.io.LongCodec.ILongCodecProvider;
-import org.jruyi.io.ShortCodec.IShortCodecProvider;
+import org.jruyi.io.CharArrayCodec;
+import org.jruyi.io.CharCodec;
+import org.jruyi.io.CharSequenceCodec;
+import org.jruyi.io.Codec;
+import org.jruyi.io.DoubleArrayCodec;
+import org.jruyi.io.DoubleCodec;
+import org.jruyi.io.FloatArrayCodec;
+import org.jruyi.io.FloatCodec;
+import org.jruyi.io.IntArrayCodec;
+import org.jruyi.io.IntCodec;
+import org.jruyi.io.LongArrayCodec;
+import org.jruyi.io.LongCodec;
+import org.jruyi.io.ShortArrayCodec;
+import org.jruyi.io.ShortCodec;
+import org.jruyi.io.StringCodec;
 
 public final class CodecProvider {
 
@@ -30,31 +38,63 @@ public final class CodecProvider {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
-	public ICharCodecProvider getCharCodecProvider() {
+	public CharCodec.ICharCodecProvider getCharCodecProvider() {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
-	public IShortCodecProvider getShortCodecProvider() {
+	public ShortCodec.IShortCodecProvider getShortCodecProvider() {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
-	public IIntCodecProvider getIntCodecProvider() {
+	public IntCodec.IIntCodecProvider getIntCodecProvider() {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
-	public ILongCodecProvider getLongCodecProvider() {
+	public LongCodec.ILongCodecProvider getLongCodecProvider() {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
-	public IFloatCodecProvider getFloatCodecProvider() {
+	public FloatCodec.IFloatCodecProvider getFloatCodecProvider() {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
-	public IDoubleCodecProvider getDoubleCodecProvider() {
+	public DoubleCodec.IDoubleCodecProvider getDoubleCodecProvider() {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
-	public ICodecProvider getCodecProvider() {
+	public StringCodec.IStringCodecProvider getStringCodecProvider() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	public CharArrayCodec.ICharArrayCodecProvider getCharArrayCodecProvider() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	public CharSequenceCodec.ICharSequenceCodecProvider getCharSequenceCodecProvider() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	public LongArrayCodec.ILongArrayCodecProvider getLongArrayCodecProvider() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	public IntArrayCodec.IIntArrayCodecProvider getIntArrayCodecProvider() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	public ShortArrayCodec.IShortArrayCodecProvider getShortArrayCodecProvider() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	public FloatArrayCodec.IFloatArrayCodecProvider getFloatArrayCodecProvider() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	public DoubleArrayCodec.IDoubleArrayCodecProvider getDoubleArrayCodecProvider() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	public Codec.ICodecProvider getCodecProvider() {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 }

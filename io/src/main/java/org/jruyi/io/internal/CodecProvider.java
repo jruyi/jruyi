@@ -16,137 +16,90 @@ package org.jruyi.io.internal;
 import java.nio.ByteBuffer;
 
 import org.jruyi.common.IByteSequence;
-import org.jruyi.io.Codec.ICodecProvider;
-import org.jruyi.io.DoubleCodec.IDoubleCodecProvider;
-import org.jruyi.io.FloatCodec.IFloatCodecProvider;
+import org.jruyi.io.CharArrayCodec;
+import org.jruyi.io.CharSequenceCodec;
+import org.jruyi.io.Codec;
+import org.jruyi.io.DoubleArrayCodec;
+import org.jruyi.io.DoubleCodec;
+import org.jruyi.io.FloatArrayCodec;
+import org.jruyi.io.FloatCodec;
 import org.jruyi.io.ICodec;
-import org.jruyi.io.IDoubleCodec;
-import org.jruyi.io.IFloatCodec;
-import org.jruyi.io.IIntCodec;
-import org.jruyi.io.ILongCodec;
-import org.jruyi.io.IShortCodec;
-import org.jruyi.io.IntCodec.IIntCodecProvider;
-import org.jruyi.io.LongCodec.ILongCodecProvider;
-import org.jruyi.io.ShortCodec.IShortCodecProvider;
-import org.jruyi.io.buffer.BigEndianDoubleCodec;
-import org.jruyi.io.buffer.BigEndianFloatCodec;
-import org.jruyi.io.buffer.BigEndianIntCodec;
-import org.jruyi.io.buffer.BigEndianLongCodec;
-import org.jruyi.io.buffer.BigEndianShortCodec;
-import org.jruyi.io.buffer.ByteArrayCodec;
-import org.jruyi.io.buffer.ByteBufferCodec;
-import org.jruyi.io.buffer.ByteSequenceCodec;
-import org.jruyi.io.buffer.CharArrayCodec;
-import org.jruyi.io.buffer.CharSequenceCodec;
-import org.jruyi.io.buffer.LittleEndianDoubleCodec;
-import org.jruyi.io.buffer.LittleEndianFloatCodec;
-import org.jruyi.io.buffer.LittleEndianIntCodec;
-import org.jruyi.io.buffer.LittleEndianLongCodec;
-import org.jruyi.io.buffer.LittleEndianShortCodec;
-import org.jruyi.io.buffer.StringCodec;
-import org.jruyi.io.buffer.VarintIntCodec;
-import org.jruyi.io.buffer.VarintLongCodec;
-import org.jruyi.io.buffer.VarintShortCodec;
+import org.jruyi.io.IntArrayCodec;
+import org.jruyi.io.IntCodec;
+import org.jruyi.io.LongArrayCodec;
+import org.jruyi.io.LongCodec;
+import org.jruyi.io.ShortArrayCodec;
+import org.jruyi.io.ShortCodec;
+import org.jruyi.io.StringCodec;
+import org.jruyi.io.buffer.codec.ByteArrayCodec;
+import org.jruyi.io.buffer.codec.ByteBufferCodec;
+import org.jruyi.io.buffer.codec.ByteSequenceCodec;
 
-public final class CodecProvider implements IShortCodecProvider, IIntCodecProvider, ILongCodecProvider,
-		IFloatCodecProvider, IDoubleCodecProvider, ICodecProvider {
+public final class CodecProvider implements Codec.ICodecProvider {
 
 	private static final CodecProvider INST = new CodecProvider();
 
 	private CodecProvider() {
 	}
 
+	public Codec.ICodecProvider getCodecProvider() {
+		return this;
+	}
+
 	public static CodecProvider getInstance() {
 		return INST;
 	}
 
-	public IShortCodecProvider getShortCodecProvider() {
-		return this;
+	public ShortCodec.IShortCodecProvider getShortCodecProvider() {
+		return ShortCodecProvider.INST;
 	}
 
-	public IIntCodecProvider getIntCodecProvider() {
-		return this;
+	public IntCodec.IIntCodecProvider getIntCodecProvider() {
+		return IntCodecProvider.INST;
 	}
 
-	public ILongCodecProvider getLongCodecProvider() {
-		return this;
+	public LongCodec.ILongCodecProvider getLongCodecProvider() {
+		return LongCodecProvider.INST;
 	}
 
-	public IFloatCodecProvider getFloatCodecProvider() {
-		return this;
+	public LongArrayCodec.ILongArrayCodecProvider getLongArrayCodecProvider() {
+		return LongArrayCodecProvider.INST;
 	}
 
-	public IDoubleCodecProvider getDoubleCodecProvider() {
-		return this;
+	public IntArrayCodec.IIntArrayCodecProvider getIntArrayCodecProvider() {
+		return IntArrayCodecProvider.INST;
 	}
 
-	public ICodecProvider getCodecProvider() {
-		return this;
+	public ShortArrayCodec.IShortArrayCodecProvider getShortArrayCodecProvider() {
+		return ShortArrayCodecProvider.INST;
 	}
 
-	@Override
-	public IShortCodec bigEndianShortCodec() {
-		return BigEndianShortCodec.INST;
+	public FloatArrayCodec.IFloatArrayCodecProvider getFloatArrayCodecProvider() {
+		return FloatArrayCodecProvider.INST;
 	}
 
-	@Override
-	public IShortCodec littleEndianShortCodec() {
-		return LittleEndianShortCodec.INST;
+	public DoubleArrayCodec.IDoubleArrayCodecProvider getDoubleArrayCodecProvider() {
+		return DoubleArrayCodecProvider.INST;
 	}
 
-	@Override
-	public IShortCodec varintShortCodec() {
-		return VarintShortCodec.INST;
+	public FloatCodec.IFloatCodecProvider getFloatCodecProvider() {
+		return FloatCodecProvider.INST;
 	}
 
-	@Override
-	public IIntCodec bigEndianIntCodec() {
-		return BigEndianIntCodec.INST;
+	public DoubleCodec.IDoubleCodecProvider getDoubleCodecProvider() {
+		return DoubleCodecProvider.INST;
 	}
 
-	@Override
-	public IIntCodec littleEndianIntCodec() {
-		return LittleEndianIntCodec.INST;
+	public StringCodec.IStringCodecProvider getStringCodecProvider() {
+		return StringCodecProvider.INST;
 	}
 
-	@Override
-	public IIntCodec varintIntCodec() {
-		return VarintIntCodec.INST;
+	public CharArrayCodec.ICharArrayCodecProvider getCharArrayCodecProvider() {
+		return CharArrayCodecProvider.INST;
 	}
 
-	@Override
-	public ILongCodec bigEndianLongCodec() {
-		return BigEndianLongCodec.INST;
-	}
-
-	@Override
-	public ILongCodec littleEndianLongCodec() {
-		return LittleEndianLongCodec.INST;
-	}
-
-	@Override
-	public ILongCodec varintLongCodec() {
-		return VarintLongCodec.INST;
-	}
-
-	@Override
-	public IDoubleCodec bigEndianDoubleCodec() {
-		return BigEndianDoubleCodec.INST;
-	}
-
-	@Override
-	public IDoubleCodec littleEndianDoubleCodec() {
-		return LittleEndianDoubleCodec.INST;
-	}
-
-	@Override
-	public IFloatCodec bigEndianFloatCodec() {
-		return BigEndianFloatCodec.INST;
-	}
-
-	@Override
-	public IFloatCodec littleEndianFloatCodec() {
-		return LittleEndianFloatCodec.INST;
+	public CharSequenceCodec.ICharSequenceCodecProvider getCharSequenceCodecProvider() {
+		return CharSequenceCodecProvider.INST;
 	}
 
 	@Override
@@ -162,110 +115,5 @@ public final class CodecProvider implements IShortCodecProvider, IIntCodecProvid
 	@Override
 	public ICodec<ByteBuffer> byteBuffer() {
 		return ByteBufferCodec.INST;
-	}
-
-	@Override
-	public ICodec<String> utf_8() {
-		return StringCodec.UTF_8;
-	}
-
-	@Override
-	public ICodec<String> utf_16() {
-		return StringCodec.UTF_16;
-	}
-
-	@Override
-	public ICodec<String> utf_16le() {
-		return StringCodec.UTF_16LE;
-	}
-
-	@Override
-	public ICodec<String> utf_16be() {
-		return StringCodec.UTF_16BE;
-	}
-
-	@Override
-	public ICodec<String> iso_8859_1() {
-		return StringCodec.ISO_8859_1;
-	}
-
-	@Override
-	public ICodec<String> us_ascii() {
-		return StringCodec.US_ASCII;
-	}
-
-	@Override
-	public ICodec<char[]> utf_8_array() {
-		return CharArrayCodec.UTF_8;
-	}
-
-	@Override
-	public ICodec<char[]> utf_16_array() {
-		return CharArrayCodec.UTF_16;
-	}
-
-	@Override
-	public ICodec<char[]> utf_16le_array() {
-		return CharArrayCodec.UTF_16LE;
-	}
-
-	@Override
-	public ICodec<char[]> utf_16be_array() {
-		return CharArrayCodec.UTF_16BE;
-	}
-
-	@Override
-	public ICodec<char[]> iso_8859_1_array() {
-		return CharArrayCodec.ISO_8859_1;
-	}
-
-	@Override
-	public ICodec<char[]> us_ascii_array() {
-		return CharArrayCodec.US_ASCII;
-	}
-
-	@Override
-	public ICodec<CharSequence> utf_8_sequence() {
-		return CharSequenceCodec.UTF_8;
-	}
-
-	@Override
-	public ICodec<CharSequence> utf_16_sequence() {
-		return CharSequenceCodec.UTF_16;
-	}
-
-	@Override
-	public ICodec<CharSequence> utf_16le_sequence() {
-		return CharSequenceCodec.UTF_16LE;
-	}
-
-	@Override
-	public ICodec<CharSequence> utf_16be_sequence() {
-		return CharSequenceCodec.UTF_16BE;
-	}
-
-	@Override
-	public ICodec<CharSequence> iso_8859_1_sequence() {
-		return CharSequenceCodec.ISO_8859_1;
-	}
-
-	@Override
-	public ICodec<CharSequence> us_ascii_sequence() {
-		return CharSequenceCodec.US_ASCII;
-	}
-
-	@Override
-	public ICodec<String> charset(String charsetName) {
-		return new StringCodec(charsetName);
-	}
-
-	@Override
-	public ICodec<char[]> charset_array(String charsetName) {
-		return new CharArrayCodec(charsetName);
-	}
-
-	@Override
-	public ICodec<CharSequence> charset_sequence(String charsetName) {
-		return new CharSequenceCodec(charsetName);
 	}
 }

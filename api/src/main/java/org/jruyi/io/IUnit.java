@@ -103,6 +103,34 @@ public interface IUnit extends IByteSequence {
 	public IUnit set(int index, long l);
 
 	/**
+	 * Sets the bytes starting at the specified {@code index} to the ones
+	 * encoded from the specified {@code float} value {@code f} in the native
+	 * byte order.
+	 *
+	 * @param index
+	 *            the index of the first byte to be set
+	 * @param f
+	 *            the {@code int} value to be encoded
+	 * @return this buffer unit
+	 * @since 2.0
+	 */
+	public IUnit set(int index, float f);
+
+	/**
+	 * Sets the bytes starting at the specified {@code index} to the ones
+	 * encoded from the specified {@code double} value {@code d} in the native
+	 * byte order.
+	 *
+	 * @param index
+	 *            the index of the first byte to be set
+	 * @param d
+	 *            the {@code long} value to be encoded
+	 * @return this buffer unit
+	 * @since 2.0
+	 */
+	public IUnit set(int index, double d);
+
+	/**
 	 * Decodes 2 bytes starting at the specified {@code index} from the
 	 * underlying buffer into a {@code short} value in the native byte order and
 	 * returns the resultant {@code short} value.
@@ -137,6 +165,30 @@ public interface IUnit extends IByteSequence {
 	 * @since 2.0
 	 */
 	public long getLong(int index);
+
+	/**
+	 * Decodes 4 bytes starting at the specified {@code index} from the
+	 * underlying buffer into a {@code float} value in the native byte order and
+	 * returns the resultant {@code float} value.
+	 *
+	 * @param index
+	 *            the index of the first byte to be decoded
+	 * @return the resultant {@code float} value
+	 * @since 2.0
+	 */
+	public float getFloat(int index);
+
+	/**
+	 * Decodes 8 bytes starting at the specified {@code index} from the
+	 * underlying buffer into a {@code double} value in the native byte order
+	 * and returns the resultant {@code double} value.
+	 *
+	 * @param index
+	 *            the index of the first byte to be decoded
+	 * @return the resultant {@code double} value
+	 * @since 2.0
+	 */
+	public double getDouble(int index);
 
 	/**
 	 * Sets {@code (srcEnd - srcBegin)} bytes starting at the specified
@@ -177,6 +229,176 @@ public interface IUnit extends IByteSequence {
 	 * @return this buffer unit
 	 */
 	public IUnit set(int index, byte[] src, int offset, int length);
+
+	/**
+	 * Decodes the requested sequence of bytes to the given long array
+	 * {@code dst} starting at {@code dstBegin} in native byte order.
+	 * 
+	 * @param index
+	 *            start decoding at this offset
+	 * @param length
+	 *            number of bytes to be decoded
+	 * @param dst
+	 *            the long array to decode the data into
+	 * @param dstBegin
+	 *            offset into {@code dst}
+	 * @since 2.0
+	 */
+	public void get(int index, int length, long[] dst, int dstBegin);
+
+	/**
+	 * Sets bytes at the specified {@code index} to the ones encoded from
+	 * {@code length} longs in the specified {@code src} starting at the
+	 * specified {@code offset} in native byte order.
+	 * 
+	 * @param index
+	 *            the offset of the first byte to be set
+	 * @param src
+	 *            the longs from which to be encoded
+	 * @param offset
+	 *            the offset of the first long in {@code src} to be encoded
+	 * @param length
+	 *            the number of longs from {@code src} to be encoded
+	 * @return this buffer unit
+	 * @since 2.0
+	 */
+	public IUnit set(int index, long[] src, int offset, int length);
+
+	/**
+	 * Decodes the requested sequence of bytes to the given int array
+	 * {@code dst} starting at {@code dstBegin} in native byte order.
+	 *
+	 * @param index
+	 *            start decoding at this offset
+	 * @param length
+	 *            number of bytes to be decoded
+	 * @param dst
+	 *            the int array to decode the data into
+	 * @param dstBegin
+	 *            offset into {@code dst}
+	 * @since 2.0
+	 */
+	public void get(int index, int length, int[] dst, int dstBegin);
+
+	/**
+	 * Sets bytes at the specified {@code index} to the ones encoded from
+	 * {@code length} ints in the specified {@code src} starting at the
+	 * specified {@code offset} in native byte order.
+	 *
+	 * @param index
+	 *            the offset of the first byte to be set
+	 * @param src
+	 *            the ints from which to be encoded
+	 * @param offset
+	 *            the offset of the first int in {@code src} to be encoded
+	 * @param length
+	 *            the number of ints from {@code src} to be encoded
+	 * @return this buffer unit
+	 * @since 2.0
+	 */
+	public IUnit set(int index, int[] src, int offset, int length);
+
+	/**
+	 * Decodes the requested sequence of bytes to the given short array
+	 * {@code dst} starting at {@code dstBegin} in native byte order.
+	 *
+	 * @param index
+	 *            start decoding at this offset
+	 * @param length
+	 *            number of bytes to be decoded
+	 * @param dst
+	 *            the short array to decode the data into
+	 * @param dstBegin
+	 *            offset into {@code dst}
+	 * @since 2.0
+	 */
+	public void get(int index, int length, short[] dst, int dstBegin);
+
+	/**
+	 * Sets bytes at the specified {@code index} to the ones encoded from
+	 * {@code length} shorts in the specified {@code src} starting at the
+	 * specified {@code offset} in native byte order.
+	 *
+	 * @param index
+	 *            the offset of the first byte to be set
+	 * @param src
+	 *            the shorts from which to be encoded
+	 * @param offset
+	 *            the offset of the first short in {@code src} to be encoded
+	 * @param length
+	 *            the number of shorts from {@code src} to be encoded
+	 * @return this buffer unit
+	 * @since 2.0
+	 */
+	public IUnit set(int index, short[] src, int offset, int length);
+
+	/**
+	 * Decodes the requested sequence of bytes to the given float array
+	 * {@code dst} starting at {@code dstBegin} in native byte order.
+	 *
+	 * @param index
+	 *            start decoding at this offset
+	 * @param length
+	 *            number of bytes to be decoded
+	 * @param dst
+	 *            the float array to decode the data into
+	 * @param dstBegin
+	 *            offset into {@code dst}
+	 * @since 2.0
+	 */
+	public void get(int index, int length, float[] dst, int dstBegin);
+
+	/**
+	 * Sets bytes at the specified {@code index} to the ones encoded from
+	 * {@code length} floats in the specified {@code src} starting at the
+	 * specified {@code offset} in native byte order.
+	 *
+	 * @param index
+	 *            the offset of the first byte to be set
+	 * @param src
+	 *            the floats from which to be encoded
+	 * @param offset
+	 *            the offset of the first float in {@code src} to be encoded
+	 * @param length
+	 *            the number of floats from {@code src} to be encoded
+	 * @return this buffer unit
+	 * @since 2.0
+	 */
+	public IUnit set(int index, float[] src, int offset, int length);
+
+	/**
+	 * Decodes the requested sequence of bytes to the given double array
+	 * {@code dst} starting at {@code dstBegin} in native byte order.
+	 *
+	 * @param index
+	 *            start decoding at this offset
+	 * @param length
+	 *            number of bytes to be decoded
+	 * @param dst
+	 *            the double array to decode the data into
+	 * @param dstBegin
+	 *            offset into {@code dst}
+	 * @since 2.0
+	 */
+	public void get(int index, int length, double[] dst, int dstBegin);
+
+	/**
+	 * Sets bytes at the specified {@code index} to the ones encoded from
+	 * {@code length} doubles in the specified {@code src} starting at the
+	 * specified {@code offset} in native byte order.
+	 *
+	 * @param index
+	 *            the offset of the first byte to be set
+	 * @param src
+	 *            the doubles from which to be encoded
+	 * @param offset
+	 *            the offset of the first double in {@code src} to be encoded
+	 * @param length
+	 *            the number of doubles from {@code src} to be encoded
+	 * @return this buffer unit
+	 * @since 2.0
+	 */
+	public IUnit set(int index, double[] src, int offset, int length);
 
 	/**
 	 * Sets all the {@code count} bytes starting at the specified {@code index}

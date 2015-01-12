@@ -43,7 +43,7 @@ public final class BufferFactory implements IBufferFactory {
 	}
 
 	@Modified
-	protected void modified(Map<String, ?> properties) {
+	void modified(Map<String, ?> properties) {
 		final Integer value = (Integer) properties.get(UNIT_CAPACITY);
 		if (value == null)
 			m_unitCapacity = 1024 * 8;
@@ -56,7 +56,7 @@ public final class BufferFactory implements IBufferFactory {
 		c_logger.info("{}: unitCapacity={}", bfName, m_unitCapacity);
 	}
 
-	protected void activate(Map<String, ?> properties) {
+	void activate(Map<String, ?> properties) {
 		modified(properties);
 	}
 

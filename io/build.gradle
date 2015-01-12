@@ -12,6 +12,7 @@
  * limitations under the License.
  */
 
+apply plugin: 'groovy'
 apply plugin: 'org.jruyi.osgibnd'
 
 archivesBaseName = 'org.jruyi.io'
@@ -31,7 +32,8 @@ dependencies {
 
 	compile project(':api')
 
-	testCompile "junit:junit:4.11"
+	testCompile "org.spockframework:spock-core:$spock_core_version"
+	testCompile "org.slf4j:slf4j-simple:$slf4j_simple_version"
 
 	testCompile project(':common')
 }

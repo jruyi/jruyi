@@ -20,6 +20,7 @@ import org.jruyi.io.IBuffer;
 import org.jruyi.io.ISession;
 import org.jruyi.io.ISessionService;
 import org.jruyi.io.IntCodec;
+import org.jruyi.io.StringCodec;
 import org.jruyi.timeoutadmin.ITimeoutEvent;
 import org.jruyi.timeoutadmin.ITimeoutListener;
 import org.jruyi.timeoutadmin.ITimeoutNotifier;
@@ -37,8 +38,7 @@ final class OutBufferStream extends OutputStream implements ITimeoutListener {
 	private IBuffer m_buffer;
 	private volatile boolean m_closed;
 
-	public OutBufferStream(ISessionService ss, ISession session,
-			ITimeoutNotifier tn) {
+	public OutBufferStream(ISessionService ss, ISession session, ITimeoutNotifier tn) {
 		m_ss = ss;
 		m_session = session;
 		m_tn = tn;
@@ -103,7 +103,7 @@ final class OutBufferStream extends OutputStream implements ITimeoutListener {
 			if (isClosed())
 				return;
 
-			buffer().write(str, Codec.utf_8());
+			buffer().write(str, StringCodec.utf_8());
 		}
 	}
 
@@ -179,7 +179,7 @@ final class OutBufferStream extends OutputStream implements ITimeoutListener {
 			}
 
 			if (!prompt.isEmpty())
-				out.write(prompt, Codec.utf_8());
+				out.write(prompt, StringCodec.utf_8());
 
 			if (!out.isEmpty())
 				prependLength(out);

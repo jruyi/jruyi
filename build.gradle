@@ -62,7 +62,10 @@ allprojects {
 		org_apache_felix_gogo_runtime_version = '0.12.1'
 		org_apache_felix_metatype_version = '1.0.10'
 		org_apache_felix_scr_version = '1.8.2'
-		slf4j_api_version = '1.7.9'
+		slf4j_api_version = '1.7.10'
+
+		spock_core_version = '0.7-groovy-2.0'
+		slf4j_simple_version = '1.7.10'
 
 		jruyi_system_version = rootProject.version
 

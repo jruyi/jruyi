@@ -13,6 +13,8 @@
  */
 package org.jruyi.io.buffer;
 
+import org.jruyi.io.buffer.codec.ByteArrayCodec;
+
 import java.io.IOException;
 import java.io.OutputStream;
 

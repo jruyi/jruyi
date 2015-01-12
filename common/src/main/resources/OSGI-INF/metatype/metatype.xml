@@ -20,7 +20,7 @@
 
 	<OCD id="scheduler" name="Scheduler">
 		<AD id="numberOfThreads" name="Number of Threads" type="Integer" default="1" min="1"/>
-		<AD id="terminationWaitTimeInSeconds" name="Termination Wait Time in Seconds" type="Integer" default="300"/>
+		<AD id="terminationWaitTimeInSeconds" name="Termination Wait Time in Seconds" type="Integer" default="60"/>
 	</OCD>
 
 	<Designate pid="jruyi.common.scheduler">

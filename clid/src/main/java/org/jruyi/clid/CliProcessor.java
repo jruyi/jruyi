@@ -40,7 +40,6 @@ import org.jruyi.common.IntStack;
 import org.jruyi.common.Properties;
 import org.jruyi.common.StrUtil;
 import org.jruyi.common.StringBuilder;
-import org.jruyi.io.Codec;
 import org.jruyi.io.IBuffer;
 import org.jruyi.io.IFilter;
 import org.jruyi.io.IFilterOutput;
@@ -48,6 +47,7 @@ import org.jruyi.io.ISession;
 import org.jruyi.io.ISessionService;
 import org.jruyi.io.IoConstants;
 import org.jruyi.io.SessionListener;
+import org.jruyi.io.StringCodec;
 import org.jruyi.system.Constants;
 import org.jruyi.timeoutadmin.ITimeoutAdmin;
 import org.jruyi.timeoutadmin.ITimeoutNotifier;
@@ -170,7 +170,7 @@ public final class CliProcessor extends SessionListener implements IFilter<IBuff
 		final IBuffer buffer = (IBuffer) message;
 		String cmdline;
 		try {
-			cmdline = buffer.remaining() > 0 ? buffer.read(Codec.utf_8()) : null;
+			cmdline = buffer.remaining() > 0 ? buffer.read(StringCodec.utf_8()) : null;
 		} finally {
 			buffer.close();
 		}

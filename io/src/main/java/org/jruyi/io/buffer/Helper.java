@@ -45,7 +45,7 @@ public final class Helper {
 	private Helper() {
 	}
 
-	static void write(ICharsetCodec cc, CharBuffer cb, IUnitChain unitChain) {
+	public static void write(ICharsetCodec cc, CharBuffer cb, IUnitChain unitChain) {
 		final CharsetEncoder encoder = cc.getEncoder();
 		try {
 			IUnit unit = Util.lastUnit(unitChain);
@@ -77,7 +77,7 @@ public final class Helper {
 		}
 	}
 
-	static int prepend(IByteSequence src, int offset, int length, IUnit unit) {
+	public static int prepend(IByteSequence src, int offset, int length, IUnit unit) {
 		int start = unit.start();
 		if (length > start) {
 			offset += length - start;
@@ -90,7 +90,7 @@ public final class Helper {
 		return length;
 	}
 
-	static void prepend(ICharsetCodec cc, CharBuffer cb, IUnitChain unitChain) {
+	public static void prepend(ICharsetCodec cc, CharBuffer cb, IUnitChain unitChain) {
 		final BytesBuilder bb = BytesBuilder.get();
 		try {
 			cc.encode(cb, bb);
@@ -103,7 +103,7 @@ public final class Helper {
 		}
 	}
 
-	static void prepend(ICharsetCodec cc, StringBuilder sb, IUnitChain unitChain) {
+	public static void prepend(ICharsetCodec cc, StringBuilder sb, IUnitChain unitChain) {
 		final BytesBuilder bb = BytesBuilder.get();
 		try {
 			cc.encode(sb, bb);
@@ -116,7 +116,7 @@ public final class Helper {
 		}
 	}
 
-	static void prepend(ICharsetCodec cc, StringBuilder sb, int offset, int len, IUnitChain unitChain) {
+	public static void prepend(ICharsetCodec cc, StringBuilder sb, int offset, int len, IUnitChain unitChain) {
 		final BytesBuilder bb = BytesBuilder.get();
 		try {
 			cc.encode(sb, offset, len, bb);

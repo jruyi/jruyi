@@ -22,10 +22,13 @@ import java.util.Random;
 import org.jruyi.common.ByteKmp;
 import org.jruyi.common.StringBuilder;
 import org.jruyi.io.Codec;
+import org.jruyi.io.DoubleCodec;
+import org.jruyi.io.FloatCodec;
 import org.jruyi.io.IBuffer;
 import org.jruyi.io.IntCodec;
 import org.jruyi.io.LongCodec;
 import org.jruyi.io.ShortCodec;
+import org.jruyi.io.StringCodec;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -41,7 +44,7 @@ public class BufferTest {
 	public static void setUp() {
 		System.out.println("Testing Buffer...");
 		s_factory = new BufferFactory();
-		s_props = new HashMap<String, Object>();
+		s_props = new HashMap<>();
 		s_props.put(UNIT_CAPACITY, 8192);
 		s_factory.modified(s_props);
 	}
@@ -99,6 +102,130 @@ public class BufferTest {
 	}
 
 	@Test
+	public void test_writeReadFloat() {
+		final byte[] bytes = createBytes();
+		final float v = 3.14F;
+		int t = Float.floatToIntBits(v);
+		final byte[] r1 = { (byte) (t >> 24), (byte) (t >> 16), (byte) (t >> 8), (byte) t };
+		final byte[] r2 = { (byte) t, (byte) (t >> 8), (byte) (t >> 16), (byte) (t >> 24) };
+		final int n = bytes.length;
+		for (int i = 1; i < n + 10; ++i) {
+			BufferFactory factory = initializeFactory(i);
+			IBuffer buffer = factory.create();
+			buffer.write(bytes, Codec.byteArray());
+
+			buffer.write(v, FloatCodec.bigEndian());
+			buffer.write(v, FloatCodec.littleEndian());
+
+			Assert.assertEquals(n + 8, buffer.size());
+
+			buffer.skip(n);
+
+			float read = buffer.read(FloatCodec.bigEndian());
+			Assert.assertEquals(v, read, 0);
+			read = buffer.get(n, FloatCodec.bigEndian());
+			Assert.assertEquals(v, read, 0);
+
+			read = buffer.read(FloatCodec.littleEndian());
+			Assert.assertEquals(v, read, 0);
+			read = buffer.get(n + 4, FloatCodec.littleEndian());
+			Assert.assertEquals(v, read, 0);
+
+			buffer.set(n, v, FloatCodec.littleEndian());
+			read = buffer.get(n, FloatCodec.littleEndian());
+			Assert.assertEquals(v, read, 0);
+
+			buffer.set(n, v, FloatCodec.bigEndian());
+			read = buffer.get(n, FloatCodec.bigEndian());
+			Assert.assertEquals(v, read, 0);
+
+			Assert.assertEquals(buffer.remaining(), 0);
+
+			buffer.write(v, FloatCodec.bigEndian());
+			byte[] result = buffer.read(Codec.byteArray());
+			Assert.assertArrayEquals(r1, result);
+
+			buffer.write(v, FloatCodec.littleEndian());
+			result = buffer.read(Codec.byteArray());
+			Assert.assertArrayEquals(r2, result);
+
+			// prepend
+			buffer.rewind();
+			buffer.write(bytes, Codec.byteArray());
+
+			buffer.prepend(v, FloatCodec.bigEndian());
+			buffer.prepend(v, FloatCodec.littleEndian());
+			read = buffer.get(0, FloatCodec.littleEndian());
+			Assert.assertEquals(v, read, 0);
+			read = buffer.get(4, FloatCodec.bigEndian());
+			Assert.assertEquals(v, read, 0);
+		}
+	}
+
+	@Test
+	public void test_writeReadDouble() {
+		final byte[] bytes = createBytes();
+		final double v = 3.14F;
+		long t = Double.doubleToLongBits(v);
+		final byte[] r1 = { (byte) (t >> 56), (byte) (t >> 48), (byte) (t >> 40), (byte) (t >> 32), (byte) (t >> 24),
+				(byte) (t >> 16), (byte) (t >> 8), (byte) t };
+		final byte[] r2 = { (byte) t, (byte) (t >> 8), (byte) (t >> 16), (byte) (t >> 24), (byte) (t >> 32),
+				(byte) (t >> 40), (byte) (t >> 48), (byte) (t >> 56) };
+		final int n = bytes.length;
+		for (int i = 1; i < n + 10; ++i) {
+			BufferFactory factory = initializeFactory(i);
+			IBuffer buffer = factory.create();
+			buffer.write(bytes, Codec.byteArray());
+
+			buffer.write(v, DoubleCodec.bigEndian());
+			buffer.write(v, DoubleCodec.littleEndian());
+
+			Assert.assertEquals(n + 16, buffer.size());
+
+			buffer.skip(n);
+
+			double read = buffer.read(DoubleCodec.bigEndian());
+			Assert.assertEquals(v, read, 0);
+			read = buffer.get(n, DoubleCodec.bigEndian());
+			Assert.assertEquals(v, read, 0);
+
+			read = buffer.read(DoubleCodec.littleEndian());
+			Assert.assertEquals(v, read, 0);
+			read = buffer.get(n + 8, DoubleCodec.littleEndian());
+			Assert.assertEquals(v, read, 0);
+
+			buffer.set(n, v, DoubleCodec.littleEndian());
+			read = buffer.get(n, DoubleCodec.littleEndian());
+			Assert.assertEquals(v, read, 0);
+
+			buffer.set(n, v, DoubleCodec.bigEndian());
+			read = buffer.get(n, DoubleCodec.bigEndian());
+			Assert.assertEquals(v, read, 0);
+
+			Assert.assertEquals(buffer.remaining(), 0);
+
+			buffer.write(v, DoubleCodec.bigEndian());
+			byte[] result = buffer.read(Codec.byteArray());
+			Assert.assertArrayEquals(r1, result);
+
+			buffer.write(v, DoubleCodec.littleEndian());
+			result = buffer.read(Codec.byteArray());
+			Assert.assertArrayEquals(r2, result);
+
+			// prepend
+			buffer.rewind();
+			buffer.write(bytes, Codec.byteArray());
+
+			buffer.prepend(v, DoubleCodec.bigEndian());
+			buffer.prepend(v, DoubleCodec.littleEndian());
+			read = buffer.get(0, DoubleCodec.littleEndian());
+			Assert.assertEquals(v, read, 0);
+			read = buffer.get(8, DoubleCodec.bigEndian());
+			Assert.assertEquals(v, read, 0);
+		}
+	}
+
+	@Test
 	public void test_writeReadInt() {
 		final byte[] bytes = createBytes();
 		final int v = new Random().nextInt();
@@ -106,8 +233,7 @@ public class BufferTest {
 		final int t = 0x12345678;
 		final byte[] r1 = { 0x12, 0x34, 0x56, 0x78 };
 		final byte[] r2 = { 0x78, 0x56, 0x34, 0x12 };
-		final byte[] r3 = { (byte) 0xF8, (byte) 0xAC, (byte) 0xD1, (byte) 0x91,
-				0x01 };
+		final byte[] r3 = { (byte) 0xF8, (byte) 0xAC, (byte) 0xD1, (byte) 0x91, 0x01 };
 		final int n = bytes.length;
 		for (int i = 1; i < n + 10 + size; ++i) {
 			BufferFactory factory = initializeFactory(i);
@@ -166,6 +292,7 @@ public class BufferTest {
 
 			// prepend
 			buffer.rewind();
+			buffer.write(bytes, Codec.byteArray());
 
 			buffer.prepend(v, IntCodec.varint());
 			buffer.prepend(v, IntCodec.bigEndian());
@@ -240,8 +367,7 @@ public class BufferTest {
 
 			u = buffer.readUnsignedShort(ShortCodec.littleEndian());
 			Assert.assertEquals(v & 0xFFFF, u);
-			u = buffer
-					.getUnsignedShort(n + 6 + size, ShortCodec.littleEndian());
+			u = buffer.getUnsignedShort(n + 6 + size, ShortCodec.littleEndian());
 			Assert.assertEquals(v & 0xFFFF, u);
 
 			u = buffer.readUnsignedShort(ShortCodec.varint());
@@ -262,6 +388,7 @@ public class BufferTest {
 
 			// prepend
 			buffer.rewind();
+			buffer.write(bytes, Codec.byteArray());
 
 			buffer.prepend(v, ShortCodec.varint());
 			buffer.prepend(v, ShortCodec.bigEndian());
@@ -281,12 +408,10 @@ public class BufferTest {
 		final long v = new Random().nextLong();
 		final int size = sizeOfVarint(v);
 		final long t = 0x1234567890abcdefL;
-		final byte[] r1 = { 0x12, 0x34, 0x56, 0x78, (byte) 0x90, (byte) 0xab,
-				(byte) 0xcd, (byte) 0xef };
-		final byte[] r2 = { (byte) 0xef, (byte) 0xcd, (byte) 0xab, (byte) 0x90,
-				0x78, 0x56, 0x34, 0x12 };
-		final byte[] r3 = { (byte) 0xef, (byte) 0x9b, (byte) 0xaf, (byte) 0x85,
-				(byte) 0x89, (byte) 0xcf, (byte) 0x95, (byte) 0x9a, 0x12 };
+		final byte[] r1 = { 0x12, 0x34, 0x56, 0x78, (byte) 0x90, (byte) 0xab, (byte) 0xcd, (byte) 0xef };
+		final byte[] r2 = { (byte) 0xef, (byte) 0xcd, (byte) 0xab, (byte) 0x90, 0x78, 0x56, 0x34, 0x12 };
+		final byte[] r3 = { (byte) 0xef, (byte) 0x9b, (byte) 0xaf, (byte) 0x85, (byte) 0x89, (byte) 0xcf, (byte) 0x95,
+				(byte) 0x9a, 0x12 };
 		final int n = bytes.length;
 		for (int i = 1; i < n + 17 + size; ++i) {
 			BufferFactory factory = initializeFactory(i);
@@ -342,6 +467,7 @@ public class BufferTest {
 
 			// prepend
 			buffer.rewind();
+			buffer.write(bytes, Codec.byteArray());
 
 			buffer.prepend(v, LongCodec.varint());
 			buffer.prepend(v, LongCodec.bigEndian());
@@ -370,21 +496,18 @@ public class BufferTest {
 			buffer.write(bytes1, Codec.byteArray());
 			buffer.write(bytes2, Codec.byteArray());
 
-			String result = buffer.get(0, n1, Codec.utf_8())
-					+ buffer.get(n1, n2, Codec.utf_8());
+			String result = buffer.get(0, n1, StringCodec.utf_8()) + buffer.get(n1, n2, StringCodec.utf_8());
 			Assert.assertEquals(testStr, result);
 
 			IBuffer buffer2 = factory.create();
-			buffer2.write(testStr, Codec.utf_8());
-			String result2 = buffer2.get(0, Codec.utf_8());
+			buffer2.write(testStr, StringCodec.utf_8());
+			String result2 = buffer2.get(0, StringCodec.utf_8());
 			Assert.assertEquals(testStr, result2);
 
-			result = buffer.read(n1, Codec.utf_8())
-					+ buffer.read(n2, Codec.utf_8());
+			result = buffer.read(n1, StringCodec.utf_8()) + buffer.read(n2, StringCodec.utf_8());
 			Assert.assertEquals(testStr, result);
 
-			result2 = buffer2.read(n1, Codec.utf_8())
-					+ buffer2.read(n2, Codec.utf_8());
+			result2 = buffer2.read(n1, StringCodec.utf_8()) + buffer2.read(n2, StringCodec.utf_8());
 			Assert.assertEquals(testStr, result2);
 		}
 	}
@@ -439,10 +562,8 @@ public class BufferTest {
 			for (int j = (b & 0xFF) + 1; j <= n; ++j) {
 				Assert.assertEquals(-1, buffer.indexOf(b, j));
 
-				Assert.assertEquals(j > bytes.length ? bytes.length : j,
-						buffer.indexOf(zeroBytes, j));
-				Assert.assertEquals(j > bytes.length ? bytes.length : j,
-						buffer.indexOf(emptyKmp, j));
+				Assert.assertEquals(j > bytes.length ? bytes.length : j, buffer.indexOf(zeroBytes, j));
+				Assert.assertEquals(j > bytes.length ? bytes.length : j, buffer.indexOf(emptyKmp, j));
 
 				Assert.assertEquals(-1, buffer.indexOf(target, j));
 				Assert.assertEquals(-1, buffer.indexOf(kmp, j));
@@ -480,17 +601,14 @@ public class BufferTest {
 			buffer = factory.create();
 			buffer.write(bytes, Codec.byteArray());
 
-			Assert.assertEquals(-1,
-					buffer.lastIndexOf((byte) bytes.length, buffer.size()));
+			Assert.assertEquals(-1, buffer.lastIndexOf((byte) bytes.length, buffer.size()));
 
 			n = b & 0xFF;
 			for (int j = -1; j < n; ++j) {
 				Assert.assertEquals(-1, buffer.lastIndexOf(b, j));
 
-				Assert.assertEquals(j < -1 ? 0 : j,
-						buffer.lastIndexOf(zeroBytes, j));
-				Assert.assertEquals(j < -1 ? 0 : j,
-						buffer.lastIndexOf(emptyKmp, j));
+				Assert.assertEquals(j < -1 ? 0 : j, buffer.lastIndexOf(zeroBytes, j));
+				Assert.assertEquals(j < -1 ? 0 : j, buffer.lastIndexOf(emptyKmp, j));
 
 				Assert.assertEquals(-1, buffer.lastIndexOf(target, j));
 				Assert.assertEquals(-1, buffer.lastIndexOf(kmp, j));
@@ -499,10 +617,8 @@ public class BufferTest {
 			for (int j = n; j <= bytes.length + 1; ++j) {
 				Assert.assertEquals(n, buffer.lastIndexOf(b, j));
 
-				Assert.assertEquals(j > bytes.length ? bytes.length : j,
-						buffer.lastIndexOf(zeroBytes, j));
-				Assert.assertEquals(j > bytes.length ? bytes.length : j,
-						buffer.lastIndexOf(emptyKmp, j));
+				Assert.assertEquals(j > bytes.length ? bytes.length : j, buffer.lastIndexOf(zeroBytes, j));
+				Assert.assertEquals(j > bytes.length ? bytes.length : j, buffer.lastIndexOf(emptyKmp, j));
 
 				Assert.assertEquals(n, buffer.lastIndexOf(target, j));
 				Assert.assertEquals(n, buffer.lastIndexOf(kmp, j));

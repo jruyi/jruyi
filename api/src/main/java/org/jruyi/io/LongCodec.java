@@ -22,8 +22,7 @@ import org.jruyi.io.internal.CodecProvider;
  */
 public final class LongCodec {
 
-	private static final ILongCodecProvider c_provider = CodecProvider
-			.getInstance().getLongCodecProvider();
+	private static final ILongCodecProvider c_provider = CodecProvider.getInstance().getLongCodecProvider();
 
 	/**
 	 * This interface defines all the methods that a long codec provider has to
@@ -37,14 +36,14 @@ public final class LongCodec {
 		 * 
 		 * @return a big-endian long codec
 		 */
-		public ILongCodec bigEndianLongCodec();
+		public ILongCodec bigEndian();
 
 		/**
 		 * Returns a little-endian long codec.
 		 * 
 		 * @return a little-endian long codec
 		 */
-		public ILongCodec littleEndianLongCodec();
+		public ILongCodec littleEndian();
 
 		/**
 		 * Returns a varint long codec.
@@ -52,7 +51,10 @@ public final class LongCodec {
 		 * @return a varint long codec.
 		 * @since 1.2
 		 */
-		public ILongCodec varintLongCodec();
+		public ILongCodec varint();
+	}
+
+	private LongCodec() {
 	}
 
 	/**
@@ -61,7 +63,7 @@ public final class LongCodec {
 	 * @return a big-endian long codec
 	 */
 	public static ILongCodec bigEndian() {
-		return c_provider.bigEndianLongCodec();
+		return c_provider.bigEndian();
 	}
 
 	/**
@@ -70,7 +72,7 @@ public final class LongCodec {
 	 * @return a little-endian long codec
 	 */
 	public static ILongCodec littleEndian() {
-		return c_provider.littleEndianLongCodec();
+		return c_provider.littleEndian();
 	}
 
 	/**
@@ -80,9 +82,6 @@ public final class LongCodec {
 	 * @since 1.2
 	 */
 	public static ILongCodec varint() {
-		return c_provider.varintLongCodec();
-	}
-
-	private LongCodec() {
+		return c_provider.varint();
 	}
 }
