@@ -348,7 +348,10 @@ public final class ChannelAdmin implements IChannelAdmin {
 	}
 
 	private SelectorThread getSelectorThread(ISelectableChannel channel) {
-		return m_sts[channel.id().intValue() % m_count];
+		int i = (int) (channel.id().longValue() % m_count);
+		if (i < 0)
+			i = -i;
+		return m_sts[i];
 	}
 
 	private static int numberOfSelectors(Map<String, ?> properties) {
