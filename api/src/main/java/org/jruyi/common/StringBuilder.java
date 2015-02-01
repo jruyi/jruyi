@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.common;
 
 import java.io.IOException;
@@ -28,8 +29,7 @@ import java.nio.CharBuffer;
  * method {@code close} is used to recycle this instance into the local cache of
  * the current thread for it can be reused in this thread before being GC'ed.
  */
-public final class StringBuilder implements Serializable, Appendable,
-		CharSequence, ICloseable {
+public final class StringBuilder implements Serializable, Appendable, CharSequence, ICloseable {
 
 	private static final long serialVersionUID = -6951364133799695673L;
 	private static final int DEFAULT_CAPACITY = 256;
@@ -39,21 +39,36 @@ public final class StringBuilder implements Serializable, Appendable,
 	private static final char[] c_ls = StrUtil.getLineSeparator().toCharArray();
 	private static final char[] c_bhDigits = new char[256];
 	private static final char[] c_blDigits = new char[256];
-	private static final IThreadLocalCache<StringBuilder> c_cache = ThreadLocalCache
-			.weakArrayCache();
+	private static final char[] c_bhDigitsLower = new char[256];
+	private static final char[] c_blDigitsLower = new char[256];
+	private static final IThreadLocalCache<StringBuilder> c_cache = ThreadLocalCache.weakArrayCache();
 	private char[] m_value;
 	private int m_length;
 	private transient CharBuffer m_charBuffer;
 
 	static {
 		for (int i = 0; i < 256; ++i) {
-			int hex = i >>> 4;
-			hex += (hex < 10 ? '0' : ('A' - 10));
-			c_bhDigits[i] = (char) hex;
+			int hex = i >> 4;
+			if (hex < 10) {
+				hex += '0';
+				c_bhDigits[i] = (char) hex;
+				c_bhDigitsLower[i] = (char) hex;
+			} else {
+				hex -= 10;
+				c_bhDigits[i] = (char) (hex + 'A');
+				c_bhDigitsLower[i] = (char) (hex + 'a');
+			}
 
 			hex = i & 0x0F;
-			hex += (hex < 10 ? '0' : ('A' - 10));
-			c_blDigits[i] = (char) hex;
+			if (hex < 10) {
+				hex += '0';
+				c_blDigits[i] = (char) hex;
+				c_blDigitsLower[i] = (char) hex;
+			} else {
+				hex -= 10;
+				c_blDigits[i] = (char) (hex + 'A');
+				c_blDigitsLower[i] = (char) (hex + 'a');
+			}
 		}
 	}
 
@@ -332,8 +347,7 @@ public final class StringBuilder implements Serializable, Appendable,
 		char[] v = m_value;
 		while (beginIndex < endIndex) {
 			++n;
-			if (Character.isHighSurrogate(v[beginIndex])
-					&& ++beginIndex < endIndex
+			if (Character.isHighSurrogate(v[beginIndex]) && ++beginIndex < endIndex
 					&& Character.isLowSurrogate(v[beginIndex]))
 				++beginIndex;
 		}
@@ -364,8 +378,7 @@ public final class StringBuilder implements Serializable, Appendable,
 		if (codePointOffset >= 0) {
 			int length = m_length;
 			for (; index < length && codePointOffset > 0; --codePointOffset) {
-				if (Character.isHighSurrogate(v[index]) && ++index < length
-						&& Character.isLowSurrogate(v[index]))
+				if (Character.isHighSurrogate(v[index]) && ++index < length && Character.isLowSurrogate(v[index]))
 					++index;
 			}
 
@@ -373,8 +386,7 @@ public final class StringBuilder implements Serializable, Appendable,
 				throw new IndexOutOfBoundsException();
 		} else {
 			for (; index > 0 && codePointOffset < 0; ++codePointOffset) {
-				if (Character.isLowSurrogate(v[--index]) && index > 0
-						&& Character.isHighSurrogate(v[index - 1]))
+				if (Character.isLowSurrogate(v[--index]) && index > 0 && Character.isHighSurrogate(v[index - 1]))
 					--index;
 			}
 
@@ -781,8 +793,7 @@ public final class StringBuilder implements Serializable, Appendable,
 		if (i == Integer.MIN_VALUE)
 			return append("-2147483648");
 
-		int len = i < 0 ? StrUtil.stringSizeOfInt(-i) + 1 : StrUtil
-				.stringSizeOfInt(i);
+		int len = i < 0 ? StrUtil.stringSizeOfInt(-i) + 1 : StrUtil.stringSizeOfInt(i);
 		int newLength = m_length + len;
 		if (newLength > m_value.length)
 			expandCapacity(newLength);
@@ -807,8 +818,7 @@ public final class StringBuilder implements Serializable, Appendable,
 		if (l == Long.MIN_VALUE)
 			return append("-9223372036854775808");
 
-		int len = (l < 0L) ? StrUtil.stringSizeOfLong(-l) + 1 : StrUtil
-				.stringSizeOfLong(l);
+		int len = (l < 0L) ? StrUtil.stringSizeOfLong(-l) + 1 : StrUtil.stringSizeOfLong(l);
 		int newLength = m_length + len;
 		if (newLength > m_value.length)
 			expandCapacity(newLength);
@@ -852,110 +862,236 @@ public final class StringBuilder implements Serializable, Appendable,
 	/**
 	 * Appends the given byte {@code b} to this string builder as 2 hex
 	 * characters.
+	 * <p>
+	 * If the given {@code lowerCase} is true, then 'a'-'f' is used. Otherwise,
+	 * 'A'-'F' is used.
+	 * </p>
 	 * 
 	 * @param b
 	 *            the {@code byte} to be interpreted and appended
+	 * @param lowerCase
+	 *            true to use 'a'-'f'; false to use 'A'-'F'
+	 * 
 	 * @return this object
+	 * @since 2.0
 	 */
-	public StringBuilder appendHex(byte b) {
-		int length = m_length;
-		int newLength = length + 2;
+	public StringBuilder appendHex(byte b, boolean lowerCase) {
+		final int length = m_length;
+		final int newLength = length + 2;
 		if (newLength > m_value.length)
 			expandCapacity(newLength);
 
-		int bt = b & 0xFF;
-		m_value[length] = c_bhDigits[bt];
-		m_value[length + 1] = c_blDigits[bt];
+		final char[] bh;
+		final char[] bl;
+		if (lowerCase) {
+			bh = c_bhDigitsLower;
+			bl = c_blDigitsLower;
+		} else {
+			bh = c_bhDigits;
+			bl = c_blDigits;
+		}
+		final int bt = b & 0xFF;
+		m_value[length] = bh[bt];
+		m_value[length + 1] = bl[bt];
 		m_length = newLength;
-
 		return this;
+	}
+
+	/**
+	 * Appends the given byte {@code b} to this string builder as 2 hex
+	 * characters. Character '0'-'9' and 'A'-'F' are used.
+	 *
+	 * @param b
+	 *            the {@code byte} to be interpreted and appended
+	 *
+	 * @return this object
+	 */
+	public StringBuilder appendHex(byte b) {
+		return appendHex(b, false);
 	}
 
 	/**
 	 * Appends the given short {@code s} to this string builder as 4 hex
 	 * characters.
+	 * <p>
+	 * If the given {@code lowerCase} is true, then 'a'-'f' is used. Otherwise,
+	 * 'A'-'F' is used.
+	 * </p>
+	 *
+	 * @param s
+	 *            the {@code short} to be interpreted and appended
+	 * @param lowerCase
+	 *            true to use 'a'-'f'; false to use 'A'-'F'
+	 * @return this object
+	 * @since 2.0
+	 */
+	public StringBuilder appendHex(short s, boolean lowerCase) {
+		int newLength = m_length + 4;
+		if (newLength > m_value.length)
+			expandCapacity(newLength);
+
+		final char[] bh;
+		final char[] bl;
+		if (lowerCase) {
+			bh = c_bhDigitsLower;
+			bl = c_blDigitsLower;
+		} else {
+			bh = c_bhDigits;
+			bl = c_blDigits;
+		}
+		final char[] value = m_value;
+		newLength = m_length;
+		int b = (s >> 8) & 0xFF;
+		value[newLength] = bh[b];
+		value[++newLength] = bl[b];
+
+		b = s & 0xFF;
+		value[++newLength] = bh[b];
+		value[++newLength] = bl[b];
+
+		m_length = ++newLength;
+		return this;
+	}
+
+	/**
+	 * Appends the given short {@code s} to this string builder as 4 hex
+	 * characters. Character '0'-'9' and 'A'-'F' are used.
 	 * 
 	 * @param s
 	 *            the {@code short} to be interpreted and appended
 	 * @return this object
 	 */
 	public StringBuilder appendHex(short s) {
-		int newLength = m_length + 4;
-		if (newLength > m_value.length)
-			expandCapacity(newLength);
-
-		char[] value = m_value;
-		newLength = m_length;
-		int b = (s >> 8) & 0xFF;
-		value[newLength] = c_bhDigits[b];
-		value[++newLength] = c_blDigits[b];
-
-		b = s & 0xFF;
-		value[++newLength] = c_bhDigits[b];
-		value[++newLength] = c_blDigits[b];
-
-		m_length = ++newLength;
-
-		return this;
+		return appendHex(s, false);
 	}
 
 	/**
 	 * Appends the given int {@code i} to this string builder as 8 hex
 	 * characters.
+	 * <p>
+	 * If the given {@code lowerCase} is true, then 'a'-'f' is used. Otherwise,
+	 * 'A'-'F' is used.
+	 * </p>
+	 *
+	 * @param i
+	 *            the {@code int} to be interpreted and appended
+	 * @param lowerCase
+	 *            true to use 'a'-'f'; false to use 'A'-'F'
+	 * @return this object
+	 * @since 2.0
+	 */
+	public StringBuilder appendHex(int i, boolean lowerCase) {
+		int newLength = m_length + 8;
+		if (newLength > m_value.length)
+			expandCapacity(newLength);
+
+		final char[] bh;
+		final char[] bl;
+		if (lowerCase) {
+			bh = c_bhDigitsLower;
+			bl = c_blDigitsLower;
+		} else {
+			bh = c_bhDigits;
+			bl = c_blDigits;
+		}
+		final char[] value = m_value;
+		newLength = m_length;
+		for (int bits = 24; bits >= 0; bits -= 8, ++newLength) {
+			int b = (i >> bits) & 0xFF;
+			value[newLength] = bh[b];
+			value[++newLength] = bl[b];
+		}
+		m_length = newLength;
+		return this;
+	}
+
+	/**
+	 * Appends the given int {@code i} to this string builder as 8 hex
+	 * characters. Character '0'-'9' and 'A'-'F' are used.
 	 * 
 	 * @param i
 	 *            the {@code int} to be interpreted and appended
 	 * @return this object
 	 */
 	public StringBuilder appendHex(int i) {
-		int newLength = m_length + 8;
-		if (newLength > m_value.length)
-			expandCapacity(newLength);
-
-		char[] value = m_value;
-		newLength = m_length;
-		for (int bits = 24; bits >= 0; bits -= 8, ++newLength) {
-			int b = (i >> bits) & 0xFF;
-			value[newLength] = c_bhDigits[b];
-			value[++newLength] = c_blDigits[b];
-		}
-
-		m_length = newLength;
-
-		return this;
+		return appendHex(i, false);
 	}
 
 	/**
 	 * Appends the given long {@code l} to this string builder as 16 hex
 	 * characters.
+	 * <p>
+	 * If the given {@code lowerCase} is true, then 'a'-'f' is used. Otherwise,
+	 * 'A'-'F' is used.
+	 * </p>
+	 *
+	 * @param l
+	 *            the {@code long} to be interpreted and appended
+	 * @param lowerCase
+	 *            true to use 'a'-'f'; false to use 'A'-'F'
+	 * @return this object
+	 * @since 2.0
+	 */
+	public StringBuilder appendHex(long l, boolean lowerCase) {
+		final int newLength = m_length + 16;
+		if (newLength > m_value.length)
+			expandCapacity(newLength);
+
+		final char[] bh;
+		final char[] bl;
+		if (lowerCase) {
+			bh = c_bhDigitsLower;
+			bl = c_blDigitsLower;
+		} else {
+			bh = c_bhDigits;
+			bl = c_blDigits;
+		}
+		final char[] value = m_value;
+		int c1 = m_length;
+		int c2 = c1 + 8;
+		final int i1 = (int) (l >>> 32);
+		final int i2 = (int) l;
+		for (int bits = 24; bits >= 0; bits -= 8, ++c1, ++c2) {
+			int b = (i1 >> bits) & 0xFF;
+			value[c1] = bh[b];
+			value[++c1] = bl[b];
+
+			b = (i2 >> bits) & 0xFF;
+			value[c2] = bh[b];
+			value[++c2] = bl[b];
+		}
+		m_length = newLength;
+		return this;
+	}
+
+	/**
+	 * Appends the given long {@code l} to this string builder as 16 hex
+	 * characters. Character '0'-'9' and 'A'-'F' are used.
 	 * 
 	 * @param l
 	 *            the {@code long} to be interpreted and appended
 	 * @return this object
 	 */
 	public StringBuilder appendHex(long l) {
-		int newLength = m_length + 16;
-		if (newLength > m_value.length)
-			expandCapacity(newLength);
+		return appendHex(l, false);
+	}
 
-		char[] value = m_value;
-		int c1 = m_length;
-		int c2 = c1 + 8;
-		int i1 = (int) (l >>> 32);
-		int i2 = (int) l;
-		for (int bits = 24; bits >= 0; bits -= 8, ++c1, ++c2) {
-			int b = (i1 >> bits) & 0xFF;
-			value[c1] = c_bhDigits[b];
-			value[++c1] = c_blDigits[b];
-
-			b = (i2 >> bits) & 0xFF;
-			value[c2] = c_bhDigits[b];
-			value[++c2] = c_blDigits[b];
-		}
-
-		m_length = newLength;
-
-		return this;
+	/**
+	 * Behaves exactly the same way as the following.
+	 *
+	 * <pre>
+	 * {@code appendHex(b, 0, b.length, lowerCase)}
+	 * </pre>
+	 *
+	 * @param b
+	 *            the byte array to be interpreted and appended
+	 * @param lowerCase
+	 *            true to use 'a'-'f'; false to use 'A'-'F'
+	 * @return this object
+	 * @since 2.0
+	 */
+	public StringBuilder appendHex(byte[] b, boolean lowerCase) {
+		return appendHexInternal(b, 0, b.length, lowerCase);
 	}
 
 	/**
@@ -970,13 +1106,43 @@ public final class StringBuilder implements Serializable, Appendable,
 	 * @return this object
 	 */
 	public StringBuilder appendHex(byte[] b) {
-		return appendHex(b, 0, b.length);
+		return appendHexInternal(b, 0, b.length, false);
 	}
 
 	/**
 	 * Appends the given {@code length} of bytes starting at the given
 	 * {@code offset} of the given byte array {@code b} to this string builder
 	 * as a hex string.
+	 * <p>
+	 * If the given {@code lowerCase} is true, then 'a'-'f' is used. Otherwise,
+	 * 'A'-'F' is used.
+	 * </p>
+	 *
+	 * @param b
+	 *            the byte array containing the bytes to be interpreted and
+	 *            appended
+	 * @param offset
+	 *            the offset of the first byte to be interpreted and appended
+	 * @param length
+	 *            the number of bytes to be interpreted and appended
+	 * @param lowerCase
+	 *            true to use 'a'-'f'; false to use 'A'-'F'
+	 * @return this object
+	 * @throws IndexOutOfBoundsException
+	 *             if the preconditions on the given {@code offset} and
+	 *             {@code length} do not hold
+	 * @since 2.0
+	 */
+	public StringBuilder appendHex(byte[] b, int offset, int length, boolean lowerCase) {
+		if (length < 0)
+			throw new IndexOutOfBoundsException();
+		return appendHexInternal(b, offset, length, lowerCase);
+	}
+
+	/**
+	 * Appends the given {@code length} of bytes starting at the given
+	 * {@code offset} of the given byte array {@code b} to this string builder
+	 * as a hex string. Character '0'-'9' and 'A'-'F' are used.
 	 * 
 	 * @param b
 	 *            the byte array containing the bytes to be interpreted and
@@ -991,23 +1157,7 @@ public final class StringBuilder implements Serializable, Appendable,
 	 *             {@code length} do not hold
 	 */
 	public StringBuilder appendHex(byte[] b, int offset, int length) {
-		if (length < 0)
-			throw new IndexOutOfBoundsException();
-
-		int i = m_length;
-		length = i + (length << 1);
-		if (length > m_value.length)
-			expandCapacity(length);
-
-		for (final char[] v = m_value; i < length; ++offset) {
-			int c = b[offset] & 0xFF;
-			v[i++] = c_bhDigits[c];
-			v[i++] = c_blDigits[c];
-		}
-
-		m_length = length;
-
-		return this;
+		return appendHexInternal(b, offset, length, false);
 	}
 
 	/**
@@ -1022,7 +1172,7 @@ public final class StringBuilder implements Serializable, Appendable,
 	 * @return this object
 	 */
 	public StringBuilder appendHexDump(byte[] b) {
-		return appendHexDump(b, 0, b.length);
+		return appendHexDumpInternal(b, 0, b.length);
 	}
 
 	/**
@@ -1045,58 +1195,7 @@ public final class StringBuilder implements Serializable, Appendable,
 	public StringBuilder appendHexDump(byte[] b, int offset, int length) {
 		if (length < 0)
 			throw new IndexOutOfBoundsException();
-
-		int n = (length + HM_BYTES_PERROW - 1) / HM_BYTES_PERROW;
-		int m = (10 + HM_DISTANCE + LSL) * n + length + LSL;
-		n = m_length;
-		m += n;
-		if (m > m_value.length)
-			expandCapacity(m);
-
-		final char[] v = m_value;
-		int addr = 0;
-		while (length > 0) {
-			int c = addr >>> 24;
-			v[n] = c_bhDigits[c];
-			v[++n] = c_blDigits[c];
-			c = (addr >> 16) & 0xFF;
-			v[++n] = c_bhDigits[c];
-			v[++n] = c_blDigits[c];
-			c = (addr >> 8) & 0xFF;
-			v[++n] = c_bhDigits[c];
-			v[++n] = c_blDigits[c];
-			c = addr & 0xFF;
-			v[++n] = c_bhDigits[c];
-			v[++n] = c_blDigits[c];
-
-			v[++n] = 'h';
-			v[++n] = ':';
-
-			int i = n + HM_DISTANCE;
-			for (m = 0; m < HM_BYTES_PERROW && length > 0; ++m, ++offset, --length) {
-				v[++n] = ' ';
-				c = b[offset] & 0xFF;
-				v[++n] = c_bhDigits[c];
-				v[++n] = c_blDigits[c];
-
-				v[++i] = Character.isISOControl(c) ? '.' : (char) c;
-			}
-
-			do {
-				v[++n] = ' ';
-				v[++n] = ' ';
-				v[++n] = ' ';
-			} while (++m <= HM_BYTES_PERROW);
-
-			System.arraycopy(c_ls, 0, v, ++i, LSL);
-			n = i + LSL;
-
-			addr += HM_BYTES_PERROW;
-		}
-
-		m_length = n;
-
-		return this;
+		return appendHexDumpInternal(b, offset, length);
 	}
 
 	/**
@@ -1682,8 +1781,7 @@ public final class StringBuilder implements Serializable, Appendable,
 		if (newLength > m_value.length)
 			expandCapacityForInsertion(index, len, newLength);
 		else if (index < m_length)
-			System.arraycopy(m_value, index, m_value, index + len, m_length
-					- offset);
+			System.arraycopy(m_value, index, m_value, index + len, m_length - offset);
 		System.arraycopy(chars, offset, m_value, index, len);
 		m_length = newLength;
 		return this;
@@ -1756,8 +1854,7 @@ public final class StringBuilder implements Serializable, Appendable,
 		if (newLength > m_value.length)
 			expandCapacityForInsertion(offset, len, newLength);
 		else if (offset < m_length)
-			System.arraycopy(m_value, offset, m_value, offset + len, m_length
-					- offset);
+			System.arraycopy(m_value, offset, m_value, offset + len, m_length - offset);
 		str.getChars(0, len, m_value, offset);
 		m_length = newLength;
 		return this;
@@ -1793,8 +1890,7 @@ public final class StringBuilder implements Serializable, Appendable,
 		if (newLength > m_value.length)
 			expandCapacityForInsertion(offset, len, newLength);
 		else if (offset < m_length)
-			System.arraycopy(m_value, offset, m_value, offset + len, m_length
-					- offset);
+			System.arraycopy(m_value, offset, m_value, offset + len, m_length - offset);
 		System.arraycopy(chars, 0, m_value, offset, len);
 		m_length = newLength;
 		return this;
@@ -1879,8 +1975,7 @@ public final class StringBuilder implements Serializable, Appendable,
 	 *             negative, or {@code start} is greater than {@code end} or
 	 *             {@code end} is greater than {@code csq.length()}
 	 */
-	public StringBuilder insert(int dstOffset, CharSequence csq, int start,
-			int end) {
+	public StringBuilder insert(int dstOffset, CharSequence csq, int start, int end) {
 		if (csq == null)
 			return insert(dstOffset, "null");
 
@@ -1895,8 +1990,7 @@ public final class StringBuilder implements Serializable, Appendable,
 		if (newLength > m_value.length)
 			expandCapacityForInsertion(dstOffset, len, newLength);
 		else if (dstOffset < m_length)
-			System.arraycopy(m_value, dstOffset, m_value, dstOffset + len,
-					m_length - dstOffset);
+			System.arraycopy(m_value, dstOffset, m_value, dstOffset + len, m_length - dstOffset);
 
 		char[] v = m_value;
 		for (int i = start; i < end; ++i, ++dstOffset)
@@ -1957,8 +2051,7 @@ public final class StringBuilder implements Serializable, Appendable,
 		if (newLength > m_value.length)
 			expandCapacityForInsertion(offset, 1, newLength);
 		else if (offset < m_length)
-			System.arraycopy(m_value, offset, m_value, offset + 1, m_length
-					- offset);
+			System.arraycopy(m_value, offset, m_value, offset + 1, m_length - offset);
 
 		m_value[offset] = c;
 		m_length = newLength;
@@ -1992,14 +2085,12 @@ public final class StringBuilder implements Serializable, Appendable,
 		if (i == Integer.MIN_VALUE)
 			return insert(offset, "-2147483648");
 
-		int len = i < 0 ? StrUtil.stringSizeOfInt(-i) + 1 : StrUtil
-				.stringSizeOfInt(i);
+		int len = i < 0 ? StrUtil.stringSizeOfInt(-i) + 1 : StrUtil.stringSizeOfInt(i);
 		newLength += len;
 		if (newLength > m_value.length)
 			expandCapacityForInsertion(offset, len, newLength);
 		else if (offset < m_length)
-			System.arraycopy(m_value, offset, m_value, offset + len, m_length
-					- offset);
+			System.arraycopy(m_value, offset, m_value, offset + len, m_length - offset);
 
 		StrUtil.getChars(i, len + offset, m_value);
 		m_length = newLength;
@@ -2033,14 +2124,12 @@ public final class StringBuilder implements Serializable, Appendable,
 		if (l == Long.MIN_VALUE)
 			return insert(offset, "-9223372036854775808");
 
-		int len = (l < 0L) ? StrUtil.stringSizeOfLong(-l) + 1 : StrUtil
-				.stringSizeOfLong(l);
+		int len = (l < 0L) ? StrUtil.stringSizeOfLong(-l) + 1 : StrUtil.stringSizeOfLong(l);
 		newLength += len;
 		if (newLength > m_value.length)
 			expandCapacityForInsertion(offset, len, newLength);
 		else if (offset < m_length)
-			System.arraycopy(m_value, offset, m_value, offset + len, m_length
-					- offset);
+			System.arraycopy(m_value, offset, m_value, offset + len, m_length - offset);
 
 		StrUtil.getChars(l, offset + len, m_value);
 		m_length = newLength;
@@ -2136,8 +2225,7 @@ public final class StringBuilder implements Serializable, Appendable,
 		if (newLength > m_value.length)
 			expandCapacityForInsertion(offset, n, newLength);
 		else if (offset < m_length)
-			System.arraycopy(m_value, offset, m_value, offset + n, m_length
-					- offset);
+			System.arraycopy(m_value, offset, m_value, offset + n, m_length - offset);
 
 		if (n == 1)
 			m_value[offset] = (char) codePoint;
@@ -2209,8 +2297,7 @@ public final class StringBuilder implements Serializable, Appendable,
 		if (newLength > m_value.length)
 			expandCapacityForInsertion(index, 2, newLength);
 		else if (index < m_length)
-			System.arraycopy(m_value, index, m_value, index + 2, m_length
-					- index);
+			System.arraycopy(m_value, index, m_value, index + 2, m_length - index);
 
 		char[] v = m_value;
 		int c = b & 0xFF;
@@ -2243,8 +2330,7 @@ public final class StringBuilder implements Serializable, Appendable,
 		if (newLength > m_value.length)
 			expandCapacityForInsertion(index, 4, newLength);
 		else if (index < m_length)
-			System.arraycopy(m_value, index, m_value, index + 4, m_length
-					- index);
+			System.arraycopy(m_value, index, m_value, index + 4, m_length - index);
 
 		char[] v = m_value;
 		int b = (s >> 8) & 0xFF;
@@ -2281,8 +2367,7 @@ public final class StringBuilder implements Serializable, Appendable,
 		if (newLength > m_value.length)
 			expandCapacityForInsertion(index, 8, newLength);
 		else if (index < m_length)
-			System.arraycopy(m_value, index, m_value, index + 8, m_length
-					- index);
+			System.arraycopy(m_value, index, m_value, index + 8, m_length - index);
 
 		char[] v = m_value;
 		for (int bits = 24; bits >= 0; bits -= 8, ++index) {
@@ -2317,8 +2402,7 @@ public final class StringBuilder implements Serializable, Appendable,
 		if (newLength > m_value.length)
 			expandCapacityForInsertion(index, 16, newLength);
 		else if (index < m_length)
-			System.arraycopy(m_value, index, m_value, index + 16, m_length
-					- index);
+			System.arraycopy(m_value, index, m_value, index + 16, m_length - index);
 
 		char[] v = m_value;
 		int offset = index + 8;
@@ -2384,8 +2468,7 @@ public final class StringBuilder implements Serializable, Appendable,
 		if (newLength < m_value.length)
 			expandCapacityForInsertion(index, length, newLength);
 		else if (index < m_length)
-			System.arraycopy(m_value, index, m_value, index + length, m_length
-					- index);
+			System.arraycopy(m_value, index, m_value, index + length, m_length - index);
 
 		for (final char[] v = m_value; index < newLength; ++offset) {
 			int c = b[offset] & 0xFF;
@@ -3005,15 +3088,13 @@ public final class StringBuilder implements Serializable, Appendable,
 		oos.writeObject(m_value);
 	}
 
-	void readObject(ObjectInputStream ois) throws IOException,
-			ClassNotFoundException {
+	void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		ois.defaultReadObject();
 		m_length = ois.readInt();
 		m_value = (char[]) ois.readObject();
 	}
 
-	void appendHexDump(IByteSequence[] data, int[] offsets, int[] lengths,
-			int size) {
+	void appendHexDump(IByteSequence[] data, int[] offsets, int[] lengths, int size) {
 		int length = 0;
 		int n = 0;
 		for (; n < size; ++n)
@@ -3126,9 +3207,85 @@ public final class StringBuilder implements Serializable, Appendable,
 		char[] value = new char[newCapacity];
 		System.arraycopy(m_value, 0, value, 0, index);
 		if (index < m_length)
-			System.arraycopy(m_value, index, value, index + len, m_length
-					- index);
+			System.arraycopy(m_value, index, value, index + len, m_length - index);
 		m_value = value;
 		m_charBuffer = null;
+	}
+
+	private StringBuilder appendHexInternal(byte[] b, int offset, int length, boolean lowerCase) {
+		int i = m_length;
+		length = i + (length << 1);
+		if (length > m_value.length)
+			expandCapacity(length);
+
+		final char[] bh;
+		final char[] bl;
+		if (lowerCase) {
+			bh = c_bhDigitsLower;
+			bl = c_blDigitsLower;
+		} else {
+			bh = c_bhDigits;
+			bl = c_blDigits;
+		}
+		for (final char[] v = m_value; i < length; ++offset) {
+			int c = b[offset] & 0xFF;
+			v[i++] = bh[c];
+			v[i++] = bl[c];
+		}
+		m_length = length;
+		return this;
+	}
+
+	private StringBuilder appendHexDumpInternal(byte[] b, int offset, int length) {
+		int n = (length + HM_BYTES_PERROW - 1) / HM_BYTES_PERROW;
+		int m = (10 + HM_DISTANCE + LSL) * n + length + LSL;
+		n = m_length;
+		m += n;
+		if (m > m_value.length)
+			expandCapacity(m);
+
+		final char[] v = m_value;
+		int addr = 0;
+		while (length > 0) {
+			int c = addr >>> 24;
+			v[n] = c_bhDigits[c];
+			v[++n] = c_blDigits[c];
+			c = (addr >> 16) & 0xFF;
+			v[++n] = c_bhDigits[c];
+			v[++n] = c_blDigits[c];
+			c = (addr >> 8) & 0xFF;
+			v[++n] = c_bhDigits[c];
+			v[++n] = c_blDigits[c];
+			c = addr & 0xFF;
+			v[++n] = c_bhDigits[c];
+			v[++n] = c_blDigits[c];
+
+			v[++n] = 'h';
+			v[++n] = ':';
+
+			int i = n + HM_DISTANCE;
+			for (m = 0; m < HM_BYTES_PERROW && length > 0; ++m, ++offset, --length) {
+				v[++n] = ' ';
+				c = b[offset] & 0xFF;
+				v[++n] = c_bhDigits[c];
+				v[++n] = c_blDigits[c];
+
+				v[++i] = Character.isISOControl(c) ? '.' : (char) c;
+			}
+
+			do {
+				v[++n] = ' ';
+				v[++n] = ' ';
+				v[++n] = ' ';
+			} while (++m <= HM_BYTES_PERROW);
+
+			System.arraycopy(c_ls, 0, v, ++i, LSL);
+			n = i + LSL;
+
+			addr += HM_BYTES_PERROW;
+		}
+
+		m_length = n;
+		return this;
 	}
 }

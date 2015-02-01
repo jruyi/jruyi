@@ -23,7 +23,7 @@ public class TcpChannelConf {
 	private Integer m_port;
 	private long m_throttle;
 	private String[] m_filters;
-	private Boolean m_reuseAddr;
+	private boolean m_reuseAddr;
 	private Boolean m_keepAlive;
 	private Integer m_soLinger;
 	private Integer m_recvBufSize;
@@ -84,12 +84,12 @@ public class TcpChannelConf {
 		m_filters = filters == null ? StrUtil.getEmptyStringArray() : filters;
 	}
 
-	public final Boolean reuseAddr() {
+	public final boolean reuseAddr() {
 		return m_reuseAddr;
 	}
 
 	public final void reuseAddr(Boolean reuseAddr) {
-		m_reuseAddr = reuseAddr == null ? Boolean.FALSE : reuseAddr;
+		m_reuseAddr = reuseAddr == null ? false : reuseAddr;
 	}
 
 	public final void keepAlive(Boolean keepAlive) {

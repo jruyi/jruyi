@@ -64,15 +64,15 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Component(name = CliProcessor.SERVICE_ID, //
+@Component(name = CliServer.SERVICE_ID, //
 immediate = true, //
 property = { IoConstants.FILTER_ID + "=jruyi.clid.filter" }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class CliProcessor extends SessionListener implements IFilter<IBuffer, Object> {
+public final class CliServer extends SessionListener implements IFilter<IBuffer, Object> {
 
 	public static final String SERVICE_ID = "jruyi.clid";
 
-	private static final Logger c_logger = LoggerFactory.getLogger(CliProcessor.class);
+	private static final Logger c_logger = LoggerFactory.getLogger(CliServer.class);
 
 	private static final String BRANDING_URL = "jruyi.clid.branding.url";
 	private static final String BINDADDR = "jruyi.clid.bindAddr";
@@ -488,7 +488,7 @@ public final class CliProcessor extends SessionListener implements IFilter<IBuff
 	}
 
 	private void loadBrandingInfo(String url, BundleContext context) throws Throwable {
-		java.util.Properties branding = loadBrandingProps(CliProcessor.class.getResourceAsStream("branding.properties"));
+		java.util.Properties branding = loadBrandingProps(CliServer.class.getResourceAsStream("branding.properties"));
 		if (url != null)
 			branding.putAll(loadBrandingProps(new URL(url).openStream()));
 
