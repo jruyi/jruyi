@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.RandomAccessFile;
+import java.net.InetSocketAddress;
 import java.net.URL;
 import java.nio.BufferUnderflowException;
 import java.util.ArrayList;
@@ -149,10 +150,10 @@ public final class CliServer extends SessionListener implements IFilter<IBuffer,
 		session.deposit(this, new Context(cs, errBufferStream));
 
 		outBufferStream.write(m_welcome);
-		outBufferStream.write(ClidConstants.CR[0]);
-		outBufferStream.write(ClidConstants.LF[0]);
+		outBufferStream.write(ClidConstants.CR);
+		outBufferStream.write(ClidConstants.LF);
 		writeCommands(outBufferStream);
-		outBufferStream.writeOut(System.getProperty(Constants.JRUYI_INST_NAME) + "> ");
+		outBufferStream.writeOut(getPrompt(session));
 	}
 
 	@Override
@@ -566,6 +567,13 @@ public final class CliServer extends SessionListener implements IFilter<IBuffer,
 		return i;
 	}
 
+	private static void writeCommand(OutBufferStream bs, String scope, String func) {
+		bs.write(scope);
+		bs.write(COLON);
+		bs.write(func);
+		bs.write(ClidConstants.LF);
+	}
+
 	private void writeCommands(OutBufferStream bs) {
 		final ServiceReference<?>[] references;
 		try {
@@ -589,10 +597,8 @@ public final class CliServer extends SessionListener implements IFilter<IBuffer,
 		}
 	}
 
-	private static void writeCommand(OutBufferStream bs, String scope, String func) {
-		bs.write(scope);
-		bs.write(COLON);
-		bs.write(func);
-		bs.write(ClidConstants.LF[0]);
+	private String getPrompt(ISession session) {
+		final InetSocketAddress localAddr = (InetSocketAddress) session.localAddress();
+		return StrUtil.join(localAddr.getHostName(), ':', localAddr.getPort(), "> ");
 	}
 }

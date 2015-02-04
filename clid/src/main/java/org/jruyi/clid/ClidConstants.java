@@ -13,10 +13,10 @@
  */
 package org.jruyi.clid;
 
-public final class ClidConstants {
+final class ClidConstants {
 
-	public static final byte[] CR = { '\r' };
-	public static final byte[] LF = { '\n' };
+	public static final int CR = '\r';
+	public static final int LF = '\n';
 
 	private ClidConstants() {
 	}
