@@ -11,9 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.tcpclient;
 
-import java.io.Closeable;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
@@ -157,9 +157,9 @@ public final class ConnPool extends AbstractTcpClient implements IIoTask {
 		if (!cancelReadTimeout(channel) // channel has timed out
 				|| m_conf.readTimeoutInSeconds() == 0 // no response is expected
 		) {
-			if (msg instanceof Closeable) {
+			if (msg instanceof AutoCloseable) {
 				try {
-					((Closeable) msg).close();
+					((AutoCloseable) msg).close();
 				} catch (Throwable t) {
 					c_logger.error(StrUtil.join("Failed to close message: ", StrUtil.getLineSeparator(), msg), t);
 				}

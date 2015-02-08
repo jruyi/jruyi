@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.common;
 
 import java.util.EmptyStackException;
@@ -21,8 +22,7 @@ import java.util.EmptyStackException;
  */
 public final class IntStack implements ICloseable {
 
-	private static final IThreadLocalCache<IntStack> m_cache = ThreadLocalCache
-			.weakArrayCache();
+	private static final IThreadLocalCache<IntStack> m_cache = ThreadLocalCache.weakArrayCache();
 	private int[] m_array;
 	private int m_size;
 

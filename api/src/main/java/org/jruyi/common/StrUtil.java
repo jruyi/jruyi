@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.common;
 
 import java.util.Iterator;
@@ -23,30 +24,35 @@ import org.osgi.framework.BundleContext;
  */
 public final class StrUtil {
 
-	private static final char[] c_digits = { '0', '1', '2', '3', '4', '5', '6',
-			'7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
-			'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w',
-			'x', 'y', 'z' };
-	private static final char[] c_digitTens = { '0', '0', '0', '0', '0', '0',
-			'0', '0', '0', '0', '1', '1', '1', '1', '1', '1', '1', '1', '1',
-			'1', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '3', '3',
-			'3', '3', '3', '3', '3', '3', '3', '3', '4', '4', '4', '4', '4',
-			'4', '4', '4', '4', '4', '5', '5', '5', '5', '5', '5', '5', '5',
-			'5', '5', '6', '6', '6', '6', '6', '6', '6', '6', '6', '6', '7',
-			'7', '7', '7', '7', '7', '7', '7', '7', '7', '8', '8', '8', '8',
-			'8', '8', '8', '8', '8', '8', '9', '9', '9', '9', '9', '9', '9',
-			'9', '9', '9' };
-	private static final char[] c_digitOnes = { '0', '1', '2', '3', '4', '5',
-			'6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7', '8',
-			'9', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1',
-			'2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4',
-			'5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7',
-			'8', '9', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
-			'1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3',
-			'4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6',
-			'7', '8', '9' };
-	private static final int[] c_intSizeTable = { 9, 99, 999, 9999, 99999,
-			999999, 9999999, 99999999, 999999999, Integer.MAX_VALUE };
+	private static final char[] c_digits = {
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', //
+		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', //
+		'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', //
+		'u', 'v', 'w', 'x', 'y', 'z' };
+	private static final char[] c_digitTens = {
+		'0', '0', '0', '0', '0', '0', '0', '0', '0', '0', //
+		'1', '1', '1', '1', '1', '1', '1', '1', '1', '1', //
+		'2', '2', '2', '2', '2', '2', '2', '2', '2', '2', //
+		'3', '3', '3', '3', '3', '3', '3', '3', '3', '3', //
+		'4', '4', '4', '4', '4', '4', '4', '4', '4', '4', //
+		'5', '5', '5', '5', '5', '5', '5', '5', '5', '5', //
+		'6', '6', '6', '6', '6', '6', '6', '6', '6', '6', //
+		'7', '7', '7', '7', '7', '7', '7', '7', '7', '7', //
+		'8', '8', '8', '8', '8', '8', '8', '8', '8', '8', //
+		'9', '9', '9', '9', '9', '9', '9', '9', '9', '9' };
+	private static final char[] c_digitOnes = {
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', //
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', //
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', //
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', //
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', //
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', //
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', //
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', //
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', //
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+	private static final int[] c_intSizeTable = {
+		9, 99, 999, 9999, 99999, 999999, 9999999, 99999999, 999999999, Integer.MAX_VALUE };
 	private static final long[] c_longSizeTable = new long[19];
 
 	static {
@@ -61,8 +67,7 @@ public final class StrUtil {
 
 	static final class LineSeparatorHolder {
 
-		static final String LINE_SEPARATOR = System
-				.getProperty("line.separator");
+		static final String LINE_SEPARATOR = System.getProperty("line.separator");
 	}
 
 	static final class EmptyStringArrayHolder {
@@ -157,8 +162,7 @@ public final class StrUtil {
 	 * @return a copy of the given string that is filtered, or this string if it
 	 *         has no properties to be substituted
 	 */
-	public static String fitlerProps(String target,
-			Map<String, String> properties) {
+	public static String fitlerProps(String target, Map<String, String> properties) {
 		return filterProps(target, properties, null);
 	}
 
@@ -206,8 +210,7 @@ public final class StrUtil {
 	 * @return a copy of the given string that is filtered, or this string if it
 	 *         has no properties to be substituted
 	 */
-	public static String filterProps(String target,
-			Map<String, String> properties, BundleContext context) {
+	public static String filterProps(String target, Map<String, String> properties, BundleContext context) {
 		if (target == null)
 			return null;
 
@@ -233,8 +236,7 @@ public final class StrUtil {
 			case '}':
 				if (!stack.isEmpty()) {
 					int index = stack.popInternal();
-					propValue = getPropValue(builder.substring(index + 2),
-							properties, context);
+					propValue = getPropValue(builder.substring(index + 2), properties, context);
 					if (propValue != null) {
 						builder.setLength(index);
 						builder.append(propValue);
@@ -360,8 +362,7 @@ public final class StrUtil {
 	 * @return the {@code String} constructed.
 	 * @since 1.1
 	 */
-	public static String join(Object obj0, Object obj1, Object obj2,
-			Object obj3, Object obj4) {
+	public static String join(Object obj0, Object obj1, Object obj2, Object obj3, Object obj4) {
 		final StringBuilder builder = StringBuilder.get();
 		try {
 			if (obj0 != null)
@@ -406,8 +407,7 @@ public final class StrUtil {
 	 * @return the {@code String} constructed.
 	 * @since 1.1
 	 */
-	public static String join(Object obj0, Object obj1, Object obj2,
-			Object obj3, Object obj4, Object obj5) {
+	public static String join(Object obj0, Object obj1, Object obj2, Object obj3, Object obj4, Object obj5) {
 		final StringBuilder builder = StringBuilder.get();
 		try {
 			if (obj0 != null)
@@ -451,8 +451,7 @@ public final class StrUtil {
 	 * @return the {@code String} constructed.
 	 * @since 1.1
 	 */
-	public static String join(Object obj0, Object obj1, Object obj2,
-			Object obj3, Object obj4, Object obj5, Object obj6) {
+	public static String join(Object obj0, Object obj1, Object obj2, Object obj3, Object obj4, Object obj5, Object obj6) {
 		final StringBuilder builder = StringBuilder.get();
 		try {
 			if (obj0 != null)
@@ -908,8 +907,7 @@ public final class StrUtil {
 	 * @return the joined {@code String}, {@code null} if null array input
 	 * @since 1.1
 	 */
-	public static String join(short[] array, int begin, int end,
-			String delimiter) {
+	public static String join(short[] array, int begin, int end, String delimiter) {
 		if (array == null)
 			return null;
 
@@ -1335,8 +1333,7 @@ public final class StrUtil {
 	 * @return the joined {@code String}, {@code null} if null array input
 	 * @since 1.1
 	 */
-	public static String join(float[] array, int begin, int end,
-			String delimiter) {
+	public static String join(float[] array, int begin, int end, String delimiter) {
 		if (array == null)
 			return null;
 
@@ -1479,8 +1476,7 @@ public final class StrUtil {
 	 * @return the joined {@code String}, {@code null} if null array input
 	 * @since 1.1
 	 */
-	public static String join(double[] array, int begin, int end,
-			String delimiter) {
+	public static String join(double[] array, int begin, int end, String delimiter) {
 		if (array == null)
 			return null;
 
@@ -1659,8 +1655,7 @@ public final class StrUtil {
 	 * @return the joined {@code String}, {@code null} if null array input
 	 * @since 1.1
 	 */
-	public static String join(Object[] array, int begin, int end,
-			String delimiter) {
+	public static String join(Object[] array, int begin, int end, String delimiter) {
 		if (array == null)
 			return null;
 
@@ -1838,8 +1833,7 @@ public final class StrUtil {
 	public static String deeplyBuild(Object obj0, Object obj1, Object obj2) {
 		StringBuilder builder = StringBuilder.get();
 		try {
-			return builder.deeplyAppend(obj0).deeplyAppend(obj1)
-					.deeplyAppend(obj2).toString();
+			return builder.deeplyAppend(obj0).deeplyAppend(obj1).deeplyAppend(obj2).toString();
 		} finally {
 			builder.close();
 		}
@@ -1862,12 +1856,10 @@ public final class StrUtil {
 	 *            the fourth {@code Object} to construct the string.
 	 * @return the {@code String} constructed.
 	 */
-	public static String deeplyBuild(Object obj0, Object obj1, Object obj2,
-			Object obj3) {
+	public static String deeplyBuild(Object obj0, Object obj1, Object obj2, Object obj3) {
 		StringBuilder builder = StringBuilder.get();
 		try {
-			return builder.deeplyAppend(obj0).deeplyAppend(obj1)
-					.deeplyAppend(obj2).deeplyAppend(obj3).toString();
+			return builder.deeplyAppend(obj0).deeplyAppend(obj1).deeplyAppend(obj2).deeplyAppend(obj3).toString();
 		} finally {
 			builder.close();
 		}
@@ -1892,13 +1884,11 @@ public final class StrUtil {
 	 *            the fifth {@code Object} to construct the string.
 	 * @return the {@code String} constructed.
 	 */
-	public static String deeplyBuild(Object obj0, Object obj1, Object obj2,
-			Object obj3, Object obj4) {
+	public static String deeplyBuild(Object obj0, Object obj1, Object obj2, Object obj3, Object obj4) {
 		StringBuilder builder = StringBuilder.get();
 		try {
-			return builder.deeplyAppend(obj0).deeplyAppend(obj1)
-					.deeplyAppend(obj2).deeplyAppend(obj3).deeplyAppend(obj4)
-					.toString();
+			return builder.deeplyAppend(obj0).deeplyAppend(obj1).deeplyAppend(obj2).deeplyAppend(obj3)
+					.deeplyAppend(obj4).toString();
 		} finally {
 			builder.close();
 		}
@@ -1925,13 +1915,11 @@ public final class StrUtil {
 	 *            the sixth {@code Object} to construct the string.
 	 * @return the {@code String} constructed.
 	 */
-	public static String deeplyBuild(Object obj0, Object obj1, Object obj2,
-			Object obj3, Object obj4, Object obj5) {
+	public static String deeplyBuild(Object obj0, Object obj1, Object obj2, Object obj3, Object obj4, Object obj5) {
 		StringBuilder builder = StringBuilder.get();
 		try {
-			return builder.deeplyAppend(obj0).deeplyAppend(obj1)
-					.deeplyAppend(obj2).deeplyAppend(obj3).deeplyAppend(obj4)
-					.deeplyAppend(obj5).toString();
+			return builder.deeplyAppend(obj0).deeplyAppend(obj1).deeplyAppend(obj2).deeplyAppend(obj3)
+					.deeplyAppend(obj4).deeplyAppend(obj5).toString();
 		} finally {
 			builder.close();
 		}
@@ -1960,13 +1948,12 @@ public final class StrUtil {
 	 *            the seventh {@code Object} to construct the string.
 	 * @return the {@code String} constructed.
 	 */
-	public static String deeplyBuild(Object obj0, Object obj1, Object obj2,
-			Object obj3, Object obj4, Object obj5, Object obj6) {
+	public static String deeplyBuild(Object obj0, Object obj1, Object obj2, Object obj3, Object obj4, Object obj5,
+			Object obj6) {
 		StringBuilder builder = StringBuilder.get();
 		try {
-			return builder.deeplyAppend(obj0).deeplyAppend(obj1)
-					.deeplyAppend(obj2).deeplyAppend(obj3).deeplyAppend(obj4)
-					.deeplyAppend(obj5).deeplyAppend(obj6).toString();
+			return builder.deeplyAppend(obj0).deeplyAppend(obj1).deeplyAppend(obj2).deeplyAppend(obj3)
+					.deeplyAppend(obj4).deeplyAppend(obj5).deeplyAppend(obj6).toString();
 		} finally {
 			builder.close();
 		}
@@ -2065,8 +2052,7 @@ public final class StrUtil {
 			buf[--index] = '-';
 	}
 
-	private static String getPropValue(String name,
-			Map<String, String> properties, BundleContext context) {
+	private static String getPropValue(String name, Map<String, String> properties, BundleContext context) {
 		String value = null;
 		if (properties != null && (value = properties.get(name)) != null)
 			return value;

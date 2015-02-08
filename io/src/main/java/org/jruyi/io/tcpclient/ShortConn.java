@@ -11,9 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.tcpclient;
 
-import java.io.Closeable;
 import java.lang.reflect.Method;
 import java.util.Map;
 
@@ -81,9 +81,9 @@ public final class ShortConn extends AbstractTcpClient {
 					c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
 				}
 			}
-		} else if (msg instanceof Closeable) {
+		} else if (msg instanceof AutoCloseable) {
 			try {
-				((Closeable) msg).close();
+				((AutoCloseable) msg).close();
 			} catch (Throwable t) {
 				c_logger.error(StrUtil.join(channel, "Failed to close message: ", StrUtil.getLineSeparator(), msg), t);
 			}

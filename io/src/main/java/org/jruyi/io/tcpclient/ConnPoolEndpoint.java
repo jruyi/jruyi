@@ -11,9 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.tcpclient;
 
-import java.io.Closeable;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -42,11 +42,9 @@ import org.slf4j.LoggerFactory;
 configurationPolicy = ConfigurationPolicy.REQUIRE, //
 service = { IEndpoint.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class ConnPoolEndpoint extends SessionListener implements
-		IConsumer, IEndpoint {
+public final class ConnPoolEndpoint extends SessionListener implements IConsumer, IEndpoint {
 
-	private static final Logger c_logger = LoggerFactory
-			.getLogger(ConnPoolEndpoint.class);
+	private static final Logger c_logger = LoggerFactory.getLogger(ConnPoolEndpoint.class);
 
 	private ComponentFactory m_cf;
 	private ComponentInstance m_connPool;
@@ -67,8 +65,7 @@ public final class ConnPoolEndpoint extends SessionListener implements
 	public void onMessage(IMessage message) {
 		Object attachment = message.attachment();
 		if (attachment == null) {
-			c_logger.warn(StrUtil.join(this, " consumes a null message: ",
-					message));
+			c_logger.warn(StrUtil.join(this, " consumes a null message: ", message));
 
 			message.close();
 			return;
@@ -91,17 +88,13 @@ public final class ConnPoolEndpoint extends SessionListener implements
 		if (msg == null)
 			c_logger.error(StrUtil.join(session, " got an error"), t);
 		else {
-			c_logger.error(
-					StrUtil.join(session, " got an error: ",
-							StrUtil.getLineSeparator(), msg), t);
+			c_logger.error(StrUtil.join(session, " got an error: ", StrUtil.getLineSeparator(), msg), t);
 
-			if (msg instanceof Closeable) {
+			if (msg instanceof AutoCloseable) {
 				try {
-					((Closeable) msg).close();
+					((AutoCloseable) msg).close();
 				} catch (Throwable e) {
-					c_logger.error(
-							StrUtil.join(session, "Failed to close: ",
-									StrUtil.getLineSeparator(), msg), e);
+					c_logger.error(StrUtil.join(session, "Failed to close: ", StrUtil.getLineSeparator(), msg), e);
 				}
 			}
 		}
@@ -110,16 +103,13 @@ public final class ConnPoolEndpoint extends SessionListener implements
 	@Override
 	public void onSessionConnectTimedOut(ISession session) {
 		Object msg = session.detach();
-		c_logger.warn(StrUtil.join(session, ": CONNECT_TIMEOUT, ",
-				StrUtil.getLineSeparator(), msg));
+		c_logger.warn(StrUtil.join(session, ": CONNECT_TIMEOUT, ", StrUtil.getLineSeparator(), msg));
 
-		if (msg instanceof Closeable) {
+		if (msg instanceof AutoCloseable) {
 			try {
-				((Closeable) msg).close();
+				((AutoCloseable) msg).close();
 			} catch (Throwable t) {
-				c_logger.error(
-						StrUtil.join(session, "Failed to close message: ", msg),
-						t);
+				c_logger.error(StrUtil.join(session, "Failed to close message: ", msg), t);
 			}
 		}
 	}
@@ -127,22 +117,18 @@ public final class ConnPoolEndpoint extends SessionListener implements
 	@Override
 	public void onSessionReadTimedOut(ISession session) {
 		Object msg = session.withdraw(IoConstants.FID_TCPCLIENT);
-		c_logger.warn(StrUtil.join(session, ": READ_TIMEOUT, ",
-				StrUtil.getLineSeparator(), msg));
+		c_logger.warn(StrUtil.join(session, ": READ_TIMEOUT, ", StrUtil.getLineSeparator(), msg));
 
-		if (msg instanceof Closeable) {
+		if (msg instanceof AutoCloseable) {
 			try {
-				((Closeable) msg).close();
+				((AutoCloseable) msg).close();
 			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(session,
-						"Failed to close message: ",
-						StrUtil.getLineSeparator(), msg), t);
+				c_logger.error(StrUtil.join(session, "Failed to close message: ", StrUtil.getLineSeparator(), msg), t);
 			}
 		}
 	}
 
-	@Reference(name = "connPool", target = "("
-			+ ComponentConstants.COMPONENT_NAME + "="
+	@Reference(name = "connPool", target = "(" + ComponentConstants.COMPONENT_NAME + "="
 			+ IoConstants.CN_TCPCLIENT_CONNPOOL_FACTORY + ")")
 	protected void setConnPool(ComponentFactory cf) {
 		m_cf = cf;
@@ -158,8 +144,7 @@ public final class ConnPoolEndpoint extends SessionListener implements
 	}
 
 	protected void activate(Map<String, ?> properties) throws Exception {
-		final ComponentInstance connPool = m_cf
-				.newInstance(normalizeConfiguration(properties));
+		final ComponentInstance connPool = m_cf.newInstance(normalizeConfiguration(properties));
 		final ISessionService ss = (ISessionService) connPool.getInstance();
 		ss.setSessionListener(this);
 		try {

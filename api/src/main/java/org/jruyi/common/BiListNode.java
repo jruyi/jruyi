@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.common;
 
 import java.lang.ref.WeakReference;
@@ -110,8 +111,7 @@ public final class BiListNode<E> implements ICloseable {
 	@SuppressWarnings({ "unchecked" })
 	public static <T> BiListNode<T> create() {
 		Stack stack = Stack.get();
-		return (BiListNode<T>) (stack.isEmpty() ? new BiListNode<Object>()
-				: stack.pop());
+		return (BiListNode<T>) (stack.isEmpty() ? new BiListNode<Object>() : stack.pop());
 	}
 
 	/**

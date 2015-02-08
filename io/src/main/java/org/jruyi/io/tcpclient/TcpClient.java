@@ -11,9 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.tcpclient;
 
-import java.io.Closeable;
 import java.util.Map;
 
 import org.jruyi.common.IService;
@@ -36,8 +36,7 @@ service = { IService.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class TcpClient extends AbstractTcpClient {
 
-	private static final Logger c_logger = LoggerFactory
-			.getLogger(TcpClient.class);
+	private static final Logger c_logger = LoggerFactory.getLogger(TcpClient.class);
 
 	private TcpClientConf m_conf;
 
@@ -56,7 +55,7 @@ public final class TcpClient extends AbstractTcpClient {
 				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
 			}
 		}
-		int timeout = m_conf.readTimeoutInSeconds();
+		final int timeout = m_conf.readTimeoutInSeconds();
 		if (timeout > 0)
 			scheduleReadTimeout(channel, timeout);
 		else if (timeout == 0)
@@ -66,13 +65,11 @@ public final class TcpClient extends AbstractTcpClient {
 	@Override
 	public void onMessageReceived(IChannel channel, Object msg) {
 		if (!cancelReadTimeout(channel)) { // channel has timed out
-			if (msg instanceof Closeable) {
+			if (msg instanceof AutoCloseable) {
 				try {
-					((Closeable) msg).close();
+					((AutoCloseable) msg).close();
 				} catch (Throwable t) {
-					c_logger.error(
-							StrUtil.join("Failed to close message: ",
-									StrUtil.getLineSeparator(), msg), t);
+					c_logger.error(StrUtil.join("Failed to close message: ", StrUtil.getLineSeparator(), msg), t);
 				}
 			}
 			return;
@@ -210,11 +207,11 @@ public final class TcpClient extends AbstractTcpClient {
 
 	@Override
 	TcpClientConf updateConf(Map<String, ?> props) {
-		TcpClientConf conf = m_conf;
+		final TcpClientConf conf = m_conf;
 		if (props == null)
 			m_conf = null;
 		else {
-			TcpClientConf newConf = new TcpClientConf();
+			final TcpClientConf newConf = new TcpClientConf();
 			newConf.initialize(props);
 			m_conf = newConf;
 		}

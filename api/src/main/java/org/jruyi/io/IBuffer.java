@@ -46,8 +46,7 @@ import org.jruyi.common.IDumpable;
  * @see IUnit
  * @see IUnitChain
  */
-public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable,
-		ICloseable {
+public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, ICloseable {
 
 	/**
 	 * Returns the <i>position</i> of the underlying buffer
@@ -761,8 +760,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable,
 	 *             if the specified {@code index, offset or length} is out of
 	 *             bounds
 	 */
-	public <T> void get(int index, T dst, int offset, int length,
-			ICodec<T> codec);
+	public <T> void get(int index, T dst, int offset, int length, ICodec<T> codec);
 
 	/**
 	 * Returns the next byte from the underlying buffer. <i>position</i> is
@@ -1091,8 +1089,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable,
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
 	 */
-	public <T> IBuffer set(int index, T src, int offset, int length,
-			ICodec<T> codec);
+	public <T> IBuffer set(int index, T src, int offset, int length, ICodec<T> codec);
 
 	/**
 	 * Writes the given byte {@code b} to the end of this buffer. The

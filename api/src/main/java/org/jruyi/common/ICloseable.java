@@ -11,15 +11,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jruyi.common;
 
-import java.io.Closeable;
+package org.jruyi.common;
 
 /**
  * A closeable object indicates that it need be closed to release resources it
  * holds.
  */
-public interface ICloseable extends Closeable {
+public interface ICloseable extends AutoCloseable {
 
 	/**
 	 * Closes this object to release resources that it holds.

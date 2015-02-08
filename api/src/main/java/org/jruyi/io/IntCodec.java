@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io;
 
 import org.jruyi.io.internal.CodecProvider;
@@ -22,8 +23,7 @@ import org.jruyi.io.internal.CodecProvider;
  */
 public final class IntCodec {
 
-	private static final IIntCodecProvider c_provider = CodecProvider
-			.getInstance().getIntCodecProvider();
+	private static final IIntCodecProvider c_provider = CodecProvider.getInstance().getIntCodecProvider();
 
 	/**
 	 * This interface defines all the methods that an int codec provider has to

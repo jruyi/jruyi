@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.common;
 
 import java.nio.charset.Charset;
@@ -49,8 +50,7 @@ public final class CharsetCodec {
 	 */
 	public static final String UTF_16 = "UTF-16";
 
-	private static final IFactory c_factory = CharsetCodecProvider
-			.getInstance().getFactory();
+	private static final IFactory c_factory = CharsetCodecProvider.getInstance().getFactory();
 
 	/**
 	 * A factory class to create instances of {@code ICharsetCodec}. It is used
@@ -85,6 +85,9 @@ public final class CharsetCodec {
 		 * @return an instance of {@code ICharsetCodec}
 		 */
 		public ICharsetCodec get(Charset charset);
+	}
+
+	private CharsetCodec() {
 	}
 
 	/**

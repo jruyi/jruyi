@@ -11,9 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.me.mq;
 
-import java.io.Closeable;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -32,14 +32,11 @@ import org.jruyi.me.route.IRoutable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class Message implements Runnable, IMessage, IRoutable,
-		ICloseable, IDumpable {
+public final class Message implements Runnable, IMessage, IRoutable, ICloseable, IDumpable {
 
-	private static final Logger c_logger = LoggerFactory
-			.getLogger(Message.class);
+	private static final Logger c_logger = LoggerFactory.getLogger(Message.class);
 	private static final String NULL = "jruyi.me.endpoint.null";
-	private static final IThreadLocalCache<Message> c_cache = ThreadLocalCache
-			.weakLinkedCache();
+	private static final IThreadLocalCache<Message> c_cache = ThreadLocalCache.weakLinkedCache();
 	private static final AtomicLong c_counter = new AtomicLong(0L);
 	private final Properties m_properties;
 	private final IdentityHashMap<Object, Object> m_storage;
@@ -58,8 +55,7 @@ public final class Message implements Runnable, IMessage, IRoutable,
 		return message;
 	}
 
-	private Message get(Map<String, Object> properties,
-			Map<Object, Object> storage) {
+	private Message get(Map<String, Object> properties, Map<Object, Object> storage) {
 		Message message = c_cache.take();
 		if (message == null)
 			message = new Message(properties, storage);
@@ -214,20 +210,16 @@ public final class Message implements Runnable, IMessage, IRoutable,
 	public void dump(StringBuilder builder) {
 		String lineSeparator = StrUtil.getLineSeparator();
 
-		builder.append(lineSeparator).append("Message ID: ").append(m_id)
-				.append(lineSeparator).append("From: ").append(m_from)
-				.append(lineSeparator).append("Properties: ");
+		builder.append(lineSeparator).append("Message ID: ").append(m_id).append(lineSeparator).append("From: ")
+				.append(m_from).append(lineSeparator).append("Properties: ");
 
-		Iterator<Entry<String, Object>> iter = m_properties.entrySet()
-				.iterator();
+		Iterator<Entry<String, Object>> iter = m_properties.entrySet().iterator();
 		while (iter.hasNext()) {
 			Entry<String, ?> entry = iter.next();
-			builder.append(lineSeparator).append('\t').append(entry.getKey())
-					.append('=').append(entry.getValue());
+			builder.append(lineSeparator).append('\t').append(entry.getKey()).append('=').append(entry.getValue());
 		}
 
-		builder.append(lineSeparator).append("Attachment:")
-				.append(lineSeparator).append(m_attachment)
+		builder.append(lineSeparator).append("Attachment:").append(lineSeparator).append(m_attachment)
 				.append(lineSeparator);
 	}
 
@@ -253,12 +245,11 @@ public final class Message implements Runnable, IMessage, IRoutable,
 		try {
 			if (attachment != null) {
 				m_attachment = null;
-				if (attachment instanceof Closeable) {
+				if (attachment instanceof AutoCloseable) {
 					try {
-						((Closeable) attachment).close();
+						((AutoCloseable) attachment).close();
 					} catch (Throwable t) {
-						c_logger.error(StrUtil.join(
-								"Failed to close attachment: ", attachment), t);
+						c_logger.error(StrUtil.join("Failed to close attachment: ", attachment), t);
 					}
 				}
 			}

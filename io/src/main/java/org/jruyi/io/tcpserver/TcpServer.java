@@ -11,9 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.tcpserver;
 
-import java.io.Closeable;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -244,9 +244,9 @@ public final class TcpServer extends Service implements IChannelService, ISessio
 
 		c_logger.warn(StrUtil.join(session, " failed to send(channel closed): ", StrUtil.getLineSeparator(), msg));
 
-		if (msg instanceof Closeable) {
+		if (msg instanceof AutoCloseable) {
 			try {
-				((Closeable) msg).close();
+				((AutoCloseable) msg).close();
 			} catch (Throwable t) {
 				c_logger.error(StrUtil.join(session, " failed to close message: ", StrUtil.getLineSeparator(), msg), t);
 			}

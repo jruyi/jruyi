@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.common;
 
 /**
@@ -23,8 +24,8 @@ public final class ByteKmp {
 	private int[] m_pmk;
 
 	/**
-	 * Constructs a KMP pattern with the given {@code pattern} as the sequence to
-	 * be searched for.
+	 * Constructs a KMP pattern with the given {@code pattern} as the sequence
+	 * to be searched for.
 	 * 
 	 * @param pattern
 	 *            the byte sequence to be searched for

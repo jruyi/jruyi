@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.me;
 
 import java.io.IOException;
@@ -63,8 +64,7 @@ public interface IRouteSet {
 	 * @throws InvalidSyntaxException
 	 *             if the syntax of the filter string is not correct
 	 */
-	public IRoute setRoute(String to, String filter)
-			throws InvalidSyntaxException;
+	public IRoute setRoute(String to, String filter) throws InvalidSyntaxException;
 
 	/**
 	 * Defines a route {@literal [from -> to]} with the specified {@code filter}

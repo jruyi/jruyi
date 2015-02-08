@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.common;
 
 import java.lang.ref.WeakReference;
@@ -105,8 +106,7 @@ public final class ListNode<E> implements ICloseable {
 	@SuppressWarnings({ "unchecked" })
 	public static <T> ListNode<T> create() {
 		Stack cache = Stack.get();
-		return (ListNode<T>) (cache.isEmpty() ? new ListNode<Object>() : cache
-				.pop());
+		return (ListNode<T>) (cache.isEmpty() ? new ListNode<Object>() : cache.pop());
 	}
 
 	/**

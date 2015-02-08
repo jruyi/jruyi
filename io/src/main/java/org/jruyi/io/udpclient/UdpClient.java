@@ -11,9 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.udpclient;
 
-import java.io.Closeable;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
@@ -44,11 +44,9 @@ import org.slf4j.LoggerFactory;
 factory = "udpclient", //
 service = { IService.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class UdpClient extends Service implements IChannelService,
-		ISessionService {
+public final class UdpClient extends Service implements IChannelService, ISessionService {
 
-	private static final Logger c_logger = LoggerFactory
-			.getLogger(UdpClient.class);
+	private static final Logger c_logger = LoggerFactory.getLogger(UdpClient.class);
 	private String m_caption;
 	private Configuration m_conf;
 
@@ -153,8 +151,7 @@ public final class UdpClient extends Service implements IChannelService,
 	@Override
 	public void onChannelException(IChannel channel, Throwable t) {
 		try {
-			c_logger.error(
-					StrUtil.join(this, " got an error on sending/receiving"), t);
+			c_logger.error(StrUtil.join(this, " got an error on sending/receiving"), t);
 
 			final ISessionListener listener = m_listener;
 			if (listener != null)
@@ -204,15 +201,13 @@ public final class UdpClient extends Service implements IChannelService,
 			return;
 		}
 
-		c_logger.warn(StrUtil.join(this, " failed to send(channel closed): ",
-				StrUtil.getLineSeparator(), msg));
+		c_logger.warn(StrUtil.join(this, " failed to send(channel closed): ", StrUtil.getLineSeparator(), msg));
 
-		if (msg instanceof Closeable) {
+		if (msg instanceof AutoCloseable) {
 			try {
-				((Closeable) msg).close();
+				((AutoCloseable) msg).close();
 			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(this, " failed to close message: ",
-						StrUtil.getLineSeparator(), msg), t);
+				c_logger.error(StrUtil.join(this, " failed to close message: ", StrUtil.getLineSeparator(), msg), t);
 			}
 		}
 	}
@@ -223,14 +218,12 @@ public final class UdpClient extends Service implements IChannelService,
 	}
 
 	@Override
-	protected boolean updateInternal(Map<String, ?> properties)
-			throws Exception {
+	protected boolean updateInternal(Map<String, ?> properties) throws Exception {
 		final Configuration oldConf = updateConf(properties);
 		final Configuration newConf = m_conf;
 		updateFilters(oldConf, newConf);
 
-		return oldConf.isMandatoryChanged(newConf,
-				Configuration.getMandatoryPropsAccessors());
+		return oldConf.isMandatoryChanged(newConf, Configuration.getMandatoryPropsAccessors());
 	}
 
 	@Override
@@ -344,8 +337,7 @@ public final class UdpClient extends Service implements IChannelService,
 	}
 
 	private void updateFilters(Configuration oldConf, Configuration newConf) {
-		final String[] newNames = newConf == null ? StrUtil
-				.getEmptyStringArray() : newConf.filters();
+		final String[] newNames = newConf == null ? StrUtil.getEmptyStringArray() : newConf.filters();
 		String[] oldNames = StrUtil.getEmptyStringArray();
 		final IFilterManager fm = m_fm;
 		if (oldConf == null)

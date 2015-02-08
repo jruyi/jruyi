@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io;
 
 import java.nio.BufferUnderflowException;
@@ -182,8 +183,7 @@ public interface ICodec<T> {
 	 *             if {@code offset} or {@code length} does not hold the
 	 *             condition, or {@code index} is out of bounds
 	 */
-	public void get(T dst, int offset, int length, IUnitChain unitChain,
-			int index);
+	public void get(T dst, int offset, int length, IUnitChain unitChain, int index);
 
 	/**
 	 * Encodes the specified {@code src} and sets the resultant bytes to the
@@ -218,8 +218,7 @@ public interface ICodec<T> {
 	 * @param index
 	 *            the offset of the first byte in the current unit to be set
 	 */
-	public void set(T src, int offset, int length, IUnitChain unitChain,
-			int index);
+	public void set(T src, int offset, int length, IUnitChain unitChain, int index);
 
 	/**
 	 * Encodes the specified {@code src} and writes the resultant bytes to the

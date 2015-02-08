@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io;
 
 import org.jruyi.io.internal.CodecProvider;
@@ -22,8 +23,7 @@ import org.jruyi.io.internal.CodecProvider;
  */
 public final class CharCodec {
 
-	private static final ICharCodecProvider c_provider = CodecProvider
-			.getInstance().getCharCodecProvider();
+	private static final ICharCodecProvider c_provider = CodecProvider.getInstance().getCharCodecProvider();
 
 	/**
 	 * This interface defines all the methods that a char codec provider has to

@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.common;
 
 import java.util.Map;
@@ -45,8 +46,7 @@ public abstract class Service implements IService {
 		public void stop(Service service, int options) {
 		}
 
-		public void update(Service service, Map<String, ?> properties)
-				throws Exception {
+		public void update(Service service, Map<String, ?> properties) throws Exception {
 		}
 
 		public final int state() {
@@ -77,8 +77,7 @@ public abstract class Service implements IService {
 		}
 
 		@Override
-		public void update(Service service, Map<String, ?> properties)
-				throws Exception {
+		public void update(Service service, Map<String, ?> properties) throws Exception {
 			if (service.updateInternal(properties)) {
 				service.stop();
 				service.start();
@@ -136,8 +135,7 @@ public abstract class Service implements IService {
 		}
 
 		@Override
-		public void update(Service service, Map<String, ?> properties)
-				throws Exception {
+		public void update(Service service, Map<String, ?> properties) throws Exception {
 			if (service.updateInternal(properties))
 				service.start();
 		}
@@ -183,8 +181,7 @@ public abstract class Service implements IService {
 		}
 
 		@Override
-		public void update(Service service, Map<String, ?> properties)
-				throws Exception {
+		public void update(Service service, Map<String, ?> properties) throws Exception {
 			service.updateInternal(properties);
 		}
 
@@ -371,8 +368,7 @@ public abstract class Service implements IService {
 	 * @throws Exception
 	 *             If any error occurs
 	 */
-	protected boolean updateInternal(Map<String, ?> properties)
-			throws Exception {
+	protected boolean updateInternal(Map<String, ?> properties) throws Exception {
 		return false;
 	}
 

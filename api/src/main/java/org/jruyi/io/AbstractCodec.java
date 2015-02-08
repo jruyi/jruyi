@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io;
 
 /**
@@ -98,8 +99,7 @@ public abstract class AbstractCodec<T> implements ICodec<T> {
 	 * Empty implementation. Throws UnsupportedOperationException.
 	 */
 	@Override
-	public void get(T dst, int offset, int length, IUnitChain unitChain,
-			int index) {
+	public void get(T dst, int offset, int length, IUnitChain unitChain, int index) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
@@ -115,8 +115,7 @@ public abstract class AbstractCodec<T> implements ICodec<T> {
 	 * Empty implementation. Throws UnsupportedOperationException.
 	 */
 	@Override
-	public void set(T src, int offset, int length, IUnitChain unitChain,
-			int index) {
+	public void set(T src, int offset, int length, IUnitChain unitChain, int index) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

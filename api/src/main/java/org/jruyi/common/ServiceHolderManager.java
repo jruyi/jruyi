@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.common;
 
 import org.jruyi.common.internal.ServiceHolderManagerProvider;
@@ -23,8 +24,7 @@ import org.osgi.framework.BundleContext;
  */
 public final class ServiceHolderManager {
 
-	private static final IFactory c_factory = ServiceHolderManagerProvider
-			.getInstance().getFactory();
+	private static final IFactory c_factory = ServiceHolderManagerProvider.getInstance().getFactory();
 
 	/**
 	 * A factory to create {@code IServiceHolderManager} objects. It is used to
@@ -46,8 +46,7 @@ public final class ServiceHolderManager {
 		 *            the name of the service property used as the service ID
 		 * @return a service holder manager
 		 */
-		public <T> IServiceHolderManager<T> create(BundleContext context,
-				Class<T> clazz, String nameOfId);
+		public <T> IServiceHolderManager<T> create(BundleContext context, Class<T> clazz, String nameOfId);
 	}
 
 	private ServiceHolderManager() {
@@ -67,8 +66,7 @@ public final class ServiceHolderManager {
 	 *            the name of the service property used as the service ID
 	 * @return a service holder manager
 	 */
-	public static <T> IServiceHolderManager<T> newInstance(
-			BundleContext context, Class<T> clazz, String nameOfId) {
+	public static <T> IServiceHolderManager<T> newInstance(BundleContext context, Class<T> clazz, String nameOfId) {
 		return c_factory.create(context, clazz, nameOfId);
 	}
 }

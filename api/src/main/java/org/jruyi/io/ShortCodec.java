@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io;
 
 import org.jruyi.io.internal.CodecProvider;
@@ -22,8 +23,7 @@ import org.jruyi.io.internal.CodecProvider;
  */
 public final class ShortCodec {
 
-	private static final IShortCodecProvider c_provider = CodecProvider
-			.getInstance().getShortCodecProvider();
+	private static final IShortCodecProvider c_provider = CodecProvider.getInstance().getShortCodecProvider();
 
 	/**
 	 * This interface defines all the methods that a short codec provider has to

@@ -11,9 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.channel;
 
-import java.io.Closeable;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.SelectableChannel;
@@ -120,9 +120,9 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			for (int i = 0; i < size; ++i) {
 				final Object msg = msgs[i];
 				if (msg != null) {
-					if (msg instanceof Closeable) {
+					if (msg instanceof AutoCloseable) {
 						try {
-							((Closeable) msg).close();
+							((AutoCloseable) msg).close();
 						} catch (Throwable t) {
 							c_logger.error(StrUtil.join("Failed to close message: ", msg), t);
 						}

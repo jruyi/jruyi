@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.common;
 
 import java.io.Serializable;
@@ -27,8 +28,8 @@ import java.util.Set;
  * properties in OSGi, for synchronization is not necessary and does a penalty
  * to the performance.
  */
-public final class Properties extends Dictionary<String, Object> implements
-		Map<String, Object>, Cloneable, Serializable, IDumpable {
+public final class Properties extends Dictionary<String, Object> implements Map<String, Object>, Cloneable,
+		Serializable, IDumpable {
 
 	private static final long serialVersionUID = -1655365857958439329L;
 	private final HashMap<String, Object> m_map;
@@ -202,8 +203,7 @@ public final class Properties extends Dictionary<String, Object> implements
 		builder.append('{');
 		for (;;) {
 			Entry<String, Object> entry = iter.next();
-			builder.append(entry.getKey()).append('=')
-					.deeplyAppend(entry.getValue());
+			builder.append(entry.getKey()).append('=').deeplyAppend(entry.getValue());
 			if (!iter.hasNext()) {
 				builder.append('}');
 				return;
@@ -224,8 +224,7 @@ public final class Properties extends Dictionary<String, Object> implements
 			builder.append('{');
 			for (;;) {
 				Entry<String, Object> entry = iter.next();
-				builder.append(entry.getKey()).append('=')
-						.deeplyAppend(entry.getValue());
+				builder.append(entry.getKey()).append('=').deeplyAppend(entry.getValue());
 				if (!iter.hasNext())
 					return builder.append('}').toString();
 

@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.tcpclient;
 
 import java.io.Closeable;
@@ -42,11 +43,9 @@ import org.slf4j.LoggerFactory;
 configurationPolicy = ConfigurationPolicy.REQUIRE, //
 service = { IEndpoint.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class ShortConnEndpoint extends SessionListener implements
-		IConsumer, IEndpoint {
+public final class ShortConnEndpoint extends SessionListener implements IConsumer, IEndpoint {
 
-	private static final Logger c_logger = LoggerFactory
-			.getLogger(ShortConnEndpoint.class);
+	private static final Logger c_logger = LoggerFactory.getLogger(ShortConnEndpoint.class);
 
 	private ComponentFactory m_cf;
 	private ComponentInstance m_shortConn;
@@ -67,8 +66,7 @@ public final class ShortConnEndpoint extends SessionListener implements
 	public void onMessage(IMessage message) {
 		Object attachment = message.attachment();
 		if (attachment == null) {
-			c_logger.warn(StrUtil.join(this, " consumes a null message: ",
-					message));
+			c_logger.warn(StrUtil.join(this, " consumes a null message: ", message));
 
 			message.close();
 			return;
@@ -91,17 +89,13 @@ public final class ShortConnEndpoint extends SessionListener implements
 		if (msg == null)
 			c_logger.error(StrUtil.join(session, " got an error"), t);
 		else {
-			c_logger.error(
-					StrUtil.join(session, " got an error: ",
-							StrUtil.getLineSeparator(), msg), t);
+			c_logger.error(StrUtil.join(session, " got an error: ", StrUtil.getLineSeparator(), msg), t);
 
-			if (msg instanceof Closeable) {
+			if (msg instanceof AutoCloseable) {
 				try {
-					((Closeable) msg).close();
+					((AutoCloseable) msg).close();
 				} catch (Throwable e) {
-					c_logger.error(
-							StrUtil.join(session, "Failed to close: ",
-									StrUtil.getLineSeparator(), msg), e);
+					c_logger.error(StrUtil.join(session, "Failed to close: ", StrUtil.getLineSeparator(), msg), e);
 				}
 			}
 		}
@@ -110,16 +104,13 @@ public final class ShortConnEndpoint extends SessionListener implements
 	@Override
 	public void onSessionConnectTimedOut(ISession session) {
 		Object msg = session.detach();
-		c_logger.warn(StrUtil.join(session, ": CONNECT_TIMEOUT, ",
-				StrUtil.getLineSeparator(), msg));
+		c_logger.warn(StrUtil.join(session, ": CONNECT_TIMEOUT, ", StrUtil.getLineSeparator(), msg));
 
-		if (msg instanceof Closeable) {
+		if (msg instanceof AutoCloseable) {
 			try {
-				((Closeable) msg).close();
+				((AutoCloseable) msg).close();
 			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(session,
-						"Failed to close message: ",
-						StrUtil.getLineSeparator(), msg), t);
+				c_logger.error(StrUtil.join(session, "Failed to close message: ", StrUtil.getLineSeparator(), msg), t);
 			}
 		}
 	}
@@ -127,22 +118,18 @@ public final class ShortConnEndpoint extends SessionListener implements
 	@Override
 	public void onSessionReadTimedOut(ISession session) {
 		Object msg = session.withdraw(IoConstants.FID_TCPCLIENT);
-		c_logger.warn(StrUtil.join(session, ": READ_TIMEOUT, ",
-				StrUtil.getLineSeparator(), msg));
+		c_logger.warn(StrUtil.join(session, ": READ_TIMEOUT, ", StrUtil.getLineSeparator(), msg));
 
 		if (msg instanceof Closeable) {
 			try {
 				((Closeable) msg).close();
 			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(session,
-						"Failed to close message: ",
-						StrUtil.getLineSeparator(), msg), t);
+				c_logger.error(StrUtil.join(session, "Failed to close message: ", StrUtil.getLineSeparator(), msg), t);
 			}
 		}
 	}
 
-	@Reference(name = "shortConn", target = "("
-			+ ComponentConstants.COMPONENT_NAME + "="
+	@Reference(name = "shortConn", target = "(" + ComponentConstants.COMPONENT_NAME + "="
 			+ IoConstants.CN_TCPCLIENT_SHORTCONN_FACTORY + ")")
 	protected void setShortConn(ComponentFactory cf) {
 		m_cf = cf;
@@ -158,8 +145,7 @@ public final class ShortConnEndpoint extends SessionListener implements
 	}
 
 	protected void activate(Map<String, ?> properties) throws Exception {
-		final ComponentInstance shortConn = m_cf
-				.newInstance(normalizeConfiguration(properties));
+		final ComponentInstance shortConn = m_cf.newInstance(normalizeConfiguration(properties));
 		final ISessionService ss = (ISessionService) shortConn.getInstance();
 		ss.setSessionListener(this);
 		try {

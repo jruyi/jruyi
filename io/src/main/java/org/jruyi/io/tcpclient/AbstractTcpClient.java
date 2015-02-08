@@ -11,9 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.tcpclient;
 
-import java.io.Closeable;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
@@ -81,7 +81,7 @@ public abstract class AbstractTcpClient extends Service implements IChannelServi
 
 	@Override
 	public void write(ISession session, Object msg) {
-		IChannel channel = m_channels.get(session.id());
+		final IChannel channel = m_channels.get(session.id());
 		if (channel != null) {
 			channel.write(msg);
 			return;
@@ -89,9 +89,9 @@ public abstract class AbstractTcpClient extends Service implements IChannelServi
 
 		c_logger.warn(StrUtil.join(session, " failed to send(channel closed): ", msg));
 
-		if (msg instanceof Closeable) {
+		if (msg instanceof AutoCloseable) {
 			try {
-				((Closeable) msg).close();
+				((AutoCloseable) msg).close();
 			} catch (Throwable t) {
 				c_logger.error(StrUtil.join(session, " failed to close message: ", msg), t);
 			}
@@ -125,13 +125,13 @@ public abstract class AbstractTcpClient extends Service implements IChannelServi
 	@Override
 	public void onChannelException(IChannel channel, Throwable t) {
 		try {
-			Object attachment = channel.detach();
+			final Object attachment = channel.detach();
 			if (attachment != null) {
 				c_logger.error(StrUtil.join(channel, " got an error: ", attachment), t);
 
-				if (attachment instanceof Closeable) {
+				if (attachment instanceof AutoCloseable) {
 					try {
-						((Closeable) attachment).close();
+						((AutoCloseable) attachment).close();
 					} catch (Throwable e) {
 						c_logger.error(StrUtil.join(channel, "Failed to close: ", attachment), e);
 					}

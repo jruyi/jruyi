@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.common;
 
 import org.jruyi.common.internal.ThreadLocalCacheProvider;
@@ -22,8 +23,7 @@ import org.jruyi.common.internal.ThreadLocalCacheProvider;
  */
 public final class ThreadLocalCache {
 
-	private static final IFactory c_factory = ThreadLocalCacheProvider
-			.getInstance().getFactory();
+	private static final IFactory c_factory = ThreadLocalCacheProvider.getInstance().getFactory();
 
 	/**
 	 * A factory class to create instances of {@code IThreadLocalCache}. It is

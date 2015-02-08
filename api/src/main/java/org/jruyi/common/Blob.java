@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.common;
 
 /**
@@ -20,8 +21,7 @@ package org.jruyi.common;
 public final class Blob implements IDumpable, ICloseable {
 
 	private static final int DEFAULT_CAPACITY = 16;
-	private static final IThreadLocalCache<Blob> c_cache = ThreadLocalCache
-			.weakArrayCache();
+	private static final IThreadLocalCache<Blob> c_cache = ThreadLocalCache.weakArrayCache();
 	private IByteSequence[] m_data;
 	private int[] m_offsets;
 	private int[] m_lengths;

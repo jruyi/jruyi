@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.common;
 
 import java.nio.ByteBuffer;
@@ -58,8 +59,7 @@ public interface ICharsetCodec {
 	 * @param out
 	 *            the {@code BytesBuilder} to append the encoded bytes
 	 */
-	public void encode(StringBuilder in, int offset, int length,
-			BytesBuilder out);
+	public void encode(StringBuilder in, int offset, int length, BytesBuilder out);
 
 	/**
 	 * Encodes the characters in specified {@code chars} and appends the result
@@ -246,8 +246,7 @@ public interface ICharsetCodec {
 	 * @param out
 	 *            the {@code StrBuilder} to append the decoded characters
 	 */
-	public void decode(BytesBuilder in, int offset, int length,
-			StringBuilder out);
+	public void decode(BytesBuilder in, int offset, int length, StringBuilder out);
 
 	/**
 	 * Decodes the specified bytes {@code in} and appends the result to the
@@ -316,8 +315,7 @@ public interface ICharsetCodec {
 	 * @param out
 	 *            the {@code StrBuilder} to append the decoded characters
 	 */
-	public void decode(ByteBuffer[] in, int offset, int length,
-			StringBuilder out);
+	public void decode(ByteBuffer[] in, int offset, int length, StringBuilder out);
 
 	/**
 	 * Decodes the specified bytes {@code in} and returns the result.
