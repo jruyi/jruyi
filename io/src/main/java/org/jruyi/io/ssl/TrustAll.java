@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.ssl;
 
 import java.security.cert.CertificateException;
@@ -27,13 +28,11 @@ final class TrustAll implements X509TrustManager {
 	}
 
 	@Override
-	public void checkClientTrusted(X509Certificate[] x509Certificates, String s)
-			throws CertificateException {
+	public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
 	}
 
 	@Override
-	public void checkServerTrusted(X509Certificate[] x509Certificates, String s)
-			throws CertificateException {
+	public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
 	}
 
 	@Override

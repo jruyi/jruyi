@@ -14,6 +14,7 @@
 
 package org.jruyi.io.buffer
 
+import org.jruyi.common.StringBuilder
 import org.jruyi.io.*
 import spock.lang.Specification
 
@@ -200,5 +201,52 @@ class BufferSpec extends Specification {
 
 		where:
 		array = [31.415, 432.34, 5923.2, 71189.23] as double[]
+	}
+
+	def "write a byte array then read it, should be same"() {
+		def bf = new BufferFactory()
+		bf.activate([unitCapacity: 13])
+		def buf = bf.create()
+		def bytes = createBytes(20)
+
+		when: "write 20 bytes"
+		buf.write(bytes, Codec.byteArray());
+		then:
+		buf.position() == 0
+		buf.size() == 20
+
+		when: "make a hex dump"
+		def hexDump1 = StringBuilder.get().appendHexDump(bytes).toStringAndClose()
+		def hexDump2 = StringBuilder.get().append(buf).toStringAndClose()
+		then:
+		hexDump1 == hexDump2
+
+		when: "read 20 bytes"
+		def bytes2 = buf.read(20, Codec.byteArray())
+		then:
+		bytes == bytes2
+		buf.remaining() == 0
+
+		when: "get bytes starting at 7"
+		def bytes3 = Arrays.copyOfRange(bytes, 7, 20)
+		def bytes4 = buf.get(7, Codec.byteArray())
+		then:
+		bytes3 == bytes4
+
+		when: "rewind buffer, prepend 20 bytes, then read first 20 bytes"
+		buf.rewind()
+		buf.prepend(bytes, Codec.byteArray())
+		def bytes5 = buf.read(20, Codec.byteArray())
+		then:
+		bytes == bytes5
+	}
+
+	private def createBytes(int length) {
+		Random random = new Random();
+		int n = random.nextInt(length) + 50
+		byte[] bytes = new byte[n];
+		for (int i = 0; i < n; ++i)
+			bytes[i] = (byte) i;
+		return bytes;
 	}
 }

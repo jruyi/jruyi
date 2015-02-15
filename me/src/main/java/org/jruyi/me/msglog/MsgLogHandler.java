@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.me.msglog;
 
 import org.jruyi.common.StringBuilder;
@@ -29,38 +30,25 @@ property = { MeConstants.HANDLER_ID + "=" + MeConstants.HID_MSGLOG }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class MsgLogHandler implements IPreHandler, IPostHandler {
 
-	private static final Logger c_logger = LoggerFactory
-			.getLogger(MsgLogHandler.class);
+	private static final Logger c_logger = LoggerFactory.getLogger(MsgLogHandler.class);
 
 	@Override
 	public Boolean preHandle(IMessage message) {
 		final String s;
-		final StringBuilder builder = StringBuilder.get();
-		try {
-			s = builder.append("Endpoint[").append(message.to())
-					.append("], dequeue:").append(message).toString();
-		} finally {
-			builder.close();
+		try (final StringBuilder builder = StringBuilder.get()) {
+			s = builder.append("Endpoint[").append(message.to()).append("], dequeue:").append(message).toString();
 		}
-
 		c_logger.info(s);
-
 		return Boolean.TRUE;
 	}
 
 	@Override
 	public Boolean postHandle(IMessage message) {
 		final String s;
-		final StringBuilder builder = StringBuilder.get();
-		try {
-			s = builder.append("Endpoint[").append(message.from())
-					.append("], enqueue:").append(message).toString();
-		} finally {
-			builder.close();
+		try (final StringBuilder builder = StringBuilder.get()) {
+			s = builder.append("Endpoint[").append(message.from()).append("], enqueue:").append(message).toString();
 		}
-
 		c_logger.info(s);
-
 		return Boolean.TRUE;
 	}
 }

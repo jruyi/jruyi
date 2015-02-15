@@ -40,8 +40,6 @@ public final class ChannelAdmin implements IChannelAdmin {
 	private int m_iotMask;
 
 	private SelectorThread[] m_sts;
-	private int m_stMask;
-
 	private ITimeoutAdmin m_tm;
 
 	static final class BufferCache extends ThreadLocal<ByteBuffer> {
@@ -151,7 +149,6 @@ public final class ChannelAdmin implements IChannelAdmin {
 				}
 				sts[i] = st;
 			}
-			m_stMask = count - 1;
 			m_sts = sts;
 		} catch (Throwable t) {
 			stopIoThreads();
@@ -182,7 +179,9 @@ public final class ChannelAdmin implements IChannelAdmin {
 	}
 
 	private SelectorThread getSelectorThread(int id) {
-		return m_sts[id & m_stMask];
+		final SelectorThread[] sts = m_sts;
+		final int i = (id & ~(1 << 31)) % sts.length;
+		return sts[i];
 	}
 
 	private IoThread getIoThread(int id) {
@@ -221,19 +220,19 @@ public final class ChannelAdmin implements IChannelAdmin {
 	private static int numberOfSelectors(Map<String, ?> properties) {
 		final Object value = properties.get("numberOfSelectorThreads");
 		int n;
-		if (value == null || (n = (Integer) value) < 1) {
-			int i = Runtime.getRuntime().availableProcessors();
+		int i = Runtime.getRuntime().availableProcessors();
+		if (value == null || (n = (Integer) value) < 1 || n >= i) {
 			n = 0;
 			while ((i >>>= 1) > 0)
 				++n;
 			if (n < 1)
 				n = 1;
+			int count = Util.ceilingNextPowerOfTwo(n);
+			if (count > n)
+				count >>>= 1;
+			return count;
 		}
-
-		int count = Util.ceilingNextPowerOfTwo(n);
-		if (count > n)
-			count >>>= 1;
-		return count;
+		return n;
 	}
 
 	private static int numberOfIoThreads(Map<String, ?> properties) {

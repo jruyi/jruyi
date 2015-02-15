@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.ssl;
 
 import java.io.BufferedInputStream;
@@ -62,11 +63,12 @@ public final class FileKeyStore implements ISslContextParameters {
 
 	static final class Configuration {
 
-		private static final String[] KEYPROPS = { KS_TYPE, KS_PROVIDER,
-				KS_URL, KS_PASSWORD, KEY_PASSWORD };
-		private static final String[] TRUSTPROPS = { CERT_VALIDATION, TS_TYPE,
-				TS_PROVIDER, TS_URL, TS_PASSWORD };
-		private static final String[] SRPROPS = { SR_ALG, SR_PROVIDER };
+		private static final String[] KEYPROPS = {
+			KS_TYPE, KS_PROVIDER, KS_URL, KS_PASSWORD, KEY_PASSWORD };
+		private static final String[] TRUSTPROPS = {
+			CERT_VALIDATION, TS_TYPE, TS_PROVIDER, TS_URL, TS_PASSWORD };
+		private static final String[] SRPROPS = {
+			SR_ALG, SR_PROVIDER };
 		static final Method[] c_keyProps;
 		static final Method[] c_srProps;
 		static final Method[] c_trustProps;
@@ -128,8 +130,7 @@ public final class FileKeyStore implements ISslContextParameters {
 		}
 
 		public void keyStoreType(String keyStoreType) {
-			if (keyStoreType == null
-					|| (keyStoreType = keyStoreType.trim()).length() < 1)
+			if (keyStoreType == null || (keyStoreType = keyStoreType.trim()).length() < 1)
 				keyStoreType = KeyStore.getDefaultType();
 			m_keyStoreType = keyStoreType;
 		}
@@ -139,8 +140,7 @@ public final class FileKeyStore implements ISslContextParameters {
 		}
 
 		public void keyStoreProvider(String keyStoreProvider) {
-			if (keyStoreProvider != null
-					&& (keyStoreProvider = keyStoreProvider.trim()).length() < 1)
+			if (keyStoreProvider != null && (keyStoreProvider = keyStoreProvider.trim()).length() < 1)
 				keyStoreProvider = null;
 			m_keyStoreProvider = keyStoreProvider;
 		}
@@ -150,8 +150,7 @@ public final class FileKeyStore implements ISslContextParameters {
 		}
 
 		public void keyStoreUrl(String keyStoreUrl) {
-			if (keyStoreUrl != null
-					&& (keyStoreUrl = keyStoreUrl.trim()).length() < 1)
+			if (keyStoreUrl != null && (keyStoreUrl = keyStoreUrl.trim()).length() < 1)
 				keyStoreUrl = null;
 			m_keyStoreUrl = keyStoreUrl;
 		}
@@ -161,8 +160,7 @@ public final class FileKeyStore implements ISslContextParameters {
 		}
 
 		public void keyStorePassword(String keyStorePassword) {
-			if (keyStorePassword != null
-					&& (keyStorePassword = keyStorePassword.trim()).length() < 1)
+			if (keyStorePassword != null && (keyStorePassword = keyStorePassword.trim()).length() < 1)
 				keyStorePassword = null;
 			m_keyStorePassword = keyStorePassword;
 		}
@@ -172,8 +170,7 @@ public final class FileKeyStore implements ISslContextParameters {
 		}
 
 		public void keyPassword(String keyPassword) {
-			if (keyPassword != null
-					&& (keyPassword = keyPassword.trim()).length() < 1)
+			if (keyPassword != null && (keyPassword = keyPassword.trim()).length() < 1)
 				keyPassword = null;
 			m_keyPassword = keyPassword;
 		}
@@ -184,10 +181,8 @@ public final class FileKeyStore implements ISslContextParameters {
 
 		public void keyManagerFactoryAlgorithm(String keyManagerFactoryAlgorithm) {
 			if (keyManagerFactoryAlgorithm == null
-					|| (keyManagerFactoryAlgorithm = keyManagerFactoryAlgorithm
-							.trim()).length() < 1)
-				keyManagerFactoryAlgorithm = KeyManagerFactory
-						.getDefaultAlgorithm();
+					|| (keyManagerFactoryAlgorithm = keyManagerFactoryAlgorithm.trim()).length() < 1)
+				keyManagerFactoryAlgorithm = KeyManagerFactory.getDefaultAlgorithm();
 			m_keyManagerFactoryAlgorithm = keyManagerFactoryAlgorithm;
 		}
 
@@ -197,8 +192,7 @@ public final class FileKeyStore implements ISslContextParameters {
 
 		public void keyManagerFactoryProvider(String keyManagerFactoryProvider) {
 			if (keyManagerFactoryProvider != null
-					&& (keyManagerFactoryProvider = keyManagerFactoryProvider
-							.trim()).length() < 1)
+					&& (keyManagerFactoryProvider = keyManagerFactoryProvider.trim()).length() < 1)
 				keyManagerFactoryProvider = null;
 			m_keyManagerFactoryProvider = keyManagerFactoryProvider;
 		}
@@ -216,8 +210,7 @@ public final class FileKeyStore implements ISslContextParameters {
 		}
 
 		public void trustStoreType(String trustStoreType) {
-			if (trustStoreType == null
-					|| (trustStoreType = trustStoreType.trim()).length() < 1)
+			if (trustStoreType == null || (trustStoreType = trustStoreType.trim()).length() < 1)
 				trustStoreType = KeyStore.getDefaultType();
 			m_trustStoreType = trustStoreType;
 		}
@@ -227,9 +220,7 @@ public final class FileKeyStore implements ISslContextParameters {
 		}
 
 		public void trustStoreProvider(String trustStoreProvider) {
-			if (trustStoreProvider != null
-					&& (trustStoreProvider = trustStoreProvider.trim())
-							.length() < 1)
+			if (trustStoreProvider != null && (trustStoreProvider = trustStoreProvider.trim()).length() < 1)
 				trustStoreProvider = null;
 			m_trustStoreProvider = trustStoreProvider;
 		}
@@ -239,8 +230,7 @@ public final class FileKeyStore implements ISslContextParameters {
 		}
 
 		public void trustStoreUrl(String trustStoreUrl) {
-			if (trustStoreUrl != null
-					&& (trustStoreUrl = trustStoreUrl.trim()).length() < 1)
+			if (trustStoreUrl != null && (trustStoreUrl = trustStoreUrl.trim()).length() < 1)
 				trustStoreUrl = null;
 			m_trustStoreUrl = trustStoreUrl;
 		}
@@ -250,9 +240,7 @@ public final class FileKeyStore implements ISslContextParameters {
 		}
 
 		public void trustStorePassword(String trustStorePassword) {
-			if (trustStorePassword != null
-					&& (trustStorePassword = trustStorePassword.trim())
-							.length() < 1)
+			if (trustStorePassword != null && (trustStorePassword = trustStorePassword.trim()).length() < 1)
 				trustStorePassword = null;
 			m_trustStorePassword = trustStorePassword;
 		}
@@ -261,13 +249,10 @@ public final class FileKeyStore implements ISslContextParameters {
 			return m_trustStorePassword;
 		}
 
-		public void trustManagerFactoryAlgorithm(
-				String trustManagerFactoryAlgorithm) {
+		public void trustManagerFactoryAlgorithm(String trustManagerFactoryAlgorithm) {
 			if (trustManagerFactoryAlgorithm == null
-					|| (trustManagerFactoryAlgorithm = trustManagerFactoryAlgorithm
-							.trim()).length() < 1)
-				trustManagerFactoryAlgorithm = TrustManagerFactory
-						.getDefaultAlgorithm();
+					|| (trustManagerFactoryAlgorithm = trustManagerFactoryAlgorithm.trim()).length() < 1)
+				trustManagerFactoryAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
 			m_trustManagerFactoryAlgorithm = trustManagerFactoryAlgorithm;
 		}
 
@@ -275,11 +260,9 @@ public final class FileKeyStore implements ISslContextParameters {
 			return m_trustManagerFactoryAlgorithm;
 		}
 
-		public void trustManagerFactoryProvider(
-				String trustManagerFactoryProvider) {
+		public void trustManagerFactoryProvider(String trustManagerFactoryProvider) {
 			if (trustManagerFactoryProvider != null
-					&& (trustManagerFactoryProvider = trustManagerFactoryProvider
-							.trim()).length() < 1)
+					&& (trustManagerFactoryProvider = trustManagerFactoryProvider.trim()).length() < 1)
 				trustManagerFactoryProvider = null;
 			m_trustManagerFactoryProvider = trustManagerFactoryProvider;
 		}
@@ -289,9 +272,7 @@ public final class FileKeyStore implements ISslContextParameters {
 		}
 
 		public void secureRandomAlgorithm(String secureRandomAlgorithm) {
-			if (secureRandomAlgorithm != null
-					&& (secureRandomAlgorithm = secureRandomAlgorithm.trim())
-							.length() < 1)
+			if (secureRandomAlgorithm != null && (secureRandomAlgorithm = secureRandomAlgorithm.trim()).length() < 1)
 				secureRandomAlgorithm = null;
 			m_secureRandomAlgorithm = secureRandomAlgorithm;
 		}
@@ -301,9 +282,7 @@ public final class FileKeyStore implements ISslContextParameters {
 		}
 
 		public void secureRandomProvider(String secureRandomProvider) {
-			if (secureRandomProvider != null
-					&& (secureRandomProvider = secureRandomProvider.trim())
-							.length() < 1)
+			if (secureRandomProvider != null && (secureRandomProvider = secureRandomProvider.trim()).length() < 1)
 				secureRandomProvider = null;
 			m_secureRandomProvider = secureRandomProvider;
 		}
@@ -312,11 +291,10 @@ public final class FileKeyStore implements ISslContextParameters {
 			return m_secureRandomProvider;
 		}
 
-		public boolean isChanged(Configuration conf, Method[] mProps)
-				throws Exception {
+		public boolean isChanged(Configuration conf, Method[] mProps) throws Exception {
 			for (Method m : mProps) {
-				Object v1 = m.invoke(this);
-				Object v2 = m.invoke(conf);
+				final Object v1 = m.invoke(this);
+				final Object v2 = m.invoke(conf);
 				if (v1 == v2)
 					continue;
 
@@ -348,14 +326,11 @@ public final class FileKeyStore implements ISslContextParameters {
 		final Configuration newConf = new Configuration();
 		newConf.initialize(properties);
 		final Configuration conf = m_conf;
-		KeyManager[] keyManagers = newConf.isChanged(conf,
-				Configuration.c_keyProps) ? getKeyManagers(newConf)
+		final KeyManager[] keyManagers = newConf.isChanged(conf, Configuration.c_keyProps) ? getKeyManagers(newConf)
 				: m_keyManagers;
-		TrustManager[] trustManagers = newConf.isChanged(conf,
-				Configuration.c_trustProps) ? getTrustManagers(newConf)
+		final TrustManager[] trustManagers = newConf.isChanged(conf, Configuration.c_trustProps) ? getTrustManagers(newConf)
 				: m_trustManagers;
-		SecureRandom secureRandom = newConf.isChanged(conf,
-				Configuration.c_srProps) ? getSecureRandom(newConf)
+		final SecureRandom secureRandom = newConf.isChanged(conf, Configuration.c_srProps) ? getSecureRandom(newConf)
 				: m_secureRandom;
 
 		m_keyManagers = keyManagers;
@@ -369,9 +344,9 @@ public final class FileKeyStore implements ISslContextParameters {
 		final Configuration conf = new Configuration();
 		conf.initialize(properties);
 
-		KeyManager[] keyManagers = getKeyManagers(conf);
-		TrustManager[] trustManagers = getTrustManagers(conf);
-		SecureRandom secureRandom = getSecureRandom(conf);
+		final KeyManager[] keyManagers = getKeyManagers(conf);
+		final TrustManager[] trustManagers = getTrustManagers(conf);
+		final SecureRandom secureRandom = getSecureRandom(conf);
 
 		m_keyManagers = keyManagers;
 		m_trustManagers = trustManagers;
@@ -399,31 +374,23 @@ public final class FileKeyStore implements ISslContextParameters {
 			ks = null;
 		else {
 			v = conf.keyStoreProvider();
-			ks = v == null ? KeyStore.getInstance(conf.keyStoreType())
-					: KeyStore.getInstance(conf.keyStoreType(), v);
+			ks = v == null ? KeyStore.getInstance(conf.keyStoreType()) : KeyStore.getInstance(conf.keyStoreType(), v);
 
-			File file = new File(keyStoreUrl);
-			InputStream in = file.exists() ? new FileInputStream(file)
-					: new URL(keyStoreUrl).openStream();
-			try {
-				in = new BufferedInputStream(in);
-				ks.load(in, password);
-			} finally {
-				in.close();
+			final File file = new File(keyStoreUrl);
+			try (InputStream in = file.exists() ? new FileInputStream(file) : new URL(keyStoreUrl).openStream()) {
+				ks.load(new BufferedInputStream(in), password);
 			}
 		}
 
 		v = conf.keyManagerFactoryProvider();
-		KeyManagerFactory kmf = v == null ? KeyManagerFactory.getInstance(conf
-				.keyManagerFactoryAlgorithm()) : KeyManagerFactory.getInstance(
-				conf.keyManagerFactoryAlgorithm(), v);
+		KeyManagerFactory kmf = v == null ? KeyManagerFactory.getInstance(conf.keyManagerFactoryAlgorithm())
+				: KeyManagerFactory.getInstance(conf.keyManagerFactoryAlgorithm(), v);
 		kmf.init(ks, password);
 
 		return kmf.getKeyManagers();
 	}
 
-	private TrustManager[] getTrustManagers(Configuration conf)
-			throws Exception {
+	private TrustManager[] getTrustManagers(Configuration conf) throws Exception {
 		final Boolean certValidation = conf.certValidation();
 		if (certValidation == null || !certValidation)
 			return TrustAll.TRUST_ALL;
@@ -435,28 +402,21 @@ public final class FileKeyStore implements ISslContextParameters {
 			ks = null;
 		else {
 			v = conf.trustStorePassword();
-			char[] password = v == null ? EMPTY_CHARARRAY : v.toCharArray();
+			final char[] password = v == null ? EMPTY_CHARARRAY : v.toCharArray();
 
 			v = conf.trustStoreProvider();
-			ks = v == null ? KeyStore.getInstance(conf.trustStoreType())
-					: KeyStore.getInstance(conf.trustStoreType(), v);
+			ks = v == null ? KeyStore.getInstance(conf.trustStoreType()) : KeyStore.getInstance(conf.trustStoreType(),
+					v);
 
-			File file = new File(trustStoreUrl);
-			InputStream in = file.exists() ? new FileInputStream(file)
-					: new URL(trustStoreUrl).openStream();
-			try {
-				in = new BufferedInputStream(in);
-				ks.load(in, password);
-			} finally {
-				in.close();
+			final File file = new File(trustStoreUrl);
+			try (InputStream in = file.exists() ? new FileInputStream(file) : new URL(trustStoreUrl).openStream()) {
+				ks.load(new BufferedInputStream(in), password);
 			}
 		}
 
 		v = conf.trustManagerFactoryProvider();
-		TrustManagerFactory tmf = v == null ? TrustManagerFactory
-				.getInstance(conf.trustManagerFactoryAlgorithm())
-				: TrustManagerFactory.getInstance(
-						conf.trustManagerFactoryAlgorithm(), v);
+		TrustManagerFactory tmf = v == null ? TrustManagerFactory.getInstance(conf.trustManagerFactoryAlgorithm())
+				: TrustManagerFactory.getInstance(conf.trustManagerFactoryAlgorithm(), v);
 		tmf.init(ks);
 
 		return tmf.getTrustManagers();
@@ -464,12 +424,11 @@ public final class FileKeyStore implements ISslContextParameters {
 
 	private SecureRandom getSecureRandom(Configuration conf) throws Exception {
 		if (conf.secureRandomAlgorithm() == null)
-			return (conf.secureRandomProvider() == null) ? null : SecureRandom
-					.getInstance(null, conf.secureRandomProvider());
+			return (conf.secureRandomProvider() == null) ? null : SecureRandom.getInstance(null,
+					conf.secureRandomProvider());
 		else if (conf.secureRandomProvider() == null)
 			return SecureRandom.getInstance(conf.secureRandomAlgorithm());
 		else
-			return SecureRandom.getInstance(conf.secureRandomAlgorithm(),
-					conf.secureRandomProvider());
+			return SecureRandom.getInstance(conf.secureRandomAlgorithm(), conf.secureRandomProvider());
 	}
 }

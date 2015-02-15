@@ -149,6 +149,11 @@
 			<Option label="Want" value="want"/>
 			<Option label="Need" value="need"/>
 		</AD>
+		<AD id="hostname" name="Hostname to Be Verified" type="String" required="false"/>
+		<AD id="endpointIdentificationAlgorithm" name="Endpoint Identification Algorithm" type="String" required="false">
+			<Option label="HTTPS" value="HTTPS"/>
+			<Option label="LDAPS" value="LDAPS"/>
+		</AD>
 		<AD id="enabledProtocols" name="Enabled Protocols" type="String" cardinality="65535" required="false"/>
 		<AD id="enabledCipherSuites" name="Enabled Cipher Suites" type="String" cardinality="65535" required="false"/>
 		<AD id="enableSessionCreation" name="Enable Session Creation" type="Boolean" default="true"/>
@@ -182,6 +187,12 @@
 		<AD id="clientAuth" name="Client Auth" type="String" required="false">
 			<Option label="Want" value="want"/>
 			<Option label="Need" value="need"/>
+		</AD>
+		<AD id="hostname" name="Hostname to Be Verified" type="String" required="false"/>
+		<AD id="endpointIdentificationAlgorithm" name="Endpoint Identification Algorithm" type="String" default="NONE">
+			<Option label="NONE" value="NONE"/>
+			<Option label="HTTPS" value="HTTPS"/>
+			<Option label="LDAPS" value="LDAPS"/>
 		</AD>
 		<AD id="enabledProtocols" name="Enabled Protocols" type="String" cardinality="65535" required="false"/>
 		<AD id="enabledCipherSuites" name="Enabled Cipher Suites" type="String" cardinality="65535" required="false"/>

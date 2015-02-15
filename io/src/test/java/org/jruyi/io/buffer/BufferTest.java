@@ -11,16 +11,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.buffer;
 
 import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
 import org.jruyi.common.ByteKmp;
-import org.jruyi.common.StringBuilder;
 import org.jruyi.io.Codec;
 import org.jruyi.io.DoubleCodec;
 import org.jruyi.io.FloatCodec;
@@ -54,60 +53,14 @@ public class BufferTest {
 	}
 
 	@Test
-	public void test_writeReadBytes() {
-		byte[] bytes = createBytes();
-		StringBuilder builder = StringBuilder.get();
-		String hexDump1;
-		String hexDump2;
-		try {
-			builder.appendHexDump(bytes);
-
-			hexDump1 = builder.toString();
-			builder.setLength(0);
-
-			final int n = bytes.length;
-			for (int i = 1; i < n + 11; i += 10) {
-				BufferFactory factory = initializeFactory(i);
-				final IBuffer buffer = factory.create();
-				buffer.write(bytes, Codec.byteArray());
-
-				Assert.assertEquals(0, buffer.position());
-				Assert.assertEquals(n, buffer.size());
-
-				buffer.dump(builder);
-				hexDump2 = builder.toString();
-
-				builder.setLength(0);
-
-				Assert.assertEquals(hexDump1, hexDump2);
-
-				byte[] bytes2 = buffer.read(n, Codec.byteArray());
-				Assert.assertArrayEquals(bytes, bytes2);
-
-				int index = new Random().nextInt(n);
-				byte[] bytes3 = Arrays.copyOfRange(bytes, index, n);
-				byte[] bytes4 = buffer.get(index, Codec.byteArray());
-				Assert.assertArrayEquals(bytes3, bytes4);
-
-				Assert.assertEquals(0, buffer.remaining());
-
-				buffer.rewind();
-				buffer.prepend(bytes, Codec.byteArray());
-				byte[] bytes5 = buffer.read(n, Codec.byteArray());
-				Assert.assertArrayEquals(bytes, bytes5);
-			}
-		} finally {
-			builder.close();
-		}
-	}
-
-	@Test
 	public void test_writeReadFloat() {
 		final byte[] bytes = createBytes();
 		final float v = 3.14F;
 		int t = Float.floatToIntBits(v);
-		final byte[] r1 = { (byte) (t >> 24), (byte) (t >> 16), (byte) (t >> 8), (byte) t };
-		final byte[] r2 = { (byte) t, (byte) (t >> 8), (byte) (t >> 16), (byte) (t >> 24) };
+		final byte[] r1 = {
+			(byte) (t >> 24), (byte) (t >> 16), (byte) (t >> 8), (byte) t };
+		final byte[] r2 = {
+			(byte) t, (byte) (t >> 8), (byte) (t >> 16), (byte) (t >> 24) };
 		final int n = bytes.length;
 		for (int i = 1; i < n + 10; ++i) {
 			BufferFactory factory = initializeFactory(i);
@@ -167,10 +120,12 @@ public class BufferTest {
 		final byte[] bytes = createBytes();
 		final double v = 3.14F;
 		long t = Double.doubleToLongBits(v);
-		final byte[] r1 = { (byte) (t >> 56), (byte) (t >> 48), (byte) (t >> 40), (byte) (t >> 32), (byte) (t >> 24),
-				(byte) (t >> 16), (byte) (t >> 8), (byte) t };
-		final byte[] r2 = { (byte) t, (byte) (t >> 8), (byte) (t >> 16), (byte) (t >> 24), (byte) (t >> 32),
-				(byte) (t >> 40), (byte) (t >> 48), (byte) (t >> 56) };
+		final byte[] r1 = {
+			(byte) (t >> 56), (byte) (t >> 48), (byte) (t >> 40), (byte) (t >> 32), (byte) (t >> 24), (byte) (t >> 16),
+			(byte) (t >> 8), (byte) t };
+		final byte[] r2 = {
+			(byte) t, (byte) (t >> 8), (byte) (t >> 16), (byte) (t >> 24), (byte) (t >> 32), (byte) (t >> 40),
+			(byte) (t >> 48), (byte) (t >> 56) };
 		final int n = bytes.length;
 		for (int i = 1; i < n + 10; ++i) {
 			BufferFactory factory = initializeFactory(i);
@@ -231,9 +186,12 @@ public class BufferTest {
 		final int v = new Random().nextInt();
 		final int size = sizeOfVarint(v);
 		final int t = 0x12345678;
-		final byte[] r1 = { 0x12, 0x34, 0x56, 0x78 };
-		final byte[] r2 = { 0x78, 0x56, 0x34, 0x12 };
-		final byte[] r3 = { (byte) 0xF8, (byte) 0xAC, (byte) 0xD1, (byte) 0x91, 0x01 };
+		final byte[] r1 = {
+			0x12, 0x34, 0x56, 0x78 };
+		final byte[] r2 = {
+			0x78, 0x56, 0x34, 0x12 };
+		final byte[] r3 = {
+			(byte) 0xF8, (byte) 0xAC, (byte) 0xD1, (byte) 0x91, 0x01 };
 		final int n = bytes.length;
 		for (int i = 1; i < n + 10 + size; ++i) {
 			BufferFactory factory = initializeFactory(i);
@@ -312,9 +270,12 @@ public class BufferTest {
 		final short v = (short) new Random().nextInt();
 		final int size = sizeOfVarint(v & 0xFFFF);
 		final short t = 0x1234;
-		final byte[] r1 = { 0x12, 0x34 };
-		final byte[] r2 = { 0x34, 0x12 };
-		final byte[] r3 = { (byte) 0xb4, 0x24 };
+		final byte[] r1 = {
+			0x12, 0x34 };
+		final byte[] r2 = {
+			0x34, 0x12 };
+		final byte[] r3 = {
+			(byte) 0xb4, 0x24 };
 		final int n = bytes.length;
 		for (int i = 1; i < n + 9 + 2 * size; ++i) {
 			BufferFactory factory = initializeFactory(i);
@@ -408,10 +369,13 @@ public class BufferTest {
 		final long v = new Random().nextLong();
 		final int size = sizeOfVarint(v);
 		final long t = 0x1234567890abcdefL;
-		final byte[] r1 = { 0x12, 0x34, 0x56, 0x78, (byte) 0x90, (byte) 0xab, (byte) 0xcd, (byte) 0xef };
-		final byte[] r2 = { (byte) 0xef, (byte) 0xcd, (byte) 0xab, (byte) 0x90, 0x78, 0x56, 0x34, 0x12 };
-		final byte[] r3 = { (byte) 0xef, (byte) 0x9b, (byte) 0xaf, (byte) 0x85, (byte) 0x89, (byte) 0xcf, (byte) 0x95,
-				(byte) 0x9a, 0x12 };
+		final byte[] r1 = {
+			0x12, 0x34, 0x56, 0x78, (byte) 0x90, (byte) 0xab, (byte) 0xcd, (byte) 0xef };
+		final byte[] r2 = {
+			(byte) 0xef, (byte) 0xcd, (byte) 0xab, (byte) 0x90, 0x78, 0x56, 0x34, 0x12 };
+		final byte[] r3 = {
+			(byte) 0xef, (byte) 0x9b, (byte) 0xaf, (byte) 0x85, (byte) 0x89, (byte) 0xcf, (byte) 0x95, (byte) 0x9a,
+			0x12 };
 		final int n = bytes.length;
 		for (int i = 1; i < n + 17 + size; ++i) {
 			BufferFactory factory = initializeFactory(i);

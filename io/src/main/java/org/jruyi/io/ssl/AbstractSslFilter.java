@@ -11,10 +11,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.ssl;
 
-import java.lang.reflect.Method;
+import java.net.InetSocketAddress;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -34,99 +36,16 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 
-	private static final Logger c_logger = LoggerFactory
-			.getLogger(AbstractSslFilter.class);
+	private static final Logger c_logger = LoggerFactory.getLogger(AbstractSslFilter.class);
 
 	private static final int HEADER_SIZE = 5;
 	private static final Object SSL_CODEC = new Object();
 
+	private static final AtomicInteger c_count = new AtomicInteger();
+	private final int m_port = c_count.incrementAndGet();
+
 	private SSLContext m_sslContext;
 	private Configuration m_conf;
-
-	static final class Configuration {
-
-		private static final String[] M_PROPS = { "protocol", "provider" };
-		private static final Method[] c_mProps;
-		private String m_protocol;
-		private String m_provider;
-		private String m_clientAuth;
-		private String[] m_enabledProtocols;
-		private String[] m_enabledCipherSuites;
-
-		static {
-			Class<Configuration> clazz = Configuration.class;
-			c_mProps = new Method[M_PROPS.length];
-			try {
-				for (int i = 0; i < M_PROPS.length; ++i)
-					c_mProps[i] = clazz.getMethod(M_PROPS[i]);
-			} catch (NoSuchMethodException e) {
-				throw new RuntimeException(e);
-			}
-		}
-
-		public void initialize(Map<String, ?> properties) {
-			protocol((String) properties.get("protocol"));
-			provider((String) properties.get("provider"));
-			clientAuth((String) properties.get("clientAuth"));
-			enabledProtocols((String[]) properties.get("enabledProtocols"));
-			enabledCipherSuites((String[]) properties
-					.get("enabledCipherSuites"));
-		}
-
-		public void protocol(String protocol) {
-			m_protocol = protocol;
-		}
-
-		public String protocol() {
-			return m_protocol;
-		}
-
-		public void provider(String provider) {
-			m_provider = provider;
-		}
-
-		public String provider() {
-			return m_provider;
-		}
-
-		public void clientAuth(String clientAuth) {
-			m_clientAuth = clientAuth;
-		}
-
-		public String clientAuth() {
-			return m_clientAuth;
-		}
-
-		public void enabledProtocols(String[] enabledProtocols) {
-			m_enabledProtocols = enabledProtocols;
-		}
-
-		public String[] enabledProtocols() {
-			return m_enabledProtocols;
-		}
-
-		public void enabledCipherSuites(String[] enabledCipherSuites) {
-			m_enabledCipherSuites = enabledCipherSuites;
-		}
-
-		public String[] enabledCipherSuites() {
-			return m_enabledCipherSuites;
-		}
-
-		public boolean isMandatoryChanged(Configuration conf) throws Exception {
-			for (Method m : c_mProps) {
-				Object v1 = m.invoke(this);
-				Object v2 = m.invoke(conf);
-				if (v1 == v2)
-					continue;
-
-				if (!(v1 == null ? v2.equals(v1) : v1.equals(v2)))
-					return true;
-			}
-
-			return false;
-		}
-	}
 
 	@Override
 	public int msgMinSize() {
@@ -149,13 +68,12 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 	}
 
 	@Override
-	public final boolean onMsgArrive(ISession session, IBuffer netData,
-			IFilterOutput output) {
+	public final boolean onMsgArrive(ISession session, IBuffer netData, IFilterOutput output) {
 
 		SslCodec sslCodec = (SslCodec) session.inquiry(SSL_CODEC);
 		if (sslCodec == null) {
 			// server mode
-			sslCodec = new SslCodec(createEngine(false));
+			sslCodec = new SslCodec(createEngine(session.remoteAddress(), false));
 			session.deposit(SSL_CODEC, sslCodec);
 		}
 
@@ -211,12 +129,11 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 	}
 
 	@Override
-	public final boolean onMsgDepart(ISession session, IBuffer appData,
-			IFilterOutput output) {
+	public final boolean onMsgDepart(ISession session, IBuffer appData, IFilterOutput output) {
 		SslCodec sslCodec = (SslCodec) session.inquiry(SSL_CODEC);
 		if (sslCodec == null) {
 			// client mode
-			sslCodec = new SslCodec(createEngine(true));
+			sslCodec = new SslCodec(createEngine(session.remoteAddress(), true));
 			session.deposit(SSL_CODEC, sslCodec);
 
 			if (!appData.isEmpty())
@@ -261,13 +178,12 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 		}
 	}
 
-	protected void updatedSslContextParameters(ISslContextParameters sslcp)
-			throws Exception {
+	protected void updatedSslContextParameters(ISslContextParameters sslcp) throws Exception {
 		m_sslContext = createSslContext(m_conf);
 	}
 
 	protected void modified(Map<String, ?> properties) throws Exception {
-		final Configuration newConf = getConf(properties);
+		final Configuration newConf = Configuration.create(properties);
 		if (m_conf.isMandatoryChanged(newConf))
 			m_sslContext = createSslContext(newConf);
 
@@ -275,7 +191,7 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 	}
 
 	protected void activate(Map<String, ?> properties) throws Exception {
-		Configuration conf = getConf(properties);
+		final Configuration conf = Configuration.create(properties);
 		m_sslContext = createSslContext(conf);
 		m_conf = conf;
 	}
@@ -287,45 +203,35 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 
 	protected abstract ISslContextParameters sslcp();
 
-	private synchronized SSLContext createSslContext(Configuration conf)
-			throws Exception {
+	private SSLContext createSslContext(Configuration conf) throws Exception {
 		String protocol = conf.protocol();
 		if (protocol == null || protocol.isEmpty())
 			protocol = "TLS";
 
 		final String provider = conf.provider();
-		final SSLContext sslContext = (provider == null || provider.isEmpty()) ? SSLContext
-				.getInstance(protocol) : SSLContext.getInstance(protocol,
-				provider);
+		final SSLContext sslContext = (provider == null || provider.isEmpty()) ? SSLContext.getInstance(protocol)
+				: SSLContext.getInstance(protocol, provider);
 
 		final ISslContextParameters sslcp = sslcp();
-		sslContext.init(sslcp.getKeyManagers(), sslcp.getCertManagers(),
-				sslcp.getSecureRandom());
+		sslContext.init(sslcp.getKeyManagers(), sslcp.getCertManagers(), sslcp.getSecureRandom());
 		return sslContext;
 	}
 
-	private Configuration getConf(Map<String, ?> properties) throws Exception {
-		Configuration conf = new Configuration();
-		conf.initialize(properties);
-		return conf;
-	}
-
-	private SSLEngine createEngine(boolean clientMode) {
-		SSLEngine engine = m_sslContext.createSSLEngine();
-		Configuration conf = m_conf;
-		if (conf.enabledProtocols() != null)
-			engine.setEnabledProtocols(conf.enabledProtocols());
-
-		if (conf.enabledCipherSuites() != null)
-			engine.setEnabledCipherSuites(conf.enabledCipherSuites());
-
-		final String clientAuth = conf.clientAuth();
-		if ("want".equals(clientAuth))
-			engine.setWantClientAuth(true);
-		else if ("need".equals(clientAuth))
-			engine.setNeedClientAuth(true);
+	private SSLEngine createEngine(Object remoteAddr, boolean clientMode) {
+		final Configuration conf = m_conf;
+		final SSLEngine engine;
+		String hostname = conf.hostname();
+		if (remoteAddr instanceof InetSocketAddress) {
+			final InetSocketAddress socketAddress = (InetSocketAddress) remoteAddr;
+			if (hostname == null)
+				hostname = socketAddress.getHostName();
+			engine = m_sslContext.createSSLEngine(hostname, socketAddress.getPort());
+		} else if (hostname == null)
+			engine = m_sslContext.createSSLEngine();
+		else
+			engine = m_sslContext.createSSLEngine(hostname, m_port);
+		engine.setSSLParameters(conf.sslParameters());
 		engine.setUseClientMode(clientMode);
-
 		return engine;
 	}
 
