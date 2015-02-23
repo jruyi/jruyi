@@ -207,13 +207,14 @@ class BufferSpec extends Specification {
 		def bf = new BufferFactory()
 		bf.activate([unitCapacity: 13])
 		def buf = bf.create()
-		def bytes = createBytes(20)
+		def bytes = createBytes(50)
+		def length = bytes.length
 
-		when: "write 20 bytes"
+		when: "write 50 bytes"
 		buf.write(bytes, Codec.byteArray());
 		then:
 		buf.position() == 0
-		buf.size() == 20
+		buf.size() == length
 
 		when: "make a hex dump"
 		def hexDump1 = StringBuilder.get().appendHexDump(bytes).toStringAndClose()
@@ -221,31 +222,29 @@ class BufferSpec extends Specification {
 		then:
 		hexDump1 == hexDump2
 
-		when: "read 20 bytes"
-		def bytes2 = buf.read(20, Codec.byteArray())
+		when: "read 50 bytes"
+		def bytes2 = buf.read(50, Codec.byteArray())
 		then:
 		bytes == bytes2
 		buf.remaining() == 0
 
 		when: "get bytes starting at 7"
-		def bytes3 = Arrays.copyOfRange(bytes, 7, 20)
+		def bytes3 = Arrays.copyOfRange(bytes, 7, 50)
 		def bytes4 = buf.get(7, Codec.byteArray())
 		then:
 		bytes3 == bytes4
 
-		when: "rewind buffer, prepend 20 bytes, then read first 20 bytes"
+		when: "rewind buffer, prepend 50 bytes, then read first 50 bytes"
 		buf.rewind()
 		buf.prepend(bytes, Codec.byteArray())
-		def bytes5 = buf.read(20, Codec.byteArray())
+		def bytes5 = buf.read(50, Codec.byteArray())
 		then:
 		bytes == bytes5
 	}
 
 	private def createBytes(int length) {
-		Random random = new Random();
-		int n = random.nextInt(length) + 50
-		byte[] bytes = new byte[n];
-		for (int i = 0; i < n; ++i)
+		byte[] bytes = new byte[length];
+		for (int i = 0; i < length; ++i)
 			bytes[i] = (byte) i;
 		return bytes;
 	}

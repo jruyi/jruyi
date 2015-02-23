@@ -19,7 +19,7 @@ buildscript {
 
 	dependencies {
 		classpath 'org.jruyi.gradle:osgibnd-gradle-plugin:0.2.0'
-		classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.0'
+		classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.1'
 	}
 }
 
@@ -52,7 +52,7 @@ allprojects {
 		org_osgi_compendium_version = '5.0.0'
 		commons_cli_version = '1.2'
 		disruptor_version = '3.3.0'
-		jline_version = '2.12'
+		jline_version = '2.12.1'
 		log4j_api_version = '2.1'
 		log4j_core_version = '2.1'
 		log4j_slf4j_impl_version = '2.1'
@@ -258,5 +258,5 @@ distTar {
 }
 
 task wrapper(type: Wrapper) {
-	gradleVersion = '2.2.1'
+	gradleVersion = '2.3'
 }
