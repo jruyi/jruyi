@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.system.main;
 
 import static org.jruyi.system.Constants.JRUYI_BUNDLE_BASE_URL;
@@ -62,13 +63,10 @@ public final class Ruyi {
 	}
 
 	private static Properties getProductProps() throws Exception {
-		final InputStream in = Ruyi.class.getResourceAsStream("product.properties");
-		try {
+		try (InputStream in = Ruyi.class.getResourceAsStream("product.properties")) {
 			final Properties props = new Properties();
 			props.load(in);
 			return props;
-		} finally {
-			in.close();
 		}
 	}
 
@@ -77,7 +75,10 @@ public final class Ruyi {
 	}
 
 	public void setProperties(Map<String, String> properties) {
-		properties = properties == null ? new HashMap<String, String>(32) : new HashMap<String, String>(properties);
+		if (properties == null)
+			properties = new HashMap<>(32);
+		else
+			properties = new HashMap<>(properties);
 
 		String v = properties.get(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA);
 		if (v != null && (v = v.trim()).length() > 0) {
@@ -273,14 +274,8 @@ public final class Ruyi {
 
 		final Bootstrap bootstrap = new Bootstrap();
 		bootstrap.getLocalProps().putAll(m_properties);
-		final InputStream in = Ruyi.class.getResourceAsStream("bootstrap.xsd");
-		try {
+		try (InputStream in = Ruyi.class.getResourceAsStream("bootstrap.xsd")) {
 			XmlParser.getInstance(in).parse(bootstrapUrl, bootstrap.getHandlers(), bootstrap.getLocalProps());
-		} finally {
-			try {
-				in.close();
-			} catch (Throwable t) {
-			}
 		}
 
 		return bootstrap;

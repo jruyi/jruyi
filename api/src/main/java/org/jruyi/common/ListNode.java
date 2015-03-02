@@ -34,14 +34,14 @@ public final class ListNode<E> implements ICloseable {
 	static final class Stack {
 
 		private static final ThreadLocal<WeakReference<Stack>> c_cache;
-		private final ListNode<?> m_head = new ListNode<Object>();
+		private final ListNode<?> m_head = new ListNode<>();
 
 		static {
 			c_cache = new ThreadLocal<WeakReference<Stack>>() {
 
 				@Override
 				protected WeakReference<Stack> initialValue() {
-					return new WeakReference<Stack>(null);
+					return new WeakReference<>(null);
 				}
 			};
 		}
@@ -50,7 +50,7 @@ public final class ListNode<E> implements ICloseable {
 			Stack t = c_cache.get().get();
 			if (t == null) {
 				t = new Stack();
-				c_cache.set(new WeakReference<Stack>(t));
+				c_cache.set(new WeakReference<>(t));
 			}
 			return t;
 		}
@@ -106,7 +106,7 @@ public final class ListNode<E> implements ICloseable {
 	@SuppressWarnings({ "unchecked" })
 	public static <T> ListNode<T> create() {
 		Stack cache = Stack.get();
-		return (ListNode<T>) (cache.isEmpty() ? new ListNode<Object>() : cache.pop());
+		return (ListNode<T>) (cache.isEmpty() ? new ListNode<>() : cache.pop());
 	}
 
 	/**

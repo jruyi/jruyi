@@ -11,12 +11,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.channel;
 
 import org.jruyi.io.IBufferFactory;
 import org.jruyi.io.IFilter;
 
-public interface IChannelService {
+public interface IChannelService<I, O> {
 
 	public Object getConfiguration();
 
@@ -32,11 +33,12 @@ public interface IChannelService {
 
 	public void onChannelClosed(IChannel channel);
 
-	public void onMessageReceived(IChannel channel, Object msg);
+	public void onMessageReceived(IChannel channel, I inMsg);
 
 	// The given {@code data} will be closed right after this method returns.
-	public void onMessageSent(IChannel channel, Object msg);
+	public void onMessageSent(IChannel channel, O outMsg);
 
+	// channel will be closed
 	public void onChannelException(IChannel channel, Throwable t);
 
 	public void onChannelIdleTimedOut(IChannel channel);

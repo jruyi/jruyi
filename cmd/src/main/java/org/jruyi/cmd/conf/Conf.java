@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.cmd.conf;
 
 import java.util.ArrayList;
@@ -112,7 +113,7 @@ public final class Conf {
 
 		final int n = args.length;
 		ArrayList<String> removedProps = null;
-		final HashMap<String, Object> props = new HashMap<String, Object>(n);
+		final HashMap<String, Object> props = new HashMap<>(n);
 		for (String arg : args) {
 			int i = arg.indexOf('=');
 			String name = i < 0 ? arg : arg.substring(0, i).trim();
@@ -395,7 +396,7 @@ public final class Conf {
 
 	private static ArrayList<String> getList(ArrayList<String> list) {
 		if (list == null)
-			list = new ArrayList<String>();
+			list = new ArrayList<>();
 		return list;
 	}
 

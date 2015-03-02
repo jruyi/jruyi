@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.buffer;
 
 import java.io.IOException;
@@ -357,8 +358,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 			return fromIndex;
 
 		int n = 0;
-		Blob blob = Blob.get();
-		try {
+		try (Blob blob = Blob.get()) {
 			blob.add(unit, unit.start() + index, unitSize - index);
 			while ((node = node.next()) != head) {
 				unit = node.get();
@@ -366,8 +366,6 @@ public final class Buffer implements IBuffer, IUnitChain {
 			}
 
 			n = blob.indexOf(pattern);
-		} finally {
-			blob.close();
 		}
 
 		return n < 0 ? n : fromIndex + n;
@@ -575,8 +573,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		}
 
 		fromIndex -= index;
-		Blob blob = Blob.get();
-		try {
+		try (Blob blob = Blob.get()) {
 			for (BiListNode<IUnit> node = head; node != last; node = node.next()) {
 				IUnit temp = node.get();
 				blob.add(temp, temp.start(), temp.size());
@@ -584,8 +581,6 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 			blob.add(unit, unit.start(), fromIndex);
 			return blob.lastIndexOf(pattern);
-		} finally {
-			blob.close();
 		}
 	}
 
@@ -614,8 +609,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		}
 
 		fromIndex -= index;
-		Blob blob = Blob.get();
-		try {
+		try (Blob blob = Blob.get()) {
 			for (BiListNode<IUnit> node = head; node != last; node = node.next()) {
 				IUnit temp = node.get();
 				blob.add(temp, temp.start(), temp.size());
@@ -623,8 +617,6 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 			blob.add(unit, unit.start(), fromIndex);
 			return blob.lastIndexOf(pattern);
-		} finally {
-			blob.close();
 		}
 	}
 
@@ -1673,16 +1665,13 @@ public final class Buffer implements IBuffer, IUnitChain {
 	public void dump(StringBuilder builder) {
 		final BiListNode<IUnit> head = m_head;
 		BiListNode<IUnit> node = head;
-		Blob blob = Blob.get();
-		try {
+		try (Blob blob = Blob.get()) {
 			do {
-				IUnit unit = node.get();
+				final IUnit unit = node.get();
 				blob.add(unit, unit.start(), unit.size());
 				node = node.next();
 			} while (node != head);
 			blob.dump(builder);
-		} finally {
-			blob.close();
 		}
 	}
 

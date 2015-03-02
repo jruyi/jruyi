@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.tcpclient;
 
 import java.lang.reflect.Method;
@@ -20,8 +21,10 @@ import org.jruyi.io.tcp.TcpChannelConf;
 
 class TcpClientConf extends TcpChannelConf {
 
-	private static final String[] M_PROPS = { "addr", "port" };
+	private static final String[] M_PROPS = {
+		"addr", "port" };
 	private static final Method[] c_mProps;
+	private Integer m_initialCapacityOfChannelMap;
 	private Integer m_connectTimeoutInSeconds;
 	private Integer m_readTimeoutInSeconds;
 
@@ -45,6 +48,7 @@ class TcpClientConf extends TcpChannelConf {
 		super.initialize(properties);
 
 		addr((String) properties.get("addr"));
+		initialCapacityOfChannelMap((Integer) properties.get("initialCapacityOfChannelMap"));
 		connectTimeoutInSeconds((Integer) properties.get("connectTimeoutInSeconds"));
 		readTimeoutInSeconds((Integer) properties.get("readTimeoutInSeconds"));
 	}
@@ -55,6 +59,14 @@ class TcpClientConf extends TcpChannelConf {
 
 	public final void addr(String addr) {
 		ip(addr);
+	}
+
+	public final Integer initialCapacityOfChannelMap() {
+		return m_initialCapacityOfChannelMap;
+	}
+
+	public final void initialCapacityOfChannelMap(Integer initialCapacityOfChannelMap) {
+		m_initialCapacityOfChannelMap = initialCapacityOfChannelMap == null ? 512 : initialCapacityOfChannelMap;
 	}
 
 	public final Integer connectTimeoutInSeconds() {

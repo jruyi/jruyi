@@ -70,12 +70,12 @@ public final class Message implements Runnable, IMessage, IRoutable, ICloseable,
 
 	private Message() {
 		m_properties = new Properties();
-		m_storage = new IdentityHashMap<Object, Object>();
+		m_storage = new IdentityHashMap<>();
 	}
 
 	private Message(Map<String, Object> properties, Map<Object, Object> storage) {
 		m_properties = new Properties(properties);
-		m_storage = new IdentityHashMap<Object, Object>(storage);
+		m_storage = new IdentityHashMap<>(storage);
 	}
 
 	@Override
@@ -225,12 +225,9 @@ public final class Message implements Runnable, IMessage, IRoutable, ICloseable,
 
 	@Override
 	public String toString() {
-		StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			dump(builder);
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 

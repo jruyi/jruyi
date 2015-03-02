@@ -54,7 +54,7 @@ final class IoThread implements ICloseable, EventHandler<IoEvent>, IIoWorker {
 
 	@SuppressWarnings("unchecked")
 	public void open(int id, int capacity) {
-		final Disruptor<IoEvent> disruptor = new Disruptor<IoEvent>(IoEventFactory.INST, capacity, new IoExecutor());
+		final Disruptor<IoEvent> disruptor = new Disruptor<>(IoEventFactory.INST, capacity, new IoExecutor());
 		m_disruptor = disruptor;
 		disruptor.handleEventsWith(this);
 		disruptor.start();

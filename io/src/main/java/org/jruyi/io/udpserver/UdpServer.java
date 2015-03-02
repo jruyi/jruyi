@@ -51,9 +51,10 @@ import org.slf4j.LoggerFactory;
 factory = "udpserver", //
 service = { IService.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class UdpServer extends Service implements IChannelService, ISessionService {
+public final class UdpServer<I, O> extends Service implements IChannelService<I, O>, ISessionService<I, O> {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(UdpServer.class);
+
 	private String m_caption;
 	private Configuration m_conf;
 	private DatagramChannel m_datagramChannel;
@@ -64,7 +65,7 @@ public final class UdpServer extends Service implements IChannelService, ISessio
 
 	private IFilter<?, ?>[] m_filters;
 	private boolean m_closed;
-	private ISessionListener m_listener;
+	private ISessionListener<I, O> m_listener;
 	private ConcurrentHashMap<Object, IChannel> m_channels;
 	private final ReentrantReadWriteLock m_lock = new ReentrantReadWriteLock();
 
@@ -101,7 +102,7 @@ public final class UdpServer extends Service implements IChannelService, ISessio
 		if (channels != null)
 			channels.remove(channel.remoteAddress());
 
-		final ISessionListener listener = m_listener;
+		final ISessionListener<I, O> listener = m_listener;
 		if (listener != null) {
 			try {
 				listener.onSessionClosed(channel);
@@ -113,13 +114,6 @@ public final class UdpServer extends Service implements IChannelService, ISessio
 
 	@Override
 	public void closeSession(ISession session) {
-		// final ConcurrentHashMap<Object, IChannel> channels = m_channels;
-		// if (channels == null)
-		// return;
-		//
-		// IChannel channel = channels.get(session.remoteAddress());
-		// if (channel != null)
-		// channel.close();
 		((IChannel) session).close();
 	}
 
@@ -129,15 +123,15 @@ public final class UdpServer extends Service implements IChannelService, ISessio
 	}
 
 	@Override
-	public void onChannelException(IChannel channel, Throwable t) {
+	public void onChannelException(IChannel channel, Throwable throwable) {
 		try {
-			c_logger.error(StrUtil.join(channel, " got an error"), t);
+			c_logger.error(StrUtil.join(channel, "(remoteAddr=", channel.remoteAddress(), ") got an error"), throwable);
 
-			final ISessionListener listener = m_listener;
+			final ISessionListener<I, O> listener = m_listener;
 			if (listener != null)
-				listener.onSessionException(channel, t);
-		} catch (Throwable e) {
-			c_logger.error(StrUtil.join(channel, " Unexpected Error: "), e);
+				listener.onSessionException(channel, throwable);
+		} catch (Throwable t) {
+			c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
 		} finally {
 			channel.close();
 		}
@@ -148,12 +142,9 @@ public final class UdpServer extends Service implements IChannelService, ISessio
 		try {
 			c_logger.debug("{}: IDLE_TIMEOUT", channel);
 
-			final ISessionListener listener = m_listener;
-			if (listener != null) {
+			final ISessionListener<I, O> listener = m_listener;
+			if (listener != null)
 				listener.onSessionIdleTimedOut(channel);
-			}
-		} catch (Throwable t) {
-			c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
 		} finally {
 			channel.close();
 		}
@@ -176,20 +167,13 @@ public final class UdpServer extends Service implements IChannelService, ISessio
 				return;
 			}
 			m_channels.put(key, channel);
-		} catch (Throwable t) {
-			c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
 		} finally {
 			readLock.unlock();
 		}
 
-		final ISessionListener listener = m_listener;
-		if (listener != null) {
-			try {
-				listener.onSessionOpened(channel);
-			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
-			}
-		}
+		final ISessionListener<I, O> listener = m_listener;
+		if (listener != null)
+			listener.onSessionOpened(channel);
 	}
 
 	@Override
@@ -198,35 +182,25 @@ public final class UdpServer extends Service implements IChannelService, ISessio
 	}
 
 	@Override
-	public void onMessageReceived(IChannel channel, Object msg) {
+	public void onMessageReceived(IChannel channel, I inMsg) {
 		// failed to reschedule, channel timed out
 		if (!scheduleIdleTimeout(channel))
 			return;
 
-		final ISessionListener listener = m_listener;
-		if (listener != null) {
-			try {
-				listener.onMessageReceived(channel, msg);
-			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
-			}
-		}
+		final ISessionListener<I, O> listener = m_listener;
+		if (listener != null)
+			listener.onMessageReceived(channel, inMsg);
 	}
 
 	@Override
-	public void onMessageSent(IChannel channel, Object msg) {
-		final ISessionListener listener = m_listener;
-		if (listener != null) {
-			try {
-				listener.onMessageSent(channel, msg);
-			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
-			}
-		}
+	public void onMessageSent(IChannel channel, O outMsg) {
+		final ISessionListener<I, O> listener = m_listener;
+		if (listener != null)
+			listener.onMessageSent(channel, outMsg);
 	}
 
 	@Override
-	public void setSessionListener(ISessionListener listener) {
+	public void setSessionListener(ISessionListener<I, O> listener) {
 		m_listener = listener;
 	}
 
@@ -236,7 +210,7 @@ public final class UdpServer extends Service implements IChannelService, ISessio
 	}
 
 	@Override
-	public void write(ISession session, Object msg) {
+	public void write(ISession session, O msg) {
 		final IChannel channel = m_channels.get(session.remoteAddress());
 		if (channel != null) {
 			channel.write(msg);
@@ -252,8 +226,6 @@ public final class UdpServer extends Service implements IChannelService, ISessio
 				c_logger.error(StrUtil.join(session, " failed to close message: ", StrUtil.getLineSeparator(), msg), t);
 			}
 		}
-
-		// TODO: need notify failure on writing out?
 	}
 
 	@Override
@@ -285,9 +257,10 @@ public final class UdpServer extends Service implements IChannelService, ISessio
 		if (host != null)
 			bindAddr = InetAddress.getByName(host);
 
-		m_channels = new ConcurrentHashMap<Object, IChannel>(conf.initCapacityOfChannelMap());
+		m_channels = new ConcurrentHashMap<>(conf.initCapacityOfChannelMap());
 
 		final SocketAddress localAddr;
+		@SuppressWarnings("resource")
 		final DatagramChannel datagramChannel = DatagramChannel.open();
 		try {
 			final DatagramSocket socket = datagramChannel.socket();
@@ -295,19 +268,23 @@ public final class UdpServer extends Service implements IChannelService, ISessio
 			localAddr = new InetSocketAddress(bindAddr, conf.port());
 			socket.bind(localAddr);
 			datagramChannel.configureBlocking(false);
-		} catch (Exception e) {
+		} catch (Throwable t) {
 			try {
 				datagramChannel.close();
-			} catch (Throwable t) {
+			} catch (Throwable e) {
 			}
-			c_logger.error(StrUtil.join(this, " failed to start"), e);
+			c_logger.error(StrUtil.join(this, " failed to start"), t);
 			m_datagramChannel = null;
 			m_channels = null;
-			throw e;
+			throw t;
 		}
 
 		m_datagramChannel = datagramChannel;
-		m_ca.onRegisterRequired(new UdpServerChannel(this, datagramChannel, localAddr));
+
+		@SuppressWarnings("unchecked")
+		final UdpServerChannel udpServerChannel = new UdpServerChannel((UdpServer<Object, Object>) this,
+				datagramChannel, localAddr);
+		m_ca.onRegisterRequired(udpServerChannel);
 
 		c_logger.info(StrUtil.join(this, " started: ", conf.port()));
 	}

@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.buffer;
 
 import java.nio.ByteBuffer;
@@ -91,41 +92,32 @@ public final class Helper {
 	}
 
 	public static void prepend(ICharsetCodec cc, CharBuffer cb, IUnitChain unitChain) {
-		final BytesBuilder bb = BytesBuilder.get();
-		try {
+		try (BytesBuilder bb = BytesBuilder.get()) {
 			cc.encode(cb, bb);
 			int length = bb.length();
 			IUnit unit = Util.firstUnit(unitChain);
 			while ((length -= prepend(bb, 0, length, unit)) > 0)
 				unit = Util.prependNewUnit(unitChain);
-		} finally {
-			bb.close();
 		}
 	}
 
 	public static void prepend(ICharsetCodec cc, StringBuilder sb, IUnitChain unitChain) {
-		final BytesBuilder bb = BytesBuilder.get();
-		try {
+		try (BytesBuilder bb = BytesBuilder.get()) {
 			cc.encode(sb, bb);
 			int length = bb.length();
 			IUnit unit = Util.firstUnit(unitChain);
 			while ((length -= prepend(bb, 0, length, unit)) > 0)
 				unit = Util.prependNewUnit(unitChain);
-		} finally {
-			bb.close();
 		}
 	}
 
 	public static void prepend(ICharsetCodec cc, StringBuilder sb, int offset, int len, IUnitChain unitChain) {
-		final BytesBuilder bb = BytesBuilder.get();
-		try {
+		try (BytesBuilder bb = BytesBuilder.get()) {
 			cc.encode(sb, offset, len, bb);
 			int length = bb.length();
 			IUnit unit = Util.firstUnit(unitChain);
 			while ((length -= prepend(bb, 0, length, unit)) > 0)
 				unit = Util.prependNewUnit(unitChain);
-		} finally {
-			bb.close();
 		}
 	}
 }

@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.buffer.codec;
 
 import java.nio.CharBuffer;
@@ -26,18 +27,12 @@ import org.jruyi.io.buffer.Helper;
 
 public final class StringCodec extends AbstractCodec<String> {
 
-	public static final ICodec<String> UTF_8 = new StringCodec(
-			CharsetCodec.UTF_8);
-	public static final ICodec<String> UTF_16 = new StringCodec(
-			CharsetCodec.UTF_16);
-	public static final ICodec<String> UTF_16LE = new StringCodec(
-			CharsetCodec.UTF_16LE);
-	public static final ICodec<String> UTF_16BE = new StringCodec(
-			CharsetCodec.UTF_16BE);
-	public static final ICodec<String> US_ASCII = new StringCodec(
-			CharsetCodec.US_ASCII);
-	public static final ICodec<String> ISO_8859_1 = new StringCodec(
-			CharsetCodec.ISO_8859_1);
+	public static final ICodec<String> UTF_8 = new StringCodec(CharsetCodec.UTF_8);
+	public static final ICodec<String> UTF_16 = new StringCodec(CharsetCodec.UTF_16);
+	public static final ICodec<String> UTF_16LE = new StringCodec(CharsetCodec.UTF_16LE);
+	public static final ICodec<String> UTF_16BE = new StringCodec(CharsetCodec.UTF_16BE);
+	public static final ICodec<String> US_ASCII = new StringCodec(CharsetCodec.US_ASCII);
+	public static final ICodec<String> ISO_8859_1 = new StringCodec(CharsetCodec.ISO_8859_1);
 
 	private final String m_charsetName;
 
@@ -53,8 +48,7 @@ public final class StringCodec extends AbstractCodec<String> {
 			bba.add(unit.getByteBufferForRead(unit.position(), unit.remaining()));
 			unit.position(unit.size());
 			while ((unit = unitChain.nextUnit()) != null) {
-				bba.add(unit.getByteBufferForRead(unit.position(),
-						unit.remaining()));
+				bba.add(unit.getByteBufferForRead(unit.position(), unit.remaining()));
 				unit.position(unit.size());
 			}
 			final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
@@ -96,8 +90,7 @@ public final class StringCodec extends AbstractCodec<String> {
 	@Override
 	public void write(String str, int offset, int length, IUnitChain unitChain) {
 		final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
-		Helper.write(cc, CharBuffer.wrap(str, offset, offset + length),
-				unitChain);
+		Helper.write(cc, CharBuffer.wrap(str, offset, offset + length), unitChain);
 	}
 
 	@Override
@@ -149,7 +142,6 @@ public final class StringCodec extends AbstractCodec<String> {
 	@Override
 	public void prepend(String str, int offset, int length, IUnitChain unitChain) {
 		final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
-		Helper.prepend(cc, CharBuffer.wrap(str, offset, offset + length),
-				unitChain);
+		Helper.prepend(cc, CharBuffer.wrap(str, offset, offset + length), unitChain);
 	}
 }

@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.osgi.log;
 
 import org.osgi.framework.Bundle;
@@ -64,14 +65,12 @@ final class LogServiceImpl implements LogService {
 	}
 
 	@Override
-	public void log(@SuppressWarnings("rawtypes") ServiceReference sr,
-			int level, String message) {
+	public void log(@SuppressWarnings("rawtypes") ServiceReference sr, int level, String message) {
 		log(level, message);
 	}
 
 	@Override
-	public void log(@SuppressWarnings("rawtypes") ServiceReference sr,
-			int level, String message, Throwable t) {
+	public void log(@SuppressWarnings("rawtypes") ServiceReference sr, int level, String message, Throwable t) {
 		log(level, message, t);
 	}
 }

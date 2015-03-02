@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.me.route;
 
 import java.io.File;
@@ -41,28 +42,21 @@ final class Router implements IRouter {
 
 	Router(String from) {
 		m_from = from.intern();
-		m_routeList = new ArrayList<Route>();
+		m_routeList = new ArrayList<>();
 		m_lock = new ReentrantLock();
 	}
 
 	static Router load(File from) throws IOException {
-		Router router = new Router(from.getName());
-		ArrayList<Route> routeList = router.m_routeList;
-		ObjectInputStream in = null;
-		try {
-			in = new ObjectInputStream(new FileInputStream(from));
+		final Router router = new Router(from.getName());
+		final ArrayList<Route> routeList = router.m_routeList;
+		try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(from))) {
 			for (int size = in.readInt(); size > 0; --size) {
 				String to = (String) in.readObject();
 				String filter = (String) in.readObject();
 				routeList.add(new Route(router, to, filter));
 			}
-		} catch (ClassNotFoundException e) {
-			throw new IOException(e);
-		} catch (InvalidSyntaxException e) {
-			throw new IOException(e);
-		} finally {
-			if (in != null)
-				in.close();
+		} catch (Throwable t) {
+			throw new IOException(t);
 		}
 
 		return router;
@@ -74,8 +68,8 @@ final class Router implements IRouter {
 
 	@Override
 	public IRoute route(IRoutable routable) {
-		Route[] res = routes();
-		Map<String, ?> routingInfo = routable.getRoutingInfo();
+		final Route[] res = routes();
+		final Map<String, ?> routingInfo = routable.getRoutingInfo();
 		for (Route entry : res) {
 			if (entry.matches(routingInfo))
 				return entry;
@@ -115,8 +109,7 @@ final class Router implements IRouter {
 	}
 
 	@Override
-	public IRoute setRoute(String to, String filter)
-			throws InvalidSyntaxException {
+	public IRoute setRoute(String to, String filter) throws InvalidSyntaxException {
 		return setRoute(to, FrameworkUtil.createFilter(filter));
 	}
 
@@ -195,22 +188,17 @@ final class Router implements IRouter {
 			File file = new File(s_routingTableDir, m_from);
 			if (size < 1) {
 				if (file.exists() && !file.delete())
-					throw new IOException(StrUtil.join(
-							"Failed to delete file: ", file.getCanonicalPath()));
+					throw new IOException(StrUtil.join("Failed to delete file: ", file.getCanonicalPath()));
 				return;
 			}
 
-			ObjectOutputStream out = new ObjectOutputStream(
-					new FileOutputStream(file));
-			try {
+			try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
 				out.writeInt(size);
 				Route[] routes = m_routes;
 				for (Route route : routes) {
 					out.writeObject(route.to());
 					out.writeObject(route.filter());
 				}
-			} finally {
-				out.close();
 			}
 
 			m_modified = false;

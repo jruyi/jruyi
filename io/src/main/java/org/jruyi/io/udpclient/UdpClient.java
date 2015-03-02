@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
 factory = "udpclient", //
 service = { IService.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class UdpClient extends Service implements IChannelService, ISessionService {
+public final class UdpClient<I, O> extends Service implements IChannelService<I, O>, ISessionService<I, O> {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(UdpClient.class);
 	private String m_caption;
@@ -56,7 +56,7 @@ public final class UdpClient extends Service implements IChannelService, ISessio
 
 	private IFilter<?, ?>[] m_filters;
 	private boolean m_closed = true;
-	private ISessionListener m_listener;
+	private ISessionListener<I, O> m_listener;
 	private volatile IChannel m_channel;
 	private final ReentrantLock m_channelLock = new ReentrantLock();
 	private final ReentrantReadWriteLock m_lock = new ReentrantReadWriteLock();
@@ -107,7 +107,7 @@ public final class UdpClient extends Service implements IChannelService, ISessio
 			readLock.unlock();
 		}
 
-		final ISessionListener listener = m_listener;
+		final ISessionListener<I, O> listener = m_listener;
 		if (listener != null)
 			listener.onSessionOpened(channel);
 	}
@@ -115,33 +115,10 @@ public final class UdpClient extends Service implements IChannelService, ISessio
 	@Override
 	public void onChannelClosed(IChannel channel) {
 		m_channel = null;
-
-		final ISessionListener listener = m_listener;
-		try {
-			if (listener != null)
-				listener.onSessionClosed(channel);
-		} catch (Throwable t) {
-			c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
-		}
-	}
-
-	@Override
-	public void onMessageReceived(IChannel channel, Object msg) {
-		final ISessionListener listener = m_listener;
-		try {
-			if (listener != null)
-				listener.onMessageReceived(channel, msg);
-		} catch (Throwable t) {
-			c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
-		}
-	}
-
-	@Override
-	public void onMessageSent(IChannel channel, Object msg) {
-		final ISessionListener listener = m_listener;
+		final ISessionListener<I, O> listener = m_listener;
 		if (listener != null) {
 			try {
-				listener.onMessageSent(channel, msg);
+				listener.onSessionClosed(channel);
 			} catch (Throwable t) {
 				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
 			}
@@ -149,11 +126,25 @@ public final class UdpClient extends Service implements IChannelService, ISessio
 	}
 
 	@Override
+	public void onMessageReceived(IChannel channel, I inMsg) {
+		final ISessionListener<I, O> listener = m_listener;
+		if (listener != null)
+			listener.onMessageReceived(channel, inMsg);
+	}
+
+	@Override
+	public void onMessageSent(IChannel channel, O outMsg) {
+		final ISessionListener<I, O> listener = m_listener;
+		if (listener != null)
+			listener.onMessageSent(channel, outMsg);
+	}
+
+	@Override
 	public void onChannelException(IChannel channel, Throwable t) {
 		try {
 			c_logger.error(StrUtil.join(this, " got an error on sending/receiving"), t);
 
-			final ISessionListener listener = m_listener;
+			final ISessionListener<I, O> listener = m_listener;
 			if (listener != null)
 				listener.onSessionException(channel, t);
 		} catch (Throwable e) {
@@ -179,7 +170,7 @@ public final class UdpClient extends Service implements IChannelService, ISessio
 	}
 
 	@Override
-	public void setSessionListener(ISessionListener listener) {
+	public void setSessionListener(ISessionListener<I, O> listener) {
 		m_listener = listener;
 	}
 
@@ -194,7 +185,7 @@ public final class UdpClient extends Service implements IChannelService, ISessio
 	}
 
 	@Override
-	public void write(ISession session, Object msg) {
+	public void write(ISession session, O msg) {
 		final IChannel channel = getChannel();
 		if (channel != null) {
 			channel.write(msg);
@@ -304,10 +295,10 @@ public final class UdpClient extends Service implements IChannelService, ISessio
 			newConf.initialize(props);
 			m_conf = newConf;
 		}
-
 		return conf;
 	}
 
+	@SuppressWarnings("unchecked")
 	private IChannel getChannel() {
 		IChannel channel = m_channel;
 		if (channel != null)
@@ -323,7 +314,7 @@ public final class UdpClient extends Service implements IChannelService, ISessio
 			try {
 				channel = m_channel;
 				if (channel == null) {
-					channel = new UdpClientChannel(this);
+					channel = new UdpClientChannel((IChannelService<Object, Object>) this);
 					channel.connect(-1);
 				}
 			} finally {

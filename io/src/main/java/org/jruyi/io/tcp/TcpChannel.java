@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.tcp;
 
 import java.net.InetSocketAddress;
@@ -27,11 +28,11 @@ public final class TcpChannel extends Channel {
 
 	private SocketChannel m_socketChannel;
 
-	public TcpChannel(IChannelService channelService) {
+	public TcpChannel(IChannelService<Object, Object> channelService) {
 		super(channelService);
 	}
 
-	public TcpChannel(IChannelService channelService, SocketChannel socketChannel) {
+	public TcpChannel(IChannelService<Object, Object> channelService, SocketChannel socketChannel) {
 		super(channelService);
 		m_socketChannel = socketChannel;
 	}

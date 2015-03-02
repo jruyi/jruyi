@@ -17,8 +17,13 @@ package org.jruyi.io;
 /**
  * A default {@code ISessionListener} implementation with all methods doing
  * nothing.
+ * 
+ * @param <I>
+ *            type of incoming message
+ * @param <O>
+ *            type of outgoing message
  */
-public class SessionListener implements ISessionListener {
+public class SessionListener<I, O> implements ISessionListener<I, O> {
 
 	/**
 	 * Empty implementation.
@@ -38,14 +43,14 @@ public class SessionListener implements ISessionListener {
 	 * Empty implementation.
 	 */
 	@Override
-	public void onMessageSent(ISession session, Object msg) {
+	public void onMessageSent(ISession session, O outMsg) {
 	}
 
 	/**
 	 * Empty implementation.
 	 */
 	@Override
-	public void onMessageReceived(ISession session, Object msg) {
+	public void onMessageReceived(ISession session, I inMsg) {
 	}
 
 	/**
@@ -73,6 +78,6 @@ public class SessionListener implements ISessionListener {
 	 * Empty implementation.
 	 */
 	@Override
-	public void onSessionReadTimedOut(ISession session) {
+	public void onSessionReadTimedOut(ISession session, O outMsg) {
 	}
 }

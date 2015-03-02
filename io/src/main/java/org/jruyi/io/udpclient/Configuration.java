@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.udpclient;
 
 import java.lang.reflect.Method;
@@ -25,7 +26,7 @@ final class Configuration extends UdpChannelConf {
 
 	static {
 		c_mProps = new Method[M_PROPS.length];
-		Class<Configuration> clazz = Configuration.class;
+		final Class<Configuration> clazz = Configuration.class;
 		try {
 			for (int i = 0; i < M_PROPS.length; ++i)
 				c_mProps[i] = clazz.getMethod(M_PROPS[i]);

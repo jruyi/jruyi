@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.buffer.codec;
 
 import java.nio.CharBuffer;
@@ -137,30 +138,24 @@ public final class CharArrayCodec extends AbstractCodec<char[]> {
 	@Override
 	public void prepend(char[] chars, IUnitChain unitChain) {
 		final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
-		final BytesBuilder bb = BytesBuilder.get();
-		try {
+		try (BytesBuilder bb = BytesBuilder.get()) {
 			cc.encode(chars, bb);
 			int length = bb.length();
 			IUnit unit = Util.firstUnit(unitChain);
 			while ((length -= Helper.prepend(bb, 0, length, unit)) > 0)
 				unit = Util.prependNewUnit(unitChain);
-		} finally {
-			bb.close();
 		}
 	}
 
 	@Override
 	public void prepend(char[] chars, int offset, int length, IUnitChain unitChain) {
 		final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
-		final BytesBuilder bb = BytesBuilder.get();
-		try {
+		try (BytesBuilder bb = BytesBuilder.get()) {
 			cc.encode(chars, offset, length, bb);
 			length = bb.length();
 			IUnit unit = Util.firstUnit(unitChain);
 			while ((length -= Helper.prepend(bb, 0, length, unit)) > 0)
 				unit = Util.prependNewUnit(unitChain);
-		} finally {
-			bb.close();
 		}
 	}
 }

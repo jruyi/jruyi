@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.tpe.internal;
 
 import java.util.IdentityHashMap;
@@ -149,11 +150,10 @@ public final class RuyiThreadPoolExecutor extends ThreadPoolExecutor {
 		private Long m_lastArrivalTime;
 
 		private ActiveProfile(int queueCapacity) {
-			m_startTime = new ThreadLocal<Long>();
+			m_startTime = new ThreadLocal<>();
 			if (queueCapacity < 1)
 				queueCapacity = 6000;
-			m_timeOfRequest = new IdentityHashMap<Runnable, BlockingQueue<Long>>(
-					queueCapacity);
+			m_timeOfRequest = new IdentityHashMap<>(queueCapacity);
 			m_totalServiceTime = new AtomicLong();
 			m_totalPoolTime = new AtomicLong();
 			m_aggregateInterRequestArrivalTime = new AtomicLong();
@@ -191,7 +191,7 @@ public final class RuyiThreadPoolExecutor extends ThreadPoolExecutor {
 				m_lastArrivalTime = now;
 				BlockingQueue<Long> queue = m_timeOfRequest.get(task);
 				if (queue == null) {
-					queue = new LinkedBlockingQueue<Long>();
+					queue = new LinkedBlockingQueue<>();
 					m_timeOfRequest.put(task, queue);
 				}
 				queue.offer(now);
@@ -200,8 +200,7 @@ public final class RuyiThreadPoolExecutor extends ThreadPoolExecutor {
 			}
 
 			if (lastArrivalTime != null)
-				m_aggregateInterRequestArrivalTime.addAndGet(now
-						- lastArrivalTime);
+				m_aggregateInterRequestArrivalTime.addAndGet(now - lastArrivalTime);
 		}
 
 		@Override
@@ -240,20 +239,17 @@ public final class RuyiThreadPoolExecutor extends ThreadPoolExecutor {
 
 		@Override
 		public double getRequestPerSecondRetirementRate() {
-			return m_numberOfRequestsRetired.doubleValue()
-					/ fromNanoToSeconds(m_aggregateInterRequestArrivalTime);
+			return m_numberOfRequestsRetired.doubleValue() / fromNanoToSeconds(m_aggregateInterRequestArrivalTime);
 		}
 
 		@Override
 		public double getAverageServiceTime() {
-			return fromNanoToSeconds(m_totalServiceTime)
-					/ m_numberOfRequestsRetired.doubleValue();
+			return fromNanoToSeconds(m_totalServiceTime) / m_numberOfRequestsRetired.doubleValue();
 		}
 
 		@Override
 		public double getAverageTimeWaitingInPool() {
-			return fromNanoToSeconds(m_totalPoolTime)
-					/ m_numberOfRequestsRetired.doubleValue();
+			return fromNanoToSeconds(m_totalPoolTime) / m_numberOfRequestsRetired.doubleValue();
 		}
 
 		@Override
@@ -263,8 +259,7 @@ public final class RuyiThreadPoolExecutor extends ThreadPoolExecutor {
 
 		@Override
 		public double getEstimatedAverageNumberOfActiveRequests() {
-			return getRequestPerSecondRetirementRate()
-					* (getAverageServiceTime() + getAverageTimeWaitingInPool());
+			return getRequestPerSecondRetirementRate() * (getAverageServiceTime() + getAverageTimeWaitingInPool());
 		}
 
 		@Override
@@ -275,8 +270,7 @@ public final class RuyiThreadPoolExecutor extends ThreadPoolExecutor {
 
 		@Override
 		public double getRatioOfActiveRequestsToCoreCount() {
-			return getEstimatedAverageNumberOfActiveRequests()
-					/ (double) Runtime.getRuntime().availableProcessors();
+			return getEstimatedAverageNumberOfActiveRequests() / (double) Runtime.getRuntime().availableProcessors();
 		}
 
 		private static double fromNanoToSeconds(AtomicLong nano) {
@@ -284,12 +278,9 @@ public final class RuyiThreadPoolExecutor extends ThreadPoolExecutor {
 		}
 	}
 
-	public RuyiThreadPoolExecutor(int corePoolSize, int maxPoolSize,
-			long keepAliveTime, TimeUnit unit,
-			BlockingQueue<Runnable> workQueue, ThreadFactory threadFactory,
-			RejectedExecutionHandler handler) {
-		super(corePoolSize, maxPoolSize, keepAliveTime, unit, workQueue,
-				threadFactory, handler);
+	public RuyiThreadPoolExecutor(int corePoolSize, int maxPoolSize, long keepAliveTime, TimeUnit unit,
+			BlockingQueue<Runnable> workQueue, ThreadFactory threadFactory, RejectedExecutionHandler handler) {
+		super(corePoolSize, maxPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler);
 	}
 
 	@Override

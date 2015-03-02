@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.cmd;
 
 import java.util.Collection;
@@ -78,12 +79,10 @@ public final class IoCommand {
 	}
 
 	public void list() throws Exception {
-		System.out.println("[        Address        ][  State  ][ "
-				+ IoConstants.SERVICE_ID + " ]");
+		System.out.println("[        Address        ][  State  ][ " + IoConstants.SERVICE_ID + " ]");
 		final BundleContext context = m_context;
-		Collection<ServiceReference<IService>> references = context
-				.getServiceReferences(IService.class, "("
-						+ IoConstants.SERVICE_ID + "=*)");
+		Collection<ServiceReference<IService>> references = context.getServiceReferences(IService.class, "("
+				+ IoConstants.SERVICE_ID + "=*)");
 		for (ServiceReference<IService> reference : references) {
 			IService service = context.getService(reference);
 			String addr = (String) reference.getProperty("addr");
@@ -111,14 +110,12 @@ public final class IoCommand {
 
 	public void list(String arg) throws Exception {
 		final BundleContext context = m_context;
-		Collection<ServiceReference<IService>> references = context
-				.getServiceReferences(IService.class, StrUtil.join("("
-						+ IoConstants.SERVICE_ID + "=", arg, ")"));
+		Collection<ServiceReference<IService>> references = context.getServiceReferences(IService.class,
+				StrUtil.join("(" + IoConstants.SERVICE_ID + "=", arg, ")"));
 		if (references.isEmpty())
 			return;
 
-		final ServiceReference<IService> reference = references.iterator()
-				.next();
+		final ServiceReference<IService> reference = references.iterator().next();
 		IService service = context.getService(reference);
 
 		// service id
@@ -180,14 +177,12 @@ public final class IoCommand {
 
 	private IService getService(String serviceId) throws Exception {
 		final BundleContext context = m_context;
-		final Collection<ServiceReference<IService>> references = context
-				.getServiceReferences(IService.class, StrUtil.join("("
-						+ IoConstants.SERVICE_ID + "=", serviceId, ")"));
+		final Collection<ServiceReference<IService>> references = context.getServiceReferences(IService.class,
+				StrUtil.join("(" + IoConstants.SERVICE_ID + "=", serviceId, ")"));
 		if (references.isEmpty())
 			return null;
 
-		final ServiceReference<IService> reference = references.iterator()
-				.next();
+		final ServiceReference<IService> reference = references.iterator().next();
 		return context.getService(reference);
 	}
 

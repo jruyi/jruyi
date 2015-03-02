@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.cli;
 
 import java.io.File;
@@ -62,8 +63,7 @@ public final class RuyiCli {
 
 	void open() throws Exception {
 		m_session = new Session();
-		final ConsoleReader console = new ConsoleReader(null,
-				new FileInputStream(FileDescriptor.in), System.out, null,
+		final ConsoleReader console = new ConsoleReader(null, new FileInputStream(FileDescriptor.in), System.out, null,
 				"UTF-8");
 		console.setPaginationEnabled(true);
 		m_console = console;
@@ -89,12 +89,9 @@ public final class RuyiCli {
 			session.open(m_host, m_port, m_timeout);
 
 			String welcome;
-			StringWriter sw = new StringWriter(WRITER_INIT_SIZE);
-			try {
+			try (StringWriter sw = new StringWriter(WRITER_INIT_SIZE)) {
 				session.recv(sw);
 				welcome = sw.toString();
-			} finally {
-				sw.close();
 			}
 
 			Writer writer = reader.getOutput();
@@ -156,8 +153,7 @@ public final class RuyiCli {
 				if (cmdLine.isEmpty())
 					continue;
 
-				if (cmdLine.equalsIgnoreCase("quit")
-						|| cmdLine.equalsIgnoreCase("exit"))
+				if (cmdLine.equalsIgnoreCase("quit") || cmdLine.equalsIgnoreCase("exit"))
 					break;
 
 				if (cmdLine.equals("help"))
@@ -203,18 +199,13 @@ public final class RuyiCli {
 				command = CMD_HELP;
 			boolean help = CMD_HELP.equals(command);
 
-			final Writer writer;
-			if (help)
-				writer = new StringWriter(WRITER_INIT_SIZE);
-			else
-				writer = m_console.getOutput();
+			try (Writer writer = help ? new StringWriter(WRITER_INIT_SIZE) : m_console.getOutput()) {
+				if (!session.send(command, writer))
+					return;
 
-			if (!session.send(command, writer))
-				return;
-
-			if (help)
-				printColumns(m_console, writer.toString().trim());
-
+				if (help)
+					printColumns(m_console, writer.toString().trim());
+			}
 			m_status = session.status();
 		} finally {
 			session.close();
@@ -236,8 +227,7 @@ public final class RuyiCli {
 			throw t;
 		}
 
-		Writer writer = m_console.getOutput();
-		try {
+		try (Writer writer = m_console.getOutput()) {
 			StringBuilder builder = new StringBuilder(128);
 			byte[] buffer = new byte[BUFFER_LEN];
 			for (String name : scripts) {
@@ -252,15 +242,13 @@ public final class RuyiCli {
 				if (length < 1)
 					continue;
 
-				String preScript = builder.append("'0'='").append(name)
-						.append("'").toString();
+				String preScript = builder.append("'0'='").append(name).append("'").toString();
 				builder.setLength(0);
 				if (!session.send(preScript, null))
 					return;
 
 				session.writeLength(length);
-				InputStream in = new FileInputStream(script);
-				try {
+				try (InputStream in = new FileInputStream(script)) {
 					int offset = 0;
 					for (;;) {
 						int n = in.read(buffer, offset, BUFFER_LEN - offset);
@@ -275,8 +263,6 @@ public final class RuyiCli {
 							offset = 0;
 						}
 					}
-				} finally {
-					in.close();
 				}
 
 				session.flush();
@@ -287,24 +273,19 @@ public final class RuyiCli {
 			m_status = session.status();
 		} finally {
 			session.close();
-			writer.close();
 		}
 	}
 
-	private static void addCompleter(ConsoleReader reader, Session session,
-			String commandStr) {
-		final CommandCompleter commandCompleter = new CommandCompleter(session,
-				commandStr);
+	private static void addCompleter(ConsoleReader reader, Session session, String commandStr) {
+		final CommandCompleter commandCompleter = new CommandCompleter(session, commandStr);
 		reader.addCompleter(commandCompleter);
-		ArgumentCompleter completer = new ArgumentCompleter(
-				new WhitespaceArgumentDelimiter(), new FileNameCompleter());
+		ArgumentCompleter completer = new ArgumentCompleter(new WhitespaceArgumentDelimiter(), new FileNameCompleter());
 		completer.setStrict(false);
 		reader.addCompleter(completer);
 	}
 
-	private static void printColumns(ConsoleReader reader, String commandStr)
-			throws IOException {
-		final List<CharSequence> commandList = new ArrayList<CharSequence>(128);
+	private static void printColumns(ConsoleReader reader, String commandStr) throws IOException {
+		final List<CharSequence> commandList = new ArrayList<>(128);
 		final String[] commands = commandStr.trim().split("\n");
 		for (String command : commands) {
 			command = command.trim();

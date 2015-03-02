@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.me.mq;
 
 import java.util.concurrent.locks.ReentrantLock;
@@ -24,8 +25,7 @@ import org.slf4j.LoggerFactory;
 
 final class Processor extends Endpoint {
 
-	private static final Logger c_logger = LoggerFactory
-			.getLogger(Processor.class);
+	private static final Logger c_logger = LoggerFactory.getLogger(Processor.class);
 	private final ServiceReference<IProcessor> m_reference;
 	private final ReentrantLock m_lock = new ReentrantLock();
 	private IProcessor m_processor;
@@ -56,8 +56,7 @@ final class Processor extends Endpoint {
 				ServiceReference<IProcessor> reference = endpoint.reference();
 				processor = endpoint.mq().locateService(reference);
 				if (processor == null)
-					throw new RuntimeException(StrUtil.join(endpoint,
-							" is unavailable"));
+					throw new RuntimeException(StrUtil.join(endpoint, " is unavailable"));
 
 				endpoint.initRouter();
 				endpoint.setHandlers(reference);
@@ -95,9 +94,7 @@ final class Processor extends Endpoint {
 		try {
 			send(message);
 		} catch (Throwable t) {
-			c_logger.error(
-					StrUtil.join(this, " failed to enqueue message: ", message),
-					t);
+			c_logger.error(StrUtil.join(this, " failed to enqueue message: ", message), t);
 		}
 	}
 

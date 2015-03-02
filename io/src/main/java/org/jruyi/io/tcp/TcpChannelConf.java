@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.tcp;
 
 import java.util.Map;
@@ -45,8 +46,7 @@ public class TcpChannelConf {
 		tcpNoDelay((Boolean) properties.get("tcpNoDelay"));
 		trafficClass((Integer) properties.get("trafficClass"));
 		oobInline((Boolean) properties.get("oobInline"));
-		performancePreferences((Integer[]) properties
-				.get("performancePreferences"));
+		performancePreferences((Integer[]) properties.get("performancePreferences"));
 	}
 
 	public final String ip() {

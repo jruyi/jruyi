@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.me.mq;
 
 import java.util.Arrays;
@@ -32,8 +33,7 @@ import org.slf4j.LoggerFactory;
 
 abstract class Endpoint implements IProducer, IConsumer, IDumpable {
 
-	private static final Logger c_logger = LoggerFactory
-			.getLogger(Endpoint.class);
+	private static final Logger c_logger = LoggerFactory.getLogger(Endpoint.class);
 	private String m_id;
 	private IRouter m_router;
 	private final MessageQueue m_mq;
@@ -57,7 +57,7 @@ abstract class Endpoint implements IProducer, IConsumer, IDumpable {
 				if (message == null)
 					return;
 
-				Message msg = (Message) message;
+				final Message msg = (Message) message;
 				msg.from(endpoint.id());
 
 				if (!endpoint.onEnqueue(message)) {
@@ -66,7 +66,7 @@ abstract class Endpoint implements IProducer, IConsumer, IDumpable {
 				}
 
 				if (msg.to() == null) {
-					IRoute entry = endpoint.router().route(msg);
+					final IRoute entry = endpoint.router().route(msg);
 					if (entry == null) {
 						c_logger.warn(StrUtil.join("Route Not Found:", msg));
 						msg.close();
@@ -146,9 +146,7 @@ abstract class Endpoint implements IProducer, IConsumer, IDumpable {
 		try {
 			getConsumer().onMessage(message);
 		} catch (Throwable t) {
-			c_logger.error(
-					StrUtil.join(this, " failed to consume message: ", message),
-					t);
+			c_logger.error(StrUtil.join(this, " failed to consume message: ", message), t);
 		}
 	}
 
@@ -160,8 +158,7 @@ abstract class Endpoint implements IProducer, IConsumer, IDumpable {
 
 	@Override
 	public void onMessage(IMessage message) {
-		c_logger.error(StrUtil
-				.join(this, " doesn't consume message: ", message));
+		c_logger.error(StrUtil.join(this, " doesn't consume message: ", message));
 		message.close();
 	}
 
@@ -206,8 +203,7 @@ abstract class Endpoint implements IProducer, IConsumer, IDumpable {
 	}
 
 	final void setHandlers(ServiceReference<?> reference) {
-		String[] v = (String[]) reference
-				.getProperty(MeConstants.EP_PREHANDLERS);
+		String[] v = (String[]) reference.getProperty(MeConstants.EP_PREHANDLERS);
 		if (v != null)
 			setPreHandlers(v);
 		else
@@ -221,10 +217,10 @@ abstract class Endpoint implements IProducer, IConsumer, IDumpable {
 	}
 
 	private boolean onEnqueue(IMessage message) {
-		IPostHandler[] postHandlers = m_postHandlers;
+		final IPostHandler[] postHandlers = m_postHandlers;
 		try {
 			for (IPostHandler handler : postHandlers) {
-				Boolean result = handler.postHandle(message);
+				final Boolean result = handler.postHandle(message);
 				if (result == null)
 					break;
 
@@ -232,9 +228,7 @@ abstract class Endpoint implements IProducer, IConsumer, IDumpable {
 					return false;
 			}
 		} catch (Throwable t) {
-			// TODO: notify?
-			c_logger.error(
-					StrUtil.join(this, " unexpected error on post-handling"), t);
+			c_logger.error(StrUtil.join(this, " unexpected error on post-handling"), t);
 			return false;
 		}
 
@@ -242,10 +236,10 @@ abstract class Endpoint implements IProducer, IConsumer, IDumpable {
 	}
 
 	private boolean onDequeue(IMessage message) {
-		IPreHandler[] preHandlers = m_preHandlers;
+		final IPreHandler[] preHandlers = m_preHandlers;
 		try {
 			for (IPreHandler handler : preHandlers) {
-				Boolean result = handler.preHandle(message);
+				final Boolean result = handler.preHandle(message);
 				if (result == null)
 					break;
 
@@ -253,9 +247,7 @@ abstract class Endpoint implements IProducer, IConsumer, IDumpable {
 					return false;
 			}
 		} catch (Throwable t) {
-			// TODO: notify?
-			c_logger.error(
-					StrUtil.join(this, " unexpected error on pre-handling"), t);
+			c_logger.error(StrUtil.join(this, " unexpected error on pre-handling"), t);
 			return false;
 		}
 

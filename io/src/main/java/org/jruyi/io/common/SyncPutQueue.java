@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.common;
 
 import java.util.concurrent.locks.ReentrantLock;
@@ -31,12 +32,12 @@ public final class SyncPutQueue<E> {
 	private final ReentrantLock m_putLock;
 
 	public SyncPutQueue() {
-		m_head = m_tail = new ListNode<E>();
+		m_head = m_tail = new ListNode<>();
 		m_putLock = new ReentrantLock();
 	}
 
 	public void put(E e) {
-		final ListNode<E> node = new ListNode<E>();
+		final ListNode<E> node = new ListNode<>();
 		node.set(e);
 		final ReentrantLock putLock = m_putLock;
 		putLock.lock();
@@ -56,7 +57,7 @@ public final class SyncPutQueue<E> {
 
 		do {
 			node = node.next();
-			E e = node.get();
+			final E e = node.get();
 			node.set(null);
 			try {
 				visitor.visit(e);

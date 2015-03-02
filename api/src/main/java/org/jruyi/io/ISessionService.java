@@ -22,8 +22,13 @@ import org.jruyi.common.IService;
  * <p>
  * A session service provides an event-driven programming model to deal with IO
  * and hides the detailed IO work from developer.
+ * 
+ * @param <I>
+ *            type of incoming message
+ * @param <O>
+ *            type of outgoing message
  */
-public interface ISessionService extends IService {
+public interface ISessionService<I, O> extends IService {
 
 	/**
 	 * Sets the session listener that is interested in IO session events.
@@ -31,7 +36,7 @@ public interface ISessionService extends IService {
 	 * @param listener
 	 *            the session listener to set
 	 */
-	public void setSessionListener(ISessionListener listener);
+	public void setSessionListener(ISessionListener<I, O> listener);
 
 	/**
 	 * Requests to open a session.
@@ -47,7 +52,7 @@ public interface ISessionService extends IService {
 	 * @param msg
 	 *            the message to be written
 	 */
-	public void write(ISession session, Object msg);
+	public void write(ISession session, O msg);
 
 	/**
 	 * Requests to close the specified {@code session}.

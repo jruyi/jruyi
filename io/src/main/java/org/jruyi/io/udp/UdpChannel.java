@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.udp;
 
 import java.net.DatagramSocket;
@@ -29,11 +30,12 @@ public class UdpChannel extends Channel {
 	private DatagramChannel m_datagramChannel;
 	private SocketAddress m_remoteAddress;
 
-	public UdpChannel(IChannelService channelService) {
+	public UdpChannel(IChannelService<Object, Object> channelService) {
 		super(channelService);
 	}
 
-	public UdpChannel(IChannelService channelService, DatagramChannel datagramChannel, SocketAddress remoteAddress) {
+	public UdpChannel(IChannelService<Object, Object> channelService, DatagramChannel datagramChannel,
+			SocketAddress remoteAddress) {
 		super(channelService);
 		m_datagramChannel = datagramChannel;
 		m_remoteAddress = remoteAddress;

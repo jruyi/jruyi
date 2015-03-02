@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.buffer.codec;
 
 import org.jruyi.common.IByteSequence;
@@ -41,8 +42,7 @@ public final class ByteSequenceCodec extends AbstractCodec<IByteSequence> {
 	}
 
 	@Override
-	public void write(IByteSequence src, int offset, int length,
-			IUnitChain unitChain) {
+	public void write(IByteSequence src, int offset, int length, IUnitChain unitChain) {
 		if ((offset | length | (offset + length) | (src.length() - (offset + length))) < 0)
 			throw new IndexOutOfBoundsException();
 
@@ -81,8 +81,7 @@ public final class ByteSequenceCodec extends AbstractCodec<IByteSequence> {
 	}
 
 	@Override
-	public void set(IByteSequence src, int offset, int length,
-			IUnitChain unitChain, int index) {
+	public void set(IByteSequence src, int offset, int length, IUnitChain unitChain, int index) {
 		if (index < 0)
 			throw new IndexOutOfBoundsException();
 
@@ -113,8 +112,7 @@ public final class ByteSequenceCodec extends AbstractCodec<IByteSequence> {
 	}
 
 	@Override
-	public void prepend(IByteSequence src, int offset, int length,
-			IUnitChain unitChain) {
+	public void prepend(IByteSequence src, int offset, int length, IUnitChain unitChain) {
 		if ((offset | length | (offset + length) | (src.length() - (offset + length))) < 0)
 			throw new IndexOutOfBoundsException();
 
@@ -126,8 +124,7 @@ public final class ByteSequenceCodec extends AbstractCodec<IByteSequence> {
 			unit = Util.prependNewUnit(unitChain);
 	}
 
-	private static int set(IByteSequence src, int offset, int length,
-			IUnit unit, int position) {
+	private static int set(IByteSequence src, int offset, int length, IUnit unit, int position) {
 		int n = unit.size() - position;
 		if (n > length)
 			n = length;
@@ -136,8 +133,7 @@ public final class ByteSequenceCodec extends AbstractCodec<IByteSequence> {
 		return n;
 	}
 
-	private static int write(IByteSequence src, int offset, int length,
-			IUnit unit) {
+	private static int write(IByteSequence src, int offset, int length, IUnit unit) {
 		int size = unit.size();
 		int start = unit.start() + size;
 		int n = unit.capacity() - start;
@@ -149,8 +145,7 @@ public final class ByteSequenceCodec extends AbstractCodec<IByteSequence> {
 		return n;
 	}
 
-	private static int prepend(IByteSequence src, int offset, int length,
-			IUnit unit) {
+	private static int prepend(IByteSequence src, int offset, int length, IUnit unit) {
 		int start = unit.start();
 		if (length > start) {
 			offset += length - start;

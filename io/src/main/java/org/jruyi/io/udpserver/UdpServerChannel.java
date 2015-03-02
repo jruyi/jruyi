@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.udpserver;
 
 import java.net.DatagramSocket;
@@ -36,17 +37,19 @@ final class UdpServerChannel implements ISelectableChannel, Runnable {
 	private static long s_sequence = -100L;
 
 	private final Long m_id;
-	private final UdpServer m_udpServer;
+	private final UdpServer<Object, Object> m_udpServer;
 	private final DatagramChannel m_datagramChannel;
 	private final SocketAddress m_localAddr;
 	private SelectionKey m_selectionKey;
-	private IIoWorker m_ioWorker;
+	private final IIoWorker m_ioWorker;
 
-	public UdpServerChannel(UdpServer udpServer, DatagramChannel datagramChannel, SocketAddress localAddr) {
+	public UdpServerChannel(UdpServer<Object, Object> udpServer, DatagramChannel datagramChannel,
+			SocketAddress localAddr) {
 		m_id = ++s_sequence;
 		m_udpServer = udpServer;
 		m_datagramChannel = datagramChannel;
 		m_localAddr = localAddr;
+		m_ioWorker = udpServer.getChannelAdmin().designateIoWorker(this);
 	}
 
 	@Override
@@ -57,7 +60,7 @@ final class UdpServerChannel implements ISelectableChannel, Runnable {
 	// runs on read
 	@Override
 	public void run() {
-		final UdpServer server = m_udpServer;
+		final UdpServer<Object, Object> server = m_udpServer;
 		try {
 			final ByteBuffer bb = server.getChannelAdmin().recvDirectBuffer();
 			final SocketAddress remoteAddr = m_datagramChannel.receive(bb);
@@ -94,11 +97,6 @@ final class UdpServerChannel implements ISelectableChannel, Runnable {
 	@Override
 	public void onAccept() {
 		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void ioWorker(IIoWorker ioWorker) {
-		m_ioWorker = ioWorker;
 	}
 
 	@Override

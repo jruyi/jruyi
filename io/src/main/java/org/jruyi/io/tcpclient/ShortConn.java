@@ -36,11 +36,12 @@ import org.slf4j.LoggerFactory;
 factory = "tcpclient.shortconn", //
 service = { IService.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class ShortConn extends AbstractTcpClient {
+public final class ShortConn<I, O> extends AbstractTcpClient<I, O> {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(ShortConn.class);
 
 	private static final Method[] EMTPY_MANDATORY_PROPS = new Method[0];
+	private static final Object REQ = new Object();
 
 	private TcpClientConf m_conf;
 
@@ -51,55 +52,56 @@ public final class ShortConn extends AbstractTcpClient {
 	}
 
 	@Override
-	public void onMessageSent(IChannel channel, Object msg) {
-		final ISessionListener listener = listener();
-		if (listener != null) {
-			try {
-				listener.onMessageSent(channel, msg);
-			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
-			}
+	public void onMessageSent(IChannel channel, O outMsg) {
+		final Object oldOutMsg = channel.deposit(REQ, outMsg);
+		if (oldOutMsg != null) {
+			channel.deposit(REQ, oldOutMsg);
+			return;
 		}
-		int timeout = m_conf.readTimeoutInSeconds();
-		if (timeout > 0)
+
+		final ISessionListener<I, O> listener = listener();
+		final int timeout = m_conf.readTimeoutInSeconds();
+		if (listener != null)
+			listener.onMessageSent(channel, outMsg);
+
+		if (timeout > 0) {
 			scheduleReadTimeout(channel, timeout);
-		else if (timeout == 0)
+		} else if (timeout == 0) // means no response is expected
 			channel.close();
 	}
 
 	@Override
-	public void onMessageReceived(IChannel channel, Object msg) {
-
+	public void onMessageReceived(IChannel channel, I inMsg) {
 		// if false, channel has timed out.
 		if (cancelReadTimeout(channel)) {
+			channel.withdraw(REQ);
+			final ISessionListener<I, O> listener = listener();
+			if (listener != null)
+				listener.onMessageReceived(channel, inMsg);
 			channel.close();
-			final ISessionListener listener = listener();
-			if (listener != null) {
-				try {
-					listener.onMessageReceived(channel, msg);
-				} catch (Throwable t) {
-					c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
-				}
-			}
-		} else if (msg instanceof AutoCloseable) {
+			return;
+		}
+
+		if (inMsg instanceof AutoCloseable) {
 			try {
-				((AutoCloseable) msg).close();
+				((AutoCloseable) inMsg).close();
 			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(channel, "Failed to close message: ", StrUtil.getLineSeparator(), msg), t);
+				c_logger.error(StrUtil.join(channel, " failed to close message: ", StrUtil.getLineSeparator(), inMsg),
+						t);
 			}
 		}
 	}
 
 	@Override
-	public void onChannelException(IChannel channel, Throwable t) {
-		channel.close();
-		final ISessionListener listener = listener();
-		if (listener != null) {
-			try {
-				listener.onSessionException(channel, t);
-			} catch (Throwable e) {
-				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), e);
-			}
+	public void onChannelException(IChannel channel, Throwable throwable) {
+		try {
+			final ISessionListener<I, O> listener = listener();
+			if (listener != null)
+				listener.onSessionException(channel, throwable);
+		} catch (Throwable t) {
+			c_logger.error(StrUtil.join(channel, ", unexpected error: "), t);
+		} finally {
+			channel.close();
 		}
 	}
 
@@ -110,32 +112,24 @@ public final class ShortConn extends AbstractTcpClient {
 
 	@Override
 	public void onChannelConnectTimedOut(IChannel channel) {
+		final ISessionListener<I, O> listener = listener();
+		if (listener != null)
+			listener.onSessionConnectTimedOut(channel);
 		channel.close();
-		final ISessionListener listener = listener();
-		if (listener != null) {
-			try {
-				listener.onSessionConnectTimedOut(channel);
-			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
-			}
-		}
 	}
 
 	@Override
 	public void onChannelReadTimedOut(IChannel channel) {
+		@SuppressWarnings("unchecked")
+		final O outMsg = (O) channel.withdraw(REQ);
+		final ISessionListener<I, O> listener = listener();
+		if (listener != null)
+			listener.onSessionReadTimedOut(channel, outMsg);
 		channel.close();
-		final ISessionListener listener = listener();
-		if (listener != null) {
-			try {
-				listener.onSessionReadTimedOut(channel);
-			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
-			}
-		}
 	}
 
 	@Override
-	public void write(ISession session, Object msg) {
+	public void write(ISession session, O msg) {
 		connect(msg);
 	}
 
@@ -159,13 +153,8 @@ public final class ShortConn extends AbstractTcpClient {
 
 	@Reference(name = "buffer", policy = ReferencePolicy.DYNAMIC)
 	@Override
-	protected synchronized void setBufferFactory(IBufferFactory bf) {
+	protected void setBufferFactory(IBufferFactory bf) {
 		super.setBufferFactory(bf);
-	}
-
-	@Override
-	protected synchronized void unsetBufferFactory(IBufferFactory bf) {
-		super.unsetBufferFactory(bf);
 	}
 
 	@Reference(name = "channelAdmin")
@@ -174,20 +163,10 @@ public final class ShortConn extends AbstractTcpClient {
 		super.setChannelAdmin(cm);
 	}
 
-	@Override
-	protected void unsetChannelAdmin(IChannelAdmin cm) {
-		super.unsetChannelAdmin(cm);
-	}
-
 	@Reference(name = "filterManager")
 	@Override
 	protected void setFilterManager(IFilterManager fm) {
 		super.setFilterManager(fm);
-	}
-
-	@Override
-	protected void unsetFilterManager(IFilterManager fm) {
-		super.unsetFilterManager(fm);
 	}
 
 	@Override
@@ -202,7 +181,7 @@ public final class ShortConn extends AbstractTcpClient {
 
 	@Override
 	TcpClientConf updateConf(Map<String, ?> props) {
-		TcpClientConf conf = m_conf;
+		final TcpClientConf conf = m_conf;
 		if (props == null)
 			m_conf = null;
 		else {
@@ -210,7 +189,6 @@ public final class ShortConn extends AbstractTcpClient {
 			newConf.initialize(props);
 			m_conf = newConf;
 		}
-
 		return conf;
 	}
 }

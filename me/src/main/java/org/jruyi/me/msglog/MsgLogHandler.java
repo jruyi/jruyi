@@ -35,7 +35,7 @@ public final class MsgLogHandler implements IPreHandler, IPostHandler {
 	@Override
 	public Boolean preHandle(IMessage message) {
 		final String s;
-		try (final StringBuilder builder = StringBuilder.get()) {
+		try (StringBuilder builder = StringBuilder.get()) {
 			s = builder.append("Endpoint[").append(message.to()).append("], dequeue:").append(message).toString();
 		}
 		c_logger.info(s);
@@ -45,7 +45,7 @@ public final class MsgLogHandler implements IPreHandler, IPostHandler {
 	@Override
 	public Boolean postHandle(IMessage message) {
 		final String s;
-		try (final StringBuilder builder = StringBuilder.get()) {
+		try (StringBuilder builder = StringBuilder.get()) {
 			s = builder.append("Endpoint[").append(message.from()).append("], enqueue:").append(message).toString();
 		}
 		c_logger.info(s);

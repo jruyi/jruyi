@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.me.mq;
 
 import java.util.Collection;
@@ -101,8 +102,8 @@ public final class MessageQueue implements ITimeoutListener {
 	}
 
 	public MessageQueue() {
-		m_endpoints = new ConcurrentHashMap<String, Endpoint>();
-		m_refEps = new HashMap<Object, Endpoint>();
+		m_endpoints = new ConcurrentHashMap<>();
+		m_refEps = new HashMap<>();
 		m_lock = new ReentrantLock();
 	}
 
@@ -110,9 +111,9 @@ public final class MessageQueue implements ITimeoutListener {
 	public void onTimeout(ITimeoutEvent event) {
 		@SuppressWarnings("unchecked")
 		final BiListNode<MsgNotifier> node = (BiListNode<MsgNotifier>) event.getSubject();
-		final Message msg = removeNode(node);
-		c_logger.warn(StrUtil.join("Message timed out:", msg));
-		msg.close();
+		try (Message msg = removeNode(node)) {
+			c_logger.warn(StrUtil.join("Message timed out:", msg));
+		}
 	}
 
 	@Reference(name = "routerManager", policy = ReferencePolicy.DYNAMIC)
@@ -262,7 +263,7 @@ public final class MessageQueue implements ITimeoutListener {
 				endpoint.getConsumer();
 		}
 
-		m_nodes = new ConcurrentHashMap<String, BiListNode<MsgNotifier>>();
+		m_nodes = new ConcurrentHashMap<>();
 
 		c_logger.info("MessageQueue activated");
 	}

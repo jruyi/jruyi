@@ -11,11 +11,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.udpserver;
 
 import java.util.Map;
 
 import org.jruyi.common.Properties;
+import org.jruyi.common.StrUtil;
 import org.jruyi.io.ISession;
 import org.jruyi.io.ISessionService;
 import org.jruyi.io.IoConstants;
@@ -32,18 +34,21 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component(name = "jruyi.io.udpserver", //
 configurationPolicy = ConfigurationPolicy.REQUIRE, //
 service = { IEndpoint.class }, //
 property = { MeConstants.EP_LAZY + ":Boolean=false" }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class UdpServerEndpoint extends SessionListener implements
-		IConsumer, IEndpoint {
+public final class UdpServerEndpoint extends SessionListener<Object, Object> implements IConsumer, IEndpoint {
+
+	private static final Logger c_logger = LoggerFactory.getLogger(UdpServerEndpoint.class);
 
 	private ComponentFactory m_cf;
 	private ComponentInstance m_udpServer;
-	private ISessionService m_ss;
+	private ISessionService<Object, Object> m_ss;
 	private IProducer m_producer;
 
 	@Override
@@ -53,7 +58,7 @@ public final class UdpServerEndpoint extends SessionListener implements
 			try {
 				m_ss.start();
 			} catch (Throwable t) {
-				// Ignore
+				c_logger.error(StrUtil.join("Failed to start ", m_ss), t);
 			}
 		}
 	}
@@ -84,9 +89,8 @@ public final class UdpServerEndpoint extends SessionListener implements
 		}
 	}
 
-	@Reference(name = "udpServer", target = "("
-			+ ComponentConstants.COMPONENT_NAME + "="
-			+ IoConstants.CN_UDPSERVER_FACTORY + ")")
+	@Reference(name = "udpServer", //
+	target = "(" + ComponentConstants.COMPONENT_NAME + "=" + IoConstants.CN_UDPSERVER_FACTORY + ")")
 	protected void setUdpServer(ComponentFactory cf) {
 		m_cf = cf;
 	}
@@ -101,9 +105,9 @@ public final class UdpServerEndpoint extends SessionListener implements
 	}
 
 	protected void activate(Map<String, ?> properties) throws Exception {
-		final ComponentInstance udpServer = m_cf
-				.newInstance(normalizeConfiguration(properties));
-		final ISessionService ss = (ISessionService) udpServer.getInstance();
+		final ComponentInstance udpServer = m_cf.newInstance(normalizeConfiguration(properties));
+		@SuppressWarnings("unchecked")
+		final ISessionService<Object, Object> ss = (ISessionService<Object, Object>) udpServer.getInstance();
 		ss.setSessionListener(this);
 		m_udpServer = udpServer;
 		m_ss = ss;

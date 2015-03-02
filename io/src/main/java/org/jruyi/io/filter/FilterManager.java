@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.filter;
 
 import org.jruyi.common.IServiceHolderManager;
@@ -39,10 +40,9 @@ public final class FilterManager implements IFilterManager {
 			return EMPTY;
 
 		final IServiceHolderManager<IFilter> manager = m_manager;
-		IFilter<?, ?>[] filters = new IFilter[n];
+		final IFilter<?, ?>[] filters = new IFilter[n];
 		for (int i = 0; i < n; ++i)
-			filters[i] = new FilterDelegator(
-					manager.getServiceHolder(filterIds[i]));
+			filters[i] = new FilterDelegator(manager.getServiceHolder(filterIds[i]));
 
 		return filters;
 	}
@@ -57,8 +57,8 @@ public final class FilterManager implements IFilterManager {
 
 	protected void activate(BundleContext context) {
 		@SuppressWarnings("rawtypes")
-		final IServiceHolderManager<IFilter> manager = ServiceHolderManager
-				.newInstance(context, IFilter.class, IoConstants.FILTER_ID);
+		final IServiceHolderManager<IFilter> manager = ServiceHolderManager.newInstance(context, IFilter.class,
+				IoConstants.FILTER_ID);
 		manager.open();
 		m_manager = manager;
 	}

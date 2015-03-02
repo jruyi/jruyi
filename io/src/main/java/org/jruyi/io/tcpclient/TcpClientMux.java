@@ -14,8 +14,11 @@
 
 package org.jruyi.io.tcpclient;
 
+import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.jruyi.common.IIdentifiable;
 import org.jruyi.common.IService;
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.IBufferFactory;
@@ -24,23 +27,53 @@ import org.jruyi.io.IoConstants;
 import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.filter.IFilterManager;
+import org.jruyi.timeoutadmin.ITimeoutAdmin;
+import org.jruyi.timeoutadmin.ITimeoutEvent;
+import org.jruyi.timeoutadmin.ITimeoutListener;
+import org.jruyi.timeoutadmin.ITimeoutNotifier;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Component(name = IoConstants.CN_TCPCLIENT_FACTORY, //
-factory = "tcpclient", //
+@Component(name = IoConstants.CN_TCPCLIENT_MUX_FACTORY, //
+factory = "tcpclient.mux", //
 service = { IService.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class TcpClient<I, O> extends AbstractTcpClient<I, O> {
+public final class TcpClientMux<I extends IIdentifiable<?>, O extends IIdentifiable<?>> extends AbstractTcpClient<I, O> {
 
-	private static final Logger c_logger = LoggerFactory.getLogger(TcpClient.class);
+	private static final Logger c_logger = LoggerFactory.getLogger(TcpClientMux.class);
 
-	private static final Object REQ = new Object();
+	private static final Object OUTMSG_LISTENER = new Object();
 
 	private TcpClientConf m_conf;
+	private ConcurrentHashMap<Object, ITimeoutNotifier> m_notifiers;
+	private ITimeoutAdmin m_ta;
+
+	final class MsgTimeoutListener implements ITimeoutListener {
+
+		private final IChannel m_channel;
+
+		MsgTimeoutListener(IChannel channel) {
+			m_channel = channel;
+		}
+
+		@Override
+		public void onTimeout(ITimeoutEvent event) {
+			@SuppressWarnings("unchecked")
+			final O outMsg = (O) event.getSubject();
+			m_notifiers.remove(outMsg.id());
+			final ISessionListener<I, O> listener = listener();
+			if (listener != null) {
+				try {
+					listener.onSessionReadTimedOut(m_channel, outMsg);
+				} catch (Throwable t) {
+					onChannelException(m_channel, t);
+				}
+			}
+		}
+	}
 
 	@Override
 	public void openSession() {
@@ -49,22 +82,29 @@ public final class TcpClient<I, O> extends AbstractTcpClient<I, O> {
 
 	@Override
 	public void onMessageSent(IChannel channel, O outMsg) {
-		final Object oldOutMsg = channel.deposit(REQ, outMsg);
-		if (oldOutMsg != null) {
-			channel.deposit(REQ, oldOutMsg);
+		if (!(outMsg instanceof IIdentifiable))
 			return;
-		}
+
 		final ISessionListener<I, O> listener = listener();
 		if (listener != null)
 			listener.onMessageSent(channel, outMsg);
 		final int timeout = m_conf.readTimeoutInSeconds();
-		if (timeout > 0)
-			scheduleReadTimeout(channel, timeout);
+		if (timeout > 0) {
+			final ITimeoutNotifier tn = m_ta.createNotifier(outMsg);
+			if (m_notifiers.put(outMsg.id(), tn) != null) {
+				c_logger.error("Collision of message ID: {}", outMsg.id());
+				channel.close();
+				return;
+			}
+			tn.setListener(getListener(channel));
+			tn.schedule(timeout);
+		}
 	}
 
 	@Override
 	public void onMessageReceived(IChannel channel, I inMsg) {
-		if (!cancelReadTimeout(channel)) { // channel has timed out
+		final ITimeoutNotifier tn = m_notifiers.remove(inMsg.id());
+		if (tn == null || !tn.cancel()) {
 			if (inMsg instanceof AutoCloseable) {
 				try {
 					((AutoCloseable) inMsg).close();
@@ -76,7 +116,6 @@ public final class TcpClient<I, O> extends AbstractTcpClient<I, O> {
 			return;
 		}
 
-		channel.withdraw(REQ);
 		final ISessionListener<I, O> listener = listener();
 		if (listener != null)
 			listener.onMessageReceived(channel, inMsg);
@@ -114,11 +153,7 @@ public final class TcpClient<I, O> extends AbstractTcpClient<I, O> {
 
 	@Override
 	public void onChannelReadTimedOut(IChannel channel) {
-		@SuppressWarnings("unchecked")
-		final O outMsg = (O) channel.withdraw(REQ);
-		final ISessionListener<I, O> listener = listener();
-		if (listener != null)
-			listener.onSessionReadTimedOut(channel, outMsg);
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -170,6 +205,34 @@ public final class TcpClient<I, O> extends AbstractTcpClient<I, O> {
 		super.setFilterManager(fm);
 	}
 
+	@Reference(name = "timeoutAdmin")
+	protected void setTimeoutAdmin(ITimeoutAdmin ta) {
+		m_ta = ta;
+	}
+
+	protected void unsetTimeoutAdmin(ITimeoutAdmin ta) {
+		m_ta = null;
+	}
+
+	@Override
+	protected void activate(Map<String, ?> properties) throws Exception {
+		super.activate(properties);
+		final int n = configuration().initialCapacityOfChannelMap();
+		int initialCapacity = n << 5;
+		if (initialCapacity < 0)
+			initialCapacity = n;
+		m_notifiers = new ConcurrentHashMap<>(initialCapacity);
+	}
+
+	@Override
+	protected void deactivate() {
+		super.deactivate();
+		final Collection<ITimeoutNotifier> notifiers = m_notifiers.values();
+		m_notifiers = null;
+		for (ITimeoutNotifier notifier : notifiers)
+			notifier.close();
+	}
+
 	@Override
 	TcpClientConf configuration() {
 		return m_conf;
@@ -186,5 +249,14 @@ public final class TcpClient<I, O> extends AbstractTcpClient<I, O> {
 			m_conf = newConf;
 		}
 		return conf;
+	}
+
+	private ITimeoutListener getListener(IChannel channel) {
+		ITimeoutListener listener = (ITimeoutListener) channel.inquiry(OUTMSG_LISTENER);
+		if (listener == null) {
+			listener = new MsgTimeoutListener(channel);
+			channel.deposit(OUTMSG_LISTENER, listener);
+		}
+		return listener;
 	}
 }

@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.common.internal;
 
 import java.lang.ref.WeakReference;
@@ -37,7 +38,7 @@ public abstract class WeakThreadLocal<T> extends ThreadLocal<WeakReference<T>> {
 	 */
 	@Override
 	protected final WeakReference<T> initialValue() {
-		return new WeakReference<T>(null);
+		return new WeakReference<>(null);
 	}
 
 	/**
@@ -52,7 +53,7 @@ public abstract class WeakThreadLocal<T> extends ThreadLocal<WeakReference<T>> {
 		T t = get().get();
 		if (t == null) {
 			t = newValue();
-			set(new WeakReference<T>(t));
+			set(new WeakReference<>(t));
 		}
 		return t;
 	}

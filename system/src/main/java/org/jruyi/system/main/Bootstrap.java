@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.system.main;
 
 import java.util.ArrayList;
@@ -136,13 +137,13 @@ final class Bootstrap {
 	}
 
 	Bootstrap() {
-		m_localProps = new HashMap<String, String>();
-		m_frameworkProps = new LinkedHashMap<String, String>();
-		m_bundleInfos = new ArrayList<BundleInfo>(64);
+		m_localProps = new HashMap<>();
+		m_frameworkProps = new LinkedHashMap<>();
+		m_bundleInfos = new ArrayList<>(64);
 	}
 
 	Map<String, IElementHandler> getHandlers() {
-		final HashMap<String, IElementHandler> handlers = new HashMap<String, IElementHandler>();
+		final HashMap<String, IElementHandler> handlers = new HashMap<>();
 		handlers.put("property", new PropertyHandler());
 		handlers.put("local", new LocalHandler());
 		handlers.put("system", new SystemHandler());

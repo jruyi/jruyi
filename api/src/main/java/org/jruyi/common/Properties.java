@@ -82,7 +82,7 @@ public final class Properties extends Dictionary<String, Object> implements Map<
 	 *            the load factor
 	 */
 	public Properties(int initialCapacity, float loadFactor) {
-		m_map = new HashMap<String, Object>(initialCapacity, loadFactor);
+		m_map = new HashMap<>(initialCapacity, loadFactor);
 	}
 
 	/**
@@ -90,7 +90,7 @@ public final class Properties extends Dictionary<String, Object> implements Map<
 	 * (16) and the default load factor (0.75).
 	 */
 	public Properties() {
-		m_map = new HashMap<String, Object>();
+		m_map = new HashMap<>();
 	}
 
 	/**
@@ -101,7 +101,7 @@ public final class Properties extends Dictionary<String, Object> implements Map<
 	 *            the initial capacity
 	 */
 	public Properties(int initialCapacity) {
-		m_map = new HashMap<String, Object>(initialCapacity);
+		m_map = new HashMap<>(initialCapacity);
 	}
 
 	/**
@@ -114,7 +114,7 @@ public final class Properties extends Dictionary<String, Object> implements Map<
 	 *            the map whose mappings are to be placed in this properties
 	 */
 	public Properties(Map<? extends String, ?> map) {
-		m_map = new HashMap<String, Object>(map);
+		m_map = new HashMap<>(map);
 	}
 
 	@Override
@@ -219,8 +219,7 @@ public final class Properties extends Dictionary<String, Object> implements Map<
 		if (!iter.hasNext())
 			return "{}";
 
-		StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append('{');
 			for (;;) {
 				Entry<String, Object> entry = iter.next();
@@ -230,8 +229,6 @@ public final class Properties extends Dictionary<String, Object> implements Map<
 
 				builder.append(", ");
 			}
-		} finally {
-			builder.close();
 		}
 	}
 }

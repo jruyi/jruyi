@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.clid;
 
 import java.io.OutputStream;
@@ -32,13 +33,13 @@ final class OutBufferStream extends OutputStream implements ITimeoutListener {
 	private static final int HEAD_RESERVE_SIZE = 4;
 	private static final int DELAY_SECS = 1;
 	private static int s_flushThreshold = 7168;
-	private final ISessionService m_ss;
+	private final ISessionService<IBuffer, IBuffer> m_ss;
 	private final ISession m_session;
 	private final ITimeoutNotifier m_tn;
 	private IBuffer m_buffer;
 	private volatile boolean m_closed;
 
-	public OutBufferStream(ISessionService ss, ISession session, ITimeoutNotifier tn) {
+	public OutBufferStream(ISessionService<IBuffer, IBuffer> ss, ISession session, ITimeoutNotifier tn) {
 		m_ss = ss;
 		m_session = session;
 		m_tn = tn;

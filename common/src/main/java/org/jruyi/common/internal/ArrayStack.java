@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.common.internal;
 
 import java.util.EmptyStackException;
@@ -31,8 +32,8 @@ final class ArrayStack<E> {
 	}
 
 	/**
-	 * Creates an empty stack with the initial capacity of {@code
-	 * initialCapacity}.
+	 * Creates an empty stack with the initial capacity of
+	 * {@code initialCapacity}.
 	 * 
 	 * @param initialCapacity
 	 *            the initial capacity of this stack.

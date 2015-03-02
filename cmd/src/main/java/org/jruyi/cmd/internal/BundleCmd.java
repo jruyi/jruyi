@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.cmd.internal;
 
 import java.io.InputStream;
@@ -32,8 +33,7 @@ public final class BundleCmd {
 	private final BundleContext m_context;
 
 	public static String[] commands() {
-		return new String[] { "list", "inspect", "start", "stop", "install",
-				"uninstall", "update", "refresh" };
+		return new String[] { "list", "inspect", "start", "stop", "install", "uninstall", "update", "refresh" };
 	}
 
 	BundleCmd(BundleContext context) {
@@ -42,8 +42,7 @@ public final class BundleCmd {
 
 	public void list() {
 		final Bundle[] bundles = m_context.getBundles();
-		final FrameworkStartLevel fsl = m_context.getBundle(0).adapt(
-				FrameworkStartLevel.class);
+		final FrameworkStartLevel fsl = m_context.getBundle(0).adapt(FrameworkStartLevel.class);
 		System.out.print("START LEVEL ");
 		System.out.println(fsl.getStartLevel());
 		System.out.println("[ ID ][  State  ][Level][     Name     ]");
@@ -112,8 +111,7 @@ public final class BundleCmd {
 		System.out.println(bundleStateName(bundle.getState()));
 
 		System.out.print("   Start Level: ");
-		System.out
-				.println(bundle.adapt(BundleStartLevel.class).getStartLevel());
+		System.out.println(bundle.adapt(BundleStartLevel.class).getStartLevel());
 
 		System.out.print("Export-Package: ");
 		System.out.println(normalize(headers.get("Export-Package")));
@@ -138,8 +136,7 @@ public final class BundleCmd {
 
 		final BundleContext context = m_context;
 		for (String s : bundles) {
-			Bundle bundle = Util.isBundleId(s) ? context.getBundle(Long
-					.parseLong(s)) : context.installBundle(s);
+			Bundle bundle = Util.isBundleId(s) ? context.getBundle(Long.parseLong(s)) : context.installBundle(s);
 			if (bundle == null) {
 				System.err.print("Failed to start bundle: ");
 				System.err.println(s);
@@ -251,11 +248,8 @@ public final class BundleCmd {
 			return;
 		}
 
-		InputStream in = new URL(arg).openStream();
-		try {
+		try (InputStream in = new URL(arg).openStream()) {
 			bundle.update(in);
-		} finally {
-			in.close();
 		}
 	}
 
@@ -263,7 +257,7 @@ public final class BundleCmd {
 		final BundleContext context = m_context;
 		Collection<Bundle> bundles = null;
 		if (bundleIds != null && bundleIds.length > 0) {
-			bundles = new ArrayList<Bundle>(bundleIds.length);
+			bundles = new ArrayList<>(bundleIds.length);
 			for (String s : bundleIds) {
 				Bundle bundle;
 				if (Util.isBundleId(s))
@@ -280,8 +274,7 @@ public final class BundleCmd {
 			}
 		}
 
-		context.getBundle(0).adapt(FrameworkWiring.class)
-				.refreshBundles(bundles);
+		context.getBundle(0).adapt(FrameworkWiring.class).refreshBundles(bundles);
 	}
 
 	private static String normalize(String s) {

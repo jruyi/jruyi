@@ -48,9 +48,21 @@ public final class IoConstants {
 	 */
 	public static final String CN_TCPCLIENT_CONNPOOL_FACTORY = "jruyi.io.tcpclient.connpool.factory";
 	/**
+	 * The component name of tcpclient multiplexing connpool factory component.
+	 * 
+	 * @since 2.0
+	 */
+	public static final String CN_TCPCLIENT_MUX_CONNPOOL_FACTORY = "jruyi.io.tcpclient.mux.connpool.factory";
+	/**
 	 * The component name of tcpclient factory component.
 	 */
 	public static final String CN_TCPCLIENT_FACTORY = "jruyi.io.tcpclient.factory";
+	/**
+	 * The component name of tcpclient multiplexing factory component.
+	 * 
+	 * @since 2.0
+	 */
+	public static final String CN_TCPCLIENT_MUX_FACTORY = "jruyi.io.tcpclient.mux.factory";
 	/**
 	 * The component name of udpclient factory component.
 	 */
@@ -63,10 +75,6 @@ public final class IoConstants {
 	 * The filter ID of SSL filter.
 	 */
 	public static final String FID_SSL = "jruyi.io.ssl.filter";
-	/**
-	 * The filter ID of tcpclient filter.
-	 */
-	public static final String FID_TCPCLIENT = "jruyi.io.tcpclient.filter";
 
 	private IoConstants() {
 	}

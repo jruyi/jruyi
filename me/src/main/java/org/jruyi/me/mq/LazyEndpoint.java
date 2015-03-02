@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.me.mq;
 
 import java.util.concurrent.locks.ReentrantLock;
@@ -54,8 +55,7 @@ final class LazyEndpoint extends Endpoint {
 				ServiceReference<IEndpoint> reference = endpoint.reference();
 				IEndpoint original = endpoint.mq().locateService(reference);
 				if (original == null)
-					throw new RuntimeException(StrUtil.join(endpoint,
-							" is unavailable"));
+					throw new RuntimeException(StrUtil.join(endpoint, " is unavailable"));
 
 				endpoint.initRouter();
 				endpoint.setHandlers(reference);
@@ -92,8 +92,7 @@ final class LazyEndpoint extends Endpoint {
 		}
 	}
 
-	public LazyEndpoint(String id, MessageQueue mq,
-			ServiceReference<IEndpoint> reference) {
+	public LazyEndpoint(String id, MessageQueue mq, ServiceReference<IEndpoint> reference) {
 		super(id, mq);
 		m_reference = reference;
 	}

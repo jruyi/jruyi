@@ -27,9 +27,9 @@ public interface ITimeoutEvent {
 	public Object getSubject();
 
 	/**
-	 * Gets the time in seconds that is out.
+	 * Gets the timeout in seconds.
 	 * 
-	 * @return the time is out
+	 * @return the timeout in seconds
 	 */
 	public int getTimeout();
 }

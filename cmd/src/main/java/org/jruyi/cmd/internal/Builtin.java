@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.cmd.internal;
 
 import java.util.ArrayList;
@@ -28,14 +29,12 @@ public final class Builtin {
 	}
 
 	public static String[] commands() {
-		return new String[] { "each", "if", "not", "until", "while", "try",
-				"throw" };
+		return new String[] { "each", "if", "not", "until", "while", "try", "throw" };
 	}
 
-	public List<Object> each(CommandSession session, Collection<Object> list,
-			Function closure) throws Exception {
-		ArrayList<Object> args = new ArrayList<Object>(1);
-		ArrayList<Object> results = new ArrayList<Object>(list.size());
+	public List<Object> each(CommandSession session, Collection<Object> list, Function closure) throws Exception {
+		ArrayList<Object> args = new ArrayList<>(1);
+		ArrayList<Object> results = new ArrayList<>(list.size());
 		args.add(null);
 
 		for (Object x : list) {
@@ -50,8 +49,7 @@ public final class Builtin {
 	public Object _if(CommandSession session, Function[] fns) throws Exception {
 		int n = fns.length;
 		if (n < 2) {
-			throw new IllegalArgumentException(
-					"Usage: if {condition} {if-action} ... {else-action}");
+			throw new IllegalArgumentException("Usage: if {condition} {if-action} ... {else-action}");
 		}
 
 		for (int i = 0; i < n; ++i) {
@@ -62,22 +60,19 @@ public final class Builtin {
 		return null;
 	}
 
-	public boolean not(CommandSession session, Function condition)
-			throws Exception {
+	public boolean not(CommandSession session, Function condition) throws Exception {
 		if (condition == null)
 			return true;
 
 		return !isTrue(condition.execute(session, null));
 	}
 
-	public void _while(CommandSession session, Function condition,
-			Function ifTrue) throws Exception {
+	public void _while(CommandSession session, Function condition, Function ifTrue) throws Exception {
 		while (isTrue(condition.execute(session, null)))
 			ifTrue.execute(session, null);
 	}
 
-	public void until(CommandSession session, Function condition,
-			Function ifTrue) throws Exception {
+	public void until(CommandSession session, Function condition, Function ifTrue) throws Exception {
 		while (!isTrue(condition.execute(session, null)))
 			ifTrue.execute(session, null);
 	}
@@ -91,8 +86,7 @@ public final class Builtin {
 		}
 	}
 
-	public Object _try(CommandSession session, Function func, Function error)
-			throws Exception {
+	public Object _try(CommandSession session, Function func, Function error) throws Exception {
 		try {
 			return func.execute(session, null);
 		} catch (Exception e) {
@@ -116,8 +110,7 @@ public final class Builtin {
 		if (exception instanceof Throwable)
 			throw (Throwable) exception;
 		else
-			throw new IllegalArgumentException(
-					"exception not set or not Throwable.");
+			throw new IllegalArgumentException("exception not set or not Throwable.");
 	}
 
 	private boolean isTrue(Object result) throws InterruptedException {

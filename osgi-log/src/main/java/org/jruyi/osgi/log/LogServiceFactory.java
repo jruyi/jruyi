@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.osgi.log;
 
 import org.osgi.framework.Bundle;
@@ -21,13 +22,11 @@ import org.osgi.service.log.LogService;
 final class LogServiceFactory implements ServiceFactory<LogService> {
 
 	@Override
-	public LogService getService(Bundle bundle,
-			ServiceRegistration<LogService> registration) {
+	public LogService getService(Bundle bundle, ServiceRegistration<LogService> registration) {
 		return new LogServiceImpl(bundle);
 	}
 
 	@Override
-	public void ungetService(Bundle bundle,
-			ServiceRegistration<LogService> registration, LogService service) {
+	public void ungetService(Bundle bundle, ServiceRegistration<LogService> registration, LogService service) {
 	}
 }

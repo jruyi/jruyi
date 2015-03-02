@@ -21,7 +21,7 @@ import org.apache.logging.log4j.core.util.ShutdownCallbackRegistry;
 
 public final class Log4jCallback implements ShutdownCallbackRegistry, Cancellable {
 
-	private static final ArrayList<Log4jCallback> c_callbacks = new ArrayList<Log4jCallback>();
+	private static final ArrayList<Log4jCallback> c_callbacks = new ArrayList<>();
 	private Runnable m_runnable;
 
 	public Log4jCallback() {

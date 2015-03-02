@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.cmd.internal;
 
 import java.io.BufferedReader;
@@ -126,27 +127,26 @@ public final class RuyiCmd implements IManual {
 	public void help() throws Exception {
 		final ServiceReference<?>[] references = m_context.getAllServiceReferences(null, "(&("
 				+ CommandProcessor.COMMAND_SCOPE + "=*)(!(" + CommandProcessor.COMMAND_SCOPE + "=builtin)))");
-		final ListNode<String> head = ListNode.create();
-		for (ServiceReference<?> reference : references) {
-			String scope = String.valueOf(reference.getProperty(CommandProcessor.COMMAND_SCOPE));
-			Object v = reference.getProperty(CommandProcessor.COMMAND_FUNCTION);
-			if (v instanceof String[]) {
-				String[] funcs = (String[]) v;
-				for (String func : funcs)
-					add(head, StrUtil.join(scope, ":", func));
-			} else
-				add(head, StrUtil.join(scope, ":", v));
-		}
+		try (ListNode<String> head = ListNode.create()) {
+			for (ServiceReference<?> reference : references) {
+				String scope = String.valueOf(reference.getProperty(CommandProcessor.COMMAND_SCOPE));
+				Object v = reference.getProperty(CommandProcessor.COMMAND_FUNCTION);
+				if (v instanceof String[]) {
+					String[] funcs = (String[]) v;
+					for (String func : funcs)
+						add(head, StrUtil.join(scope, ":", func));
+				} else
+					add(head, StrUtil.join(scope, ":", v));
+			}
 
-		ListNode<String> node = head.next();
-		while (node != null) {
-			System.out.println(node.get());
-			head.next(node.next());
-			node.close();
-			node = head.next();
+			ListNode<String> node = head.next();
+			while (node != null) {
+				System.out.println(node.get());
+				head.next(node.next());
+				node.close();
+				node = head.next();
+			}
 		}
-
-		head.close();
 	}
 
 	public void help(String command) throws Exception {
@@ -192,13 +192,10 @@ public final class RuyiCmd implements IManual {
 		}
 
 		final byte[] buffer = new byte[512];
-		int n;
-		InputStream in = url.openStream();
-		try {
+		try (InputStream in = url.openStream()) {
+			int n;
 			while ((n = in.read(buffer)) > 0)
 				System.out.write(buffer, 0, n);
-		} finally {
-			in.close();
 		}
 	}
 
@@ -240,15 +237,12 @@ public final class RuyiCmd implements IManual {
 
 		final Pattern pattern = Pattern.compile(regex);
 		final Matcher matcher = pattern.matcher("");
-		final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-		try {
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
 			String line;
 			while ((line = reader.readLine()) != null) {
 				if (matcher.reset(line).find() ^ invertMatch)
 					System.out.println(line);
 			}
-		} finally {
-			reader.close();
 		}
 	}
 

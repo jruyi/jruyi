@@ -1469,11 +1469,8 @@ public final class StringBuilder implements Serializable, Appendable, CharSequen
 	 * @return this object
 	 */
 	public StringBuilder appendArray(Object[] array) {
-		HashSet seen = HashSet.get();
-		try {
+		try (HashSet seen = HashSet.get()) {
 			return appendArray(array, seen);
-		} finally {
-			seen.close();
 		}
 	}
 
@@ -2499,9 +2496,8 @@ public final class StringBuilder implements Serializable, Appendable, CharSequen
 		if (n < 1)
 			return 0;
 
-		StringBuilder sb = get(str);
-		try {
-			char[] strV = sb.m_value;
+		try (StringBuilder builder = get(str)) {
+			char[] strV = builder.m_value;
 			char first = strV[0];
 
 			char[] v = m_value;
@@ -2520,8 +2516,6 @@ public final class StringBuilder implements Serializable, Appendable, CharSequen
 			}
 
 			return -1;
-		} finally {
-			sb.close();
 		}
 	}
 
@@ -2551,9 +2545,8 @@ public final class StringBuilder implements Serializable, Appendable, CharSequen
 		if (n < 0)
 			return fromIndex;
 
-		StringBuilder sb = get(str);
-		try {
-			char[] strV = sb.m_value;
+		try (StringBuilder builder = get(str)) {
+			char[] strV = builder.m_value;
 			char[] v = m_value;
 			next: for (char first = strV[0]; fromIndex <= endIndex; ++fromIndex) {
 				if (v[fromIndex] != first)
@@ -2568,8 +2561,6 @@ public final class StringBuilder implements Serializable, Appendable, CharSequen
 			}
 
 			return -1;
-		} finally {
-			sb.close();
 		}
 	}
 
@@ -2720,10 +2711,9 @@ public final class StringBuilder implements Serializable, Appendable, CharSequen
 		if (n < 1)
 			return fromIndex;
 
-		StringBuilder sb = get();
-		try {
-			sb.append(str);
-			char[] strV = sb.m_value;
+		try (StringBuilder builder = get()) {
+			builder.append(str);
+			char[] strV = builder.m_value;
 			char[] v = m_value;
 
 			next: for (char first = strV[0]; fromIndex >= 0; --fromIndex) {
@@ -2739,8 +2729,6 @@ public final class StringBuilder implements Serializable, Appendable, CharSequen
 			}
 
 			return -1;
-		} finally {
-			sb.close();
 		}
 	}
 
@@ -2776,10 +2764,9 @@ public final class StringBuilder implements Serializable, Appendable, CharSequen
 		if (n < 1)
 			return fromIndex;
 
-		StringBuilder sb = get();
-		try {
-			sb.append(str);
-			char[] strV = sb.m_value;
+		try (StringBuilder builder = get()) {
+			builder.append(str);
+			char[] strV = builder.m_value;
 			char[] v = m_value;
 			next: for (char first = strV[0]; fromIndex >= 0; --fromIndex) {
 				if (v[fromIndex] != first)
@@ -2794,8 +2781,6 @@ public final class StringBuilder implements Serializable, Appendable, CharSequen
 			}
 
 			return -1;
-		} finally {
-			sb.close();
 		}
 	}
 

@@ -18,7 +18,7 @@ buildscript {
 	}
 
 	dependencies {
-		classpath 'org.jruyi.gradle:osgibnd-gradle-plugin:0.2.0'
+		classpath 'org.jruyi.gradle:osgibnd-gradle-plugin:0.3.0'
 		classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.1'
 	}
 }
@@ -45,13 +45,15 @@ allprojects {
 		licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
 
 		createdBy = "${System.getProperty('java.version')} (${System.getProperty('java.vm.vendor')})"
+
+		javaCompilerExecutable = System.env['JAVA_HOME'] ? System.env['JAVA_HOME'] + '/bin/javac' : 'javac'
 	}
 
 	ext {
 		org_osgi_core_version = '5.0.0'
 		org_osgi_compendium_version = '5.0.0'
 		commons_cli_version = '1.2'
-		disruptor_version = '3.3.0'
+		disruptor_version = '3.3.2'
 		jline_version = '2.12.1'
 		log4j_api_version = '2.1'
 		log4j_core_version = '2.1'
@@ -70,14 +72,14 @@ allprojects {
 		jruyi_system_version = rootProject.version
 
 		jruyi_api_version = '2.0.0-SNAPSHOT'
-		jruyi_cli_version = '1.0.6'
+		jruyi_cli_version = '2.0.0-SNAPSHOT'
 		jruyi_launcher_version = '2.0.0-SNAPSHOT'
 		org_jruyi_clid_version = '2.0.0-SNAPSHOT'
-		org_jruyi_cmd_version = '1.1.6-SNAPSHOT'
+		org_jruyi_cmd_version = '2.0.0-SNAPSHOT'
 		org_jruyi_common_version = '2.0.0-SNAPSHOT'
 		org_jruyi_io_version = '2.0.0-SNAPSHOT'
 		org_jruyi_me_version = '2.0.0-SNAPSHOT'
-		org_jruyi_osgi_log_version = '1.0.4'
+		org_jruyi_osgi_log_version = '2.0.0-SNAPSHOT'
 		org_jruyi_timeoutadmin_version = '2.0.0-SNAPSHOT'
 		org_jruyi_tpe_version = '2.0.0-SNAPSHOT'
 	}
@@ -100,7 +102,7 @@ subprojects {
 	compileJava {
 		options.compilerArgs << '-XDignore.symbol.file'
 		options.fork = true
-		options.forkOptions.executable = 'javac'
+		options.forkOptions.executable = javaCompilerExecutable
 
 		sourceCompatibility = 1.7
 		targetCompatibility = 1.7
@@ -108,8 +110,8 @@ subprojects {
 	}
 
 	compileTestJava {
-		sourceCompatibility = 1.8
-		targetCompatibility = 1.8
+		sourceCompatibility = 1.7
+		targetCompatibility = 1.7
 		options.encoding = 'UTF-8'
 	}
 

@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.common.internal;
 
 import org.jruyi.common.IThreadLocalCache;
@@ -19,7 +20,8 @@ import org.jruyi.common.IThreadLocalCache;
  * This class provides skeletal implementations of providing a thread local
  * cache that is weakly reachable.
  *
- * <p> The underlying cache container is backed by an auto-growing array.
+ * <p>
+ * The underlying cache container is backed by an auto-growing array.
  * 
  * @see WeakThreadLocalLinkedCache
  * @see SoftThreadLocalArrayCache
@@ -27,8 +29,7 @@ import org.jruyi.common.IThreadLocalCache;
  * @see WeakThreadLocal
  * @see SoftThreadLocal
  */
-final class WeakThreadLocalArrayCache<E> extends WeakThreadLocal<ArrayStack<E>>
-		implements IThreadLocalCache<E> {
+final class WeakThreadLocalArrayCache<E> extends WeakThreadLocal<ArrayStack<E>> implements IThreadLocalCache<E> {
 
 	private final int m_initialCapacity;
 
@@ -44,7 +45,8 @@ final class WeakThreadLocalArrayCache<E> extends WeakThreadLocal<ArrayStack<E>>
 	 * Constructs a {@code WeakThreadLocalCache} with the initial capacity of
 	 * the backed array being the given {@code initialCapacity}.
 	 *
-	 * @param initialCapacity the initial capacity.
+	 * @param initialCapacity
+	 *            the initial capacity.
 	 */
 	WeakThreadLocalArrayCache(int initialCapacity) {
 		m_initialCapacity = initialCapacity;
@@ -76,13 +78,13 @@ final class WeakThreadLocalArrayCache<E> extends WeakThreadLocal<ArrayStack<E>>
 	}
 
 	/**
-	 * Creates a new {@code ArrayStack<E>} as the container of the thread
-	 * local cache.
+	 * Creates a new {@code ArrayStack<E>} as the container of the thread local
+	 * cache.
 	 * 
 	 * @return a new {@code ArrayStack<E>}.
 	 */
 	@Override
 	protected final ArrayStack<E> newValue() {
-		return new ArrayStack<E>(m_initialCapacity);
+		return new ArrayStack<>(m_initialCapacity);
 	}
 }

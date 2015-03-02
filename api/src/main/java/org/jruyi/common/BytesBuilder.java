@@ -448,12 +448,9 @@ public final class BytesBuilder implements Serializable, IByteSequence, ICloseab
 		if (start == length)
 			return "";
 
-		StringBuilder out = StringBuilder.get();
-		try {
+		try (StringBuilder out = StringBuilder.get()) {
 			CharsetCodec.get().decode(this, start, length - start, out);
 			return out.toString();
-		} finally {
-			out.close();
 		}
 	}
 
@@ -531,12 +528,9 @@ public final class BytesBuilder implements Serializable, IByteSequence, ICloseab
 		if (start == length)
 			return "";
 
-		StringBuilder out = StringBuilder.get();
-		try {
+		try (StringBuilder out = StringBuilder.get()) {
 			charsetCodec.decode(this, start, length - start, out);
 			return out.toString();
-		} finally {
-			out.close();
 		}
 	}
 
@@ -632,12 +626,9 @@ public final class BytesBuilder implements Serializable, IByteSequence, ICloseab
 		if (length < 0)
 			throw new IndexOutOfBoundsException();
 
-		StringBuilder out = StringBuilder.get();
-		try {
+		try (StringBuilder out = StringBuilder.get()) {
 			charsetCodec.decode(this, start, length, out);
 			return out.toString();
-		} finally {
-			out.close();
 		}
 	}
 
@@ -1287,12 +1278,9 @@ public final class BytesBuilder implements Serializable, IByteSequence, ICloseab
 	 *             if {@code charsetCodec} is {@code null}
 	 */
 	public BytesBuilder append(String str, ICharsetCodec charsetCodec) {
-		final StringBuilder sb = str == null ? StringBuilder.get() : StringBuilder.get(str.length());
-		try {
-			sb.append(str);
-			charsetCodec.encode(sb, this);
-		} finally {
-			sb.close();
+		try (StringBuilder builder = str == null ? StringBuilder.get() : StringBuilder.get(str.length())) {
+			builder.append(str);
+			charsetCodec.encode(builder, this);
 		}
 		return this;
 	}
@@ -1398,12 +1386,9 @@ public final class BytesBuilder implements Serializable, IByteSequence, ICloseab
 	 *             if {@code charsetCodec} is {@code null}
 	 */
 	public BytesBuilder append(String str, int offset, int length, ICharsetCodec charsetCodec) {
-		StringBuilder sb = StringBuilder.get(length);
-		try {
-			sb.append(str, offset, offset + length);
-			charsetCodec.encode(sb, this);
-		} finally {
-			sb.close();
+		try (StringBuilder builder = StringBuilder.get(length)) {
+			builder.append(str, offset, offset + length);
+			charsetCodec.encode(builder, this);
 		}
 		return this;
 	}
@@ -2165,15 +2150,10 @@ public final class BytesBuilder implements Serializable, IByteSequence, ICloseab
 	 * @return this object
 	 */
 	public BytesBuilder insert(int index, String str, ICharsetCodec charsetCodec) {
-		BytesBuilder bb = BytesBuilder.get();
-		StringBuilder sb = StringBuilder.get();
-		try {
+		try (BytesBuilder bb = BytesBuilder.get(); StringBuilder sb = StringBuilder.get()) {
 			sb.append(str);
 			charsetCodec.encode(sb, bb);
 			return insert(index, bb);
-		} finally {
-			sb.close();
-			bb.close();
 		}
 	}
 
@@ -2264,15 +2244,10 @@ public final class BytesBuilder implements Serializable, IByteSequence, ICloseab
 	 * @return this object
 	 */
 	public BytesBuilder insert(int index, String str, int offset, int length, ICharsetCodec charsetCodec) {
-		BytesBuilder bb = BytesBuilder.get();
-		StringBuilder sb = StringBuilder.get();
-		try {
+		try (BytesBuilder bb = BytesBuilder.get(); StringBuilder sb = StringBuilder.get()) {
 			sb.append(str, offset, offset + length);
 			charsetCodec.encode(sb, bb);
 			return insert(index, bb);
-		} finally {
-			sb.close();
-			bb.close();
 		}
 	}
 
@@ -2335,12 +2310,9 @@ public final class BytesBuilder implements Serializable, IByteSequence, ICloseab
 	 * @return this object
 	 */
 	public BytesBuilder insert(int index, char[] chars, ICharsetCodec charsetCodec) {
-		BytesBuilder bb = BytesBuilder.get();
-		try {
+		try (BytesBuilder bb = BytesBuilder.get()) {
 			charsetCodec.encode(chars, bb);
 			return insert(index, bb);
-		} finally {
-			bb.close();
 		}
 	}
 
@@ -2431,12 +2403,9 @@ public final class BytesBuilder implements Serializable, IByteSequence, ICloseab
 	 * @return this object
 	 */
 	public BytesBuilder insert(int index, char[] chars, int offset, int length, ICharsetCodec charsetCodec) {
-		BytesBuilder bb = BytesBuilder.get();
-		try {
+		try (BytesBuilder bb = BytesBuilder.get()) {
 			charsetCodec.encode(chars, offset, length, bb);
 			return insert(index, bb);
-		} finally {
-			bb.close();
 		}
 	}
 

@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.udpclient;
 
 import org.jruyi.io.channel.IChannelAdmin;
@@ -20,7 +21,7 @@ import org.jruyi.timeoutadmin.ITimeoutNotifier;
 
 final class UdpClientChannel extends UdpChannel {
 
-	public UdpClientChannel(IChannelService channelService) {
+	public UdpClientChannel(IChannelService<Object, Object> channelService) {
 		super(channelService);
 	}
 

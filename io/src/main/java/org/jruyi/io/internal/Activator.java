@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.internal;
 
 import org.apache.felix.service.command.CommandProcessor;
@@ -26,8 +27,7 @@ public final class Activator implements BundleActivator {
 		final Properties properties = new Properties();
 		properties.put(CommandProcessor.COMMAND_SCOPE, "io");
 		properties.put(CommandProcessor.COMMAND_FUNCTION, IoCommand.commands());
-		context.registerService(IoCommand.class.getName(), new IoCommand(context),
-				properties);
+		context.registerService(IoCommand.class.getName(), new IoCommand(context), properties);
 	}
 
 	@Override

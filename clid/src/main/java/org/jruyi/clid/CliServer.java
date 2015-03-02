@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.clid;
 
 import static org.osgi.framework.Constants.FRAMEWORK_STORAGE;
@@ -69,7 +70,7 @@ import org.slf4j.LoggerFactory;
 immediate = true, //
 property = { IoConstants.FILTER_ID + "=jruyi.clid.filter" }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class CliServer extends SessionListener implements IFilter<IBuffer, Object> {
+public final class CliServer extends SessionListener<IBuffer, IBuffer> implements IFilter<IBuffer, IBuffer> {
 
 	public static final String SERVICE_ID = "jruyi.clid";
 
@@ -131,14 +132,16 @@ public final class CliServer extends SessionListener implements IFilter<IBuffer,
 	}
 
 	@Override
-	public boolean onMsgDepart(ISession session, Object msg, IFilterOutput output) {
+	public boolean onMsgDepart(ISession session, IBuffer msg, IFilterOutput output) {
 		output.add(msg);
 		return true;
 	}
 
 	@Override
 	public void onSessionOpened(ISession session) {
-		final ISessionService ss = (ISessionService) m_tcpServer.getInstance();
+		@SuppressWarnings("unchecked")
+		final ISessionService<IBuffer, IBuffer> ss = (ISessionService<IBuffer, IBuffer>) m_tcpServer.getInstance();
+
 		final ITimeoutNotifier tn = m_ta.createNotifier(null);
 		final OutBufferStream outBufferStream = new OutBufferStream(ss, session, tn);
 		final ErrBufferStream errBufferStream = new ErrBufferStream(outBufferStream);
@@ -167,13 +170,12 @@ public final class CliServer extends SessionListener implements IFilter<IBuffer,
 	}
 
 	@Override
-	public void onMessageReceived(ISession session, Object message) {
-		final IBuffer buffer = (IBuffer) message;
+	public void onMessageReceived(ISession session, IBuffer inMsg) {
 		String cmdline;
 		try {
-			cmdline = buffer.remaining() > 0 ? buffer.read(StringCodec.utf_8()) : null;
+			cmdline = inMsg.remaining() > 0 ? inMsg.read(StringCodec.utf_8()) : null;
 		} finally {
-			buffer.close();
+			inMsg.close();
 		}
 
 		final Context context = (Context) session.inquiry(this);
@@ -254,8 +256,9 @@ public final class CliServer extends SessionListener implements IFilter<IBuffer,
 
 	@Modified
 	void modified(Map<String, ?> properties) throws Exception {
-		final ISessionService inst = (ISessionService) m_tcpServer.getInstance();
-		inst.update(normalizeConf(properties));
+		@SuppressWarnings("unchecked")
+		final ISessionService<IBuffer, IBuffer> ss = (ISessionService<IBuffer, IBuffer>) m_tcpServer.getInstance();
+		ss.update(normalizeConf(properties));
 
 		OutBufferStream.flushThreshold((Integer) properties.get(P_FLUSH_THRESHOLD));
 	}
@@ -389,9 +392,8 @@ public final class CliServer extends SessionListener implements IFilter<IBuffer,
 		File provisioned = context.getBundle().getDataFile(".provisioned");
 		if (provisioned == null)
 			provisioned = new File(context.getProperty(FRAMEWORK_STORAGE), ".provisioned");
-		final ArrayList<String> provisionedScripts = new ArrayList<String>();
-		final RandomAccessFile raf = new RandomAccessFile(provisioned, "rw");
-		try {
+		final ArrayList<String> provisionedScripts = new ArrayList<>();
+		try (RandomAccessFile raf = new RandomAccessFile(provisioned, "rw")) {
 			if (provisioned.exists()) {
 				String line;
 				while ((line = raf.readLine()) != null)
@@ -415,39 +417,31 @@ public final class CliServer extends SessionListener implements IFilter<IBuffer,
 				raf.writeBytes(file.getName());
 				raf.writeBytes(StrUtil.getLineSeparator());
 			}
-		} finally {
-			raf.close();
 		}
 		c_logger.info("Done provisioning");
 	}
 
 	private void execute(File file, BundleContext context) throws Throwable {
-		final BytesBuilder builder;
-		final InputStream in = new FileInputStream(file);
-		try {
-			builder = BytesBuilder.get((int) file.length() + 1);
-			builder.read(in);
-		} finally {
-			in.close();
-		}
+		try (BytesBuilder builder = BytesBuilder.get((int) file.length() + 1)) {
+			try (InputStream in = new FileInputStream(file)) {
+				builder.read(in);
+			}
 
-		final int len = builder.length();
-		if (len < 1) {
-			builder.close();
-			return;
-		}
+			final int len = builder.length();
+			if (len < 1)
+				return;
 
-		final ICharsetCodec codec = CharsetCodec.get("UTF-8");
-		String script = codec.toString(builder.getByteBuffer(0, len));
-		builder.setLength(0);
-		final CommandSession cs = m_cp.createSession(null, new PrintStream(new LoggerOutStream(builder, codec)),
-				new PrintStream(new LoggerErrStream(builder, codec)));
-		try {
-			script = filterProps(script, cs, context);
-			cs.execute(script);
-		} finally {
-			cs.close();
-			builder.close();
+			final ICharsetCodec codec = CharsetCodec.get("UTF-8");
+			String script = codec.toString(builder.getByteBuffer(0, len));
+			builder.setLength(0);
+			final CommandSession cs = m_cp.createSession(null, new PrintStream(new LoggerOutStream(builder, codec)),
+					new PrintStream(new LoggerErrStream(builder, codec)));
+			try {
+				script = filterProps(script, cs, context);
+				cs.execute(script);
+			} finally {
+				cs.close();
+			}
 		}
 	}
 
@@ -468,7 +462,8 @@ public final class CliServer extends SessionListener implements IFilter<IBuffer,
 
 	private void startTcpServer(ComponentFactory tsf) throws Throwable {
 		final ComponentInstance tcpServer = tsf.newInstance(m_conf);
-		final ISessionService ss = (ISessionService) tcpServer.getInstance();
+		@SuppressWarnings("unchecked")
+		final ISessionService<IBuffer, IBuffer> ss = (ISessionService<IBuffer, IBuffer>) tcpServer.getInstance();
 		ss.setSessionListener(this);
 		try {
 			ss.start();
@@ -511,38 +506,35 @@ public final class CliServer extends SessionListener implements IFilter<IBuffer,
 		if (target.length() < 2)
 			return target;
 
-		final StringBuilder builder = StringBuilder.get();
-		final IntStack stack = IntStack.get();
-		final int j = target.length();
-		String propValue = null;
-		for (int i = 0; i < j; ++i) {
-			char c = target.charAt(i);
-			switch (c) {
-			case '$':
-				builder.append(c);
-				if (++i < j && (c = target.charAt(i)) == '{')
-					stack.push(builder.length() - 1);
-				break;
-			case '}':
-				if (!stack.isEmpty()) {
-					int index = stack.pop();
-					propValue = getPropValue(builder.substring(index + 2), cs, context);
-					if (propValue != null) {
-						builder.setLength(index);
-						builder.append(propValue);
-						continue;
+		try (StringBuilder builder = StringBuilder.get(); IntStack stack = IntStack.get()) {
+			final int j = target.length();
+			String propValue = null;
+			for (int i = 0; i < j; ++i) {
+				char c = target.charAt(i);
+				switch (c) {
+				case '$':
+					builder.append(c);
+					if (++i < j && (c = target.charAt(i)) == '{')
+						stack.push(builder.length() - 1);
+					break;
+				case '}':
+					if (!stack.isEmpty()) {
+						int index = stack.pop();
+						propValue = getPropValue(builder.substring(index + 2), cs, context);
+						if (propValue != null) {
+							builder.setLength(index);
+							builder.append(propValue);
+							continue;
+						}
 					}
 				}
+
+				builder.append(c);
 			}
 
-			builder.append(c);
+			if (propValue != null || builder.length() != j)
+				target = builder.toString();
 		}
-		stack.close();
-
-		if (propValue != null || builder.length() != j)
-			target = builder.toString();
-
-		builder.close();
 
 		return target;
 	}

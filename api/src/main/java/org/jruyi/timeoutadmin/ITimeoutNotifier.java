@@ -44,7 +44,7 @@ import java.util.concurrent.Executor;
  * <p>
  * After {@code ITimeoutNotifier} closes, it will not work anymore.
  */
-public interface ITimeoutNotifier {
+public interface ITimeoutNotifier extends AutoCloseable {
 
 	/**
 	 * An {@code int} value representing Unscheduled state.

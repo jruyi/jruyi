@@ -40,55 +40,17 @@ import org.slf4j.LoggerFactory;
 factory = "tcpclient.connpool", //
 service = { IService.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class ConnPool extends AbstractTcpClient implements IIoTask {
+public class ConnPool<I, O> extends AbstractTcpClient<I, O> implements IIoTask {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(ConnPool.class);
 
-	private Configuration m_conf;
+	private static final Object REQ = new Object();
+
+	private ConnPoolConf m_conf;
 	private final BiListNode<IChannel> m_channelQueueHead;
 	private int m_channelQueueSize;
 	private final ReentrantLock m_channelQueueLock;
 	private final AtomicInteger m_poolSize;
-
-	static final class Configuration extends TcpClientConf {
-
-		private Integer m_minPoolSize;
-		private Integer m_maxPoolSize;
-		private Integer m_idleTimeoutInSeconds;
-
-		@Override
-		public void initialize(Map<String, ?> properties) {
-			super.initialize(properties);
-
-			minPoolSize((Integer) properties.get("minPoolSize"));
-			maxPoolSize((Integer) properties.get("maxPoolSize"));
-			idleTimeoutInSeconds((Integer) properties.get("idleTimeoutInSeconds"));
-		}
-
-		public Integer minPoolSize() {
-			return m_minPoolSize;
-		}
-
-		public void minPoolSize(Integer minPoolSize) {
-			m_minPoolSize = minPoolSize == null ? 5 : minPoolSize;
-		}
-
-		public Integer maxPoolSize() {
-			return m_maxPoolSize;
-		}
-
-		public void maxPoolSize(Integer maxPoolSize) {
-			m_maxPoolSize = maxPoolSize == null ? 10 : maxPoolSize;
-		}
-
-		public Integer idleTimeoutInSeconds() {
-			return m_idleTimeoutInSeconds;
-		}
-
-		public void idleTimeoutInSeconds(Integer idleTimeoutInSeconds) {
-			m_idleTimeoutInSeconds = idleTimeoutInSeconds == null ? 60 : idleTimeoutInSeconds;
-		}
-	}
 
 	public ConnPool() {
 		final BiListNode<IChannel> node = BiListNode.create();
@@ -96,19 +58,20 @@ public final class ConnPool extends AbstractTcpClient implements IIoTask {
 		node.next(node);
 		m_channelQueueHead = node;
 
-		m_poolSize = new AtomicInteger(0);
-
 		m_channelQueueLock = new ReentrantLock();
+		m_poolSize = new AtomicInteger(0);
 	}
 
 	@Override
 	public void run(Object msg, IFilter<?, ?>[] filters, int filterCount) {
-		write(null, msg);
+		@SuppressWarnings("unchecked")
+		final O out = (O) msg;
+		write(null, out);
 	}
 
 	@Override
-	public void write(ISession session/* =null */, Object msg) {
-		final Configuration conf = m_conf;
+	public void write(ISession session/* =null */, O msg) {
+		final ConnPoolConf conf = m_conf;
 		if (compareAndIncrement(conf.minPoolSize())) {
 			connect(msg);
 			return;
@@ -131,50 +94,43 @@ public final class ConnPool extends AbstractTcpClient implements IIoTask {
 	}
 
 	@Override
-	public void onMessageSent(IChannel channel, Object msg) {
-		final ISessionListener listener = listener();
-		if (listener != null) {
-			try {
-				listener.onMessageSent(channel, msg);
-			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
-			}
-		}
-
-		int timeout = m_conf.readTimeoutInSeconds();
-		if (timeout < 0)
+	public void onMessageSent(IChannel channel, O outMsg) {
+		final Object oldOutMsg = channel.deposit(REQ, outMsg);
+		if (oldOutMsg != null) {
+			channel.deposit(REQ, oldOutMsg);
 			return;
+		}
+		final ISessionListener<I, O> listener = listener();
+		final int timeout = m_conf.readTimeoutInSeconds();
+		if (listener != null)
+			listener.onMessageSent(channel, outMsg);
 
 		if (timeout > 0)
 			scheduleReadTimeout(channel, timeout);
-		else
-			// readTimeout == 0, means no response is expected
+		else if (timeout == 0) // means no response is expected
 			poolChannel(channel);
 	}
 
 	@Override
-	public void onMessageReceived(IChannel channel, Object msg) {
+	public void onMessageReceived(IChannel channel, I inMsg) {
 		if (!cancelReadTimeout(channel) // channel has timed out
 				|| m_conf.readTimeoutInSeconds() == 0 // no response is expected
 		) {
-			if (msg instanceof AutoCloseable) {
+			if (inMsg instanceof AutoCloseable) {
 				try {
-					((AutoCloseable) msg).close();
+					((AutoCloseable) inMsg).close();
 				} catch (Throwable t) {
-					c_logger.error(StrUtil.join("Failed to close message: ", StrUtil.getLineSeparator(), msg), t);
+					c_logger.error(
+							StrUtil.join(channel, " failed to close message: ", StrUtil.getLineSeparator(), inMsg), t);
 				}
 			}
 			return;
 		}
 
-		final ISessionListener listener = listener();
-		if (listener != null) {
-			try {
-				listener.onMessageReceived(channel, msg);
-			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
-			}
-		}
+		channel.withdraw(REQ);
+		final ISessionListener<I, O> listener = listener();
+		if (listener != null)
+			listener.onMessageReceived(channel, inMsg);
 
 		poolChannel(channel);
 	}
@@ -192,24 +148,24 @@ public final class ConnPool extends AbstractTcpClient implements IIoTask {
 	}
 
 	@Override
-	public void onChannelException(IChannel channel, Throwable t) {
-		channel.close();
-		final ISessionListener listener = listener();
-		if (listener != null) {
-			try {
-				listener.onSessionException(channel, t);
-			} catch (Throwable e) {
-				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), e);
-			}
+	public void onChannelException(IChannel channel, Throwable throwable) {
+		try {
+			final ISessionListener<I, O> listener = listener();
+			if (listener != null)
+				listener.onSessionException(channel, throwable);
+		} catch (Throwable t) {
+			c_logger.error(StrUtil.join(channel, ", unexpected Error: "), t);
+		} finally {
+			channel.close();
 		}
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "resource" })
 	public void onChannelIdleTimedOut(IChannel channel) {
 		c_logger.debug("{}: IDLE_TIMEOUT", channel);
 
-		BiListNode<IChannel> node = null;
+		final BiListNode<IChannel> node;
 		final ReentrantLock lock = m_channelQueueLock;
 		lock.lock();
 		try {
@@ -225,36 +181,27 @@ public final class ConnPool extends AbstractTcpClient implements IIoTask {
 			removeNode(node);
 		} finally {
 			lock.unlock();
-			channel.close();
 		}
-
+		channel.close();
 		node.close();
 	}
 
 	@Override
 	public void onChannelConnectTimedOut(IChannel channel) {
+		final ISessionListener<I, O> listener = listener();
+		if (listener != null)
+			listener.onSessionConnectTimedOut(channel);
 		channel.close();
-		final ISessionListener listener = listener();
-		if (listener != null) {
-			try {
-				listener.onSessionConnectTimedOut(channel);
-			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
-			}
-		}
 	}
 
 	@Override
 	public void onChannelReadTimedOut(IChannel channel) {
+		@SuppressWarnings("unchecked")
+		final O outMsg = (O) channel.withdraw(REQ);
+		final ISessionListener<I, O> listener = listener();
+		if (listener != null)
+			listener.onSessionReadTimedOut(channel, outMsg);
 		channel.close();
-		final ISessionListener listener = listener();
-		if (listener != null) {
-			try {
-				listener.onSessionReadTimedOut(channel);
-			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
-			}
-		}
 	}
 
 	@Override
@@ -277,24 +224,14 @@ public final class ConnPool extends AbstractTcpClient implements IIoTask {
 
 	@Reference(name = "buffer", policy = ReferencePolicy.DYNAMIC)
 	@Override
-	protected synchronized void setBufferFactory(IBufferFactory bf) {
+	protected void setBufferFactory(IBufferFactory bf) {
 		super.setBufferFactory(bf);
-	}
-
-	@Override
-	protected synchronized void unsetBufferFactory(IBufferFactory bf) {
-		super.unsetBufferFactory(bf);
 	}
 
 	@Reference(name = "channelAdmin")
 	@Override
 	protected void setChannelAdmin(IChannelAdmin cm) {
 		super.setChannelAdmin(cm);
-	}
-
-	@Override
-	protected void unsetChannelAdmin(IChannelAdmin cm) {
-		super.unsetChannelAdmin(cm);
 	}
 
 	@Reference(name = "filterManager")
@@ -304,73 +241,25 @@ public final class ConnPool extends AbstractTcpClient implements IIoTask {
 	}
 
 	@Override
-	protected void unsetFilterManager(IFilterManager fm) {
-		super.unsetFilterManager(fm);
-	}
-
-	@Override
 	TcpClientConf configuration() {
 		return m_conf;
 	}
 
 	@Override
 	TcpClientConf updateConf(Map<String, ?> props) {
-		Configuration conf = m_conf;
+		final ConnPoolConf conf = m_conf;
 		if (props == null)
 			m_conf = null;
 		else {
-			Configuration newConf = new Configuration();
+			final ConnPoolConf newConf = new ConnPoolConf();
 			newConf.initialize(props);
 			m_conf = newConf;
 		}
-
 		return conf;
 	}
 
-	/**
-	 * Increments the pool size if it is less than the given {@code limit}.
-	 * 
-	 * @return true if pool size is incremented, otherwise false
-	 */
-	private boolean compareAndIncrement(int limit) {
-		final AtomicInteger poolSize = m_poolSize;
-		int n;
-		while ((n = poolSize.get()) < limit) {
-			if (poolSize.compareAndSet(n, n + 1))
-				return true;
-		}
-		return false;
-	}
-
-	private IChannel fetchChannel() {
-		BiListNode<IChannel> node;
-		IChannel channel;
-		final BiListNode<IChannel> head = m_channelQueueHead;
-		final ReentrantLock lock = m_channelQueueLock;
-		do {
-			lock.lock();
-			try {
-				node = head.next();
-				if (node == head)
-					return null;
-
-				removeNode(node);
-				// The attachement of channel is used to tell whether the bound
-				// node has been removed. So detach operation has to been
-				// synchronized.
-				channel = node.get();
-				channel.detach();
-			} finally {
-				lock.unlock();
-			}
-			node.close();
-		} while (!channel.cancelTimeout());
-
-		return channel;
-	}
-
-	private void poolChannel(IChannel channel) {
-		final Configuration conf = m_conf;
+	void poolChannel(IChannel channel) {
+		final ConnPoolConf conf = m_conf;
 		final int keepAliveTime = conf.idleTimeoutInSeconds();
 		final ReentrantLock lock = m_channelQueueLock;
 		lock.lock();
@@ -391,6 +280,49 @@ public final class ConnPool extends AbstractTcpClient implements IIoTask {
 
 		// keepAliveTime == 0, the channel need be closed immediately
 		channel.close();
+	}
+
+	/**
+	 * Increments the pool size if it is less than the given {@code limit}.
+	 * 
+	 * @return true if pool size is incremented, otherwise false
+	 */
+	private boolean compareAndIncrement(int limit) {
+		final AtomicInteger poolSize = m_poolSize;
+		int n;
+		while ((n = poolSize.get()) < limit) {
+			if (poolSize.compareAndSet(n, n + 1))
+				return true;
+		}
+		return false;
+	}
+
+	@SuppressWarnings("resource")
+	private IChannel fetchChannel() {
+		BiListNode<IChannel> node;
+		IChannel channel;
+		final BiListNode<IChannel> head = m_channelQueueHead;
+		final ReentrantLock lock = m_channelQueueLock;
+		do {
+			lock.lock();
+			try {
+				node = head.next();
+				if (node == head)
+					return null;
+
+				removeNode(node);
+				// The attachment of the channel is used to tell whether the
+				// bound node has been removed. So the detach operation has to
+				// be synchronized.
+				channel = node.get();
+				channel.detach();
+			} finally {
+				lock.unlock();
+			}
+			node.close();
+		} while (!channel.cancelTimeout());
+
+		return channel;
 	}
 
 	private BiListNode<IChannel> newNode(IChannel channel) {

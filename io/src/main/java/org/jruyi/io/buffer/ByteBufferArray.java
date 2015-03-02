@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.buffer;
 
 import java.lang.ref.WeakReference;
@@ -27,7 +28,7 @@ public final class ByteBufferArray {
 
 			@Override
 			protected WeakReference<ByteBufferArray> initialValue() {
-				return new WeakReference<ByteBufferArray>(null);
+				return new WeakReference<>(null);
 			}
 		};
 	}
@@ -40,7 +41,7 @@ public final class ByteBufferArray {
 		ByteBufferArray bba = c_wtl.get().get();
 		if (bba == null) {
 			bba = new ByteBufferArray();
-			c_wtl.set(new WeakReference<ByteBufferArray>(bba));
+			c_wtl.set(new WeakReference<>(bba));
 		}
 		return bba;
 	}

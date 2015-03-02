@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.channel;
 
 import java.nio.ByteBuffer;
@@ -71,9 +72,8 @@ public final class ChannelAdmin implements IChannelAdmin {
 	}
 
 	@Override
-	public void onAccept(ISelectableChannel channel) {
-		channel.ioWorker(getIoThread(channel.id().intValue()));
-		channel.onAccept();
+	public IIoWorker designateIoWorker(ISelectableChannel channel) {
+		return getIoThread(channel.id().intValue());
 	}
 
 	@Override

@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.udp;
 
 import java.lang.reflect.Method;
@@ -103,8 +104,7 @@ public class UdpChannelConf {
 		m_trafficClass = trafficClass;
 	}
 
-	public final boolean isMandatoryChanged(UdpChannelConf newConf,
-			Method[] mProps) throws Exception {
+	public final boolean isMandatoryChanged(UdpChannelConf newConf, Method[] mProps) throws Exception {
 		for (Method m : mProps) {
 			final Object v1 = m.invoke(this);
 			final Object v2 = m.invoke(newConf);

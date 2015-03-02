@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.common.internal;
 
 import java.util.EmptyStackException;
@@ -106,11 +107,10 @@ final class LinkedStack<E> {
 
 	E popInternal() {
 		final ListNode<E> head = m_head;
-		ListNode<E> next = head.next();
-		head.next(next.next());
-		--m_size;
-		E e = next.get();
-		next.close();
-		return e;
+		try (ListNode<E> next = head.next()) {
+			head.next(next.next());
+			--m_size;
+			return next.get();
+		}
 	}
 }

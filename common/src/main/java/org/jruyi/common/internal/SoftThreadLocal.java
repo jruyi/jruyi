@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.common.internal;
 
 import java.lang.ref.SoftReference;
@@ -37,7 +38,7 @@ public abstract class SoftThreadLocal<T> extends ThreadLocal<SoftReference<T>> {
 	 */
 	@Override
 	protected final SoftReference<T> initialValue() {
-		return new SoftReference<T>(null);
+		return new SoftReference<>(null);
 	}
 
 	/**
@@ -52,7 +53,7 @@ public abstract class SoftThreadLocal<T> extends ThreadLocal<SoftReference<T>> {
 		T t = get().get();
 		if (t == null) {
 			t = newValue();
-			set(new SoftReference<T>(t));
+			set(new SoftReference<>(t));
 		}
 		return t;
 	}

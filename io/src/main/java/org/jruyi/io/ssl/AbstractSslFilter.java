@@ -16,7 +16,6 @@ package org.jruyi.io.ssl;
 
 import java.net.InetSocketAddress;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -38,11 +37,9 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(AbstractSslFilter.class);
 
+	private static final int PORT = 28888;
 	private static final int HEADER_SIZE = 5;
 	private static final Object SSL_CODEC = new Object();
-
-	private static final AtomicInteger c_count = new AtomicInteger();
-	private final int m_port = c_count.incrementAndGet();
 
 	private SSLContext m_sslContext;
 	private Configuration m_conf;
@@ -77,6 +74,7 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 			session.deposit(SSL_CODEC, sslCodec);
 		}
 
+		@SuppressWarnings("resource")
 		IBuffer appBuf = netData.newBuffer();
 		try {
 			final SSLEngine engine = sslCodec.engine();
@@ -140,6 +138,7 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 				sslCodec.inception(appData.split(appData.size()));
 		}
 
+		@SuppressWarnings("resource")
 		final IBuffer netBuf = appData.newBuffer();
 		try {
 			final SSLEngine engine = sslCodec.engine();
@@ -229,7 +228,7 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 		} else if (hostname == null)
 			engine = m_sslContext.createSSLEngine();
 		else
-			engine = m_sslContext.createSSLEngine(hostname, m_port);
+			engine = m_sslContext.createSSLEngine(hostname, PORT);
 		engine.setSSLParameters(conf.sslParameters());
 		engine.setUseClientMode(clientMode);
 		return engine;

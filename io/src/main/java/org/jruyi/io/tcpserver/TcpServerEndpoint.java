@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.tcpserver;
 
 import java.util.Map;
@@ -38,12 +39,11 @@ configurationPolicy = ConfigurationPolicy.REQUIRE, //
 service = { IEndpoint.class }, //
 property = { MeConstants.EP_LAZY + ":Boolean=false" }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class TcpServerEndpoint extends SessionListener implements
-		IConsumer, IEndpoint {
+public final class TcpServerEndpoint extends SessionListener<Object, Object> implements IConsumer, IEndpoint {
 
 	private ComponentFactory m_cf;
 	private ComponentInstance m_tcpServer;
-	private ISessionService m_ss;
+	private ISessionService<Object, Object> m_ss;
 	private IProducer m_producer;
 
 	@Override
@@ -76,17 +76,16 @@ public final class TcpServerEndpoint extends SessionListener implements
 	@Override
 	public void onMessage(IMessage message) {
 		try {
-			Object msg = message.detach();
-			ISession session = (ISession) message.withdraw(this);
+			final Object msg = message.detach();
+			final ISession session = (ISession) message.withdraw(this);
 			m_ss.write(session, msg);
 		} finally {
 			message.close();
 		}
 	}
 
-	@Reference(name = "tcpServer", target = "("
-			+ ComponentConstants.COMPONENT_NAME + "="
-			+ IoConstants.CN_TCPSERVER_FACTORY + ")")
+	@Reference(name = "tcpServer", //
+	target = "(" + ComponentConstants.COMPONENT_NAME + "=" + IoConstants.CN_TCPSERVER_FACTORY + ")")
 	protected void setTcpServer(ComponentFactory cf) {
 		m_cf = cf;
 	}
@@ -101,9 +100,9 @@ public final class TcpServerEndpoint extends SessionListener implements
 	}
 
 	protected void activate(Map<String, ?> properties) throws Exception {
-		final ComponentInstance tcpServer = m_cf
-				.newInstance(normalizeConfiguration(properties));
-		final ISessionService ss = (ISessionService) tcpServer.getInstance();
+		final ComponentInstance tcpServer = m_cf.newInstance(normalizeConfiguration(properties));
+		@SuppressWarnings("unchecked")
+		final ISessionService<Object, Object> ss = (ISessionService<Object, Object>) tcpServer.getInstance();
 		ss.setSessionListener(this);
 		m_tcpServer = tcpServer;
 		m_ss = ss;
@@ -116,7 +115,7 @@ public final class TcpServerEndpoint extends SessionListener implements
 	}
 
 	private static Properties normalizeConfiguration(Map<String, ?> properties) {
-		Properties conf = new Properties(properties);
+		final Properties conf = new Properties(properties);
 		conf.put(IoConstants.SERVICE_ID, properties.get(MeConstants.EP_ID));
 		return conf;
 	}

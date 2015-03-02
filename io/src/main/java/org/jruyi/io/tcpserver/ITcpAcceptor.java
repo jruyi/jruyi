@@ -11,9 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.tcpserver;
 
 public interface ITcpAcceptor {
 
-	public void doAccept(TcpServer server) throws Exception;
+	public void doAccept(TcpServer<?, ?> server) throws Exception;
 }

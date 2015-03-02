@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.me.route;
 
 import java.util.Dictionary;
@@ -61,8 +62,7 @@ final class Route implements IRoute, IDumpable {
 		}
 
 		@Override
-		public boolean matchCase(
-				@SuppressWarnings("rawtypes") Dictionary dictionary) {
+		public boolean matchCase(@SuppressWarnings("rawtypes") Dictionary dictionary) {
 			return true;
 		}
 	}
@@ -72,8 +72,7 @@ final class Route implements IRoute, IDumpable {
 		m_to = to.intern();
 	}
 
-	Route(Router router, String to, String filter)
-			throws InvalidSyntaxException {
+	Route(Router router, String to, String filter) throws InvalidSyntaxException {
 		this(router, to);
 		setFilter(filter);
 	}
@@ -105,14 +104,13 @@ final class Route implements IRoute, IDumpable {
 
 	@Override
 	public String toString() {
-		return StrUtil.join("Route[(", m_router.from(), ")->(", m_to, "):",
-				m_filter, "]");
+		return StrUtil.join("Route[(", m_router.from(), ")->(", m_to, "):", m_filter, "]");
 	}
 
 	@Override
 	public void dump(StringBuilder builder) {
-		builder.append("Route[(").append(m_router.from()).append(")->(")
-				.append(m_to).append("):").append(m_filter).append(']');
+		builder.append("Route[(").append(m_router.from()).append(")->(").append(m_to).append("):").append(m_filter)
+				.append(']');
 	}
 
 	boolean matches(Map<String, ?> routingInfo) {

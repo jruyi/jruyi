@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.launcher;
 
 import static org.jruyi.system.Constants.JRUYI_HOME_DIR;
@@ -95,15 +96,12 @@ public final class Main {
 		if (!accessible)
 			addUrl.setAccessible(true);
 
-		final ArrayList<String> pkgList = new ArrayList<String>();
+		final ArrayList<String> pkgList = new ArrayList<>();
 		final File[] jars = getLibJars();
 		for (final File jar : jars) {
 			final String exportPackages;
-			final JarFile jf = new JarFile(jar);
-			try {
+			try (JarFile jf = new JarFile(jar)) {
 				exportPackages = jf.getManifest().getMainAttributes().getValue("Export-Package");
-			} finally {
-				jf.close();
 			}
 			if (exportPackages != null)
 				pkgList.add(exportPackages);
@@ -121,7 +119,7 @@ public final class Main {
 		for (int i = 1; i < n; ++i)
 			builder.append(',').append(pkgList.get(i));
 
-		final HashMap<String, String> props = new HashMap<String, String>(3);
+		final HashMap<String, String> props = new HashMap<>(3);
 		props.put(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA, builder.toString());
 
 		final Class<?> clazz = classLoader.loadClass("org.jruyi.system.main.Ruyi");

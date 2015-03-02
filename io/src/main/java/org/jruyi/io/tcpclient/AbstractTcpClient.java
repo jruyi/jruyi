@@ -40,7 +40,7 @@ import org.jruyi.io.tcp.TcpChannelConf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractTcpClient extends Service implements IChannelService, ISessionService {
+public abstract class AbstractTcpClient<I, O> extends Service implements IChannelService<I, O>, ISessionService<I, O> {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(AbstractTcpClient.class);
 
@@ -50,7 +50,7 @@ public abstract class AbstractTcpClient extends Service implements IChannelServi
 	private IBufferFactory m_bf;
 	private IFilter<?, ?>[] m_filters;
 	private boolean m_closed = true;
-	private ISessionListener m_listener;
+	private ISessionListener<I, O> m_listener;
 	private ConcurrentHashMap<Object, IChannel> m_channels;
 	private final ReentrantReadWriteLock m_lock = new ReentrantReadWriteLock();
 
@@ -70,7 +70,7 @@ public abstract class AbstractTcpClient extends Service implements IChannelServi
 	}
 
 	@Override
-	public void setSessionListener(ISessionListener listener) {
+	public void setSessionListener(ISessionListener<I, O> listener) {
 		m_listener = listener;
 	}
 
@@ -80,7 +80,7 @@ public abstract class AbstractTcpClient extends Service implements IChannelServi
 	}
 
 	@Override
-	public void write(ISession session, Object msg) {
+	public void write(ISession session, O msg) {
 		final IChannel channel = m_channels.get(session.id());
 		if (channel != null) {
 			channel.write(msg);
@@ -187,7 +187,7 @@ public abstract class AbstractTcpClient extends Service implements IChannelServi
 	@Override
 	protected void startInternal() {
 		m_closed = false;
-		m_channels = new ConcurrentHashMap<Object, IChannel>(32);
+		m_channels = new ConcurrentHashMap<>(configuration().initialCapacityOfChannelMap());
 	}
 
 	@Override
@@ -253,19 +253,19 @@ public abstract class AbstractTcpClient extends Service implements IChannelServi
 		return TcpClientConf.getMandatoryPropsAccessors();
 	}
 
-	final ISessionListener listener() {
+	final ISessionListener<I, O> listener() {
 		return m_listener;
 	}
 
 	final void connect() {
-		@SuppressWarnings("resource")
-		final TcpChannel channel = new TcpChannel(this);
+		@SuppressWarnings({ "resource", "unchecked" })
+		final TcpChannel channel = new TcpChannel((IChannelService<Object, Object>) this);
 		channel.connect(configuration().connectTimeoutInSeconds());
 	}
 
 	final void connect(Object attachment) {
-		@SuppressWarnings("resource")
-		final TcpChannel channel = new TcpChannel(this);
+		@SuppressWarnings({ "resource", "unchecked" })
+		final TcpChannel channel = new TcpChannel((IChannelService<Object, Object>) this);
 		channel.attach(attachment);
 		channel.connect(configuration().connectTimeoutInSeconds());
 	}

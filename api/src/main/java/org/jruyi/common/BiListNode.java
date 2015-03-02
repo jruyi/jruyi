@@ -36,14 +36,14 @@ public final class BiListNode<E> implements ICloseable {
 	static final class Stack {
 
 		private static final ThreadLocal<WeakReference<Stack>> m_cache;
-		private final BiListNode<?> m_head = new BiListNode<Object>();
+		private final BiListNode<?> m_head = new BiListNode<>();
 
 		static {
 			m_cache = new ThreadLocal<WeakReference<Stack>>() {
 
 				@Override
 				protected WeakReference<Stack> initialValue() {
-					return new WeakReference<Stack>(null);
+					return new WeakReference<>(null);
 				}
 			};
 		}
@@ -52,7 +52,7 @@ public final class BiListNode<E> implements ICloseable {
 			Stack t = m_cache.get().get();
 			if (t == null) {
 				t = new Stack();
-				m_cache.set(new WeakReference<Stack>(t));
+				m_cache.set(new WeakReference<>(t));
 			}
 			return t;
 		}
@@ -111,7 +111,7 @@ public final class BiListNode<E> implements ICloseable {
 	@SuppressWarnings({ "unchecked" })
 	public static <T> BiListNode<T> create() {
 		Stack stack = Stack.get();
-		return (BiListNode<T>) (stack.isEmpty() ? new BiListNode<Object>() : stack.pop());
+		return (BiListNode<T>) (stack.isEmpty() ? new BiListNode<>() : stack.pop());
 	}
 
 	/**

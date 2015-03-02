@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.osgi.log;
 
 import org.osgi.framework.BundleActivator;
@@ -21,8 +22,7 @@ public final class Activator implements BundleActivator {
 
 	@Override
 	public void start(BundleContext bc) throws Exception {
-		bc.registerService(LogService.class.getName(), new LogServiceFactory(),
-				null);
+		bc.registerService(LogService.class.getName(), new LogServiceFactory(), null);
 	}
 
 	@Override

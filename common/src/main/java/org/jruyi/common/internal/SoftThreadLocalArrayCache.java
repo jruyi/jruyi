@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.common.internal;
 
 import org.jruyi.common.IThreadLocalCache;
@@ -19,7 +20,8 @@ import org.jruyi.common.IThreadLocalCache;
  * This class provides skeletal implementations of providing a thread local
  * cache that is softly reachable.
  *
- * <p> The underlying cache container is backed by an auto-growing array.
+ * <p>
+ * The underlying cache container is backed by an auto-growing array.
  *
  * @see SoftThreadLocalLinkedCache
  * @see WeakThreadLocalArrayCache
@@ -27,8 +29,7 @@ import org.jruyi.common.IThreadLocalCache;
  * @see SoftThreadLocal
  * @see WeakThreadLocal
  */
-final class SoftThreadLocalArrayCache<E>
-		extends SoftThreadLocal<ArrayStack<E>> implements IThreadLocalCache<E> {
+final class SoftThreadLocalArrayCache<E> extends SoftThreadLocal<ArrayStack<E>> implements IThreadLocalCache<E> {
 
 	private final int m_initialCapacity;
 
@@ -44,7 +45,8 @@ final class SoftThreadLocalArrayCache<E>
 	 * Constructs a {@code SoftThreadLocalCache} with the initial capacity of
 	 * the backed array being the given {@code initialCapacity}.
 	 *
-	 * @param initialCapacity the initial capacity.
+	 * @param initialCapacity
+	 *            the initial capacity.
 	 */
 	SoftThreadLocalArrayCache(int initialCapacity) {
 		m_initialCapacity = initialCapacity;
@@ -83,6 +85,6 @@ final class SoftThreadLocalArrayCache<E>
 	 */
 	@Override
 	protected ArrayStack<E> newValue() {
-		return new ArrayStack<E>(m_initialCapacity);
+		return new ArrayStack<>(m_initialCapacity);
 	}
 }

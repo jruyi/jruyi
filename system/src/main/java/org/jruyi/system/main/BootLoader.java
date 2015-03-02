@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.system.main;
 
 import static org.jruyi.system.Constants.JRUYI_INST_DATA_DIR;
@@ -76,7 +77,7 @@ final class BootLoader {
 		fsl.setInitialBundleStartLevel(initialBundleStartLevel);
 
 		final Bundle[] bundles = bundleContext.getBundles();
-		final HashMap<String, Bundle> installedBundles = new HashMap<String, Bundle>(bundles.length);
+		final HashMap<String, Bundle> installedBundles = new HashMap<>(bundles.length);
 		for (final Bundle bundle : bundles) {
 			if (bundle.getBundleId() != 0)
 				installedBundles.put(bundle.getLocation(), bundle);
@@ -143,7 +144,7 @@ final class BootLoader {
 
 	private ArrayList<Bundle> getBundles() {
 		if (m_bundles == null)
-			m_bundles = new ArrayList<Bundle>(80);
+			m_bundles = new ArrayList<>(128);
 
 		return m_bundles;
 	}

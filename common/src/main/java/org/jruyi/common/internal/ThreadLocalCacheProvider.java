@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.common.internal;
 
 import org.jruyi.common.IThreadLocalCache;
@@ -22,32 +23,32 @@ public final class ThreadLocalCacheProvider implements IFactory {
 
 	@Override
 	public <E> IThreadLocalCache<E> softArrayCache() {
-		return new SoftThreadLocalArrayCache<E>();
+		return new SoftThreadLocalArrayCache<>();
 	}
 
 	@Override
 	public <E> IThreadLocalCache<E> softArrayCache(int initialCapacity) {
-		return new SoftThreadLocalArrayCache<E>(initialCapacity);
+		return new SoftThreadLocalArrayCache<>(initialCapacity);
 	}
 
 	@Override
 	public <E> IThreadLocalCache<E> softLinkedCache() {
-		return new SoftThreadLocalLinkedCache<E>();
+		return new SoftThreadLocalLinkedCache<>();
 	}
 
 	@Override
 	public <E> IThreadLocalCache<E> weakArrayCache() {
-		return new WeakThreadLocalArrayCache<E>();
+		return new WeakThreadLocalArrayCache<>();
 	}
 
 	@Override
 	public <E> IThreadLocalCache<E> weakArrayCache(int initialCapacity) {
-		return new WeakThreadLocalArrayCache<E>(initialCapacity);
+		return new WeakThreadLocalArrayCache<>(initialCapacity);
 	}
 
 	@Override
 	public <E> IThreadLocalCache<E> weakLinkedCache() {
-		return new WeakThreadLocalLinkedCache<E>();
+		return new WeakThreadLocalLinkedCache<>();
 	}
 
 	private ThreadLocalCacheProvider() {

@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.cmd.conf;
 
 import java.util.ArrayList;
@@ -43,7 +44,7 @@ public final class PropUtil {
 
 			@Override
 			public Object convertToVector(String[] strs) {
-				Vector<String> vec = new Vector<String>(strs.length);
+				Vector<String> vec = new Vector<>(strs.length);
 				for (String str : strs)
 					vec.add(str);
 				return vec;
@@ -73,7 +74,7 @@ public final class PropUtil {
 
 			@Override
 			public Object convertToVector(String[] strs) {
-				Vector<Long> vec = new Vector<Long>(strs.length);
+				Vector<Long> vec = new Vector<>(strs.length);
 				for (String str : strs)
 					vec.add(Long.valueOf(str));
 				return vec;
@@ -103,7 +104,7 @@ public final class PropUtil {
 
 			@Override
 			public Object convertToVector(String[] strs) {
-				Vector<Integer> vec = new Vector<Integer>(strs.length);
+				Vector<Integer> vec = new Vector<>(strs.length);
 				for (String str : strs)
 					vec.add(Integer.valueOf(str));
 				return vec;
@@ -133,7 +134,7 @@ public final class PropUtil {
 
 			@Override
 			public Object convertToVector(String[] strs) {
-				Vector<Short> vec = new Vector<Short>(strs.length);
+				Vector<Short> vec = new Vector<>(strs.length);
 				for (String str : strs)
 					vec.add(Short.valueOf(str));
 				return vec;
@@ -163,7 +164,7 @@ public final class PropUtil {
 
 			@Override
 			public Object convertToVector(String[] strs) {
-				Vector<Character> vec = new Vector<Character>(strs.length);
+				Vector<Character> vec = new Vector<>(strs.length);
 				for (String str : strs)
 					vec.add(str.charAt(0));
 				return vec;
@@ -193,7 +194,7 @@ public final class PropUtil {
 
 			@Override
 			public Object convertToVector(String[] strs) {
-				Vector<Byte> vec = new Vector<Byte>(strs.length);
+				Vector<Byte> vec = new Vector<>(strs.length);
 				for (String str : strs)
 					vec.add(Byte.valueOf(str));
 				return vec;
@@ -223,7 +224,7 @@ public final class PropUtil {
 
 			@Override
 			public Object convertToVector(String[] strs) {
-				Vector<Double> vec = new Vector<Double>(strs.length);
+				Vector<Double> vec = new Vector<>(strs.length);
 				for (String str : strs)
 					vec.add(Double.valueOf(str));
 				return vec;
@@ -253,7 +254,7 @@ public final class PropUtil {
 
 			@Override
 			public Object convertToVector(String[] strs) {
-				Vector<Float> vec = new Vector<Float>(strs.length);
+				Vector<Float> vec = new Vector<>(strs.length);
 				for (String str : strs)
 					vec.add(Float.valueOf(str));
 				return vec;
@@ -283,7 +284,7 @@ public final class PropUtil {
 
 			@Override
 			public Object convertToVector(String[] strs) {
-				Vector<Boolean> vec = new Vector<Boolean>(strs.length);
+				Vector<Boolean> vec = new Vector<>(strs.length);
 				for (String str : strs)
 					vec.add(Boolean.valueOf(str));
 				return vec;
@@ -448,9 +449,8 @@ public final class PropUtil {
 	}
 
 	private static String[] split(String value) {
-		ArrayList<String> list = new ArrayList<String>();
-		StringBuilder builder = StringBuilder.get();
-		try {
+		ArrayList<String> list = new ArrayList<>();
+		try (StringBuilder builder = StringBuilder.get()) {
 			int n = value.length();
 			boolean filter = true;
 			for (int i = 0; i < n; ++i) {
@@ -478,8 +478,6 @@ public final class PropUtil {
 			addString(list, builder);
 
 			return list.toArray(new String[list.size()]);
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -506,14 +504,11 @@ public final class PropUtil {
 				return;
 		}
 
-		StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append("Illegal Property[").append(id).append('=').append(value).append("]: {");
 			makeStringTo(builder, optionValues);
 			builder.append('}');
 			throw new Exception(builder.toString());
-		} finally {
-			builder.close();
 		}
 	}
 

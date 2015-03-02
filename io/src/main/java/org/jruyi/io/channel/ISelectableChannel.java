@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.channel;
 
 import org.jruyi.common.ICloseable;
@@ -26,8 +27,6 @@ public interface ISelectableChannel extends ICloseable {
 	public void onRead();
 
 	public void onWrite();
-
-	public void ioWorker(IIoWorker ioWorker);
 
 	public void onException(Throwable t);
 

@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.common.internal;
 
 import java.util.PriorityQueue;
@@ -40,13 +41,11 @@ final class ServiceHolder<T> implements IServiceHolder<T> {
 		}
 
 		<T> T activate(ServiceHolder<T> holder) {
-			throw new RuntimeException(StrUtil.join(holder.getId(),
-					" is unavailable"));
+			throw new RuntimeException(StrUtil.join(holder.getId(), " is unavailable"));
 		}
 
 		<T> T getService(ServiceHolder<T> holder) {
-			throw new RuntimeException(StrUtil.join(holder.getId(),
-					" is unavailable"));
+			throw new RuntimeException(StrUtil.join(holder.getId(), " is unavailable"));
 		}
 
 		<T> void deactivate(ServiceHolder<T> holder) {
@@ -145,7 +144,7 @@ final class ServiceHolder<T> implements IServiceHolder<T> {
 	ServiceHolder(String name, BundleContext context) {
 		m_name = name;
 		m_context = context;
-		m_references = new PriorityQueue<ServiceReference<T>>(3);
+		m_references = new PriorityQueue<>(3);
 		m_lock = new ReentrantLock();
 	}
 

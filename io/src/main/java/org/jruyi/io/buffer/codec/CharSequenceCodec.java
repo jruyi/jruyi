@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.buffer.codec;
 
 import java.nio.CharBuffer;
@@ -25,18 +26,12 @@ import org.jruyi.io.buffer.Helper;
 
 public final class CharSequenceCodec extends AbstractCodec<CharSequence> {
 
-	public static final ICodec<CharSequence> UTF_8 = new CharSequenceCodec(
-			CharsetCodec.UTF_8);
-	public static final ICodec<CharSequence> UTF_16 = new CharSequenceCodec(
-			CharsetCodec.UTF_16);
-	public static final ICodec<CharSequence> UTF_16LE = new CharSequenceCodec(
-			CharsetCodec.UTF_16LE);
-	public static final ICodec<CharSequence> UTF_16BE = new CharSequenceCodec(
-			CharsetCodec.UTF_16BE);
-	public static final ICodec<CharSequence> US_ASCII = new CharSequenceCodec(
-			CharsetCodec.US_ASCII);
-	public static final ICodec<CharSequence> ISO_8859_1 = new CharSequenceCodec(
-			CharsetCodec.ISO_8859_1);
+	public static final ICodec<CharSequence> UTF_8 = new CharSequenceCodec(CharsetCodec.UTF_8);
+	public static final ICodec<CharSequence> UTF_16 = new CharSequenceCodec(CharsetCodec.UTF_16);
+	public static final ICodec<CharSequence> UTF_16LE = new CharSequenceCodec(CharsetCodec.UTF_16LE);
+	public static final ICodec<CharSequence> UTF_16BE = new CharSequenceCodec(CharsetCodec.UTF_16BE);
+	public static final ICodec<CharSequence> US_ASCII = new CharSequenceCodec(CharsetCodec.US_ASCII);
+	public static final ICodec<CharSequence> ISO_8859_1 = new CharSequenceCodec(CharsetCodec.ISO_8859_1);
 
 	private final String m_charsetName;
 
@@ -58,8 +53,7 @@ public final class CharSequenceCodec extends AbstractCodec<CharSequence> {
 	}
 
 	@Override
-	public void write(CharSequence cs, int offset, int length,
-			IUnitChain unitChain) {
+	public void write(CharSequence cs, int offset, int length, IUnitChain unitChain) {
 		final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
 		final CharBuffer cb;
 		if (cs instanceof StringBuilder)
@@ -77,21 +71,18 @@ public final class CharSequenceCodec extends AbstractCodec<CharSequence> {
 			return;
 		}
 
-		final CharBuffer cb = cs instanceof CharBuffer ? (CharBuffer) cs
-				: CharBuffer.wrap(cs);
+		final CharBuffer cb = cs instanceof CharBuffer ? (CharBuffer) cs : CharBuffer.wrap(cs);
 		Helper.prepend(cc, cb, unitChain);
 	}
 
 	@Override
-	public void prepend(CharSequence cs, int offset, int length,
-			IUnitChain unitChain) {
+	public void prepend(CharSequence cs, int offset, int length, IUnitChain unitChain) {
 		final ICharsetCodec cc = CharsetCodec.get(m_charsetName);
 		if (cs instanceof StringBuilder) {
 			Helper.prepend(cc, (StringBuilder) cs, offset, length, unitChain);
 			return;
 		}
 
-		Helper.prepend(cc, CharBuffer.wrap(cs, offset, offset + length),
-				unitChain);
+		Helper.prepend(cc, CharBuffer.wrap(cs, offset, offset + length), unitChain);
 	}
 }

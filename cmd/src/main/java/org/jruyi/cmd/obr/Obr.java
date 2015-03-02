@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.cmd.obr;
 
 import java.lang.reflect.Array;
@@ -166,8 +167,7 @@ public final class Obr extends ServiceTracker<RepositoryAdmin, Object> {
 		final RepositoryAdmin ra = (RepositoryAdmin) getService();
 		final Resource[] resources;
 		// Create a filter that will match presentation name or symbolic name.
-		StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			if (args == null || args.length < 1)
 				builder.append("(|(presentationname=*)(symbolicname=*))");
 			else {
@@ -179,8 +179,6 @@ public final class Obr extends ServiceTracker<RepositoryAdmin, Object> {
 			}
 			// Use filter to get matching resources.
 			resources = ra.discoverResources(builder.toString());
-		} finally {
-			builder.close();
 		}
 
 		if (resources == null || resources.length == 0) {
@@ -366,8 +364,7 @@ public final class Obr extends ServiceTracker<RepositoryAdmin, Object> {
 
 		// The targetId may be a bundle name or a bundle symbolic name,
 		// so create the appropriate LDAP query.
-		StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			if (targetVersion != null)
 				builder.append("(&");
 
@@ -384,8 +381,6 @@ public final class Obr extends ServiceTracker<RepositoryAdmin, Object> {
 			}
 
 			return ra.discoverResources(builder.toString());
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -395,9 +390,8 @@ public final class Obr extends ServiceTracker<RepositoryAdmin, Object> {
 		System.out.println(resource.getPresentationName());
 		printUnderlineString(n);
 
-		@SuppressWarnings("unchecked")
-		final Map<Object, Object> map = resource.getProperties();
-		for (Map.Entry<Object, Object> entry : map.entrySet()) {
+		final Map<?, ?> map = resource.getProperties();
+		for (Map.Entry<?, ?> entry : map.entrySet()) {
 			System.out.print(entry.getKey());
 			System.out.println(":");
 			Object value = entry.getValue();
@@ -467,7 +461,7 @@ public final class Obr extends ServiceTracker<RepositoryAdmin, Object> {
 
 	private static HashSet<String> addToUninstall(HashSet<String> bundlesToUninstall, Resource[] resources) {
 		if (bundlesToUninstall == null)
-			bundlesToUninstall = new HashSet<String>();
+			bundlesToUninstall = new HashSet<>();
 		for (Resource resource : resources)
 			bundlesToUninstall.add(resource.getSymbolicName());
 		return bundlesToUninstall;

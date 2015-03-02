@@ -58,9 +58,9 @@ public class BufferTest {
 		final float v = 3.14F;
 		int t = Float.floatToIntBits(v);
 		final byte[] r1 = {
-			(byte) (t >> 24), (byte) (t >> 16), (byte) (t >> 8), (byte) t };
+				(byte) (t >> 24), (byte) (t >> 16), (byte) (t >> 8), (byte) t };
 		final byte[] r2 = {
-			(byte) t, (byte) (t >> 8), (byte) (t >> 16), (byte) (t >> 24) };
+				(byte) t, (byte) (t >> 8), (byte) (t >> 16), (byte) (t >> 24) };
 		final int n = bytes.length;
 		for (int i = 1; i < n + 10; ++i) {
 			BufferFactory factory = initializeFactory(i);
@@ -121,11 +121,12 @@ public class BufferTest {
 		final double v = 3.14F;
 		long t = Double.doubleToLongBits(v);
 		final byte[] r1 = {
-			(byte) (t >> 56), (byte) (t >> 48), (byte) (t >> 40), (byte) (t >> 32), (byte) (t >> 24), (byte) (t >> 16),
-			(byte) (t >> 8), (byte) t };
+				(byte) (t >> 56), (byte) (t >> 48), (byte) (t >> 40), (byte) (t >> 32), (byte) (t >> 24),
+				(byte) (t >> 16),
+				(byte) (t >> 8), (byte) t };
 		final byte[] r2 = {
-			(byte) t, (byte) (t >> 8), (byte) (t >> 16), (byte) (t >> 24), (byte) (t >> 32), (byte) (t >> 40),
-			(byte) (t >> 48), (byte) (t >> 56) };
+				(byte) t, (byte) (t >> 8), (byte) (t >> 16), (byte) (t >> 24), (byte) (t >> 32), (byte) (t >> 40),
+				(byte) (t >> 48), (byte) (t >> 56) };
 		final int n = bytes.length;
 		for (int i = 1; i < n + 10; ++i) {
 			BufferFactory factory = initializeFactory(i);
@@ -187,11 +188,11 @@ public class BufferTest {
 		final int size = sizeOfVarint(v);
 		final int t = 0x12345678;
 		final byte[] r1 = {
-			0x12, 0x34, 0x56, 0x78 };
+				0x12, 0x34, 0x56, 0x78 };
 		final byte[] r2 = {
-			0x78, 0x56, 0x34, 0x12 };
+				0x78, 0x56, 0x34, 0x12 };
 		final byte[] r3 = {
-			(byte) 0xF8, (byte) 0xAC, (byte) 0xD1, (byte) 0x91, 0x01 };
+				(byte) 0xF8, (byte) 0xAC, (byte) 0xD1, (byte) 0x91, 0x01 };
 		final int n = bytes.length;
 		for (int i = 1; i < n + 10 + size; ++i) {
 			BufferFactory factory = initializeFactory(i);
@@ -271,11 +272,11 @@ public class BufferTest {
 		final int size = sizeOfVarint(v & 0xFFFF);
 		final short t = 0x1234;
 		final byte[] r1 = {
-			0x12, 0x34 };
+				0x12, 0x34 };
 		final byte[] r2 = {
-			0x34, 0x12 };
+				0x34, 0x12 };
 		final byte[] r3 = {
-			(byte) 0xb4, 0x24 };
+				(byte) 0xb4, 0x24 };
 		final int n = bytes.length;
 		for (int i = 1; i < n + 9 + 2 * size; ++i) {
 			BufferFactory factory = initializeFactory(i);
@@ -370,12 +371,12 @@ public class BufferTest {
 		final int size = sizeOfVarint(v);
 		final long t = 0x1234567890abcdefL;
 		final byte[] r1 = {
-			0x12, 0x34, 0x56, 0x78, (byte) 0x90, (byte) 0xab, (byte) 0xcd, (byte) 0xef };
+				0x12, 0x34, 0x56, 0x78, (byte) 0x90, (byte) 0xab, (byte) 0xcd, (byte) 0xef };
 		final byte[] r2 = {
-			(byte) 0xef, (byte) 0xcd, (byte) 0xab, (byte) 0x90, 0x78, 0x56, 0x34, 0x12 };
+				(byte) 0xef, (byte) 0xcd, (byte) 0xab, (byte) 0x90, 0x78, 0x56, 0x34, 0x12 };
 		final byte[] r3 = {
-			(byte) 0xef, (byte) 0x9b, (byte) 0xaf, (byte) 0x85, (byte) 0x89, (byte) 0xcf, (byte) 0x95, (byte) 0x9a,
-			0x12 };
+				(byte) 0xef, (byte) 0x9b, (byte) 0xaf, (byte) 0x85, (byte) 0x89, (byte) 0xcf, (byte) 0x95, (byte) 0x9a,
+				0x12 };
 		final int n = bytes.length;
 		for (int i = 1; i < n + 17 + size; ++i) {
 			BufferFactory factory = initializeFactory(i);
@@ -498,39 +499,40 @@ public class BufferTest {
 		for (int i = 1; i < bytes.length + 2; ++i) {
 			BufferFactory factory = initializeFactory(i);
 
-			IBuffer buffer = factory.create();
-			buffer.write(target, Codec.byteArray());
-			Assert.assertEquals(-1, buffer.indexOf(bytes));
-			buffer.close();
-
-			buffer = factory.create();
-			buffer.write(bytes, Codec.byteArray());
-
-			Assert.assertEquals(-1, buffer.indexOf((byte) bytes.length, 0));
-
-			n = b & 0xFF;
-			for (int j = -1; j <= n; ++j) {
-				Assert.assertEquals(n, buffer.indexOf(b, j));
-
-				Assert.assertEquals(j < 0 ? 0 : j, buffer.indexOf(zeroBytes, j));
-				Assert.assertEquals(j < 0 ? 0 : j, buffer.indexOf(emptyKmp, j));
-
-				Assert.assertEquals(n, buffer.indexOf(target, j));
-				Assert.assertEquals(n, buffer.indexOf(kmp, j));
+			try (IBuffer buffer = factory.create()) {
+				buffer.write(target, Codec.byteArray());
+				Assert.assertEquals(-1, buffer.indexOf(bytes));
 			}
 
-			Assert.assertEquals(n, buffer.indexOf(target, n));
-			Assert.assertEquals(n, buffer.indexOf(kmp, n));
+			try (IBuffer buffer = factory.create()) {
+				buffer.write(bytes, Codec.byteArray());
 
-			n = bytes.length + 1;
-			for (int j = (b & 0xFF) + 1; j <= n; ++j) {
-				Assert.assertEquals(-1, buffer.indexOf(b, j));
+				Assert.assertEquals(-1, buffer.indexOf((byte) bytes.length, 0));
 
-				Assert.assertEquals(j > bytes.length ? bytes.length : j, buffer.indexOf(zeroBytes, j));
-				Assert.assertEquals(j > bytes.length ? bytes.length : j, buffer.indexOf(emptyKmp, j));
+				n = b & 0xFF;
+				for (int j = -1; j <= n; ++j) {
+					Assert.assertEquals(n, buffer.indexOf(b, j));
 
-				Assert.assertEquals(-1, buffer.indexOf(target, j));
-				Assert.assertEquals(-1, buffer.indexOf(kmp, j));
+					Assert.assertEquals(j < 0 ? 0 : j, buffer.indexOf(zeroBytes, j));
+					Assert.assertEquals(j < 0 ? 0 : j, buffer.indexOf(emptyKmp, j));
+
+					Assert.assertEquals(n, buffer.indexOf(target, j));
+					Assert.assertEquals(n, buffer.indexOf(kmp, j));
+				}
+
+				Assert.assertEquals(n, buffer.indexOf(target, n));
+				Assert.assertEquals(n, buffer.indexOf(kmp, n));
+
+				n = bytes.length + 1;
+				for (int j = (b & 0xFF) + 1; j <= n; ++j) {
+					Assert.assertEquals(-1, buffer.indexOf(b, j));
+
+					Assert.assertEquals(j > bytes.length ? bytes.length : j, buffer.indexOf(zeroBytes, j));
+					Assert.assertEquals(j > bytes.length ? bytes.length : j, buffer.indexOf(emptyKmp, j));
+
+					Assert.assertEquals(-1, buffer.indexOf(target, j));
+					Assert.assertEquals(-1, buffer.indexOf(kmp, j));
+				}
 			}
 		}
 	}
@@ -557,35 +559,36 @@ public class BufferTest {
 		for (int i = 1; i < bytes.length + 2; ++i) {
 			BufferFactory factory = initializeFactory(i);
 
-			IBuffer buffer = factory.create();
-			buffer.write(target, Codec.byteArray());
-			Assert.assertEquals(-1, buffer.lastIndexOf(bytes));
-			buffer.close();
-
-			buffer = factory.create();
-			buffer.write(bytes, Codec.byteArray());
-
-			Assert.assertEquals(-1, buffer.lastIndexOf((byte) bytes.length, buffer.size()));
-
-			n = b & 0xFF;
-			for (int j = -1; j < n; ++j) {
-				Assert.assertEquals(-1, buffer.lastIndexOf(b, j));
-
-				Assert.assertEquals(j < -1 ? 0 : j, buffer.lastIndexOf(zeroBytes, j));
-				Assert.assertEquals(j < -1 ? 0 : j, buffer.lastIndexOf(emptyKmp, j));
-
-				Assert.assertEquals(-1, buffer.lastIndexOf(target, j));
-				Assert.assertEquals(-1, buffer.lastIndexOf(kmp, j));
+			try (IBuffer buffer = factory.create()) {
+				buffer.write(target, Codec.byteArray());
+				Assert.assertEquals(-1, buffer.lastIndexOf(bytes));
 			}
 
-			for (int j = n; j <= bytes.length + 1; ++j) {
-				Assert.assertEquals(n, buffer.lastIndexOf(b, j));
+			try (IBuffer buffer = factory.create()) {
+				buffer.write(bytes, Codec.byteArray());
 
-				Assert.assertEquals(j > bytes.length ? bytes.length : j, buffer.lastIndexOf(zeroBytes, j));
-				Assert.assertEquals(j > bytes.length ? bytes.length : j, buffer.lastIndexOf(emptyKmp, j));
+				Assert.assertEquals(-1, buffer.lastIndexOf((byte) bytes.length, buffer.size()));
 
-				Assert.assertEquals(n, buffer.lastIndexOf(target, j));
-				Assert.assertEquals(n, buffer.lastIndexOf(kmp, j));
+				n = b & 0xFF;
+				for (int j = -1; j < n; ++j) {
+					Assert.assertEquals(-1, buffer.lastIndexOf(b, j));
+
+					Assert.assertEquals(j < -1 ? 0 : j, buffer.lastIndexOf(zeroBytes, j));
+					Assert.assertEquals(j < -1 ? 0 : j, buffer.lastIndexOf(emptyKmp, j));
+
+					Assert.assertEquals(-1, buffer.lastIndexOf(target, j));
+					Assert.assertEquals(-1, buffer.lastIndexOf(kmp, j));
+				}
+
+				for (int j = n; j <= bytes.length + 1; ++j) {
+					Assert.assertEquals(n, buffer.lastIndexOf(b, j));
+
+					Assert.assertEquals(j > bytes.length ? bytes.length : j, buffer.lastIndexOf(zeroBytes, j));
+					Assert.assertEquals(j > bytes.length ? bytes.length : j, buffer.lastIndexOf(emptyKmp, j));
+
+					Assert.assertEquals(n, buffer.lastIndexOf(target, j));
+					Assert.assertEquals(n, buffer.lastIndexOf(kmp, j));
+				}
 			}
 		}
 	}

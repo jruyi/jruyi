@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.udpclient;
 
 import java.util.Map;
@@ -37,12 +38,11 @@ import org.osgi.service.component.annotations.Reference;
 configurationPolicy = ConfigurationPolicy.REQUIRE, //
 service = { IEndpoint.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class UdpClientEndpoint extends SessionListener implements
-		IConsumer, IEndpoint {
+public final class UdpClientEndpoint extends SessionListener<Object, Object> implements IConsumer, IEndpoint {
 
 	private ComponentFactory m_cf;
 	private ComponentInstance m_udpClient;
-	private ISessionService m_ss;
+	private ISessionService<Object, Object> m_ss;
 	private IProducer m_producer;
 
 	@Override
@@ -58,8 +58,8 @@ public final class UdpClientEndpoint extends SessionListener implements
 	@Override
 	public void onMessage(IMessage message) {
 		try {
-			Object msg = message.detach();
-			m_ss.write(null, msg);
+			final Object outMsg = message.detach();
+			m_ss.write(null, outMsg);
 		} finally {
 			message.close();
 		}
@@ -73,9 +73,8 @@ public final class UdpClientEndpoint extends SessionListener implements
 		producer.send(message);
 	}
 
-	@Reference(name = "udpClient", target = "("
-			+ ComponentConstants.COMPONENT_NAME + "="
-			+ IoConstants.CN_UDPCLIENT_FACTORY + ")")
+	@Reference(name = "udpClient", //
+	target = "(" + ComponentConstants.COMPONENT_NAME + "=" + IoConstants.CN_UDPCLIENT_FACTORY + ")")
 	protected void setUdpClient(ComponentFactory cf) {
 		m_cf = cf;
 	}
@@ -90,15 +89,11 @@ public final class UdpClientEndpoint extends SessionListener implements
 	}
 
 	protected void activate(Map<String, ?> properties) throws Exception {
-		final ComponentInstance udpClient = m_cf
-				.newInstance(normalizeConfiguration(properties));
-		final ISessionService ss = (ISessionService) udpClient.getInstance();
+		final ComponentInstance udpClient = m_cf.newInstance(normalizeConfiguration(properties));
+		@SuppressWarnings("unchecked")
+		final ISessionService<Object, Object> ss = (ISessionService<Object, Object>) udpClient.getInstance();
 		ss.setSessionListener(this);
-		try {
-			ss.start();
-		} catch (Throwable t) {
-			// ignore
-		}
+		ss.start();
 		m_udpClient = udpClient;
 		m_ss = ss;
 	}

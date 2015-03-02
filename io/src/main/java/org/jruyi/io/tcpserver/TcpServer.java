@@ -52,7 +52,7 @@ import org.slf4j.LoggerFactory;
 factory = "tcpserver", //
 service = { IService.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class TcpServer extends Service implements IChannelService, ISessionService {
+public final class TcpServer<I, O> extends Service implements IChannelService<I, O>, ISessionService<I, O> {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(TcpServer.class);
 
@@ -67,12 +67,12 @@ public final class TcpServer extends Service implements IChannelService, ISessio
 
 	private IFilter<?, ?>[] m_filters;
 	private boolean m_closed;
-	private ISessionListener m_listener;
+	private ISessionListener<I, O> m_listener;
 	private ConcurrentHashMap<Object, IChannel> m_channels;
 	private final ReentrantReadWriteLock m_lock = new ReentrantReadWriteLock();
 
 	@Override
-	public void setSessionListener(ISessionListener listener) {
+	public void setSessionListener(ISessionListener<I, O> listener) {
 		m_listener = listener;
 	}
 
@@ -106,11 +106,9 @@ public final class TcpServer extends Service implements IChannelService, ISessio
 		try {
 			c_logger.debug("{}: IDLE_TIMEOUT", channel);
 
-			final ISessionListener listener = m_listener;
+			final ISessionListener<I, O> listener = m_listener;
 			if (listener != null)
 				listener.onSessionIdleTimedOut(channel);
-		} catch (Throwable t) {
-			c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
 		} finally {
 			channel.close();
 		}
@@ -129,9 +127,9 @@ public final class TcpServer extends Service implements IChannelService, ISessio
 	@Override
 	public void onChannelException(IChannel channel, Throwable t) {
 		try {
-			c_logger.error(StrUtil.join(channel, " got an error"), t);
+			c_logger.error(StrUtil.join(channel, "(remoteAddr=", channel.remoteAddress(), ") got an error"), t);
 
-			final ISessionListener listener = m_listener;
+			final ISessionListener<I, O> listener = m_listener;
 			if (listener != null)
 				listener.onSessionException(channel, t);
 		} catch (Throwable e) {
@@ -169,7 +167,7 @@ public final class TcpServer extends Service implements IChannelService, ISessio
 		if (!scheduleIdleTimeout(channel))
 			return;
 
-		final ISessionListener listener = m_listener;
+		final ISessionListener<I, O> listener = m_listener;
 		if (listener != null)
 			listener.onSessionOpened(channel);
 	}
@@ -182,7 +180,7 @@ public final class TcpServer extends Service implements IChannelService, ISessio
 		if (channels != null)
 			channels.remove(channel.id());
 
-		final ISessionListener listener = m_listener;
+		final ISessionListener<I, O> listener = m_listener;
 		if (listener != null) {
 			try {
 				listener.onSessionClosed(channel);
@@ -193,31 +191,21 @@ public final class TcpServer extends Service implements IChannelService, ISessio
 	}
 
 	@Override
-	public void onMessageReceived(IChannel channel, Object msg) {
+	public void onMessageReceived(IChannel channel, I inMsg) {
 		// failed to reschedule, channel timed out
 		if (!scheduleIdleTimeout(channel))
 			return;
 
-		final ISessionListener listener = m_listener;
-		if (listener != null) {
-			try {
-				listener.onMessageReceived(channel, msg);
-			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
-			}
-		}
+		final ISessionListener<I, O> listener = m_listener;
+		if (listener != null)
+			listener.onMessageReceived(channel, inMsg);
 	}
 
 	@Override
-	public void onMessageSent(IChannel channel, Object msg) {
-		final ISessionListener listener = m_listener;
-		if (listener != null) {
-			try {
-				listener.onMessageSent(channel, msg);
-			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
-			}
-		}
+	public void onMessageSent(IChannel channel, O outMsg) {
+		final ISessionListener<I, O> listener = m_listener;
+		if (listener != null)
+			listener.onMessageSent(channel, outMsg);
 	}
 
 	@Override
@@ -231,12 +219,12 @@ public final class TcpServer extends Service implements IChannelService, ISessio
 	}
 
 	@Override
-	public void write(ISession session, Object msg) {
+	public void write(ISession session, O msg) {
 		final ConcurrentHashMap<Object, IChannel> channels = m_channels;
 		if (channels == null)
 			return;
 
-		IChannel channel = channels.get(session.id());
+		final IChannel channel = channels.get(session.id());
 		if (channel != null) {
 			channel.write(msg);
 			return;
@@ -251,8 +239,6 @@ public final class TcpServer extends Service implements IChannelService, ISessio
 				c_logger.error(StrUtil.join(session, " failed to close message: ", StrUtil.getLineSeparator(), msg), t);
 			}
 		}
-
-		// TODO: need notify failure on writing out?
 	}
 
 	@Override
@@ -268,7 +254,7 @@ public final class TcpServer extends Service implements IChannelService, ISessio
 			bindAddr = InetAddress.getByName(host);
 
 		if (m_channels == null)
-			m_channels = new ConcurrentHashMap<Object, IChannel>(conf.initCapacityOfChannelMap());
+			m_channels = new ConcurrentHashMap<>(conf.initCapacityOfChannelMap());
 
 		ServerSocketChannel ssc = ServerSocketChannel.open();
 		try {

@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.textline;
 
 import java.util.Map;
@@ -52,11 +53,10 @@ public final class TextLineFilter extends Filter<Object, Object> {
 		if (v == null)
 			v = CharsetCodec.UTF_8;
 
-		ICharsetCodec codec = CharsetCodec.get(v);
+		final ICharsetCodec codec = CharsetCodec.get(v);
 
 		v = (String) properties.get("lineTerminator");
-		LineTerminator lineTerminator = v == null ? LineTerminator.CRLF
-				: LineTerminator.valueOf(v);
+		final LineTerminator lineTerminator = v == null ? LineTerminator.CRLF : LineTerminator.valueOf(v);
 
 		m_lineTerminator = codec.encode(lineTerminator.getValue());
 	}
@@ -68,8 +68,7 @@ public final class TextLineFilter extends Filter<Object, Object> {
 
 enum LineTerminator {
 
-	CR(new char[] { '\r' }), LF(new char[] { '\n' }), CRLF(new char[] { '\r',
-			'\n' });
+	CR(new char[] { '\r' }), LF(new char[] { '\n' }), CRLF(new char[] { '\r', '\n' });
 
 	private final char[] m_value;
 

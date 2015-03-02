@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.cli;
 
 import java.io.StringWriter;
@@ -70,7 +71,7 @@ public final class CommandCompleter implements Completer {
 
 	private static SortedSet<String> createCommandSet(String commandStr) {
 		final String[] commands = commandStr.split("\n");
-		final SortedSet<String> cmdSet = new TreeSet<String>();
+		final SortedSet<String> cmdSet = new TreeSet<>();
 		for (String command : commands) {
 			command = command.trim();
 			if (!command.isEmpty()) {

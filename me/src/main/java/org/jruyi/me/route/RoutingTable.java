@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.me.route;
 
 import java.io.File;
@@ -32,7 +33,7 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 
 @Component(name = "jruyi.me.route", //
 configurationPolicy = ConfigurationPolicy.IGNORE, //
-property = { CommandProcessor.COMMAND_SCOPE + "=route",
+property = { CommandProcessor.COMMAND_SCOPE + "=route", //
 		CommandProcessor.COMMAND_FUNCTION + "=clear", //
 		CommandProcessor.COMMAND_FUNCTION + "=delete", //
 		CommandProcessor.COMMAND_FUNCTION + "=list", //
@@ -99,8 +100,7 @@ public final class RoutingTable implements IRoutingTable, IRouterManager {
 	 * @throws Exception
 	 */
 	public void set(String from, String to, String[] args) throws Exception {
-		final Filter filter = args != null && args.length > 0 ? FrameworkUtil
-				.createFilter(args[0]) : null;
+		final Filter filter = args != null && args.length > 0 ? FrameworkUtil.createFilter(args[0]) : null;
 		final IRouteSet router = getRouteSet(from);
 		if (filter == null)
 			router.setRoute(to);
@@ -120,8 +120,7 @@ public final class RoutingTable implements IRoutingTable, IRouterManager {
 	public void list(String[] args) throws Exception {
 		if (args == null || args.length < 1) {
 			final IRouteSet[] routeSets = getAllRouteSets();
-			final ArrayList<IRoute[]> routeSetList = new ArrayList<IRoute[]>(
-					routeSets.length);
+			final ArrayList<IRoute[]> routeSetList = new ArrayList<>(routeSets.length);
 			IRoute[] routes;
 			int n = 0;
 			for (IRouteSet routeSet : routeSets) {
@@ -204,24 +203,21 @@ public final class RoutingTable implements IRoutingTable, IRouterManager {
 
 	protected void activate(BundleContext bundleContext) throws Exception {
 		final String location = bundleContext.getProperty(ROUTINGTABLE_DIR);
-		File routeTableDir = location == null ? bundleContext
-				.getDataFile(DEFAULT_ROUTINGTABLE_LOCATION)
-				: new File(location);
+		File routeTableDir = location == null ? bundleContext.getDataFile(DEFAULT_ROUTINGTABLE_LOCATION) : new File(
+				location);
 
 		// Fall back to the current working directory
 		// if the platform does not have file system support
 		if (routeTableDir == null)
-			routeTableDir = new File(bundleContext.getProperty("user.dir")
-					+ File.separator + DEFAULT_ROUTINGTABLE_LOCATION);
+			routeTableDir = new File(bundleContext.getProperty("user.dir") + File.separator
+					+ DEFAULT_ROUTINGTABLE_LOCATION);
 
 		routeTableDir = routeTableDir.getCanonicalFile();
 		if (routeTableDir.exists()) {
 			if (!routeTableDir.isDirectory())
-				throw new Exception(StrUtil.join(routeTableDir,
-						" is not a directory"));
+				throw new Exception(StrUtil.join(routeTableDir, " is not a directory"));
 		} else if (!routeTableDir.mkdirs())
-			throw new Exception(StrUtil.join("Cannot create directory ",
-					routeTableDir));
+			throw new Exception(StrUtil.join("Cannot create directory ", routeTableDir));
 
 		Router.setRoutingTableDir(routeTableDir);
 		m_routers = load(routeTableDir);
@@ -232,12 +228,10 @@ public final class RoutingTable implements IRoutingTable, IRouterManager {
 		m_routers = null;
 	}
 
-	private static ConcurrentHashMap<String, Router> load(File routeTableDir)
-			throws IOException {
+	private static ConcurrentHashMap<String, Router> load(File routeTableDir) throws IOException {
 		final File[] files = routeTableDir.listFiles(new NonDirFileFilter());
 		final int size = files.length < 1024 ? 1024 : files.length;
-		final ConcurrentHashMap<String, Router> routers = new ConcurrentHashMap<String, Router>(
-				size);
+		final ConcurrentHashMap<String, Router> routers = new ConcurrentHashMap<>(size);
 		for (File file : files) {
 			final Router router = Router.load(file);
 			routers.put(router.from(), router);

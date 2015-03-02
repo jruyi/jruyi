@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.me.mq;
 
 import java.util.concurrent.locks.ReentrantLock;
@@ -31,14 +32,13 @@ final class LinkedBlockingQueue {
 	}
 
 	public void put(Message message) throws InterruptedException {
-		ListNode<Message> node = ListNode.create();
+		final ListNode<Message> node = ListNode.create();
 		node.set(message);
 		final ReentrantLock putLock = m_putLock;
 		putLock.lockInterruptibly();
 		try {
 			m_tail.next(node);
 			m_tail = node;
-			// m_notEmpty.signal();
 		} finally {
 			putLock.unlock();
 		}
@@ -48,14 +48,11 @@ final class LinkedBlockingQueue {
 	 * In our case, the queue won't be empty when this method is called.
 	 */
 	public Message take() throws InterruptedException {
-		ListNode<Message> node = null;
-		Message msg = null;
+		final ListNode<Message> node;
+		final Message msg;
 		final ReentrantLock takeLock = m_takeLock;
 		takeLock.lockInterruptibly();
 		try {
-			// If the queue is empty, then wait
-			// while (m_head == m_tail)
-			//	m_notEmpty.await();
 			node = m_head;
 			ListNode<Message> head = node.next();
 			m_head = head;

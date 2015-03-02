@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.common.internal;
 
 import java.util.HashMap;
@@ -40,19 +41,18 @@ public final class ServiceHolderManagerProvider implements IFactory {
 		}
 	}
 
-	static final class ServiceHolderTracker<T> extends
-			ServiceTracker<T, NameHolder> implements IServiceHolderManager<T> {
+	static final class ServiceHolderTracker<T> extends ServiceTracker<T, NameHolder> implements
+			IServiceHolderManager<T> {
 
 		private final String m_nameOfId;
 		private final ReentrantLock m_lock;
 		private final HashMap<String, ServiceHolder<T>> m_holders;
 
-		ServiceHolderTracker(BundleContext context, Filter filter,
-				String nameOfId) {
+		ServiceHolderTracker(BundleContext context, Filter filter, String nameOfId) {
 			super(context, filter, null);
 			m_nameOfId = nameOfId;
 			m_lock = new ReentrantLock();
-			m_holders = new HashMap<String, ServiceHolder<T>>(128);
+			m_holders = new HashMap<>(128);
 		}
 
 		@Override
@@ -64,8 +64,7 @@ public final class ServiceHolderManagerProvider implements IFactory {
 		}
 
 		@Override
-		public void modifiedService(ServiceReference<T> reference,
-				NameHolder nameHolder) {
+		public void modifiedService(ServiceReference<T> reference, NameHolder nameHolder) {
 			String name = getName(reference);
 			if (nameHolder.m_name.equals(name))
 				return;
@@ -79,8 +78,7 @@ public final class ServiceHolderManagerProvider implements IFactory {
 		}
 
 		@Override
-		public void removedService(ServiceReference<T> reference,
-				NameHolder nameHolder) {
+		public void removedService(ServiceReference<T> reference, NameHolder nameHolder) {
 			String name = nameHolder.m_name;
 			ServiceHolder<T> holder = ungetServiceHolder(name);
 			holder.remove(reference);
@@ -94,7 +92,7 @@ public final class ServiceHolderManagerProvider implements IFactory {
 			try {
 				ServiceHolder<T> holder = holders.get(name);
 				if (holder == null) {
-					holder = new ServiceHolder<T>(name, context);
+					holder = new ServiceHolder<>(name, context);
 					holders.put(name, holder);
 				}
 				holder.incRef();
@@ -112,8 +110,7 @@ public final class ServiceHolderManagerProvider implements IFactory {
 			try {
 				ServiceHolder<T> holder = holders.get(name);
 				if (holder == null)
-					throw new RuntimeException(StrUtil.join(
-							"Unexpected ungetServiceHolder(", name, ')'));
+					throw new RuntimeException(StrUtil.join("Unexpected ungetServiceHolder(", name, ')'));
 				int count = holder.decRef();
 				if (count == 0)
 					holders.remove(name);
@@ -144,13 +141,11 @@ public final class ServiceHolderManagerProvider implements IFactory {
 	}
 
 	@Override
-	public <T> IServiceHolderManager<T> create(BundleContext context,
-			Class<T> clazz, String nameOfId) {
+	public <T> IServiceHolderManager<T> create(BundleContext context, Class<T> clazz, String nameOfId) {
 		try {
-			Filter filter = FrameworkUtil.createFilter(StrUtil.join("(&("
-					+ Constants.OBJECTCLASS + "=", clazz.getName(), ")(",
-					nameOfId, "=*))"));
-			return new ServiceHolderTracker<T>(context, filter, nameOfId);
+			Filter filter = FrameworkUtil.createFilter(StrUtil.join("(&(" + Constants.OBJECTCLASS + "=",
+					clazz.getName(), ")(", nameOfId, "=*))"));
+			return new ServiceHolderTracker<>(context, filter, nameOfId);
 		} catch (InvalidSyntaxException e) {
 			throw new RuntimeException(e);
 		}

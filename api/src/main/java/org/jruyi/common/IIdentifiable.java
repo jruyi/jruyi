@@ -12,25 +12,23 @@
  * limitations under the License.
  */
 
-package org.jruyi.clid;
+package org.jruyi.common;
 
-import org.apache.felix.service.command.CommandSession;
+import java.io.Serializable;
 
-final class Context {
+/**
+ * Interface to mark objects that are identifiable with an ID.
+ * 
+ * @param <K>
+ *            type of ID
+ * @since 2.0
+ */
+public interface IIdentifiable<K extends Serializable> {
 
-	private final CommandSession m_cs;
-	private final ErrBufferStream m_err;
-
-	public Context(CommandSession cs, ErrBufferStream err) {
-		m_cs = cs;
-		m_err = err;
-	}
-
-	public CommandSession commandSession() {
-		return m_cs;
-	}
-
-	public ErrBufferStream errBufferStream() {
-		return m_err;
-	}
+	/**
+	 * Returns the ID identifying this object.
+	 * 
+	 * @return the identifier
+	 */
+	public K id();
 }

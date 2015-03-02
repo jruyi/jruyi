@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.cli;
 
 import java.io.BufferedInputStream;
@@ -34,8 +35,7 @@ public final class Session implements Runnable {
 	private final char[] m_chars = new char[8 * 1024];
 	private final CharBuffer m_cb = CharBuffer.wrap(m_chars);
 	private final ByteBuffer m_bb = ByteBuffer.wrap(m_bytes);
-	private final CharsetDecoder m_decoder = Charset.forName("UTF-8")
-			.newDecoder();
+	private final CharsetDecoder m_decoder = Charset.forName("UTF-8").newDecoder();
 	private volatile Socket m_socket;
 	private int m_status;
 	private InputStream m_in;
@@ -63,8 +63,7 @@ public final class Session implements Runnable {
 		m_out.write(bytes, i, bytes.length - i);
 	}
 
-	public void writeChunk(byte[] chunk, int offset, int length)
-			throws Exception {
+	public void writeChunk(byte[] chunk, int offset, int length) throws Exception {
 		OutputStream out = m_out;
 		out.write(chunk, offset, length);
 	}

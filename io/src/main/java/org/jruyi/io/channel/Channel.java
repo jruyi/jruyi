@@ -47,13 +47,13 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 	private static final Logger c_logger = LoggerFactory.getLogger(Channel.class);
 	private static final AtomicLong c_sequence = new AtomicLong(0L);
 	private final Long m_id;
-	private final IChannelService m_channelService;
+	private final IChannelService<Object, Object> m_channelService;
 	private final AtomicBoolean m_closed;
-	private ConcurrentHashMap<String, Object> m_attributes;
+	private volatile ConcurrentHashMap<Object, Object> m_attributes;
 	private IdentityHashMap<Object, Object> m_storage;
 	private Object m_attachment;
 	private ISelector m_selector;
-	private IIoWorker m_ioWorker;
+	private final IIoWorker m_ioWorker;
 	private SelectionKey m_selectionKey;
 	private ITimeoutNotifier m_timeoutNotifier;
 	private ReadThread m_readThread;
@@ -197,7 +197,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 		@Override
 		public void run() {
 			final Channel channel = m_channel;
-			final IChannelService cs = channel.channelService();
+			final IChannelService<?, ?> cs = channel.channelService();
 			final ByteBuffer bb = cs.getChannelAdmin().recvDirectBuffer();
 			final ReadableByteChannel rbc = channel.readableByteChannel();
 			final long throttle = cs.throttle();
@@ -317,7 +317,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 		WriteThread(Channel channel) {
 			m_channel = channel;
-			m_queue = new LinkedQueue<OutMsg>();
+			m_queue = new LinkedQueue<>();
 		}
 
 		@Override
@@ -352,12 +352,13 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 					return;
 				newMsg = true;
 			} else {
-				m_queue.put(OutMsg.get(msg, filters, filterCount));
+				if (msg != null)
+					m_queue.put(OutMsg.get(msg, filters, filterCount));
 				newMsg = false;
 				msg = m_msg;
 			}
 
-			final IChannelService cs = channel.channelService();
+			final IChannelService<Object, Object> cs = channel.channelService();
 			final ByteBuffer bb = cs.getChannelAdmin().sendDirectBuffer();
 			final WritableByteChannel wbc = channel.writableByteChannel();
 			try {
@@ -404,8 +405,10 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			IBuffer data = null;
 			if (index > 0) {
 				@SuppressWarnings("unchecked")
-				IFilter<Object, Object>[] filters = (IFilter<Object, Object>[]) filterArray;
+				final IFilter<Object, Object>[] filters = (IFilter<Object, Object>[]) filterArray;
+				@SuppressWarnings("resource")
 				MsgArrayList inMsgs = MsgArrayList.get();
+				@SuppressWarnings("resource")
 				MsgArrayList outMsgs = MsgArrayList.get();
 				try {
 					outMsgs.add(msg);
@@ -429,9 +432,9 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 							int i = 0;
 							data = (IBuffer) outMsgs.take(i);
 							while (++i < n) {
-								IBuffer buf = (IBuffer) outMsgs.take(i);
-								buf.drainTo(data);
-								buf.close();
+								try (IBuffer buf = (IBuffer) outMsgs.take(i)) {
+									buf.drainTo(data);
+								}
 							}
 							outMsgs.size(0);
 						} catch (ClassCastException e) {
@@ -453,92 +456,6 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			}
 
 			return data;
-		}
-	}
-
-	static final class WriteTask implements ICloseable {
-
-		private static final IThreadLocalCache<WriteTask> c_cache = ThreadLocalCache.weakLinkedCache();
-		private IBuffer m_data;
-		private Object m_msg;
-
-		public static WriteTask get(IBuffer data, Object msg) {
-			final WriteTask task = c_cache.take();
-			task.set(data, msg);
-			return task;
-		}
-
-		public IBuffer data() {
-			return m_data;
-		}
-
-		public Object msg() {
-			return m_msg;
-		}
-
-		public void set(IBuffer data, Object msg) {
-			m_data = data;
-			m_msg = msg;
-		}
-
-		@Override
-		public void close() {
-			set(null, null);
-			c_cache.put(this);
-		}
-	}
-
-	static final class WriteThreadFinal implements Runnable {
-
-		private final Channel m_channel;
-		private final LinkedQueue<WriteTask> m_queue;
-
-		public WriteThreadFinal(Channel channel) {
-			m_channel = channel;
-			m_queue = new LinkedQueue<WriteTask>();
-		}
-
-		public void put(WriteTask task) {
-			m_queue.put(task);
-		}
-
-		@Override
-		public void run() {
-			final Channel channel = m_channel;
-			final IChannelService cs = channel.channelService();
-			final ByteBuffer bb = cs.getChannelAdmin().sendDirectBuffer();
-			final WritableByteChannel wbc = channel.writableByteChannel();
-			final WriteTask task = m_queue.poll();
-			final IBuffer data = task.data();
-			try {
-				while (!data.isEmpty()) {
-					data.mark();
-					data.read(bb, Codec.byteBuffer());
-					bb.flip();
-					int len = 0;
-					do {
-						final int n = wbc.write(bb);
-						len += n;
-						if (n < 1) {
-							data.reset();
-							data.skip(len);
-							data.compact();
-							m_queue.put(task);
-							channel.onWriteRequired();
-							return;
-						}
-					} while (bb.hasRemaining());
-					bb.clear();
-				}
-				cs.onMessageSent(channel, task.msg());
-				data.close();
-				task.close();
-			} catch (Throwable t) {
-				data.close();
-				task.close();
-				if (!channel.isClosed())
-					channel.onException(t);
-			}
 		}
 	}
 
@@ -587,17 +504,18 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 		}
 	}
 
-	protected Channel(IChannelService channelService) {
+	protected Channel(IChannelService<Object, Object> channelService) {
 		m_id = generateId();
 		m_channelService = channelService;
 		m_closed = new AtomicBoolean(false);
+		m_ioWorker = channelService.getChannelAdmin().designateIoWorker(this);
 	}
 
 	@Override
 	public final void run() {
-		final IChannelService channelService = m_channelService;
+		final IChannelService<Object, Object> channelService = m_channelService;
 		try {
-			m_storage = new IdentityHashMap<Object, Object>();
+			m_storage = new IdentityHashMap<>();
 
 			onAccepted();
 
@@ -724,12 +642,9 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 	@Override
 	public final String toString() {
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (final StringBuilder builder = StringBuilder.get()) {
 			dump(builder);
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -739,23 +654,99 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 	}
 
 	@Override
-	public final Object get(String name) {
-		return m_attributes == null ? null : m_attributes.get(name);
-	}
-
-	@Override
-	public final Object put(String name, Object value) {
-		ConcurrentHashMap<String, Object> attributes = m_attributes;
+	public final Object get(Object key) {
+		final ConcurrentHashMap<Object, Object> attributes = m_attributes;
 		if (attributes == null) {
-			attributes = new ConcurrentHashMap<String, Object>();
-			m_attributes = attributes;
+			if (key == null)
+				throw new NullPointerException();
+			return null;
 		}
-		return attributes.put(name, value);
+		return attributes.get(key);
 	}
 
 	@Override
-	public final Object remove(String name) {
-		return m_attributes == null ? null : m_attributes.remove(name);
+	public final Object put(Object key, Object value) {
+		ConcurrentHashMap<Object, Object> attributes = m_attributes;
+		if (attributes == null) {
+			synchronized (this) {
+				attributes = m_attributes;
+				if (attributes == null) {
+					attributes = new ConcurrentHashMap<>();
+					m_attributes = attributes;
+				}
+			}
+		}
+		return attributes.put(key, value);
+	}
+
+	@Override
+	public final Object remove(Object key) {
+		final ConcurrentHashMap<Object, Object> attributes = m_attributes;
+		if (attributes == null) {
+			if (key == null)
+				throw new NullPointerException();
+			return null;
+		}
+		return attributes.remove(key);
+	}
+
+	@Override
+	public boolean contains(Object key) {
+		final ConcurrentHashMap<Object, Object> attributes = m_attributes;
+		if (attributes == null) {
+			if (key == null)
+				throw new NullPointerException();
+			return false;
+		}
+		return attributes.contains(key);
+	}
+
+	@Override
+	public Object putIfAbsent(Object key, Object value) {
+		ConcurrentHashMap<Object, Object> attributes = m_attributes;
+		if (attributes == null) {
+			synchronized (this) {
+				attributes = m_attributes;
+				if (attributes == null) {
+					attributes = new ConcurrentHashMap<>();
+					m_attributes = attributes;
+				}
+			}
+		}
+		return attributes.putIfAbsent(key, value);
+	}
+
+	@Override
+	public boolean remove(Object key, Object value) {
+		final ConcurrentHashMap<Object, Object> attributes = m_attributes;
+		if (attributes == null) {
+			if (key == null || value == null)
+				throw new NullPointerException();
+			return false;
+		}
+		return attributes.remove(key, value);
+	}
+
+	@Override
+	public Object replace(Object key, Object value) {
+		final ConcurrentHashMap<Object, Object> attributes = m_attributes;
+		if (attributes == null) {
+			if (key == null || value == null)
+				throw new NullPointerException();
+			return null;
+		}
+		return attributes.replace(key, value);
+	}
+
+	@Override
+	public boolean replace(Object key, Object oldValue, Object newValue) {
+		final ConcurrentHashMap<Object, Object> attributes = m_attributes;
+		if (attributes == null) {
+			if (key == null || oldValue == null || newValue == null)
+				throw new NullPointerException();
+			return false;
+		}
+		return attributes.replace(key, oldValue, newValue);
 	}
 
 	@Override
@@ -783,7 +774,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 	}
 
 	@Override
-	public final IChannelService channelService() {
+	public final IChannelService<Object, Object> channelService() {
 		return m_channelService;
 	}
 
@@ -802,7 +793,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 	@Override
 	public final void connect(int timeout) {
 		try {
-			m_storage = new IdentityHashMap<Object, Object>();
+			m_storage = new IdentityHashMap<>();
 
 			final IChannelAdmin ca = m_channelService.getChannelAdmin();
 			m_timeoutNotifier = createTimeoutNotifier(ca);
@@ -835,11 +826,6 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 	@Override
 	public final void onWrite() {
 		m_ioWorker.perform(m_writeThread);
-	}
-
-	@Override
-	public final void ioWorker(IIoWorker ioWorker) {
-		m_ioWorker = ioWorker;
 	}
 
 	@Override
@@ -887,11 +873,18 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 	// If returns false, this channel need be closed
 	final boolean onReadIn(ByteBuffer bb) {
-		MsgArrayList outMsgs = MsgArrayList.get();
-		MsgArrayList inMsgs = null;
-		final IChannelService cs = m_channelService;
+		final IChannelService<Object, Object> cs = m_channelService;
 		final IFilter<?, ?>[] filters = cs.getFilterChain();
 		final int m = filters.length;
+		if (m < 1) {
+			final IBuffer buffer = cs.getBufferFactory().create();
+			buffer.write(bb, Codec.byteBuffer());
+			cs.onMessageReceived(this, buffer);
+			return true;
+		}
+
+		@SuppressWarnings("resource")
+		MsgArrayList outMsgs = MsgArrayList.get();
 		try {
 			if (!onAccumulate(filters, outMsgs, bb))
 				return false;
@@ -904,8 +897,13 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 					cs.onMessageReceived(this, outMsgs.take(i));
 				return true;
 			}
+		} catch (Throwable t) {
+			outMsgs.close();
+			throw t;
+		}
 
-			inMsgs = outMsgs;
+		MsgArrayList inMsgs = outMsgs;
+		try {
 			outMsgs = MsgArrayList.get();
 			Object in = inMsgs.take(0);
 			for (int k = 1; k < m; ++k) {
@@ -937,8 +935,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			for (int i = 1, n = inMsgs.size(); i < n; ++i)
 				cs.onMessageReceived(this, inMsgs.take(i));
 		} finally {
-			if (inMsgs != null)
-				inMsgs.close();
+			inMsgs.close();
 			outMsgs.close();
 		}
 		return true;
@@ -967,7 +964,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			in = context.data();
 			msgLen = context.msgLen();
 			context.close();
-			context = null;
+			// context = null;
 		} else {
 			in = bf.create();
 			msgLen = 0;
@@ -1137,7 +1134,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			createReadThread();
 			createWriteThread();
 
-			IChannelService channelService = m_channelService;
+			final IChannelService<Object, Object> channelService = m_channelService;
 			channelService.onChannelOpened(this);
 
 			if (requireRegister)

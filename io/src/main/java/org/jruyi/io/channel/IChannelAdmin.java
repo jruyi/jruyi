@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.channel;
 
 import org.jruyi.timeoutadmin.ITimeoutNotifier;
@@ -23,7 +24,7 @@ public interface IChannelAdmin {
 
 	public void onConnectRequired(ISelectableChannel channel);
 
-	public void onAccept(ISelectableChannel channel);
+	public IIoWorker designateIoWorker(ISelectableChannel channel);
 
 	public void performIoTask(IIoTask task, Object msg);
 

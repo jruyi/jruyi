@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.cli;
 
 import java.io.File;
@@ -91,8 +92,7 @@ public final class Main {
 
 	private static void init() throws Throwable {
 		ClassLoader classLoader = Main.class.getClassLoader();
-		Method addUrl = URLClassLoader.class.getDeclaredMethod("addURL",
-				URL.class);
+		Method addUrl = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
 		boolean accessible = addUrl.isAccessible();
 		if (!accessible)
 			addUrl.setAccessible(true);
@@ -189,20 +189,14 @@ public final class Main {
 		String programName = System.getProperty("program.name");
 		System.out.println();
 		System.out.println("Usage:");
-		System.out.println("    " + programName
-				+ " [options] [COMMAND | SCRIPT ...]");
+		System.out.println("    " + programName + " [options] [COMMAND | SCRIPT ...]");
 		System.out.println();
 		System.out.println("options:");
-		System.out
-				.println("    -?, --help                print this help message");
-		System.out
-				.println("    -h, --host=<host_name>    the remote host to connect");
-		System.out
-				.println("    -p, --port=<port_num>     the remote port to connect");
-		System.out
-				.println("    -t, --timeout=<seconds>   the time to wait for response");
-		System.out
-				.println("    -f, --file                execute ruyi script file");
+		System.out.println("    -?, --help                print this help message");
+		System.out.println("    -h, --host=<host_name>    the remote host to connect");
+		System.out.println("    -p, --port=<port_num>     the remote port to connect");
+		System.out.println("    -t, --timeout=<seconds>   the time to wait for response");
+		System.out.println("    -f, --file                execute ruyi script file");
 		System.out.println();
 	}
 }

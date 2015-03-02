@@ -11,12 +11,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.cli;
 
 import jline.console.completer.ArgumentCompleter.AbstractArgumentDelimiter;
 
-public final class WhitespaceArgumentDelimiter extends
-		AbstractArgumentDelimiter {
+public final class WhitespaceArgumentDelimiter extends AbstractArgumentDelimiter {
 
 	private static final CharSequence FILE_URL_PREFIX = "file:";
 	private static final int LEN = FILE_URL_PREFIX.length();
@@ -32,7 +32,7 @@ public final class WhitespaceArgumentDelimiter extends
 		if (start < 0)
 			return false;
 
-		return (FILE_URL_PREFIX.equals(buffer.subSequence(start, end)) && (start == 0 || Character
-				.isWhitespace(buffer.charAt(start - 1))));
+		return (FILE_URL_PREFIX.equals(buffer.subSequence(start, end)) && (start == 0 || Character.isWhitespace(buffer
+				.charAt(start - 1))));
 	}
 }

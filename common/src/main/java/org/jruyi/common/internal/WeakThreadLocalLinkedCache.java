@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.common.internal;
 
 import org.jruyi.common.IThreadLocalCache;
@@ -19,7 +20,8 @@ import org.jruyi.common.IThreadLocalCache;
  * This class provides skeletal implementations of providing a thread local
  * cache that is weakly reachable.
  *
- * <p> The underlying cache container is backed by a linked list.
+ * <p>
+ * The underlying cache container is backed by a linked list.
  *
  * @see WeakThreadLocalArrayCache
  * @see SoftThreadLocalLinkedCache
@@ -27,8 +29,7 @@ import org.jruyi.common.IThreadLocalCache;
  * @see WeakThreadLocal
  * @see SoftThreadLocal
  */
-final class WeakThreadLocalLinkedCache<E> extends WeakThreadLocal<LinkedStack<E>>
-		implements IThreadLocalCache<E> {
+final class WeakThreadLocalLinkedCache<E> extends WeakThreadLocal<LinkedStack<E>> implements IThreadLocalCache<E> {
 
 	/**
 	 * Gets an object of {@code E} from the local cache of the current thread if
@@ -56,13 +57,13 @@ final class WeakThreadLocalLinkedCache<E> extends WeakThreadLocal<LinkedStack<E>
 	}
 
 	/**
-	 * Creates a new {@code LinkedStack<E>} as the container of the thread
-	 * local cache.
+	 * Creates a new {@code LinkedStack<E>} as the container of the thread local
+	 * cache.
 	 *
 	 * @return a new {@code LinkedStack<E>}.
 	 */
 	@Override
 	protected final LinkedStack<E> newValue() {
-		return new LinkedStack<E>();
+		return new LinkedStack<>();
 	}
 }

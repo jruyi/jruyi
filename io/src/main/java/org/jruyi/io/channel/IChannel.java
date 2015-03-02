@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.channel;
 
 import java.nio.ByteBuffer;
@@ -19,7 +20,7 @@ import org.jruyi.io.ISession;
 
 public interface IChannel extends ISession, ISelectableChannel {
 
-	public IChannelService channelService();
+	public IChannelService<?, ?> channelService();
 
 	public void connect(int timeout);
 

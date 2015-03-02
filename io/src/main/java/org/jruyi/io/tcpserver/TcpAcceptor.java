@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.tcpserver;
 
 import java.nio.channels.ClosedChannelException;
@@ -39,18 +40,18 @@ import org.slf4j.LoggerFactory;
 configurationPolicy = ConfigurationPolicy.IGNORE, //
 service = { ITcpAcceptor.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.2.0")
-public final class TcpAcceptor implements ITcpAcceptor, Runnable, IVisitor<TcpServer> {
+public final class TcpAcceptor implements ITcpAcceptor, Runnable, IVisitor<TcpServer<?, ?>> {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(TcpAcceptor.class);
 
 	private Selector m_selector;
 	private Thread m_thread;
-	private SyncPutQueue<TcpServer> m_queue;
+	private SyncPutQueue<TcpServer<?, ?>> m_queue;
 
 	private IChannelAdmin m_ca;
 
 	@Override
-	public void doAccept(TcpServer server) throws Exception {
+	public void doAccept(TcpServer<?, ?> server) throws Exception {
 		SelectableChannel selectableChannel = server.getSelectableChannel();
 		selectableChannel.configureBlocking(false);
 		m_queue.put(server);
@@ -58,7 +59,7 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable, IVisitor<TcpSe
 	}
 
 	@Override
-	public void visit(TcpServer server) {
+	public void visit(TcpServer<?, ?> server) {
 		final SelectableChannel channel = server.getSelectableChannel();
 		try {
 			channel.register(m_selector, SelectionKey.OP_ACCEPT, server);
@@ -75,9 +76,8 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable, IVisitor<TcpSe
 
 	@Override
 	public void run() {
-		final SyncPutQueue<TcpServer> queue = m_queue;
+		final SyncPutQueue<TcpServer<?, ?>> queue = m_queue;
 		final Selector selector = m_selector;
-		final IChannelAdmin ca = m_ca;
 		final Thread currentThread = Thread.currentThread();
 		for (;;) {
 			try {
@@ -99,10 +99,13 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable, IVisitor<TcpSe
 					if (!key.isValid())
 						continue;
 
-					final TcpServer server = (TcpServer) key.attachment();
+					@SuppressWarnings("unchecked")
+					final TcpServer<Object, Object> server = (TcpServer<Object, Object>) key.attachment();
 					try {
 						final SocketChannel socketChannel = ((ServerSocketChannel) key.channel()).accept();
-						ca.onAccept(new TcpChannel(server, socketChannel));
+						@SuppressWarnings("resource")
+						final TcpChannel tcpChannel = new TcpChannel(server, socketChannel);
+						tcpChannel.onAccept();
 					} catch (ClosedChannelException e) {
 					} catch (Throwable t) {
 						c_logger.error(StrUtil.join(server, " failed to accept"), t);
@@ -130,7 +133,7 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable, IVisitor<TcpSe
 		c_logger.info("Starting TcpAcceptor...");
 
 		m_selector = Selector.open();
-		m_queue = new SyncPutQueue<TcpServer>();
+		m_queue = new SyncPutQueue<>();
 		m_thread = new Thread(this, "jruyi-acceptor");
 		m_thread.start();
 

@@ -83,7 +83,7 @@ public final class TimeoutAdmin implements ITimeoutAdmin, IDumpable {
 
 		@Override
 		public Thread newThread(Runnable r) {
-			return new Thread(r, "jruyi-to-delivery");
+			return new Thread(r, "jruyi-timeout-delivery");
 		}
 	}
 
@@ -238,7 +238,7 @@ public final class TimeoutAdmin implements ITimeoutAdmin, IDumpable {
 		m_queueCapacity = queueCapacity;
 		m_terminationWaitTime = terminationWaitTime;
 
-		m_list = new LinkedList<TimeoutEvent>();
+		m_list = new LinkedList<>();
 
 		final TimeWheel tw1 = new TimeWheel(UNIT_TW2 * 2);
 		final TimeWheel tw2 = new TimeWheel(SCALE_TW2);

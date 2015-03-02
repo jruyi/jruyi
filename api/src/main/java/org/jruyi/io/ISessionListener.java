@@ -16,8 +16,13 @@ package org.jruyi.io;
 
 /**
  * This interface defines callback methods for being called on session events.
+ * 
+ * @param <I>
+ *            type of incoming message
+ * @param <O>
+ *            type of outgoing message
  */
-public interface ISessionListener {
+public interface ISessionListener<I, O> {
 
 	/**
 	 * Callback method on session opened.
@@ -40,23 +45,23 @@ public interface ISessionListener {
 	 * 
 	 * @param session
 	 *            the session sent the message
-	 * @param msg
+	 * @param outMsg
 	 *            the message sent
 	 */
-	public void onMessageSent(ISession session, Object msg);
+	public void onMessageSent(ISession session, O outMsg);
 
 	/**
 	 * Callback method on message received.
 	 * 
 	 * @param session
 	 *            the session received the message
-	 * @param msg
+	 * @param inMsg
 	 *            the message received
 	 */
-	public void onMessageReceived(ISession session, Object msg);
+	public void onMessageReceived(ISession session, I inMsg);
 
 	/**
-	 * Callback method on session exception
+	 * Callback method on session exception.
 	 * 
 	 * @param session
 	 *            the session got exception
@@ -82,10 +87,12 @@ public interface ISessionListener {
 	public void onSessionConnectTimedOut(ISession session);
 
 	/**
-	 * Callback method on session read timed out.
+	 * Callback method on response timed out for the specified {@code msg}.
 	 * 
 	 * @param session
-	 *            the read timed out session
+	 *            the session in which the response timed out
+	 * @param outMsg
+	 *            the request for which the response timed out
 	 */
-	public void onSessionReadTimedOut(ISession session);
+	public void onSessionReadTimedOut(ISession session, O outMsg);
 }

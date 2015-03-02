@@ -15,8 +15,8 @@
 package org.jruyi.io.tcpclient;
 
 import java.io.Closeable;
-import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.jruyi.common.Properties;
 import org.jruyi.common.StrUtil;
@@ -43,14 +43,18 @@ import org.slf4j.LoggerFactory;
 configurationPolicy = ConfigurationPolicy.REQUIRE, //
 service = { IEndpoint.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class ShortConnEndpoint extends SessionListener implements IConsumer, IEndpoint {
+public final class ShortConnEndpoint extends SessionListener<Object, Object> implements IConsumer, IEndpoint {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(ShortConnEndpoint.class);
 
+	private static final Object ME_MSG = new Object();
+
 	private ComponentFactory m_cf;
 	private ComponentInstance m_shortConn;
-	private ISessionService m_ss;
+	private ISessionService<Object, Object> m_ss;
 	private IProducer m_producer;
+
+	private ConcurrentHashMap<Object, IMessage> m_messages;
 
 	@Override
 	public void producer(IProducer producer) {
@@ -64,31 +68,39 @@ public final class ShortConnEndpoint extends SessionListener implements IConsume
 
 	@Override
 	public void onMessage(IMessage message) {
-		Object attachment = message.attachment();
+		final Object attachment = message.attachment();
 		if (attachment == null) {
 			c_logger.warn(StrUtil.join(this, " consumes a null message: ", message));
-
 			message.close();
 			return;
 		}
-
-		m_ss.write(null, message);
+		m_messages.put(attachment, message);
+		m_ss.write(null, attachment);
 	}
 
 	@Override
-	public void onMessageReceived(ISession session, Object msg) {
-		m_producer.send((IMessage) msg);
+	public void onMessageSent(ISession session, Object outMsg) {
+		final IMessage message = m_messages.remove(outMsg);
+		session.deposit(ME_MSG, message);
+	}
+
+	@Override
+	public void onMessageReceived(ISession session, Object inMsg) {
+		final IMessage message = (IMessage) session.withdraw(ME_MSG);
+		message.attach(inMsg);
+		m_producer.send(message);
 	}
 
 	@Override
 	public void onSessionException(ISession session, Throwable t) {
-		Object msg = session.withdraw(IoConstants.FID_TCPCLIENT);
+		Object msg = session.withdraw(ME_MSG);
 		if (msg == null)
 			msg = session.detach();
 
 		if (msg == null)
 			c_logger.error(StrUtil.join(session, " got an error"), t);
 		else {
+			msg = m_messages.remove(msg);
 			c_logger.error(StrUtil.join(session, " got an error: ", StrUtil.getLineSeparator(), msg), t);
 
 			if (msg instanceof AutoCloseable) {
@@ -103,8 +115,8 @@ public final class ShortConnEndpoint extends SessionListener implements IConsume
 
 	@Override
 	public void onSessionConnectTimedOut(ISession session) {
-		Object msg = session.detach();
-		c_logger.warn(StrUtil.join(session, ": CONNECT_TIMEOUT, ", StrUtil.getLineSeparator(), msg));
+		final Object msg = m_messages.remove(session.detach());
+		c_logger.warn(StrUtil.join(session, ": CONNECT_TIMEOUT ", StrUtil.getLineSeparator(), msg));
 
 		if (msg instanceof AutoCloseable) {
 			try {
@@ -116,9 +128,9 @@ public final class ShortConnEndpoint extends SessionListener implements IConsume
 	}
 
 	@Override
-	public void onSessionReadTimedOut(ISession session) {
-		Object msg = session.withdraw(IoConstants.FID_TCPCLIENT);
-		c_logger.warn(StrUtil.join(session, ": READ_TIMEOUT, ", StrUtil.getLineSeparator(), msg));
+	public void onSessionReadTimedOut(ISession session, Object outMsg) {
+		final Object msg = session.withdraw(ME_MSG);
+		c_logger.warn(StrUtil.join(session, ": READ_TIMEOUT ", StrUtil.getLineSeparator(), msg));
 
 		if (msg instanceof Closeable) {
 			try {
@@ -129,8 +141,8 @@ public final class ShortConnEndpoint extends SessionListener implements IConsume
 		}
 	}
 
-	@Reference(name = "shortConn", target = "(" + ComponentConstants.COMPONENT_NAME + "="
-			+ IoConstants.CN_TCPCLIENT_SHORTCONN_FACTORY + ")")
+	@Reference(name = "shortConn", //
+	target = "(" + ComponentConstants.COMPONENT_NAME + "=" + IoConstants.CN_TCPCLIENT_SHORTCONN_FACTORY + ")")
 	protected void setShortConn(ComponentFactory cf) {
 		m_cf = cf;
 	}
@@ -146,13 +158,11 @@ public final class ShortConnEndpoint extends SessionListener implements IConsume
 
 	protected void activate(Map<String, ?> properties) throws Exception {
 		final ComponentInstance shortConn = m_cf.newInstance(normalizeConfiguration(properties));
-		final ISessionService ss = (ISessionService) shortConn.getInstance();
+		@SuppressWarnings("unchecked")
+		final ISessionService<Object, Object> ss = (ISessionService<Object, Object>) shortConn.getInstance();
 		ss.setSessionListener(this);
-		try {
-			ss.start();
-		} catch (Throwable t) {
-			// ignore
-		}
+		ss.start();
+		m_messages = new ConcurrentHashMap<>(512);
 		m_shortConn = shortConn;
 		m_ss = ss;
 	}
@@ -162,17 +172,8 @@ public final class ShortConnEndpoint extends SessionListener implements IConsume
 	}
 
 	private static Properties normalizeConfiguration(Map<String, ?> properties) {
-		Properties conf = new Properties(properties);
+		final Properties conf = new Properties(properties);
 		conf.put(IoConstants.SERVICE_ID, properties.get(MeConstants.EP_ID));
-		String[] filters = (String[]) properties.get("filters");
-		int n = filters.length;
-		if (filters == null || n < 1)
-			filters = new String[] { IoConstants.FID_TCPCLIENT };
-		else {
-			filters = Arrays.copyOf(filters, n + 1);
-			filters[n] = IoConstants.FID_TCPCLIENT;
-		}
-		conf.put("filters", filters);
 		return conf;
 	}
 }

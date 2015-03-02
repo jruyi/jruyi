@@ -41,37 +41,170 @@ public interface ISession {
 	public Object remoteAddress();
 
 	/**
-	 * Puts an attribute, which maps the specified {@code name} to the specified
+	 * Tests if an attribute with the specified {@code key} exists.
+	 *
+	 * @param key
+	 *            the key to be tested
+	 * @return {@code true} if and only if an attribute with the specified
+	 *         {@code key} exists, as determined by the {@code equals} method;
+	 *         {@code false} otherwise.
+	 * @throws NullPointerException
+	 *             if the specified {@code key} is {@code null}
+	 * @since 2.0
+	 */
+	public boolean contains(Object key);
+
+	/**
+	 * Puts an attribute, which maps the specified {@code key} to the specified
 	 * {@code value}, into this session.
 	 * 
-	 * @param name
-	 *            the name to be associated with the specified {@code value}
+	 * @param key
+	 *            the key to be associated with the specified {@code value}
 	 * @param value
-	 *            the value to be associated with the specified {@code name}
-	 * @return the previous value associated with the specified {@code name}, or
-	 *         {@code null} if there was no mapping for {@code name}
+	 *            the value to be associated with the specified {@code key}
+	 * @return the previous value associated with the specified {@code key}, or
+	 *         {@code null} if there was no mapping for {@code key}
+	 * @throws NullPointerException
+	 *             if the specified {@code key} or {@code value} is {@code null}
 	 */
-	public Object put(String name, Object value);
+	public Object put(Object key, Object value);
 
 	/**
-	 * Gets the value of the session attribute whose name is the specified
-	 * {@code name}.
+	 * Puts an attribute, which maps the specified {@code key} to the specified
+	 * {@code value}, into this session if the attribute with the specified
+	 * {@code key} does not exist yet. The logic is equivalent to
 	 * 
-	 * @param name
-	 *            the name of the attribute
-	 * @return the value of the attribute, or {@code null} if no such attribute
+	 * <pre>
+	 * {@code
+	 * if (!contains(key))
+	 *     return put(key, value);
+	 * else
+	 *     return get(key);
+	 * }
+	 * </pre>
+	 * 
+	 * except that the operation is performed atomically.
+	 * 
+	 * @param key
+	 *            the key to be associated with the specified {@code value}
+	 * @param value
+	 *            the value to be associated with the specified {@code key}
+	 * @return the previous value associated with the specified {@code key}, or
+	 *         {@code null} if there was no mapping for {@code key}
+	 * @throws NullPointerException
+	 *             if the specified {@code key} or {@code value} is {@code null}
+	 * @since 2.0
 	 */
-	public Object get(String name);
+	public Object putIfAbsent(Object key, Object value);
 
 	/**
-	 * Removes the attribute whose name is the specified {@code name} from this
-	 * session.
+	 * Gets the value of the session attribute with the specified {@code key}.
 	 * 
-	 * @param name
-	 *            the name of the attribute
+	 * @param key
+	 *            the key of the attribute
 	 * @return the value of the attribute, or {@code null} if no such attribute
+	 * @throws NullPointerException
+	 *             if the specified {@code key} is {@code null}
 	 */
-	public Object remove(String name);
+	public Object get(Object key);
+
+	/**
+	 * Removes the attribute with the specified {@code key} from this session.
+	 * 
+	 * @param key
+	 *            the key of the attribute
+	 * @return the value of the attribute, or {@code null} if no such attribute
+	 * @throws NullPointerException
+	 *             if the specified {@code key} is {@code null}
+	 */
+	public Object remove(Object key);
+
+	/**
+	 * Removes the attribute with the specified {@code key} from this session if
+	 * and only if currently mapped to the given {@code value}. The logic is
+	 * equivalent to
+	 * 
+	 * <pre>
+	 * {@code
+	 * if (contains(key) && value.equals(get(key))) {
+	 *     remove(key);
+	 *     return true;
+	 * } else
+	 *     return false;
+	 * }
+	 * </pre>
+	 * 
+	 * except that the operation is performed atomically.
+	 * 
+	 * @param key
+	 *            the key of the attribute to be removed
+	 * @param value
+	 *            the expected value of the attribute to be removed
+	 * @return {@code true} if the attribute is removed
+	 * @throws NullPointerException
+	 *             if the specified {@code key} or {@code value} is {@code null}
+	 * @since 2.0
+	 */
+	public boolean remove(Object key, Object value);
+
+	/**
+	 * Replaces the value of the attribute only if currently exists. The logic
+	 * is equivalent to
+	 *
+	 * <pre>
+	 * {@code
+	 * if (contains(key))
+	 *     return put(key, value);
+	 * else
+	 *     return null;
+	 * }
+	 * </pre>
+	 *
+	 * except that the operation is performed atomically.
+	 * 
+	 * @param key
+	 *            the key of the attribute to be associated.
+	 * @param value
+	 *            the value to be associated with the specified {@code key}
+	 * @return the previous value associated with the specified {@code key}, or
+	 *         {@code null} if there was no mapping for {@code key}
+	 * @throws NullPointerException
+	 *             if the specified {@code key} or {@code value} is {@code null}
+	 * @since 2.0
+	 */
+	public Object replace(Object key, Object value);
+
+	/**
+	 * Replaces the value of the attribute with the given {@code newValue} only
+	 * if exists and mapped to the given {@code oldValue}. The logic is
+	 * equivalent to
+	 * 
+	 * <pre>
+	 * {@code
+	 * if (contains(key) && oldValue.equals(get(key))) {
+	 *     put(key, newValue);
+	 *     return true;
+	 * } else
+	 *     return false;
+	 * }
+	 * </pre>
+	 * 
+	 * except that the operation is performed atomically.
+	 * 
+	 * @param key
+	 *            the key of the attribute whose value is to be replaced
+	 * @param oldValue
+	 *            the expected value currently associated with the specified
+	 *            {@code key}
+	 * @param newValue
+	 *            the value to be associated with the specified {@code key}
+	 * @return {@code true} if the value is replaced
+	 * @throws NullPointerException
+	 *             if the specified {@code key}, {@code oldValue} or
+	 *             {@code newValue} is {@code null}
+	 * @since 2.0
+	 */
+	public boolean replace(Object key, Object oldValue, Object newValue);
 
 	/**
 	 * Deposits the specified {@code something} to this session with the

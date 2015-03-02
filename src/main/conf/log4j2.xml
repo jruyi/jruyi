@@ -6,8 +6,10 @@
 	</Properties>
 
 	<Appenders>
-		<RollingRandomAccessFile name="FILE" fileName="${log.dir}/server.log"
-								 filePattern="${log.dir}/$${date:yyyy-MM}/server-%d{MM-dd-yyyy}-%i.log.gz">
+		<RollingRandomAccessFile
+				name="FILE"
+				fileName="${log.dir}/server.log"
+				filePattern="${log.dir}/$${date:yyyy-MM}/server-%d{MM-dd-yyyy}-%i.log.gz">
 			<PatternLayout>
 				<Pattern>%d %-5level [%logger] %msg%n</Pattern>
 			</PatternLayout>

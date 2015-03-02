@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.udpserver;
 
 import java.lang.reflect.Method;
@@ -44,10 +45,8 @@ final class Configuration extends UdpChannelConf {
 		super.initialize(properties);
 
 		bindAddr((String) properties.get("bindAddr"));
-		sessionIdleTimeoutInSeconds((Integer) properties
-				.get("sessionIdleTimeoutInSeconds"));
-		initCapacityOfChannelMap((Integer) properties
-				.get("initCapacityOfChannelMap"));
+		sessionIdleTimeoutInSeconds((Integer) properties.get("sessionIdleTimeoutInSeconds"));
+		initCapacityOfChannelMap((Integer) properties.get("initCapacityOfChannelMap"));
 	}
 
 	public String bindAddr() {

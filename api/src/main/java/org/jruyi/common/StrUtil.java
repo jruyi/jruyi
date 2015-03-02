@@ -25,31 +25,31 @@ import org.osgi.framework.BundleContext;
 public final class StrUtil {
 
 	private static final char[] c_digits = {
-			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', //
-			'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', //
-			'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', //
+			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+			'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+			'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
 			'u', 'v', 'w', 'x', 'y', 'z' };
 	private static final char[] c_digitTens = {
-			'0', '0', '0', '0', '0', '0', '0', '0', '0', '0', //
-			'1', '1', '1', '1', '1', '1', '1', '1', '1', '1', //
-			'2', '2', '2', '2', '2', '2', '2', '2', '2', '2', //
-			'3', '3', '3', '3', '3', '3', '3', '3', '3', '3', //
-			'4', '4', '4', '4', '4', '4', '4', '4', '4', '4', //
-			'5', '5', '5', '5', '5', '5', '5', '5', '5', '5', //
-			'6', '6', '6', '6', '6', '6', '6', '6', '6', '6', //
-			'7', '7', '7', '7', '7', '7', '7', '7', '7', '7', //
-			'8', '8', '8', '8', '8', '8', '8', '8', '8', '8', //
+			'0', '0', '0', '0', '0', '0', '0', '0', '0', '0',
+			'1', '1', '1', '1', '1', '1', '1', '1', '1', '1',
+			'2', '2', '2', '2', '2', '2', '2', '2', '2', '2',
+			'3', '3', '3', '3', '3', '3', '3', '3', '3', '3',
+			'4', '4', '4', '4', '4', '4', '4', '4', '4', '4',
+			'5', '5', '5', '5', '5', '5', '5', '5', '5', '5',
+			'6', '6', '6', '6', '6', '6', '6', '6', '6', '6',
+			'7', '7', '7', '7', '7', '7', '7', '7', '7', '7',
+			'8', '8', '8', '8', '8', '8', '8', '8', '8', '8',
 			'9', '9', '9', '9', '9', '9', '9', '9', '9', '9' };
 	private static final char[] c_digitOnes = {
-			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', //
-			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', //
-			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', //
-			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', //
-			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', //
-			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', //
-			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', //
-			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', //
-			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', //
+			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
 			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
 	private static final int[] c_intSizeTable = {
 			9, 99, 999, 9999, 99999, 999999, 9999999, 99999999, 999999999, Integer.MAX_VALUE };
@@ -217,42 +217,39 @@ public final class StrUtil {
 		if (target.length() < 2)
 			return target;
 
-		final StringBuilder builder = StringBuilder.get();
-		IntStack stack = IntStack.get();
-		String propValue = null;
-		int j = target.length();
-		for (int i = 0; i < j; ++i) {
-			char c = target.charAt(i);
-			switch (c) {
-			case '\\':
-				if (++i < j)
-					c = target.charAt(i);
-				break;
-			case '$':
-				builder.append(c);
-				if (++i < j && (c = target.charAt(i)) == '{')
-					stack.push(builder.length() - 1);
-				break;
-			case '}':
-				if (!stack.isEmpty()) {
-					int index = stack.popInternal();
-					propValue = getPropValue(builder.substring(index + 2), properties, context);
-					if (propValue != null) {
-						builder.setLength(index);
-						builder.append(propValue);
-						continue;
+		try (StringBuilder builder = StringBuilder.get(); IntStack stack = IntStack.get()) {
+			String propValue = null;
+			final int j = target.length();
+			for (int i = 0; i < j; ++i) {
+				char c = target.charAt(i);
+				switch (c) {
+				case '\\':
+					if (++i < j)
+						c = target.charAt(i);
+					break;
+				case '$':
+					builder.append(c);
+					if (++i < j && (c = target.charAt(i)) == '{')
+						stack.push(builder.length() - 1);
+					break;
+				case '}':
+					if (!stack.isEmpty()) {
+						int index = stack.popInternal();
+						propValue = getPropValue(builder.substring(index + 2), properties, context);
+						if (propValue != null) {
+							builder.setLength(index);
+							builder.append(propValue);
+							continue;
+						}
 					}
 				}
+
+				builder.append(c);
 			}
 
-			builder.append(c);
+			if (propValue != null || builder.length() != j)
+				target = builder.toString();
 		}
-		stack.close();
-
-		if (propValue != null || builder.length() != j)
-			target = builder.toString();
-
-		builder.close();
 
 		return target;
 	}
@@ -269,15 +266,12 @@ public final class StrUtil {
 	 * @since 1.1
 	 */
 	public static String join(Object obj0, Object obj1) {
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			if (obj0 != null)
 				builder.append(obj0);
 			if (obj1 != null)
 				builder.append(obj1);
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -295,8 +289,7 @@ public final class StrUtil {
 	 * @since 1.1
 	 */
 	public static String join(Object obj0, Object obj1, Object obj2) {
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			if (obj0 != null)
 				builder.append(obj0);
 			if (obj1 != null)
@@ -304,8 +297,6 @@ public final class StrUtil {
 			if (obj2 != null)
 				builder.append(obj2);
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -327,8 +318,7 @@ public final class StrUtil {
 	 * @since 1.1
 	 */
 	public static String join(Object obj0, Object obj1, Object obj2, Object obj3) {
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			if (obj0 != null)
 				builder.append(obj0);
 			if (obj1 != null)
@@ -338,8 +328,6 @@ public final class StrUtil {
 			if (obj3 != null)
 				builder.append(obj3);
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -363,8 +351,7 @@ public final class StrUtil {
 	 * @since 1.1
 	 */
 	public static String join(Object obj0, Object obj1, Object obj2, Object obj3, Object obj4) {
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			if (obj0 != null)
 				builder.append(obj0);
 
@@ -381,8 +368,6 @@ public final class StrUtil {
 				builder.append(obj4);
 
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -408,8 +393,7 @@ public final class StrUtil {
 	 * @since 1.1
 	 */
 	public static String join(Object obj0, Object obj1, Object obj2, Object obj3, Object obj4, Object obj5) {
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			if (obj0 != null)
 				builder.append(obj0);
 			if (obj1 != null)
@@ -423,8 +407,6 @@ public final class StrUtil {
 			if (obj5 != null)
 				builder.append(obj5);
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -452,8 +434,7 @@ public final class StrUtil {
 	 * @since 1.1
 	 */
 	public static String join(Object obj0, Object obj1, Object obj2, Object obj3, Object obj4, Object obj5, Object obj6) {
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			if (obj0 != null)
 				builder.append(obj0);
 			if (obj1 != null)
@@ -469,8 +450,6 @@ public final class StrUtil {
 			if (obj6 != null)
 				builder.append(obj6);
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -488,8 +467,7 @@ public final class StrUtil {
 	 * @since 1.1
 	 */
 	public static String join(Object obj, Object... objs) {
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			if (obj != null)
 				builder.append(obj);
 			for (Object o : objs) {
@@ -497,8 +475,6 @@ public final class StrUtil {
 					builder.append(o);
 			}
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -523,14 +499,11 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i)
 				builder.append(delimiter).append(array[i]);
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -558,14 +531,11 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[begin]);
 			while (++begin < end)
 				builder.append(delimiter).append(array[begin]);
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -591,8 +561,7 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i) {
 				if (delimiter != null)
@@ -600,8 +569,6 @@ public final class StrUtil {
 				builder.append(array[i]);
 			}
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -630,8 +597,7 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[begin]);
 			while (++begin < end) {
 				if (delimiter != null)
@@ -639,8 +605,6 @@ public final class StrUtil {
 				builder.append(array[begin]);
 			}
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -665,14 +629,11 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i)
 				builder.append(delimiter).append(array[i]);
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -700,14 +661,11 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[begin]);
 			while (++begin < end)
 				builder.append(delimiter).append(array[begin]);
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -733,8 +691,7 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i) {
 				if (delimiter != null)
@@ -742,8 +699,6 @@ public final class StrUtil {
 				builder.append(array[i]);
 			}
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -772,8 +727,7 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[begin]);
 			while (++begin < end) {
 				if (delimiter != null)
@@ -781,8 +735,6 @@ public final class StrUtil {
 				builder.append(array[begin]);
 			}
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -807,14 +759,11 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i)
 				builder.append(delimiter).append(array[i]);
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -842,14 +791,11 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[begin]);
 			while (++begin < end)
 				builder.append(delimiter).append(array[begin]);
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -875,8 +821,7 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i) {
 				if (delimiter != null)
@@ -884,8 +829,6 @@ public final class StrUtil {
 				builder.append(array[i]);
 			}
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -914,8 +857,7 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[begin]);
 			while (++begin < end) {
 				if (delimiter != null)
@@ -923,8 +865,6 @@ public final class StrUtil {
 				builder.append(array[begin]);
 			}
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -949,14 +889,11 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i)
 				builder.append(delimiter).append(array[i]);
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -984,14 +921,11 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[begin]);
 			while (++begin < end)
 				builder.append(delimiter).append(array[begin]);
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1017,8 +951,7 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i) {
 				if (delimiter != null)
@@ -1026,8 +959,6 @@ public final class StrUtil {
 				builder.append(array[i]);
 			}
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1056,8 +987,7 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[begin]);
 			while (++begin < end) {
 				if (delimiter != null)
@@ -1065,8 +995,6 @@ public final class StrUtil {
 				builder.append(array[begin]);
 			}
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1091,14 +1019,11 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i)
 				builder.append(delimiter).append(array[i]);
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1126,14 +1051,11 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[begin]);
 			while (++begin < end)
 				builder.append(delimiter).append(array[begin]);
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1159,8 +1081,7 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i) {
 				if (delimiter != null)
@@ -1168,8 +1089,6 @@ public final class StrUtil {
 				builder.append(array[i]);
 			}
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1198,8 +1117,7 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[begin]);
 			while (++begin < end) {
 				if (delimiter != null)
@@ -1207,8 +1125,6 @@ public final class StrUtil {
 				builder.append(array[begin]);
 			}
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1233,14 +1149,11 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i)
 				builder.append(delimiter).append(array[i]);
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1268,14 +1181,11 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[begin]);
 			while (++begin < end)
 				builder.append(delimiter).append(array[begin]);
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1301,8 +1211,7 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i) {
 				if (delimiter != null)
@@ -1310,8 +1219,6 @@ public final class StrUtil {
 				builder.append(array[i]);
 			}
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1340,8 +1247,7 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[begin]);
 			while (++begin < end) {
 				if (delimiter != null)
@@ -1349,8 +1255,6 @@ public final class StrUtil {
 				builder.append(array[begin]);
 			}
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1375,14 +1279,11 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i)
 				builder.append(delimiter).append(array[i]);
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1410,15 +1311,12 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[begin]);
 			while (++begin < end)
 				builder.append(delimiter).append(array[begin]);
 
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1444,8 +1342,7 @@ public final class StrUtil {
 		if (n < 1)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[0]);
 			for (int i = 1; i < n; ++i) {
 				if (delimiter != null)
@@ -1453,8 +1350,6 @@ public final class StrUtil {
 				builder.append(array[i]);
 			}
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1483,8 +1378,7 @@ public final class StrUtil {
 		if (end <= begin)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(array[begin]);
 			while (++begin < end) {
 				if (delimiter != null)
@@ -1492,8 +1386,6 @@ public final class StrUtil {
 				builder.append(array[begin]);
 			}
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1526,8 +1418,7 @@ public final class StrUtil {
 		if (obj == null)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(obj);
 			while (++i < n) {
 				obj = array[i];
@@ -1537,8 +1428,6 @@ public final class StrUtil {
 				}
 			}
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1573,8 +1462,7 @@ public final class StrUtil {
 		if (obj == null)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(obj);
 			while (++begin < end) {
 				obj = array[begin];
@@ -1584,8 +1472,6 @@ public final class StrUtil {
 				}
 			}
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1619,8 +1505,7 @@ public final class StrUtil {
 		if (obj == null)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(obj);
 			while (++i < n) {
 				obj = array[i];
@@ -1631,8 +1516,6 @@ public final class StrUtil {
 				}
 			}
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1669,8 +1552,7 @@ public final class StrUtil {
 		if (obj == null)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(obj);
 			while (++begin < end) {
 				obj = array[begin];
@@ -1681,8 +1563,6 @@ public final class StrUtil {
 				}
 			}
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1711,8 +1591,7 @@ public final class StrUtil {
 		if (obj == null)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(obj);
 			while (iterator.hasNext()) {
 				obj = iterator.next();
@@ -1722,8 +1601,6 @@ public final class StrUtil {
 				}
 			}
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1753,8 +1630,7 @@ public final class StrUtil {
 		if (obj == null)
 			return "";
 
-		final StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			builder.append(obj);
 			while (iterator.hasNext()) {
 				obj = iterator.next();
@@ -1765,8 +1641,6 @@ public final class StrUtil {
 				}
 			}
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1785,11 +1659,8 @@ public final class StrUtil {
 		if (obj == null || !obj.getClass().isArray())
 			return String.valueOf(obj);
 
-		StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			return builder.deeplyAppend(obj).toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1807,11 +1678,8 @@ public final class StrUtil {
 	 * @return the {@code String} constructed.
 	 */
 	public static String deeplyBuild(Object obj0, Object obj1) {
-		StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			return builder.deeplyAppend(obj0).deeplyAppend(obj1).toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1831,11 +1699,8 @@ public final class StrUtil {
 	 * @return the {@code String} constructed.
 	 */
 	public static String deeplyBuild(Object obj0, Object obj1, Object obj2) {
-		StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			return builder.deeplyAppend(obj0).deeplyAppend(obj1).deeplyAppend(obj2).toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1857,11 +1722,8 @@ public final class StrUtil {
 	 * @return the {@code String} constructed.
 	 */
 	public static String deeplyBuild(Object obj0, Object obj1, Object obj2, Object obj3) {
-		StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			return builder.deeplyAppend(obj0).deeplyAppend(obj1).deeplyAppend(obj2).deeplyAppend(obj3).toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1885,12 +1747,9 @@ public final class StrUtil {
 	 * @return the {@code String} constructed.
 	 */
 	public static String deeplyBuild(Object obj0, Object obj1, Object obj2, Object obj3, Object obj4) {
-		StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			return builder.deeplyAppend(obj0).deeplyAppend(obj1).deeplyAppend(obj2).deeplyAppend(obj3)
 					.deeplyAppend(obj4).toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1916,12 +1775,9 @@ public final class StrUtil {
 	 * @return the {@code String} constructed.
 	 */
 	public static String deeplyBuild(Object obj0, Object obj1, Object obj2, Object obj3, Object obj4, Object obj5) {
-		StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			return builder.deeplyAppend(obj0).deeplyAppend(obj1).deeplyAppend(obj2).deeplyAppend(obj3)
 					.deeplyAppend(obj4).deeplyAppend(obj5).toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1950,12 +1806,9 @@ public final class StrUtil {
 	 */
 	public static String deeplyBuild(Object obj0, Object obj1, Object obj2, Object obj3, Object obj4, Object obj5,
 			Object obj6) {
-		StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			return builder.deeplyAppend(obj0).deeplyAppend(obj1).deeplyAppend(obj2).deeplyAppend(obj3)
 					.deeplyAppend(obj4).deeplyAppend(obj5).deeplyAppend(obj6).toString();
-		} finally {
-			builder.close();
 		}
 	}
 
@@ -1971,14 +1824,11 @@ public final class StrUtil {
 	 * @return the {@code String} object constructed.
 	 */
 	public static String deeplyBuild(Object... objs) {
-		StringBuilder builder = StringBuilder.get();
-		try {
+		try (StringBuilder builder = StringBuilder.get()) {
 			for (Object o : objs)
 				builder.deeplyAppend(o);
 
 			return builder.toString();
-		} finally {
-			builder.close();
 		}
 	}
 

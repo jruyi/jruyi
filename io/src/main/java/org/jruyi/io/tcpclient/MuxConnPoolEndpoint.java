@@ -17,6 +17,7 @@ package org.jruyi.io.tcpclient;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.jruyi.common.IIdentifiable;
 import org.jruyi.common.Properties;
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.ISession;
@@ -38,19 +39,18 @@ import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Component(name = "jruyi.io.tcpclient.connpool", //
+@Component(name = "jruyi.io.tcpclient.mux.connpool", //
 configurationPolicy = ConfigurationPolicy.REQUIRE, //
 service = { IEndpoint.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class ConnPoolEndpoint extends SessionListener<Object, Object> implements IConsumer, IEndpoint {
+public final class MuxConnPoolEndpoint extends SessionListener<IIdentifiable<?>, IIdentifiable<?>> implements
+		IConsumer, IEndpoint {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(ConnPoolEndpoint.class);
 
-	private static final Object ME_MSG = new Object();
-
 	private ComponentFactory m_cf;
 	private ComponentInstance m_connPool;
-	private ISessionService<Object, Object> m_ss;
+	private ISessionService<IIdentifiable<?>, IIdentifiable<?>> m_ss;
 	private IProducer m_producer;
 
 	private ConcurrentHashMap<Object, IMessage> m_messages;
@@ -67,7 +67,15 @@ public final class ConnPoolEndpoint extends SessionListener<Object, Object> impl
 
 	@Override
 	public void onMessage(IMessage message) {
-		final Object attachment = message.attachment();
+		final IIdentifiable<?> attachment;
+		try {
+			attachment = (IIdentifiable<?>) message.attachment();
+		} catch (ClassCastException e) {
+			c_logger.error(StrUtil.join("Attachment must be of IIdentifiable", StrUtil.getLineSeparator(), message), e);
+			message.close();
+			return;
+		}
+
 		if (attachment == null) {
 			c_logger.warn(StrUtil.join(this, " consumes a null message: ", message));
 			message.close();
@@ -78,24 +86,21 @@ public final class ConnPoolEndpoint extends SessionListener<Object, Object> impl
 	}
 
 	@Override
-	public void onMessageSent(ISession session, Object outMsg) {
+	public void onMessageSent(ISession session, IIdentifiable<?> outMsg) {
 		final IMessage message = m_messages.remove(outMsg);
-		session.deposit(ME_MSG, message);
+		session.deposit(outMsg.id(), message);
 	}
 
 	@Override
-	public void onMessageReceived(ISession session, Object inMsg) {
-		final IMessage message = (IMessage) session.withdraw(ME_MSG);
+	public void onMessageReceived(ISession session, IIdentifiable<?> inMsg) {
+		final IMessage message = (IMessage) session.withdraw(inMsg.id());
 		message.attach(inMsg);
 		m_producer.send(message);
 	}
 
 	@Override
 	public void onSessionException(ISession session, Throwable t) {
-		Object msg = session.withdraw(ME_MSG);
-		if (msg == null)
-			msg = session.detach();
-
+		Object msg = session.detach();
 		if (msg == null)
 			c_logger.error(StrUtil.join(session, " got an error"), t);
 		else {
@@ -127,8 +132,8 @@ public final class ConnPoolEndpoint extends SessionListener<Object, Object> impl
 	}
 
 	@Override
-	public void onSessionReadTimedOut(ISession session, Object outMsg) {
-		final Object msg = session.withdraw(ME_MSG);
+	public void onSessionReadTimedOut(ISession session, IIdentifiable<?> outMsg) {
+		final Object msg = session.withdraw(outMsg.id());
 		c_logger.warn(StrUtil.join(session, ": READ_TIMEOUT ", StrUtil.getLineSeparator(), msg));
 
 		if (msg instanceof AutoCloseable) {
@@ -158,7 +163,8 @@ public final class ConnPoolEndpoint extends SessionListener<Object, Object> impl
 	protected void activate(Map<String, ?> properties) throws Exception {
 		final ComponentInstance connPool = m_cf.newInstance(normalizeConfiguration(properties));
 		@SuppressWarnings("unchecked")
-		final ISessionService<Object, Object> ss = (ISessionService<Object, Object>) connPool.getInstance();
+		final ISessionService<IIdentifiable<?>, IIdentifiable<?>> ss =
+				(ISessionService<IIdentifiable<?>, IIdentifiable<?>>) connPool.getInstance();
 		ss.setSessionListener(this);
 		ss.start();
 		m_messages = new ConcurrentHashMap<>(initialCapacityOfMessageMap(properties));

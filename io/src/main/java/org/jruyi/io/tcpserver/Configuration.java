@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jruyi.io.tcpserver;
 
 import java.lang.reflect.Method;
@@ -20,8 +21,8 @@ import org.jruyi.io.tcp.TcpChannelConf;
 
 public final class Configuration extends TcpChannelConf {
 
-	private static final String[] M_PROPS = { "bindAddr", "port", "backlog",
-			"reuseAddr", "recvBufSize", "performancePreferences" };
+	private static final String[] M_PROPS = {
+		"bindAddr", "port", "backlog", "reuseAddr", "recvBufSize", "performancePreferences" };
 	private static final Method[] c_mProps;
 	private Integer m_backlog;
 	private Integer m_sessionIdleTimeoutInSeconds;
@@ -48,10 +49,8 @@ public final class Configuration extends TcpChannelConf {
 
 		bindAddr((String) properties.get("bindAddr"));
 		backlog((Integer) properties.get("backlog"));
-		sessionIdleTimeoutInSeconds((Integer) properties
-				.get("sessionIdleTimeoutInSeconds"));
-		initCapacityOfChannelMap((Integer) properties
-				.get("initCapacityOfChannelMap"));
+		sessionIdleTimeoutInSeconds((Integer) properties.get("sessionIdleTimeoutInSeconds"));
+		initCapacityOfChannelMap((Integer) properties.get("initCapacityOfChannelMap"));
 	}
 
 	public Integer backlog() {
@@ -75,8 +74,7 @@ public final class Configuration extends TcpChannelConf {
 	}
 
 	public void sessionIdleTimeoutInSeconds(Integer sessionIdleTimeoutInSeconds) {
-		m_sessionIdleTimeoutInSeconds = sessionIdleTimeoutInSeconds == null ? 300
-				: sessionIdleTimeoutInSeconds;
+		m_sessionIdleTimeoutInSeconds = sessionIdleTimeoutInSeconds == null ? 300 : sessionIdleTimeoutInSeconds;
 	}
 
 	public Integer initCapacityOfChannelMap() {
@@ -84,12 +82,10 @@ public final class Configuration extends TcpChannelConf {
 	}
 
 	public void initCapacityOfChannelMap(Integer initCapacityOfChannelMap) {
-		m_initCapacityOfChannelMap = initCapacityOfChannelMap == null ? 2048
-				: initCapacityOfChannelMap;
+		m_initCapacityOfChannelMap = initCapacityOfChannelMap == null ? 2048 : initCapacityOfChannelMap;
 	}
 
-	public final boolean isMandatoryChanged(Configuration newConf)
-			throws Exception {
+	public final boolean isMandatoryChanged(Configuration newConf) throws Exception {
 		for (Method m : c_mProps) {
 			Object v1 = m.invoke(this);
 			Object v2 = m.invoke(newConf);
