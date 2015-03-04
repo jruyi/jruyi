@@ -58,7 +58,6 @@ final class SslCodec extends AbstractCodec<IBuffer> {
 	 * @param src
 	 *            netData
 	 */
-	@SuppressWarnings("resource")
 	@Override
 	public void write(IBuffer src, IUnitChain appBuf) {
 		ByteBuffer netData = null;
@@ -141,7 +140,6 @@ final class SslCodec extends AbstractCodec<IBuffer> {
 	 * @param dst
 	 *            netBuffer
 	 */
-	@SuppressWarnings("resource")
 	@Override
 	public int read(IBuffer dst, IUnitChain appBuf) {
 		final ByteBufferArray bba = ByteBufferArray.get();

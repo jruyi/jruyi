@@ -62,7 +62,7 @@ public final class MuxConnPool<I extends IIdentifiable<?>, O extends IIdentifiab
 		public void onTimeout(ITimeoutEvent event) {
 			@SuppressWarnings("unchecked")
 			final O outMsg = (O) event.getSubject();
-			m_notifiers.remove(outMsg.id());
+			notifiers().remove(outMsg.id());
 			final ISessionListener<I, O> listener = listener();
 			if (listener != null) {
 				try {
@@ -164,6 +164,10 @@ public final class MuxConnPool<I extends IIdentifiable<?>, O extends IIdentifiab
 		m_notifiers = null;
 		for (ITimeoutNotifier notifier : notifiers)
 			notifier.close();
+	}
+
+	ConcurrentHashMap<Object, ITimeoutNotifier> notifiers() {
+		return m_notifiers;
 	}
 
 	private ITimeoutListener getListener(IChannel channel) {

@@ -37,7 +37,6 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(AbstractSslFilter.class);
 
-	private static final int PORT = 28888;
 	private static final int HEADER_SIZE = 5;
 	private static final Object SSL_CODEC = new Object();
 
@@ -56,9 +55,17 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 	@Override
 	public final int tellBoundary(ISession session, IBuffer in) {
 		int type = in.byteAt(0) & 0xFF;
-		if (type > 0x17) { // SSLv2
-			int mask = type < 0x80 ? 0x3F : 0x7F;
-			return ((type & mask) << 8 | (in.byteAt(1) & 0xFF)) + 2;
+		if (type > 0x18) { // SSLv2
+			final int mask;
+			final int headerSize;
+			if (type < 0x80) {
+				mask = 0x3F;
+				headerSize = 3;
+			} else {
+				mask = 0x7F;
+				headerSize = 2;
+			}
+			return ((type & mask) << 8 | (in.byteAt(1) & 0xFF)) + headerSize;
 		}
 
 		return in.getUnsignedShort(3, ShortCodec.bigEndian()) + HEADER_SIZE;
@@ -74,7 +81,6 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 			session.deposit(SSL_CODEC, sslCodec);
 		}
 
-		@SuppressWarnings("resource")
 		IBuffer appBuf = netData.newBuffer();
 		try {
 			final SSLEngine engine = sslCodec.engine();
@@ -97,7 +103,9 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 					if (hs == HandshakeStatus.NEED_UNWRAP) {
 						appBuf.close();
 						return true;
-					} else if (hs == HandshakeStatus.FINISHED) {
+					}
+
+					if (hs == HandshakeStatus.FINISHED) {
 						appBuf.close();
 						final IBuffer inception = sslCodec.inception();
 						if (inception == null)
@@ -138,7 +146,6 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 				sslCodec.inception(appData.split(appData.size()));
 		}
 
-		@SuppressWarnings("resource")
 		final IBuffer netBuf = appData.newBuffer();
 		try {
 			final SSLEngine engine = sslCodec.engine();
@@ -158,6 +165,16 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 
 					if (hs == HandshakeStatus.NEED_WRAP)
 						continue;
+
+					if (hs == HandshakeStatus.FINISHED) {
+						final IBuffer inception = sslCodec.inception();
+						if (inception != null) {
+							sslCodec.inception(null);
+							appData.close();
+							appData = inception;
+							continue;
+						}
+					}
 
 					break;
 				}
@@ -208,7 +225,8 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 			protocol = "TLS";
 
 		final String provider = conf.provider();
-		final SSLContext sslContext = (provider == null || provider.isEmpty()) ? SSLContext.getInstance(protocol)
+		final SSLContext sslContext = (provider == null || provider.isEmpty())
+				? SSLContext.getInstance(protocol)
 				: SSLContext.getInstance(protocol, provider);
 
 		final ISslContextParameters sslcp = sslcp();
@@ -220,15 +238,17 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 		final Configuration conf = m_conf;
 		final SSLEngine engine;
 		String hostname = conf.hostname();
-		if (remoteAddr instanceof InetSocketAddress) {
+		if (hostname == null)
+			engine = m_sslContext.createSSLEngine();
+		else if (remoteAddr instanceof InetSocketAddress) {
 			final InetSocketAddress socketAddress = (InetSocketAddress) remoteAddr;
-			if (hostname == null)
+			if (hostname.isEmpty())
 				hostname = socketAddress.getHostName();
 			engine = m_sslContext.createSSLEngine(hostname, socketAddress.getPort());
-		} else if (hostname == null)
+		} else if (hostname.isEmpty())
 			engine = m_sslContext.createSSLEngine();
 		else
-			engine = m_sslContext.createSSLEngine(hostname, PORT);
+			engine = m_sslContext.createSSLEngine(hostname, -1);
 		engine.setSSLParameters(conf.sslParameters());
 		engine.setUseClientMode(clientMode);
 		return engine;

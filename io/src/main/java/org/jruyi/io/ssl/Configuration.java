@@ -21,8 +21,7 @@ import javax.net.ssl.SSLParameters;
 
 final class Configuration {
 
-	private static final String[] M_PROPS = {
-		"protocol", "provider" };
+	private static final String[] M_PROPS = { "protocol", "provider" };
 	private static final Method[] c_mProps;
 	private String m_protocol;
 	private String m_provider;
@@ -80,8 +79,6 @@ final class Configuration {
 	}
 
 	private void hostname(String hostname) {
-		if (hostname != null && hostname.isEmpty())
-			hostname = null;
 		m_hostname = hostname;
 	}
 

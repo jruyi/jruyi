@@ -25,7 +25,7 @@ import org.osgi.service.component.annotations.Reference;
 
 @Component(name = IoConstants.FID_SSL, //
 service = { IFilter.class }, //
-property = { IoConstants.FILTER_ID + "=" + IoConstants.FID_SSL }, //
+property = { IoConstants.FILTER_ID + "=" + IoConstants.FID_SSL, "hostname=" }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.2.0")
 public final class SslFilter extends AbstractSslFilter {
 

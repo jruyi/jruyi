@@ -260,7 +260,6 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 		m_channels = new ConcurrentHashMap<>(conf.initCapacityOfChannelMap());
 
 		final SocketAddress localAddr;
-		@SuppressWarnings("resource")
 		final DatagramChannel datagramChannel = DatagramChannel.open();
 		try {
 			final DatagramSocket socket = datagramChannel.socket();

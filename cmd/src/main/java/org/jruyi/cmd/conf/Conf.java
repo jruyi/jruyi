@@ -70,7 +70,7 @@ public final class Conf {
 			props = new Properties(args.length);
 			for (String arg : args) {
 				int i = arg.indexOf('=');
-				if (i < 1 || i >= arg.length() - 1)
+				if (i < 1 || i > arg.length() - 1)
 					continue;
 
 				props.put(arg.substring(0, i).trim(), arg.substring(i + 1).trim());
@@ -116,12 +116,11 @@ public final class Conf {
 		final HashMap<String, Object> props = new HashMap<>(n);
 		for (String arg : args) {
 			int i = arg.indexOf('=');
-			String name = i < 0 ? arg : arg.substring(0, i).trim();
 			if (i < 0) {
 				removedProps = getList(removedProps);
-				removedProps.add(name);
+				removedProps.add(arg);
 			} else
-				props.put(name, arg.substring(i + 1).trim());
+				props.put(arg.substring(0, i).trim(), arg.substring(i + 1).trim());
 		}
 		final Set<String> keys = props.keySet();
 

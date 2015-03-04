@@ -161,7 +161,7 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O> implements IIoTask {
 	}
 
 	@Override
-	@SuppressWarnings({ "unchecked", "resource" })
+	@SuppressWarnings({ "unchecked" })
 	public void onChannelIdleTimedOut(IChannel channel) {
 		c_logger.debug("{}: IDLE_TIMEOUT", channel);
 
@@ -297,7 +297,6 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O> implements IIoTask {
 		return false;
 	}
 
-	@SuppressWarnings("resource")
 	private IChannel fetchChannel() {
 		BiListNode<IChannel> node;
 		IChannel channel;
