@@ -64,6 +64,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 		private static final IThreadLocalCache<MsgArrayList> c_cache = ThreadLocalCache.weakArrayCache();
 		private Object[] m_msgs;
 		private int m_size;
+		private boolean m_more;
 
 		static MsgArrayList get() {
 			MsgArrayList mal = c_cache.take();
@@ -98,9 +99,18 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			return m_size < 1;
 		}
 
+		boolean more() {
+			return m_more;
+		}
+
 		@Override
-		public void add(Object msg) {
-			if (msg == null)
+		public void more(boolean more) {
+			m_more = more;
+		}
+
+		@Override
+		public void add(Object output) {
+			if (output == null)
 				throw new NullPointerException();
 
 			final int minCapacity = ++m_size;
@@ -111,7 +121,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 				m_msgs = new Object[newCapacity];
 				System.arraycopy(oldMsgs, 0, m_msgs, 0, oldCapacity);
 			}
-			m_msgs[minCapacity - 1] = msg;
+			m_msgs[minCapacity - 1] = output;
 		}
 
 		void release() {
@@ -254,12 +264,11 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 		private Object m_msg;
 		private IFilter<?, ?>[] m_filters;
 		private int m_filterCount;
-		private boolean m_original;
 
 		private OutMsg() {
 		}
 
-		static OutMsg get(Object msg, IFilter<?, ?>[] filters, int filterCount, boolean original) {
+		static OutMsg get(Object msg, IFilter<?, ?>[] filters, int filterCount) {
 			OutMsg outMsg = c_cache.take();
 			if (outMsg == null)
 				outMsg = new OutMsg();
@@ -267,7 +276,6 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			outMsg.m_msg = msg;
 			outMsg.m_filters = filters;
 			outMsg.m_filterCount = filterCount;
-			outMsg.m_original = original;
 
 			return outMsg;
 		}
@@ -290,12 +298,6 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			return oldFilterCount;
 		}
 
-		boolean attachOriginalMsg(boolean original) {
-			final boolean oldOriginal = m_original;
-			m_original = original;
-			return oldOriginal;
-		}
-
 		Object msg() {
 			return m_msg;
 		}
@@ -306,10 +308,6 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 		int filterCount() {
 			return m_filterCount;
-		}
-
-		boolean isOriginal() {
-			return m_original;
 		}
 
 		@Override
@@ -324,168 +322,222 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 		private final Channel m_channel;
 		private final LinkedQueue<OutMsg> m_queue;
-		private final ZombieWriteThread m_zombieWriteThread;
 
 		private IBuffer m_data;
 		private Object m_originalMsg;
-
-		final class ZombieWriteThread implements IIoTask {
-
-			@Override
-			public void run(Object msg, IFilter<?, ?>[] filters, int filterCount) {
-				write(msg, filters, filterCount, false);
-			}
-		}
+		private int m_indexOfMore = -1;
 
 		WriteThread(Channel channel) {
 			m_channel = channel;
 			m_queue = new LinkedQueue<>();
-			m_zombieWriteThread = new ZombieWriteThread();
-		}
-
-		ZombieWriteThread zombieWriteThread() {
-			return m_zombieWriteThread;
 		}
 
 		@Override
 		public void run(Object msg, IFilter<?, ?>[] filters, int filterCount) {
-			write(msg, filters, filterCount, true);
-		}
-
-		void write(Object msg, IFilter<?, ?>[] filters, int filterCount, boolean original) {
 			final Channel channel = m_channel;
-			final boolean newMsg;
 			IBuffer data = m_data;
-			if (data == null) {
-				final OutMsg outMsg = m_queue.poll();
-				if (outMsg != null) {
-					if (msg != null) {
-						msg = outMsg.attachMsg(msg);
-						filters = outMsg.attachFilters(filters);
-						filterCount = outMsg.attachFilterCount(filterCount);
-						original = outMsg.attachOriginalMsg(original);
-						m_queue.put(outMsg);
-					} else {
-						msg = outMsg.msg();
-						filters = outMsg.filters();
-						filterCount = outMsg.filterCount();
-						original = outMsg.isOriginal();
-						outMsg.close();
+			if (data != null) {
+				if (msg != null)
+					m_queue.put(OutMsg.get(msg, filters, filterCount));
+			} else {
+				if (m_indexOfMore < 0) {
+					final OutMsg outMsg = m_queue.poll();
+					if (outMsg != null) {
+						if (msg != null) {
+							msg = outMsg.attachMsg(msg);
+							filters = outMsg.attachFilters(filters);
+							filterCount = outMsg.attachFilterCount(filterCount);
+							m_queue.put(outMsg);
+						} else {
+							msg = outMsg.msg();
+							filters = outMsg.filters();
+							filterCount = outMsg.filterCount();
+							outMsg.close();
+						}
 					}
+					channel.channelService().beforeSendMessage(channel, msg);
+					m_originalMsg = msg;
 				}
 
 				try {
-					data = filter(msg, filters, filterCount, channel);
+					@SuppressWarnings("unchecked")
+					final IFilter<?, Object>[] filterChain = (IFilter<?, Object>[]) filters;
+					data = filter(msg, filterChain, filterCount, channel);
 				} catch (Throwable t) {
+					m_indexOfMore = -1;
 					if (!channel.isClosed())
 						channel.onException(t);
 					return;
 				}
 				if (data == null)
 					return;
-				newMsg = true;
-			} else {
-				if (msg != null)
-					m_queue.put(OutMsg.get(msg, filters, filterCount, original));
-				newMsg = false;
 			}
+			write(data, channel);
+		}
 
-			if (original)
-				m_originalMsg = msg;
+		void writeBackward(Object msg, IFilter<?, ?>[] filters, int filterCount) {
+			final Channel channel = m_channel;
+			IBuffer data = m_data;
+			if (data != null)
+				m_queue.put(OutMsg.get(msg, filters, filterCount));
+			else {
+				try {
+					@SuppressWarnings("unchecked")
+					final IFilter<?, Object>[] filterChain = (IFilter<?, Object>[]) filters;
+					data = filter(msg, filterChain, filterCount, channel);
+				} catch (Throwable t) {
+					m_indexOfMore = -1;
+					if (!channel.isClosed())
+						channel.onException(t);
+					return;
+				}
+				if (data == null)
+					return;
+			}
+			write(data, channel);
+		}
 
+		private void write(IBuffer data, Channel channel) {
 			final IChannelService<Object, Object> cs = channel.channelService();
 			final ByteBuffer bb = cs.getChannelAdmin().sendDirectBuffer();
 			final WritableByteChannel wbc = channel.writableByteChannel();
-			try {
-				while (!data.isEmpty()) {
-					data.mark();
-					data.read(bb, Codec.byteBuffer());
-					bb.flip();
-					int len = 0;
-					do {
-						final int n = wbc.write(bb);
-						len += n;
-						if (n < 1) {
-							data.reset();
-							data.skip(len);
-							data.compact();
-							if (newMsg)
+			for (;;) {
+				final Object msg;
+				final IFilter<?, ?>[] filters;
+				final int filterCount;
+				try {
+					while (!data.isEmpty()) {
+						data.mark();
+						data.read(bb, Codec.byteBuffer());
+						bb.flip();
+						int len = 0;
+						do {
+							final int n = wbc.write(bb);
+							len += n;
+							if (n < 1) {
+								data.reset();
+								data.skip(len);
+								data.compact();
 								m_data = data;
-							channel.onWriteRequired();
-							return;
-						}
-					} while (bb.hasRemaining());
-					bb.clear();
-				}
-				if (m_originalMsg != null)
+								channel.onWriteRequired();
+								return;
+							}
+						} while (bb.hasRemaining());
+						bb.clear();
+					}
+
+					if (m_indexOfMore >= 0) {
+						clear(data);
+						return;
+					}
+
 					cs.onMessageSent(channel, m_originalMsg);
-				clear(data);
-			} catch (Throwable t) {
-				clear(data);
-				if (!channel.isClosed())
-					channel.onException(t);
+					clear(data);
+					final OutMsg outMsg = m_queue.poll();
+					if (outMsg == null) {
+						m_originalMsg = null;
+						return;
+					}
+
+					msg = outMsg.msg();
+					filters = outMsg.filters();
+					filterCount = outMsg.filterCount();
+					outMsg.close();
+					cs.beforeSendMessage(channel, msg);
+
+					m_originalMsg = msg;
+				} catch (Throwable t) {
+					m_originalMsg = null;
+					clear(data);
+					if (!channel.isClosed())
+						channel.onException(t);
+					return;
+				}
+
+				try {
+					@SuppressWarnings("unchecked")
+					final IFilter<?, Object>[] filterChain = (IFilter<?, Object>[]) filters;
+					data = filter(msg, filterChain, filterCount, channel);
+				} catch (Throwable t) {
+					m_indexOfMore = -1;
+					if (!channel.isClosed())
+						channel.onException(t);
+					return;
+				}
+				if (data == null)
+					return;
 			}
 		}
 
 		private void clear(IBuffer data) {
 			m_data = null;
-			m_originalMsg = null;
 			data.close();
 		}
 
-		private IBuffer filter(Object msg, IFilter<?, ?>[] filterArray, int index, Channel channel) {
-			IBuffer data = null;
-			if (index > 0) {
-				@SuppressWarnings("unchecked")
-				final IFilter<Object, Object>[] filters = (IFilter<Object, Object>[]) filterArray;
-				MsgArrayList inMsgs = MsgArrayList.get();
-				MsgArrayList outMsgs = MsgArrayList.get();
+		private IBuffer filter(Object msg, IFilter<?, Object>[] filters, int index, Channel channel) {
+			if (index < 1) {
 				try {
-					outMsgs.add(msg);
-					int n = outMsgs.size();
-					do {
-						MsgArrayList temp = inMsgs;
-						inMsgs = outMsgs;
-						outMsgs = temp;
-
-						for (int i = 0; i < n; ++i) {
-							if (!filters[--index].onMsgDepart(channel, inMsgs.take(i), outMsgs))
-								return null;
-						}
-
-						inMsgs.size(0);
-						n = outMsgs.size();
-					} while (index > 0 && n > 0);
-
-					if (n > 0) {
-						try {
-							int i = 0;
-							data = (IBuffer) outMsgs.take(i);
-							while (++i < n) {
-								try (IBuffer buf = (IBuffer) outMsgs.take(i)) {
-									buf.drainTo(data);
-								}
-							}
-							outMsgs.size(0);
-						} catch (ClassCastException e) {
-							throw new RuntimeException(StrUtil.join(filters[0],
-									"has to produce departure data of type ", IBuffer.class.getName()));
-						}
-					}
-				} finally {
-					inMsgs.close();
-					outMsgs.close();
-				}
-			} else {
-				try {
-					data = (IBuffer) msg;
+					return (IBuffer) msg;
 				} catch (ClassCastException e) {
 					throw new RuntimeException(
 							StrUtil.join("Departure data has to be of type", IBuffer.class.getName()));
 				}
 			}
 
-			return data;
+			int indexOfMore = m_indexOfMore;
+			if (indexOfMore > filters.length)
+				indexOfMore = -1;
+			MsgArrayList inMsgs = MsgArrayList.get();
+			MsgArrayList outMsgs = MsgArrayList.get();
+			try {
+				outMsgs.add(msg);
+				int n = outMsgs.size();
+				do {
+					final MsgArrayList temp = inMsgs;
+					inMsgs = outMsgs;
+					outMsgs = temp;
+					outMsgs.more(false);
+					final IFilter<?, Object> filter = filters[--index];
+					int i = 0;
+					try {
+						for (; i < n; ++i) {
+							if (!filter.onMsgDepart(channel, inMsgs.take(i), outMsgs))
+								return null;
+						}
+					} finally {
+						if (outMsgs.more()) {
+							if (indexOfMore < 0)
+								indexOfMore = i;
+						} else if (indexOfMore == i)
+							indexOfMore = -1;
+					}
+
+					inMsgs.size(0);
+					n = outMsgs.size();
+				} while (index > 0 && n > 0);
+
+				m_indexOfMore = indexOfMore;
+
+				if (n < 1)
+					return null;
+
+				try {
+					int i = 0;
+					final IBuffer data = (IBuffer) outMsgs.take(i);
+					while (++i < n) {
+						try (IBuffer buf = (IBuffer) outMsgs.take(i)) {
+							buf.drainTo(data);
+						}
+					}
+					return data;
+				} catch (ClassCastException e) {
+					throw new RuntimeException(StrUtil.join(filters[0],
+							"has to produce departure data of type ", IBuffer.class.getName()));
+				}
+			} finally {
+				inMsgs.close();
+				outMsgs.close();
+			}
 		}
 	}
 
@@ -855,7 +907,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 	@Override
 	public final void onWrite() {
-		m_ioWorker.perform(m_writeThread.zombieWriteThread());
+		m_ioWorker.perform(m_writeThread);
 	}
 
 	@Override
@@ -870,11 +922,11 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 	}
 
 	@Override
-	public final void onException(Throwable t) {
+	public final void onException(Throwable cause) {
 		try {
-			m_channelService.onChannelException(this, t);
-		} catch (Throwable e) {
-			c_logger.error(StrUtil.join("Unexpected Error: ", this), e);
+			m_channelService.onChannelException(this, cause);
+		} catch (Throwable t) {
+			c_logger.error(StrUtil.join("Unexpected Error: ", this), t);
 		}
 	}
 
@@ -1185,10 +1237,9 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			return ok;
 
 		++index;
-		final WriteThread.ZombieWriteThread zombieWriteThread = m_writeThread.zombieWriteThread();
-		final IIoWorker ioWorker = m_ioWorker;
+		final WriteThread writeThread = m_writeThread;
 		for (int i = size; i < n; ++i)
-			ioWorker.perform(zombieWriteThread, outMsgs.take(i), filters, index);
+			writeThread.writeBackward(outMsgs.take(i), filters, index);
 
 		outMsgs.size(size);
 		return true;

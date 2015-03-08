@@ -52,22 +52,20 @@ public final class ShortConn<I, O> extends AbstractTcpClient<I, O> {
 	}
 
 	@Override
-	public void onMessageSent(IChannel channel, O outMsg) {
-		final Object oldOutMsg = channel.deposit(REQ, outMsg);
-		if (oldOutMsg != null) {
-			channel.deposit(REQ, oldOutMsg);
-			return;
-		}
-
-		final ISessionListener<I, O> listener = listener();
+	public void beforeSendMessage(IChannel channel, O outMsg) {
 		final int timeout = m_conf.readTimeoutInSeconds();
-		if (listener != null)
-			listener.onMessageSent(channel, outMsg);
-
 		if (timeout > 0) {
 			scheduleReadTimeout(channel, timeout);
 		} else if (timeout == 0) // means no response is expected
 			channel.close();
+	}
+
+	@Override
+	public void onMessageSent(IChannel channel, O outMsg) {
+		channel.deposit(REQ, outMsg);
+		final ISessionListener<I, O> listener = listener();
+		if (listener != null)
+			listener.onMessageSent(channel, outMsg);
 	}
 
 	@Override

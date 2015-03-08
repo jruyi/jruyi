@@ -41,6 +41,15 @@ public class SessionListener<I, O> implements ISessionListener<I, O> {
 
 	/**
 	 * Empty implementation.
+	 * 
+	 * @since 2.1
+	 */
+	@Override
+	public void beforeSendMessage(ISession session, O outMsg) {
+	}
+
+	/**
+	 * Empty implementation.
 	 */
 	@Override
 	public void onMessageSent(ISession session, O outMsg) {
@@ -57,7 +66,7 @@ public class SessionListener<I, O> implements ISessionListener<I, O> {
 	 * Empty implementation.
 	 */
 	@Override
-	public void onSessionException(ISession session, Throwable t) {
+	public void onSessionException(ISession session, Throwable cause) {
 	}
 
 	/**

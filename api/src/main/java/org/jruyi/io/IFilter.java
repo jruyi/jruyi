@@ -64,11 +64,13 @@ public interface IFilter<I, O> {
 	public int tellBoundary(ISession session, IBuffer in);
 
 	/**
-	 * Filters the incoming data. The filtered output is passed onto the next
-	 * filter in the filter chain via the given {@code output}.
+	 * Filters the incoming data which is passed from the left most filter to
+	 * the right most filter in the chain in order. The filtered output is
+	 * passed onto the next filter via the given {@code output}.
 	 * <p>
 	 * If this method returns true and the output is not empty, then the output
-	 * will be passed to the next filter's {@code onMsgArrive} as {@code msg}.
+	 * will be passed to the next filter's {@code onMsgArrive} as input
+	 * {@code msg}.
 	 * <p>
 	 * If this method returns true and the output is empty, then the
 	 * filter-chain's {@code onMsgArrive} routine will abort.
@@ -93,12 +95,12 @@ public interface IFilter<I, O> {
 	public boolean onMsgArrive(ISession session, I msg, IFilterOutput output);
 
 	/**
-	 * Filters the outgoing data. The filtered output is passed on to the
-	 * previous filter in the filter chain via the given {@code output}.
+	 * Filters the outgoing data which is passed from the right most filter to
+	 * the left most filter in the chain in order. The filtered output is passed
+	 * onto the next filter via the given {@code output}.
 	 * <p>
 	 * If this method returns true and the output is not empty, then the output
-	 * will be passed to the previous filter's {@code onMsgDepart} as
-	 * {@code msg}.
+	 * will be passed to the next filter's {@code onMsgDepart} as {@code msg}.
 	 * <p>
 	 * If this method returns true and the output is empty, then the
 	 * filter-chain's {@code onMsgDepart} routine will abort.
@@ -111,9 +113,9 @@ public interface IFilter<I, O> {
 	 * @param msg
 	 *            the outgoing message
 	 * @param output
-	 *            an object used to pass the output to the previous filter in
-	 *            the filter chain
-	 * @return true if going to the previous filter otherwise false
+	 *            an object used to pass the output to the next filter in the
+	 *            filter chain
+	 * @return true if going to the next filter otherwise false
 	 */
 	public boolean onMsgDepart(ISession session, O msg, IFilterOutput output);
 }

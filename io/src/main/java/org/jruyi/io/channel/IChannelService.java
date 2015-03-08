@@ -35,6 +35,8 @@ public interface IChannelService<I, O> {
 
 	public void onMessageReceived(IChannel channel, I inMsg);
 
+	public void beforeSendMessage(IChannel channel, O outMsg);
+
 	// The given {@code data} will be closed right after this method returns.
 	public void onMessageSent(IChannel channel, O outMsg);
 

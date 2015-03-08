@@ -81,13 +81,7 @@ public final class TcpClientMux<I extends IIdentifiable<?>, O extends IIdentifia
 	}
 
 	@Override
-	public void onMessageSent(IChannel channel, O outMsg) {
-		if (!(outMsg instanceof IIdentifiable))
-			return;
-
-		final ISessionListener<I, O> listener = listener();
-		if (listener != null)
-			listener.onMessageSent(channel, outMsg);
+	public void beforeSendMessage(IChannel channel, O outMsg) {
 		final int timeout = m_conf.readTimeoutInSeconds();
 		if (timeout > 0) {
 			final ITimeoutNotifier tn = m_ta.createNotifier(outMsg);
@@ -99,6 +93,13 @@ public final class TcpClientMux<I extends IIdentifiable<?>, O extends IIdentifia
 			tn.setListener(getListener(channel));
 			tn.schedule(timeout);
 		}
+	}
+
+	@Override
+	public void onMessageSent(IChannel channel, O outMsg) {
+		final ISessionListener<I, O> listener = listener();
+		if (listener != null)
+			listener.onMessageSent(channel, outMsg);
 	}
 
 	@Override

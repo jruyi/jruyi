@@ -176,6 +176,7 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 						}
 					}
 
+					output.more(true);
 					break;
 				}
 

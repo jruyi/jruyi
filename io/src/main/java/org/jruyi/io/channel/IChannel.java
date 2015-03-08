@@ -20,7 +20,7 @@ import org.jruyi.io.ISession;
 
 public interface IChannel extends ISession, ISelectableChannel {
 
-	public IChannelService<?, ?> channelService();
+	public IChannelService<Object, Object> channelService();
 
 	public void connect(int timeout);
 

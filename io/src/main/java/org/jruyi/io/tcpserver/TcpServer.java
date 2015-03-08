@@ -202,6 +202,13 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 	}
 
 	@Override
+	public void beforeSendMessage(IChannel channel, O outMsg) {
+		final ISessionListener<I, O> listener = m_listener;
+		if (listener != null)
+			listener.beforeSendMessage(channel, outMsg);
+	}
+
+	@Override
 	public void onMessageSent(IChannel channel, O outMsg) {
 		final ISessionListener<I, O> listener = m_listener;
 		if (listener != null)

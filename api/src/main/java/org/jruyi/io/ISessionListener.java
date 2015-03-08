@@ -41,6 +41,17 @@ public interface ISessionListener<I, O> {
 	public void onSessionClosed(ISession session);
 
 	/**
+	 * Callback method right before sending message.
+	 *
+	 * @param session
+	 *            the session to send the message
+	 * @param outMsg
+	 *            the message to be sent
+	 * @since 2.1
+	 */
+	public void beforeSendMessage(ISession session, O outMsg);
+
+	/**
 	 * Callback method on message sent.
 	 * 
 	 * @param session
@@ -65,10 +76,10 @@ public interface ISessionListener<I, O> {
 	 * 
 	 * @param session
 	 *            the session got exception
-	 * @param t
+	 * @param cause
 	 *            the exception
 	 */
-	public void onSessionException(ISession session, Throwable t);
+	public void onSessionException(ISession session, Throwable cause);
 
 	/**
 	 * Callback method on session idle timed out.

@@ -21,13 +21,26 @@ package org.jruyi.io;
 public interface IFilterOutput {
 
 	/**
-	 * Adds the specified {@code out} to the output queue whose elements are to
-	 * be passed to the next filter one by one.
+	 * Adds the specified {@code output} to the output queue as the final output
+	 * corresponding to the input from previous filter. All the output elements
+	 * in the queue will be passed to the next filter one by one.
 	 * 
-	 * @param out
-	 *            the output
-	 * @exception NullPointerException
-	 *                if the specified {@code out} is null
+	 * @param output
+	 *            the final output corresponding to the input from previous
+	 *            filter
+	 * @throws NullPointerException
+	 *             if the specified {@code out} is null
 	 */
-	public void add(Object out);
+	public void add(Object output);
+
+	/**
+	 * Used in {@link IFilter#onMsgDepart} to indicate if there will be more
+	 * outputs corresponding to the input from previous filter after
+	 * {@link IFilter#onMsgDepart} returns.
+	 * 
+	 * @param more
+	 *            true if there will be more outputs
+	 * @since 2.1
+	 */
+	public void more(boolean more);
 }
