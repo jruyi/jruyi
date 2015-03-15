@@ -45,6 +45,7 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O> implements IIoTask {
 	private static final Logger c_logger = LoggerFactory.getLogger(ConnPool.class);
 
 	private static final Object REQ = new Object();
+	private static final Object QUEUE_KEY = new Object();
 
 	private ConnPoolConf m_conf;
 	private final BiListNode<IChannel> m_channelQueueHead;
@@ -174,7 +175,7 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O> implements IIoTask {
 			// Both are going to remove the node. So null-check of the element
 			// the node holding is used to tell whether this node has already
 			// been removed.
-			if ((node = (BiListNode<IChannel>) channel.detach()) == null)
+			if ((node = (BiListNode<IChannel>) channel.withdraw(QUEUE_KEY)) == null)
 				return;
 
 			removeNode(node);
@@ -313,7 +314,7 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O> implements IIoTask {
 				// bound node has been removed. So the detach operation has to
 				// be synchronized.
 				channel = node.get();
-				channel.detach();
+				channel.withdraw(QUEUE_KEY);
 			} finally {
 				lock.unlock();
 			}
@@ -326,7 +327,7 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O> implements IIoTask {
 	private BiListNode<IChannel> newNode(IChannel channel) {
 		final BiListNode<IChannel> node = BiListNode.create();
 		node.set(channel);
-		channel.attach(node);
+		channel.deposit(QUEUE_KEY, node);
 		return node;
 	}
 

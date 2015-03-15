@@ -69,6 +69,11 @@ public final class Buffer implements IBuffer, IUnitChain {
 	}
 
 	@Override
+	public IUnit create(int minimumCapacity) {
+		return m_factory.getUnit(minimumCapacity);
+	}
+
+	@Override
 	public IUnit currentUnit() {
 		return m_positionNode.get();
 	}

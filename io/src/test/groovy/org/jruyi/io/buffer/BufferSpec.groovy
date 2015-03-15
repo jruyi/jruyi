@@ -18,7 +18,174 @@ import org.jruyi.common.StringBuilder
 import org.jruyi.io.*
 import spock.lang.Specification
 
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+
 class BufferSpec extends Specification {
+
+	def "read/write int"() {
+		def size = 4;
+		def i = 0x12345678I
+		def bytesLe = ByteBuffer.allocate(size).order(ByteOrder.LITTLE_ENDIAN).putInt(i).array()
+		def bytesBe = ByteBuffer.allocate(size).order(ByteOrder.BIG_ENDIAN).putInt(i).array()
+		def bf = new BufferFactory()
+		bf.activate([unitCapacity: size * 6 - 1])
+		def buf = bf.create()
+		buf.reserveHead(size * 4)
+
+		buf.write(bytesLe, Codec.byteArray())
+		buf.write(bytesBe, Codec.byteArray())
+		buf.write(i, IntCodec.littleEndian())
+		buf.write(i, IntCodec.bigEndian())
+
+		buf.prepend(bytesLe, Codec.byteArray())
+		buf.prepend(bytesBe, Codec.byteArray())
+		buf.prepend(i, IntCodec.littleEndian())
+		buf.prepend(i, IntCodec.bigEndian())
+
+		expect:
+		buf.read(size, Codec.byteArray()) == bytesBe
+		buf.read(size, Codec.byteArray()) == bytesLe
+		buf.read(IntCodec.bigEndian()) == i
+		buf.read(IntCodec.littleEndian()) == i
+
+		buf.read(IntCodec.littleEndian()) == i
+		buf.read(IntCodec.bigEndian()) == i
+		buf.read(size, Codec.byteArray()) == bytesLe
+		buf.read(size, Codec.byteArray()) == bytesBe
+
+		buf.get(0, size, Codec.byteArray()) == bytesBe
+		buf.get(size, size, Codec.byteArray()) == bytesLe
+		buf.get(size * 2, IntCodec.bigEndian()) == i
+		buf.get(size * 3, IntCodec.littleEndian()) == i
+		buf.get(size * 4, IntCodec.littleEndian()) == i
+		buf.get(size * 5, IntCodec.bigEndian()) == i
+		buf.get(size * 6, size, Codec.byteArray()) == bytesLe
+		buf.get(size * 7, size, Codec.byteArray()) == bytesBe
+	}
+
+	def "read/write long"() {
+		def size = 8;
+		def l = 0x1234567890abcdefI
+		def bytesLe = ByteBuffer.allocate(size).order(ByteOrder.LITTLE_ENDIAN).putLong(l).array()
+		def bytesBe = ByteBuffer.allocate(size).order(ByteOrder.BIG_ENDIAN).putLong(l).array()
+		def bf = new BufferFactory()
+		bf.activate([unitCapacity: size * 6 - 1])
+		def buf = bf.create()
+		buf.reserveHead(size * 4)
+
+		buf.write(bytesLe, Codec.byteArray())
+		buf.write(bytesBe, Codec.byteArray())
+		buf.write(l, LongCodec.littleEndian())
+		buf.write(l, LongCodec.bigEndian())
+
+		buf.prepend(bytesLe, Codec.byteArray())
+		buf.prepend(bytesBe, Codec.byteArray())
+		buf.prepend(l, LongCodec.littleEndian())
+		buf.prepend(l, LongCodec.bigEndian())
+
+		expect:
+		buf.read(size, Codec.byteArray()) == bytesBe
+		buf.read(size, Codec.byteArray()) == bytesLe
+		buf.read(LongCodec.bigEndian()) == l
+		buf.read(LongCodec.littleEndian()) == l
+
+		buf.read(LongCodec.littleEndian()) == l
+		buf.read(LongCodec.bigEndian()) == l
+		buf.read(size, Codec.byteArray()) == bytesLe
+		buf.read(size, Codec.byteArray()) == bytesBe
+
+		buf.get(0, size, Codec.byteArray()) == bytesBe
+		buf.get(size, size, Codec.byteArray()) == bytesLe
+		buf.get(size * 2, LongCodec.bigEndian()) == l
+		buf.get(size * 3, LongCodec.littleEndian()) == l
+		buf.get(size * 4, LongCodec.littleEndian()) == l
+		buf.get(size * 5, LongCodec.bigEndian()) == l
+		buf.get(size * 6, size, Codec.byteArray()) == bytesLe
+		buf.get(size * 7, size, Codec.byteArray()) == bytesBe
+	}
+
+	def "read/write float"() {
+		def size = 4;
+		def f = 212324.123F
+		def bytesLe = ByteBuffer.allocate(size).order(ByteOrder.LITTLE_ENDIAN).putFloat(f).array()
+		def bytesBe = ByteBuffer.allocate(size).order(ByteOrder.BIG_ENDIAN).putFloat(f).array()
+		def bf = new BufferFactory()
+		bf.activate([unitCapacity: size * 6 - 1])
+		def buf = bf.create()
+		buf.reserveHead(size * 4)
+
+		buf.write(bytesLe, Codec.byteArray())
+		buf.write(bytesBe, Codec.byteArray())
+		buf.write(f, FloatCodec.littleEndian())
+		buf.write(f, FloatCodec.bigEndian())
+
+		buf.prepend(bytesLe, Codec.byteArray())
+		buf.prepend(bytesBe, Codec.byteArray())
+		buf.prepend(f, FloatCodec.littleEndian())
+		buf.prepend(f, FloatCodec.bigEndian())
+
+		expect:
+		buf.read(size, Codec.byteArray()) == bytesBe
+		buf.read(size, Codec.byteArray()) == bytesLe
+		buf.read(FloatCodec.bigEndian()) == f
+		buf.read(FloatCodec.littleEndian()) == f
+
+		buf.read(FloatCodec.littleEndian()) == f
+		buf.read(FloatCodec.bigEndian()) == f
+		buf.read(size, Codec.byteArray()) == bytesLe
+		buf.read(size, Codec.byteArray()) == bytesBe
+
+		buf.get(0, size, Codec.byteArray()) == bytesBe
+		buf.get(size, size, Codec.byteArray()) == bytesLe
+		buf.get(size * 2, FloatCodec.bigEndian()) == f
+		buf.get(size * 3, FloatCodec.littleEndian()) == f
+		buf.get(size * 4, FloatCodec.littleEndian()) == f
+		buf.get(size * 5, FloatCodec.bigEndian()) == f
+		buf.get(size * 6, size, Codec.byteArray()) == bytesLe
+		buf.get(size * 7, size, Codec.byteArray()) == bytesBe
+	}
+
+	def "read/write double"() {
+		def size = 8
+		def d = 834955223.13323D
+		def bytesLe = ByteBuffer.allocate(size).order(ByteOrder.LITTLE_ENDIAN).putDouble(d).array()
+		def bytesBe = ByteBuffer.allocate(size).order(ByteOrder.BIG_ENDIAN).putDouble(d).array()
+		def bf = new BufferFactory()
+		bf.activate([unitCapacity: size * 6 - 1])
+		def buf = bf.create()
+		buf.reserveHead(size * 4)
+
+		buf.write(bytesLe, Codec.byteArray())
+		buf.write(bytesBe, Codec.byteArray())
+		buf.write(d, DoubleCodec.littleEndian())
+		buf.write(d, DoubleCodec.bigEndian())
+
+		buf.prepend(bytesLe, Codec.byteArray())
+		buf.prepend(bytesBe, Codec.byteArray())
+		buf.prepend(d, DoubleCodec.littleEndian())
+		buf.prepend(d, DoubleCodec.bigEndian())
+
+		expect:
+		buf.read(size, Codec.byteArray()) == bytesBe
+		buf.read(size, Codec.byteArray()) == bytesLe
+		buf.read(DoubleCodec.bigEndian()) == d
+		buf.read(DoubleCodec.littleEndian()) == d
+
+		buf.read(DoubleCodec.littleEndian()) == d
+		buf.read(DoubleCodec.bigEndian()) == d
+		buf.read(size, Codec.byteArray()) == bytesLe
+		buf.read(size, Codec.byteArray()) == bytesBe
+
+		buf.get(0, size, Codec.byteArray()) == bytesBe
+		buf.get(size, size, Codec.byteArray()) == bytesLe
+		buf.get(size * 2, DoubleCodec.bigEndian()) == d
+		buf.get(size * 3, DoubleCodec.littleEndian()) == d
+		buf.get(size * 4, DoubleCodec.littleEndian()) == d
+		buf.get(size * 5, DoubleCodec.bigEndian()) == d
+		buf.get(size * 6, size, Codec.byteArray()) == bytesLe
+		buf.get(size * 7, size, Codec.byteArray()) == bytesBe
+	}
 
 	def "minimum unit capacity should be 8 bytes"() {
 		given: "a buffer with unit capacity specified to 7"

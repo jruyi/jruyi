@@ -32,6 +32,17 @@ public interface IUnitChain {
 	public IUnit create();
 
 	/**
+	 * Returns a new buffer unit with capacity ensured to be at least equal to
+	 * the specified minimum.
+	 *
+	 * @param minimumCapacity
+	 *            the minimum desired capacity
+	 * @return a new buffer unit as described
+	 * @since 2.1
+	 */
+	public IUnit create(int minimumCapacity);
+
+	/**
 	 * Returns the buffer unit the position pointer is pointing to.
 	 * 
 	 * @return the buffer unit as described
