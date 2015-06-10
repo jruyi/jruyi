@@ -21,9 +21,9 @@ import java.net.URL;
 import java.net.URLClassLoader;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.PosixParser;
 
 public final class Main {
 
@@ -135,7 +135,7 @@ public final class Main {
 		options.addOption("t", "timeout", true, null);
 		options.addOption("f", "file", false, null);
 
-		CommandLine line = new PosixParser().parse(options, args);
+		CommandLine line = new DefaultParser().parse(options, args);
 
 		Option[] opts = line.getOptions();
 		for (Option option : opts) {
@@ -188,8 +188,7 @@ public final class Main {
 	private void printHelp() {
 		String programName = System.getProperty("program.name");
 		System.out.println();
-		System.out.println("Usage:");
-		System.out.println("    " + programName + " [options] [COMMAND | SCRIPT ...]");
+		System.out.println("Usage: " + programName + " [options] [COMMAND | SCRIPT ...]");
 		System.out.println();
 		System.out.println("options:");
 		System.out.println("    -?, --help                print this help message");

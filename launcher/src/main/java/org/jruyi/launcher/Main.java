@@ -30,9 +30,9 @@ import java.util.Map;
 import java.util.jar.JarFile;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.PosixParser;
 import org.apache.logging.log4j.core.util.ShutdownCallbackRegistry;
 import org.osgi.framework.Constants;
 
@@ -191,7 +191,7 @@ public final class Main {
 		options.addOption(o);
 		options.addOption("r", "run", true, null);
 
-		CommandLine line = new PosixParser().parse(options, args);
+		CommandLine line = new DefaultParser().parse(options, args);
 
 		Option[] opts = line.getOptions();
 		for (Option option : opts) {
