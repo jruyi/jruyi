@@ -19,13 +19,13 @@ buildscript {
 
 	dependencies {
 		classpath 'org.jruyi.gradle:osgibnd-gradle-plugin:0.3.0'
-		classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.1'
+		classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
 	}
 }
 
 apply plugin: 'distribution'
 
-version = '2.1.0'
+version = '2.1.1-SNAPSHOT'
 description = 'A Java framework for easily developing efficient and scalable network applications'
 
 ext {
@@ -55,19 +55,19 @@ allprojects {
 		commons_cli_version = '1.2'
 		disruptor_version = '3.3.2'
 		jline_version = '2.12.1'
-		log4j_api_version = '2.2'
-		log4j_core_version = '2.2'
-		log4j_slf4j_impl_version = '2.2'
+		log4j_api_version = '2.3'
+		log4j_core_version = '2.3'
+		log4j_slf4j_impl_version = '2.3'
 		org_apache_felix_bundlerepository_version = '2.0.4'
-		org_apache_felix_configadmin_version = '1.8.2'
-		org_apache_felix_framework_version = '4.6.1'
+		org_apache_felix_configadmin_version = '1.8.6'
+		org_apache_felix_framework_version = '5.0.0'
 		org_apache_felix_gogo_runtime_version = '0.16.2'
-		org_apache_felix_metatype_version = '1.0.10'
+		org_apache_felix_metatype_version = '1.0.12'
 		org_apache_felix_scr_version = '1.8.2'
-		slf4j_api_version = '1.7.10'
+		slf4j_api_version = '1.7.12'
 
 		spock_core_version = '1.0-groovy-2.4'
-		slf4j_simple_version = '1.7.10'
+		slf4j_simple_version = '1.7.12'
 
 		jruyi_system_version = rootProject.version
 
@@ -77,7 +77,7 @@ allprojects {
 		org_jruyi_clid_version = '2.0.0'
 		org_jruyi_cmd_version = '2.0.1'
 		org_jruyi_common_version = '2.0.0'
-		org_jruyi_io_version = '2.1.0'
+		org_jruyi_io_version = '2.1.1-SNAPSHOT'
 		org_jruyi_me_version = '2.0.0'
 		org_jruyi_osgi_log_version = '2.0.0'
 		org_jruyi_timeoutadmin_version = '2.0.0'
@@ -85,6 +85,7 @@ allprojects {
 	}
 
 	repositories {
+		jcenter()
 		mavenCentral()
 	}
 }
@@ -257,8 +258,4 @@ distributions {
 distTar {
 	compression = Compression.GZIP
 	extension = 'tar.gz'
-}
-
-task wrapper(type: Wrapper) {
-	gradleVersion = '2.3'
 }

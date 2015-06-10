@@ -176,7 +176,7 @@
 			<Option label="Want" value="want"/>
 			<Option label="Need" value="need"/>
 		</AD>
-		<AD id="hostname" name="Hostname to Be Verified" type="String" required="false" default=""/>
+		<AD id="hostname" name="Hostname to Be Verified" type="String" required="false"/>
 		<AD id="endpointIdentificationAlgorithm" name="Endpoint Identification Algorithm" type="String" default="NONE">
 			<Option label="NONE" value="NONE"/>
 			<Option label="HTTPS" value="HTTPS"/>
@@ -216,7 +216,7 @@
 			<Option label="Want" value="want"/>
 			<Option label="Need" value="need"/>
 		</AD>
-		<AD id="hostname" name="Hostname to Be Verified" type="String" required="false" default=""/>
+		<AD id="hostname" name="Hostname to Be Verified" type="String" required="false"/>
 		<AD id="endpointIdentificationAlgorithm" name="Endpoint Identification Algorithm" type="String" default="NONE">
 			<Option label="NONE" value="NONE"/>
 			<Option label="HTTPS" value="HTTPS"/>

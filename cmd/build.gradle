@@ -29,7 +29,7 @@ dependencies {
 	compile "org.apache.felix:org.apache.felix.bundlerepository:$org_apache_felix_bundlerepository_version"
 	compile "org.slf4j:slf4j-api:$slf4j_api_version"
 
-	compile project(':api')
+	compile "org.jruyi:jruyi-api:2.0.0"
 }
 
 jar {

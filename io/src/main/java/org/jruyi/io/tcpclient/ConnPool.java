@@ -241,7 +241,7 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O> implements IIoTask {
 	}
 
 	@Override
-	TcpClientConf configuration() {
+	ConnPoolConf configuration() {
 		return m_conf;
 	}
 
