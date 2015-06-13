@@ -14,8 +14,6 @@
 
 package org.jruyi.timeoutadmin.internal;
 
-import java.util.concurrent.locks.ReentrantLock;
-
 import org.jruyi.common.BiListNode;
 
 final class LinkedList<E> {
@@ -42,53 +40,43 @@ final class LinkedList<E> {
 		return newNode;
 	}
 
-	BiListNode<E> syncInsertAfter(BiListNode<E> node, E e, ReentrantLock lock) {
+	BiListNode<E> syncInsertAfter(BiListNode<E> node, E e, Object lock) {
 		final BiListNode<E> newNode = BiListNode.create();
 		newNode.set(e);
-		lock.lock();
-		try {
+		synchronized (lock) {
 			final BiListNode<E> next = node.next();
-
 			newNode.previous(node);
 			newNode.next(next);
 			next.previous(newNode);
 			node.next(newNode);
-		} finally {
-			lock.unlock();
 		}
 		return newNode;
 	}
 
-	void syncMoveAfter(BiListNode<E> posNode, BiListNode<E> node, ReentrantLock lock1, ReentrantLock lock2) {
-		lock1.lock();
-		lock2.lock();
-		try {
-			final BiListNode<E> previous = node.previous();
-			BiListNode<E> next = node.next();
+	void syncMoveAfter(BiListNode<E> posNode, BiListNode<E> node, Object lock1, Object lock2) {
+		synchronized (lock1) {
+			synchronized (lock2) {
+				final BiListNode<E> previous = node.previous();
+				BiListNode<E> next = node.next();
 
-			previous.next(next);
-			next.previous(previous);
+				previous.next(next);
+				next.previous(previous);
 
-			next = posNode.next();
-			node.next(next);
-			posNode.next(node);
-			node.previous(posNode);
-			next.previous(node);
-		} finally {
-			lock2.unlock();
-			lock1.unlock();
+				next = posNode.next();
+				node.next(next);
+				posNode.next(node);
+				node.previous(posNode);
+				next.previous(node);
+			}
 		}
 	}
 
-	E syncRemove(BiListNode<E> node, ReentrantLock lock) {
-		lock.lock();
-		try {
+	E syncRemove(BiListNode<E> node, Object lock) {
+		synchronized (lock) {
 			final BiListNode<E> previous = node.previous();
 			final BiListNode<E> next = node.next();
 			previous.next(next);
 			next.previous(previous);
-		} finally {
-			lock.unlock();
 		}
 		E e = node.get();
 		node.close();

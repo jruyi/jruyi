@@ -64,7 +64,7 @@ public final class CharsetCodec {
 		 * 
 		 * @return an instance of {@code ICharsetCodec}
 		 */
-		public ICharsetCodec get();
+		ICharsetCodec get();
 
 		/**
 		 * Gets an instance of {@code ICharsetCodec} using the specified
@@ -74,7 +74,7 @@ public final class CharsetCodec {
 		 *            the name of the charset to codec
 		 * @return an instance of {@code ICharsetCodec}
 		 */
-		public ICharsetCodec get(String charsetName);
+		ICharsetCodec get(String charsetName);
 
 		/**
 		 * Gets an instance of {@code ICharsetCodec} using the specified
@@ -84,7 +84,7 @@ public final class CharsetCodec {
 		 *            the charset to codec
 		 * @return an instance of {@code ICharsetCodec}
 		 */
-		public ICharsetCodec get(Charset charset);
+		ICharsetCodec get(Charset charset);
 	}
 
 	private CharsetCodec() {

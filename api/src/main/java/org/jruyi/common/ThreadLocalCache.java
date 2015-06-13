@@ -39,7 +39,7 @@ public final class ThreadLocalCache {
 		 *            the type of the object to be cached
 		 * @return a thread local cache
 		 */
-		public <E> IThreadLocalCache<E> softArrayCache();
+		<E> IThreadLocalCache<E> softArrayCache();
 
 		/**
 		 * Creates a thread local cache which is softly referenced and backed by
@@ -51,7 +51,7 @@ public final class ThreadLocalCache {
 		 *            the initial capacity of the backing array
 		 * @return a thread local cache
 		 */
-		public <E> IThreadLocalCache<E> softArrayCache(int initialCapacity);
+		<E> IThreadLocalCache<E> softArrayCache(int initialCapacity);
 
 		/**
 		 * Creates a thread local cache which is softly reference and backed by
@@ -61,7 +61,7 @@ public final class ThreadLocalCache {
 		 *            the type of the object to be cached
 		 * @return a thread local cache
 		 */
-		public <E> IThreadLocalCache<E> softLinkedCache();
+		<E> IThreadLocalCache<E> softLinkedCache();
 
 		/**
 		 * Creates a thread local cache which is weakly referenced and backed by
@@ -71,7 +71,7 @@ public final class ThreadLocalCache {
 		 *            the type of the object to be cached
 		 * @return a thread local cache
 		 */
-		public <E> IThreadLocalCache<E> weakArrayCache();
+		<E> IThreadLocalCache<E> weakArrayCache();
 
 		/**
 		 * Creates a thread local cache which is weakly referenced and backed by
@@ -83,7 +83,7 @@ public final class ThreadLocalCache {
 		 *            the initial capacity of the backing array
 		 * @return a thread local cache
 		 */
-		public <E> IThreadLocalCache<E> weakArrayCache(int initialCapacity);
+		<E> IThreadLocalCache<E> weakArrayCache(int initialCapacity);
 
 		/**
 		 * Creates a thread local cache which is weakly referenced and backed by
@@ -93,7 +93,7 @@ public final class ThreadLocalCache {
 		 *            the type of the object to be cached
 		 * @return a thread local cache
 		 */
-		public <E> IThreadLocalCache<E> weakLinkedCache();
+		<E> IThreadLocalCache<E> weakLinkedCache();
 	}
 
 	private ThreadLocalCache() {

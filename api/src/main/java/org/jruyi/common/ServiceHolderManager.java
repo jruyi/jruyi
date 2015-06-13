@@ -46,7 +46,7 @@ public final class ServiceHolderManager {
 		 *            the name of the service property used as the service ID
 		 * @return a service holder manager
 		 */
-		public <T> IServiceHolderManager<T> create(BundleContext context, Class<T> clazz, String nameOfId);
+		<T> IServiceHolderManager<T> create(BundleContext context, Class<T> clazz, String nameOfId);
 	}
 
 	private ServiceHolderManager() {
