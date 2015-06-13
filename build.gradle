@@ -25,7 +25,7 @@ buildscript {
 
 apply plugin: 'distribution'
 
-version = '2.1.1-SNAPSHOT'
+version = '2.2.0-SNAPSHOT'
 description = 'A Java framework for easily developing efficient and scalable network applications'
 
 ext {
@@ -77,7 +77,7 @@ allprojects {
 		org_jruyi_clid_version = '2.0.0'
 		org_jruyi_cmd_version = '2.0.1'
 		org_jruyi_common_version = '2.0.0'
-		org_jruyi_io_version = '2.1.1-SNAPSHOT'
+		org_jruyi_io_version = '2.2.0-SNAPSHOT'
 		org_jruyi_me_version = '2.0.0'
 		org_jruyi_osgi_log_version = '2.0.0'
 		org_jruyi_timeoutadmin_version = '2.0.0'

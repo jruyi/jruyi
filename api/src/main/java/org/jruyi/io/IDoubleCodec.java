@@ -34,7 +34,7 @@ public interface IDoubleCodec {
 	 * @throws BufferUnderflowException
 	 *             if there's not enough data remaining in the {@code unitChain}
 	 */
-	public double read(IUnitChain unitChain);
+	double read(IUnitChain unitChain);
 
 	/**
 	 * Encodes the specified {@code double} value {@code d} and writes the
@@ -45,7 +45,7 @@ public interface IDoubleCodec {
 	 * @param unitChain
 	 *            the unit chain where the encoded bytes to be written to
 	 */
-	public void write(double d, IUnitChain unitChain);
+	void write(double d, IUnitChain unitChain);
 
 	/**
 	 * Decodes the bytes from the specified {@code unitChain}, starting at the
@@ -60,7 +60,7 @@ public interface IDoubleCodec {
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
 	 */
-	public double get(IUnitChain unitChain, int index);
+	double get(IUnitChain unitChain, int index);
 
 	/**
 	 * Encodes the specified {@code double} value {@code d} and sets the
@@ -76,7 +76,7 @@ public interface IDoubleCodec {
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
 	 */
-	public void set(double d, IUnitChain unitChain, int index);
+	void set(double d, IUnitChain unitChain, int index);
 
 	/**
 	 * Encodes the specified {@code double} value {@code d} and writes the
@@ -87,5 +87,5 @@ public interface IDoubleCodec {
 	 * @param unitChain
 	 *            the unit chain where the encoded bytes to be prepended to
 	 */
-	public void prepend(double d, IUnitChain unitChain);
+	void prepend(double d, IUnitChain unitChain);
 }

@@ -25,5 +25,5 @@ public interface IDumpable {
 	 * @param builder
 	 *            the {@code StringBuilder} to append
 	 */
-	public void dump(StringBuilder builder);
+	void dump(StringBuilder builder);
 }

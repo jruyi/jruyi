@@ -378,7 +378,7 @@ class BufferSpec extends Specification {
 		def length = bytes.length
 
 		when: "write 50 bytes"
-		buf.write(bytes, Codec.byteArray());
+		buf.write(bytes, Codec.byteArray())
 		then:
 		buf.position() == 0
 		buf.size() == length
@@ -407,6 +407,26 @@ class BufferSpec extends Specification {
 		def bytes5 = buf.read(50, Codec.byteArray())
 		then:
 		bytes == bytes5
+	}
+
+	def "splitting a buffer into 3 pieces should not change the sequence"() {
+		given: "a buffer with unitCapacity = 32 and size = 70"
+		def bf = new BufferFactory()
+		bf.activate([unitCapacity: 32])
+		def buf = bf.create()
+		def bytes1 = createBytes(33)
+		def bytes2 = createBytes(13)
+		def bytes3 = createBytes(24)
+		buf.write(bytes1, Codec.byteArray()).write(bytes2, Codec.byteArray()).write(bytes3, Codec.byteArray())
+
+		when: "split into 3 pieces: the first with 33 bytes, the second with 13 and the third with 24 bytes"
+		def firstPiece = buf.split(33).read(Codec.byteArray())
+		def secondPiece = buf.split(13).read(Codec.byteArray())
+		def thirdPiece = buf.read(Codec.byteArray())
+		then:
+		firstPiece == bytes1
+		secondPiece == bytes2
+		thirdPiece == bytes3
 	}
 
 	private def createBytes(int length) {

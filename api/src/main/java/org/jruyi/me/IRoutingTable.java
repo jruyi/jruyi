@@ -30,7 +30,7 @@ public interface IRoutingTable {
 	 *            the source endpoint ID
 	 * @return the {@code IRouteSet} object
 	 */
-	public IRouteSet getRouteSet(String from);
+	IRouteSet getRouteSet(String from);
 
 	/**
 	 * Gets the existing {@code IRouteSet} object whose source endpoint ID is
@@ -40,7 +40,7 @@ public interface IRoutingTable {
 	 *            the source endpoint ID
 	 * @return the {@code IRouteSet} object or {@code null} if not found
 	 */
-	public IRouteSet queryRouteSet(String from);
+	IRouteSet queryRouteSet(String from);
 
 	/**
 	 * Gets all the {@code IRouteSet} objects in the routing table.
@@ -48,5 +48,5 @@ public interface IRoutingTable {
 	 * @return all the existing {@code IRouteSet} objects, or an empty array if
 	 *         there aren't any
 	 */
-	public IRouteSet[] getAllRouteSets();
+	IRouteSet[] getAllRouteSets();
 }

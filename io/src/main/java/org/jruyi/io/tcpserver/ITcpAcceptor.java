@@ -16,5 +16,5 @@ package org.jruyi.io.tcpserver;
 
 public interface ITcpAcceptor {
 
-	public void doAccept(TcpServer<?, ?> server) throws Exception;
+	void doAccept(TcpServer<?, ?> server) throws Exception;
 }

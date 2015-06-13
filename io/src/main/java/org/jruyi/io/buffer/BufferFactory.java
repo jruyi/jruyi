@@ -94,7 +94,10 @@ public final class BufferFactory implements IBufferFactory {
 	}
 
 	void putUnit(IUnit unit) {
-		if (unit instanceof HeapUnit)
-			m_unitCache.put((HeapUnit) unit);
+		((HeapUnit) unit).cache(this);
+	}
+
+	void cache(HeapUnit unit) {
+		m_unitCache.put(unit);
 	}
 }

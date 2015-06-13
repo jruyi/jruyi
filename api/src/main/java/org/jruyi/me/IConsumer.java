@@ -25,5 +25,5 @@ public interface IConsumer {
 	 * @param message
 	 *            the message to consume
 	 */
-	public void onMessage(IMessage message);
+	void onMessage(IMessage message);
 }

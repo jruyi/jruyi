@@ -32,21 +32,21 @@ public interface IRoute {
 	 * 
 	 * @return the ID of the source end point
 	 */
-	public String from();
+	String from();
 
 	/**
 	 * Gets the ID of the destination end point.
 	 * 
 	 * @return the ID of the destination end point
 	 */
-	public String to();
+	String to();
 
 	/**
 	 * Gets the filter string which defines a rule for filtering messages.
 	 * 
 	 * @return the filter string
 	 */
-	public String filter();
+	String filter();
 
 	/**
 	 * Tests if the filter is the one matched regardlessly by all the messages.
@@ -54,5 +54,5 @@ public interface IRoute {
 	 * @return true if the filter is the one matched regardlessly by all the
 	 *         messages, otherwise false
 	 */
-	public boolean isFilterAll();
+	boolean isFilterAll();
 }

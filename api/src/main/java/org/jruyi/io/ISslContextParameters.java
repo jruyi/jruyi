@@ -31,7 +31,7 @@ public interface ISslContextParameters {
 	 * @throws Exception
 	 *             If any error happens
 	 */
-	public KeyManager[] getKeyManagers() throws Exception;
+	KeyManager[] getKeyManagers() throws Exception;
 
 	/**
 	 * Returns trust managers for initializing an {@code SSLContext}.
@@ -40,7 +40,7 @@ public interface ISslContextParameters {
 	 * @throws Exception
 	 *             If any error happens
 	 */
-	public TrustManager[] getCertManagers() throws Exception;
+	TrustManager[] getCertManagers() throws Exception;
 
 	/**
 	 * Returns a {@code SecureRandom} for initializing an {@code SSLContext}.
@@ -49,5 +49,5 @@ public interface ISslContextParameters {
 	 * @throws Exception
 	 *             If any error happens
 	 */
-	public SecureRandom getSecureRandom() throws Exception;
+	SecureRandom getSecureRandom() throws Exception;
 }

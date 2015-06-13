@@ -29,7 +29,7 @@ public interface IEndpoint {
 	 * @param producer
 	 *            a {@code IProducer} representing this endpoint.
 	 */
-	public void producer(IProducer producer);
+	void producer(IProducer producer);
 
 	/**
 	 * Outjects an {@code IConsumer} representing this endpoint to consume
@@ -37,5 +37,5 @@ public interface IEndpoint {
 	 * 
 	 * @return an {@code IConsumer} representing this endpoint.
 	 */
-	public IConsumer consumer();
+	IConsumer consumer();
 }

@@ -34,7 +34,7 @@ public interface ILongCodec {
 	 * @throws BufferUnderflowException
 	 *             if there's not enough data remaining in the {@code unitChain}
 	 */
-	public long read(IUnitChain unitChain);
+	long read(IUnitChain unitChain);
 
 	/**
 	 * Encodes the specified {@code long} value {@code l} and writes the
@@ -45,7 +45,7 @@ public interface ILongCodec {
 	 * @param unitChain
 	 *            the unit chain where the encoded bytes to be written to
 	 */
-	public void write(long l, IUnitChain unitChain);
+	void write(long l, IUnitChain unitChain);
 
 	/**
 	 * Decodes the bytes from the specified {@code unitChain}, starting at the
@@ -60,7 +60,7 @@ public interface ILongCodec {
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
 	 */
-	public long get(IUnitChain unitChain, int index);
+	long get(IUnitChain unitChain, int index);
 
 	/**
 	 * Encodes the specified {@code long} value {@code l} and sets the resultant
@@ -76,7 +76,7 @@ public interface ILongCodec {
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
 	 */
-	public void set(long l, IUnitChain unitChain, int index);
+	void set(long l, IUnitChain unitChain, int index);
 
 	/**
 	 * Encodes the specified {@code long} value {@code l} and writes the
@@ -87,5 +87,5 @@ public interface ILongCodec {
 	 * @param unitChain
 	 *            the unit chain where the encoded bytes to be prepended to
 	 */
-	public void prepend(long l, IUnitChain unitChain);
+	void prepend(long l, IUnitChain unitChain);
 }

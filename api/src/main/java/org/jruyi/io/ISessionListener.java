@@ -30,7 +30,7 @@ public interface ISessionListener<I, O> {
 	 * @param session
 	 *            the opened session
 	 */
-	public void onSessionOpened(ISession session);
+	void onSessionOpened(ISession session);
 
 	/**
 	 * Callback method on session closed.
@@ -38,7 +38,7 @@ public interface ISessionListener<I, O> {
 	 * @param session
 	 *            the closed session
 	 */
-	public void onSessionClosed(ISession session);
+	void onSessionClosed(ISession session);
 
 	/**
 	 * Callback method right before sending message.
@@ -49,7 +49,7 @@ public interface ISessionListener<I, O> {
 	 *            the message to be sent
 	 * @since 2.1
 	 */
-	public void beforeSendMessage(ISession session, O outMsg);
+	void beforeSendMessage(ISession session, O outMsg);
 
 	/**
 	 * Callback method on message sent.
@@ -59,7 +59,7 @@ public interface ISessionListener<I, O> {
 	 * @param outMsg
 	 *            the message sent
 	 */
-	public void onMessageSent(ISession session, O outMsg);
+	void onMessageSent(ISession session, O outMsg);
 
 	/**
 	 * Callback method on message received.
@@ -69,7 +69,7 @@ public interface ISessionListener<I, O> {
 	 * @param inMsg
 	 *            the message received
 	 */
-	public void onMessageReceived(ISession session, I inMsg);
+	void onMessageReceived(ISession session, I inMsg);
 
 	/**
 	 * Callback method on session exception.
@@ -79,7 +79,7 @@ public interface ISessionListener<I, O> {
 	 * @param cause
 	 *            the exception
 	 */
-	public void onSessionException(ISession session, Throwable cause);
+	void onSessionException(ISession session, Throwable cause);
 
 	/**
 	 * Callback method on session idle timed out.
@@ -87,7 +87,7 @@ public interface ISessionListener<I, O> {
 	 * @param session
 	 *            the idle timed out session
 	 */
-	public void onSessionIdleTimedOut(ISession session);
+	void onSessionIdleTimedOut(ISession session);
 
 	/**
 	 * Callback method on session connect timed out.
@@ -95,7 +95,7 @@ public interface ISessionListener<I, O> {
 	 * @param session
 	 *            the connect timed out session
 	 */
-	public void onSessionConnectTimedOut(ISession session);
+	void onSessionConnectTimedOut(ISession session);
 
 	/**
 	 * Callback method on response timed out for the specified {@code msg}.
@@ -105,5 +105,5 @@ public interface ISessionListener<I, O> {
 	 * @param outMsg
 	 *            the request for which the response timed out
 	 */
-	public void onSessionReadTimedOut(ISession session, O outMsg);
+	void onSessionReadTimedOut(ISession session, O outMsg);
 }

@@ -18,9 +18,9 @@ import java.nio.channels.Selector;
 
 public interface ISelector {
 
-	public Selector selector();
+	Selector selector();
 
-	public void onReadRequired(ISelectableChannel channel);
+	void onReadRequired(ISelectableChannel channel);
 
-	public void onWriteRequired(ISelectableChannel channel);
+	void onWriteRequired(ISelectableChannel channel);
 }

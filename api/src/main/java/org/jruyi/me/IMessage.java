@@ -30,21 +30,21 @@ public interface IMessage extends ICloseable {
 	 * 
 	 * @return the message ID
 	 */
-	public long id();
+	long id();
 
 	/**
 	 * Returns the sender ID of the message.
 	 * 
 	 * @return the sender ID
 	 */
-	public String from();
+	String from();
 
 	/**
 	 * Returns the receiver ID of the message.
 	 * 
 	 * @return the receiver ID
 	 */
-	public String to();
+	String to();
 
 	/**
 	 * Sets the receiver of the message.
@@ -52,19 +52,19 @@ public interface IMessage extends ICloseable {
 	 * @param to
 	 *            the receiver ID
 	 */
-	public void to(String to);
+	void to(String to);
 
 	/**
 	 * Sets the receiver to be null to drop the message.
 	 */
-	public void toNull();
+	void toNull();
 
 	/**
 	 * Tests whether the message is to be dropped
 	 * 
 	 * @return true if yes, otherwise false.
 	 */
-	public boolean isToNull();
+	boolean isToNull();
 
 	/**
 	 * Returns the value of the property with the specified {@code name}. This
@@ -74,7 +74,7 @@ public interface IMessage extends ICloseable {
 	 *            the name of the property
 	 * @return the property value, or {@code null} if no such property
 	 */
-	public Object getProperty(String name);
+	Object getProperty(String name);
 
 	/**
 	 * Sets property {@code name} to {@code value}.
@@ -86,7 +86,7 @@ public interface IMessage extends ICloseable {
 	 * @return the previous property value, or {@code null} if there was no such
 	 *         property
 	 */
-	public Object putProperty(String name, Object value);
+	Object putProperty(String name, Object value);
 
 	/**
 	 * Puts all the mappings in the specified {@code properties} to this
@@ -95,7 +95,7 @@ public interface IMessage extends ICloseable {
 	 * @param properties
 	 *            a map containing the properties to be put
 	 */
-	public void putProperties(Map<String, ?> properties);
+	void putProperties(Map<String, ?> properties);
 
 	/**
 	 * Removes the property with the specified {@code name}.
@@ -105,19 +105,19 @@ public interface IMessage extends ICloseable {
 	 * @return the value of the removed property, or {@code null} if no such
 	 *         property
 	 */
-	public Object removeProperty(String name);
+	Object removeProperty(String name);
 
 	/**
 	 * Gets all the message's properties.
 	 * 
 	 * @return a map containing all the message's properties
 	 */
-	public Map<String, ?> getProperties();
+	Map<String, ?> getProperties();
 
 	/**
 	 * Clears all the message properties.
 	 */
-	public void clearProperties();
+	void clearProperties();
 
 	/**
 	 * Deposits the specified {@code stuff} to this message with the specified
@@ -130,7 +130,7 @@ public interface IMessage extends ICloseable {
 	 * @return the previous object deposited with key {@code id}, or
 	 *         {@code null} if there was no such deposition
 	 */
-	public Object deposit(Object id, Object stuff);
+	Object deposit(Object id, Object stuff);
 
 	/**
 	 * Withdraws the deposited object with the key {@code id}.
@@ -139,7 +139,7 @@ public interface IMessage extends ICloseable {
 	 *            the reference to which is used as the key
 	 * @return the deposited object, or {@code null} if no such deposition
 	 */
-	public Object withdraw(Object id);
+	Object withdraw(Object id);
 
 	/**
 	 * Returns the object deposited with the specified {@code id} as the
@@ -149,7 +149,7 @@ public interface IMessage extends ICloseable {
 	 *            the reference-equality key
 	 * @return the deposited object
 	 */
-	public Object inquiry(Object id);
+	Object inquiry(Object id);
 
 	/**
 	 * Attaches the specified {@code attachment} to this message.
@@ -159,21 +159,21 @@ public interface IMessage extends ICloseable {
 	 * @return the previous attachment, or {@code null} if there was no
 	 *         attachment.
 	 */
-	public Object attach(Object attachment);
+	Object attach(Object attachment);
 
 	/**
 	 * Gets the current attachment.
 	 * 
 	 * @return the current attachment
 	 */
-	public Object attachment();
+	Object attachment();
 
 	/**
 	 * Detaches the current attachment off the message.
 	 * 
 	 * @return the attachment that is detached
 	 */
-	public Object detach();
+	Object detach();
 
 	/**
 	 * Returns a new message instance with the same properties and storage as
@@ -181,5 +181,5 @@ public interface IMessage extends ICloseable {
 	 * 
 	 * @return the new message as described
 	 */
-	public IMessage duplicate();
+	IMessage duplicate();
 }

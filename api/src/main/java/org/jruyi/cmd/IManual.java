@@ -27,5 +27,5 @@ public interface IManual {
 	 * @throws Exception
 	 *             if any error
 	 */
-	public void help(String command) throws Exception;
+	void help(String command) throws Exception;
 }

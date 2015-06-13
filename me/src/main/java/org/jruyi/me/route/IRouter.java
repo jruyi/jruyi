@@ -19,5 +19,5 @@ import org.jruyi.me.IRouteSet;
 
 public interface IRouter extends IRouteSet {
 
-	public IRoute route(IRoutable routable);
+	IRoute route(IRoutable routable);
 }

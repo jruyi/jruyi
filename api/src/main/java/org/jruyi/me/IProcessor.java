@@ -29,5 +29,5 @@ public interface IProcessor {
 	 * @param message
 	 *            the message to be processed
 	 */
-	public void process(IMessage message);
+	void process(IMessage message);
 }

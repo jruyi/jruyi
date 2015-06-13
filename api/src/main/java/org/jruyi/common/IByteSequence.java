@@ -36,7 +36,7 @@ public interface IByteSequence {
 	 *             if {@code index} is negative or not smaller than
 	 *             {@code length()}
 	 */
-	public byte byteAt(int index);
+	byte byteAt(int index);
 
 	/**
 	 * Returns the bytes starting from the specified {@code index} to the end of
@@ -59,7 +59,7 @@ public interface IByteSequence {
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code start} is negative or greater than {@code length()}
 	 */
-	public byte[] getBytes(int index);
+	byte[] getBytes(int index);
 
 	/**
 	 * Returns {@code length} bytes starting at the specified {@code index}. If
@@ -74,7 +74,7 @@ public interface IByteSequence {
 	 *             if {@code start} is negative, or length is negative, or
 	 *             {@code (start + length) > length()}
 	 */
-	public byte[] getBytes(int index, int length);
+	byte[] getBytes(int index, int length);
 
 	/**
 	 * Copies the requested sequence of bytes to the given {@code dst} starting
@@ -102,7 +102,7 @@ public interface IByteSequence {
 	 *             {@code dst.length}
 	 *             </ul>
 	 */
-	public void getBytes(int srcBegin, int srcEnd, byte[] dst, int dstBegin);
+	void getBytes(int srcBegin, int srcEnd, byte[] dst, int dstBegin);
 
 	/**
 	 * Returns the length of this byte sequence. The length is the number of
@@ -110,5 +110,5 @@ public interface IByteSequence {
 	 * 
 	 * @return the number of {@code byte}s in the sequence
 	 */
-	public int length();
+	int length();
 }

@@ -40,7 +40,7 @@ public interface IElementHandler {
 	 * @throws SAXException
 	 *             any SAX exception, possibly wrapping another exception
 	 */
-	public void start(Attributes attributes) throws SAXException;
+	void start(Attributes attributes) throws SAXException;
 
 	/**
 	 * Receive notification of the text value of the element to be handled by
@@ -53,7 +53,7 @@ public interface IElementHandler {
 	 * @throws SAXException
 	 *             any SAX exception, possibly wrapping another exception.
 	 */
-	public void setText(String text) throws SAXException;
+	void setText(String text) throws SAXException;
 
 	/**
 	 * Receive notification of the end of the element to be handled by this
@@ -62,5 +62,5 @@ public interface IElementHandler {
 	 * @throws SAXException
 	 *             any SAX exception, possibly wrapping another exception.
 	 */
-	public void end() throws SAXException;
+	void end() throws SAXException;
 }

@@ -27,7 +27,7 @@ public interface IServiceHolderManager<T> {
 	/**
 	 * Opens this manager to start tracking services.
 	 */
-	public void open();
+	void open();
 
 	/**
 	 * Gets the service holder holding the service identified by the specified
@@ -37,7 +37,7 @@ public interface IServiceHolderManager<T> {
 	 *            the ID of the held service
 	 * @return the service holder holding the requested service
 	 */
-	public IServiceHolder<T> getServiceHolder(String id);
+	IServiceHolder<T> getServiceHolder(String id);
 
 	/**
 	 * Ungets the service holder holding the service identified by the specified
@@ -48,10 +48,10 @@ public interface IServiceHolderManager<T> {
 	 * @return the service holder that used to hold the service named the
 	 *         specified {@code name}
 	 */
-	public IServiceHolder<T> ungetServiceHolder(String id);
+	IServiceHolder<T> ungetServiceHolder(String id);
 
 	/**
 	 * Closes this manager to stop tracking services.
 	 */
-	public void close();
+	void close();
 }

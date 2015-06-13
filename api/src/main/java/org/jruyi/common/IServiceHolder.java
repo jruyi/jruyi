@@ -27,12 +27,12 @@ public interface IServiceHolder<T> {
 	 * 
 	 * @return the service ID.
 	 */
-	public String getId();
+	String getId();
 
 	/**
 	 * Gets the held service.
 	 * 
 	 * @return the held service
 	 */
-	public T getService();
+	T getService();
 }

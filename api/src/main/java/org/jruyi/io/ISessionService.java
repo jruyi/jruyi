@@ -36,12 +36,12 @@ public interface ISessionService<I, O> extends IService {
 	 * @param listener
 	 *            the session listener to set
 	 */
-	public void setSessionListener(ISessionListener<I, O> listener);
+	void setSessionListener(ISessionListener<I, O> listener);
 
 	/**
 	 * Requests to open a session.
 	 */
-	public void openSession();
+	void openSession();
 
 	/**
 	 * Requests to write the specified {@code msg} to the specified
@@ -52,7 +52,7 @@ public interface ISessionService<I, O> extends IService {
 	 * @param msg
 	 *            the message to be written
 	 */
-	public void write(ISession session, O msg);
+	void write(ISession session, O msg);
 
 	/**
 	 * Requests to close the specified {@code session}.
@@ -60,5 +60,5 @@ public interface ISessionService<I, O> extends IService {
 	 * @param session
 	 *            the IO session to close
 	 */
-	public void closeSession(ISession session);
+	void closeSession(ISession session);
 }

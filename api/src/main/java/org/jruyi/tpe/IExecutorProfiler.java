@@ -28,47 +28,47 @@ public interface IExecutorProfiler {
 	/**
 	 * Start profiling the executor service.
 	 */
-	public void startProfiling();
+	void startProfiling();
 
 	/**
 	 * Stop profiling the executor service.
 	 */
-	public void stopProfiling();
+	void stopProfiling();
 
 	/**
 	 * Tests whether profiling is started.
 	 *
 	 * @return {@code true} if profiling is started, otherwise {@code false}
 	 */
-	public boolean isProfiling();
+	boolean isProfiling();
 
 	/**
 	 * Returns the corePoolSize of the executor.
 	 *
 	 * @return the corePoolSize of the executor
 	 */
-	public int getCorePoolSize();
+	int getCorePoolSize();
 
 	/**
 	 * Returns the maxPoolSize of the executor.
 	 *
 	 * @return the maxPoolSize of the executor
 	 */
-	public int getMaxPoolSize();
+	int getMaxPoolSize();
 
 	/**
 	 * Returns the keepAliveTime of the executor.
 	 *
 	 * @return the keepAliveTime of the executor
 	 */
-	public int getKeepAliveTime();
+	int getKeepAliveTime();
 
 	/**
 	 * Returns the queueCapacity of the executor.
 	 *
 	 * @return the queueCapacity of the executor
 	 */
-	public int getQueueCapacity();
+	int getQueueCapacity();
 
 	/**
 	 * Returns the approximate number of threads that are actively executing
@@ -76,14 +76,14 @@ public interface IExecutorProfiler {
 	 *
 	 * @return the current pool size
 	 */
-	public int getCurrentPoolSize();
+	int getCurrentPoolSize();
 
 	/**
 	 * Returns the current number of requests in queue.
 	 *
 	 * @return the current queue length;
 	 */
-	public int getCurrentQueueLength();
+	int getCurrentQueueLength();
 
 	/**
 	 * Returns the approximate number of finished tasks since the latest
@@ -91,54 +91,54 @@ public interface IExecutorProfiler {
 	 *
 	 * @return the number of requests retired
 	 */
-	public long getNumberOfRequestsRetired();
+	long getNumberOfRequestsRetired();
 
 	/**
 	 * Returns the rate of the request retirement.
 	 *
 	 * @return the rate of the request retirement
 	 */
-	public double getRequestPerSecondRetirementRate();
+	double getRequestPerSecondRetirementRate();
 
 	/**
 	 * Returns the average service time.
 	 *
 	 * @return the average service time
 	 */
-	public double getAverageServiceTime();
+	double getAverageServiceTime();
 
 	/**
 	 * Returns the average time a request waiting in pool.
 	 *
 	 * @return the average time a request waiting in pool
 	 */
-	public double getAverageTimeWaitingInPool();
+	double getAverageTimeWaitingInPool();
 
 	/**
 	 * Returns the average time to finish a request.
 	 *
 	 * @return the average response time
 	 */
-	public double getAverageResponseTime();
+	double getAverageResponseTime();
 
 	/**
 	 * Returns the estimated average number of active requests.
 	 *
 	 * @return the estimated average number of active requests
 	 */
-	public double getEstimatedAverageNumberOfActiveRequests();
+	double getEstimatedAverageNumberOfActiveRequests();
 
 	/**
 	 * Returns the ratio of waiting time to response time.
 	 *
 	 * @return the ratio of dead time to response time
 	 */
-	public double getRatioOfDeadTimeToResponseTime();
+	double getRatioOfDeadTimeToResponseTime();
 
 	/**
 	 * Returns the ratio of active requests to CPU core count.
 	 *
 	 * @return the ratio of active requests to CPU core count
 	 */
-	public double getRatioOfActiveRequestsToCoreCount();
+	double getRatioOfActiveRequestsToCoreCount();
 }

@@ -22,22 +22,9 @@ import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 
-import org.jruyi.common.BiListNode;
-import org.jruyi.common.Blob;
-import org.jruyi.common.ByteKmp;
-import org.jruyi.common.IByteSequence;
+import org.jruyi.common.*;
 import org.jruyi.common.StringBuilder;
-import org.jruyi.io.Codec;
-import org.jruyi.io.IBuffer;
-import org.jruyi.io.ICharCodec;
-import org.jruyi.io.ICodec;
-import org.jruyi.io.IDoubleCodec;
-import org.jruyi.io.IFloatCodec;
-import org.jruyi.io.IIntCodec;
-import org.jruyi.io.ILongCodec;
-import org.jruyi.io.IShortCodec;
-import org.jruyi.io.IUnit;
-import org.jruyi.io.IUnitChain;
+import org.jruyi.io.*;
 
 public final class Buffer implements IBuffer, IUnitChain {
 
@@ -743,7 +730,6 @@ public final class Buffer implements IBuffer, IUnitChain {
 				throw new IllegalArgumentException();
 			unit = node.get();
 		}
-		size = n - size;
 
 		if (node == markNode)
 			adjustMarkNode = true;
@@ -751,9 +737,9 @@ public final class Buffer implements IBuffer, IUnitChain {
 			adjustPosNode = true;
 
 		final BiListNode<IUnit> next = node.next();
-		if (size > 0) {
+		if (n > size) {
 			final BiListNode<IUnit> temp = BiListNode.create();
-			temp.set(cut(size, unit));
+			temp.set(unit.slice(size, n));
 			m_head = temp;
 			if (next == head) {
 				temp.next(temp);
@@ -815,7 +801,8 @@ public final class Buffer implements IBuffer, IUnitChain {
 			head.next(head);
 		}
 
-		head.get().clear();
+		factory.putUnit(head.get());
+		head.set(factory.getUnit());
 	}
 
 	@Override
@@ -1709,8 +1696,6 @@ public final class Buffer implements IBuffer, IUnitChain {
 			head.previous(head);
 			head.next(head);
 		}
-
-		// c_cache.put(this);
 	}
 
 	@Override
@@ -2030,41 +2015,6 @@ public final class Buffer implements IBuffer, IUnitChain {
 		Buffer buffer = new Buffer();
 		buffer.m_factory = factory;
 		return buffer;
-	}
-
-	/**
-	 * Slice {@code n} bytes from the end of the data.
-	 * 
-	 * @param n
-	 *            the number of bytes to be sliced from the end
-	 */
-	private IUnit cut(int n, IUnit unit) {
-		final BufferFactory factory = m_factory;
-		int size = unit.size() - n;
-		// copy the slice
-		final IUnit slice = factory.getUnit(n);
-		slice.set(0, unit, size, unit.size());
-		slice.start(0);
-		slice.size(n);
-		unit.size(size);
-
-		// mark
-		n = unit.mark();
-		if (n > size) {
-			slice.mark(n - size);
-			unit.mark(size);
-		} else
-			slice.mark(0);
-
-		// position
-		n = unit.position();
-		if (n > size) {
-			slice.position(n - size);
-			unit.position(size);
-		} else
-			slice.position(0);
-
-		return slice;
 	}
 
 	private int compareInternal(IBuffer that) {

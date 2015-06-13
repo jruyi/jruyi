@@ -34,7 +34,7 @@ public interface IShortCodec {
 	 * @throws BufferUnderflowException
 	 *             if there's not enough data remaining in the {@code unitChain}
 	 */
-	public short read(IUnitChain unitChain);
+	short read(IUnitChain unitChain);
 
 	/**
 	 * Encodes the specified {@code short} value {@code s} and writes the
@@ -45,7 +45,7 @@ public interface IShortCodec {
 	 * @param unitChain
 	 *            the unit chain where the encoded bytes to be written to
 	 */
-	public void write(short s, IUnitChain unitChain);
+	void write(short s, IUnitChain unitChain);
 
 	/**
 	 * Decodes the bytes from the specified {@code unitChain}, starting at the
@@ -60,7 +60,7 @@ public interface IShortCodec {
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
 	 */
-	public short get(IUnitChain unitChain, int index);
+	short get(IUnitChain unitChain, int index);
 
 	/**
 	 * Encodes the specified {@code short} value {@code s} and sets the
@@ -76,7 +76,7 @@ public interface IShortCodec {
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
 	 */
-	public void set(short s, IUnitChain unitChain, int index);
+	void set(short s, IUnitChain unitChain, int index);
 
 	/**
 	 * Encodes the specified {@code short} value {@code s} and writes the
@@ -87,5 +87,5 @@ public interface IShortCodec {
 	 * @param unitChain
 	 *            the unit chain where the encoded bytes to be prepended to
 	 */
-	public void prepend(short s, IUnitChain unitChain);
+	void prepend(short s, IUnitChain unitChain);
 }

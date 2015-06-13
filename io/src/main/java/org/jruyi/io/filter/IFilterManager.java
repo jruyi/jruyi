@@ -18,7 +18,7 @@ import org.jruyi.io.IFilter;
 
 public interface IFilterManager {
 
-	public IFilter<?, ?>[] getFilters(String[] filterIds);
+	IFilter<?, ?>[] getFilters(String[] filterIds);
 
-	public void ungetFilters(String[] filterIds);
+	void ungetFilters(String[] filterIds);
 }

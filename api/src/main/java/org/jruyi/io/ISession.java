@@ -24,21 +24,21 @@ public interface ISession {
 	 * 
 	 * @return the session ID
 	 */
-	public Long id();
+	Long id();
 
 	/**
 	 * Returns the address of the local peer.
 	 * 
 	 * @return the local address
 	 */
-	public Object localAddress();
+	Object localAddress();
 
 	/**
 	 * Returns the address of the remote peer.
 	 * 
 	 * @return the remote address
 	 */
-	public Object remoteAddress();
+	Object remoteAddress();
 
 	/**
 	 * Tests if an attribute with the specified {@code key} exists.
@@ -52,7 +52,7 @@ public interface ISession {
 	 *             if the specified {@code key} is {@code null}
 	 * @since 2.0
 	 */
-	public boolean contains(Object key);
+	boolean contains(Object key);
 
 	/**
 	 * Puts an attribute, which maps the specified {@code key} to the specified
@@ -67,7 +67,7 @@ public interface ISession {
 	 * @throws NullPointerException
 	 *             if the specified {@code key} or {@code value} is {@code null}
 	 */
-	public Object put(Object key, Object value);
+	Object put(Object key, Object value);
 
 	/**
 	 * Puts an attribute, which maps the specified {@code key} to the specified
@@ -95,7 +95,7 @@ public interface ISession {
 	 *             if the specified {@code key} or {@code value} is {@code null}
 	 * @since 2.0
 	 */
-	public Object putIfAbsent(Object key, Object value);
+	Object putIfAbsent(Object key, Object value);
 
 	/**
 	 * Gets the value of the session attribute with the specified {@code key}.
@@ -106,7 +106,7 @@ public interface ISession {
 	 * @throws NullPointerException
 	 *             if the specified {@code key} is {@code null}
 	 */
-	public Object get(Object key);
+	Object get(Object key);
 
 	/**
 	 * Removes the attribute with the specified {@code key} from this session.
@@ -117,7 +117,7 @@ public interface ISession {
 	 * @throws NullPointerException
 	 *             if the specified {@code key} is {@code null}
 	 */
-	public Object remove(Object key);
+	Object remove(Object key);
 
 	/**
 	 * Removes the attribute with the specified {@code key} from this session if
@@ -145,7 +145,7 @@ public interface ISession {
 	 *             if the specified {@code key} or {@code value} is {@code null}
 	 * @since 2.0
 	 */
-	public boolean remove(Object key, Object value);
+	boolean remove(Object key, Object value);
 
 	/**
 	 * Replaces the value of the attribute only if currently exists. The logic
@@ -172,7 +172,7 @@ public interface ISession {
 	 *             if the specified {@code key} or {@code value} is {@code null}
 	 * @since 2.0
 	 */
-	public Object replace(Object key, Object value);
+	Object replace(Object key, Object value);
 
 	/**
 	 * Replaces the value of the attribute with the given {@code newValue} only
@@ -204,7 +204,7 @@ public interface ISession {
 	 *             {@code newValue} is {@code null}
 	 * @since 2.0
 	 */
-	public boolean replace(Object key, Object oldValue, Object newValue);
+	boolean replace(Object key, Object oldValue, Object newValue);
 
 	/**
 	 * Deposits the specified {@code something} to this session with the
@@ -216,7 +216,7 @@ public interface ISession {
 	 *            the object to deposit
 	 * @return the previous deposited object, or {@code null} if none
 	 */
-	public Object deposit(Object id, Object something);
+	Object deposit(Object id, Object something);
 
 	/**
 	 * Withdraws the object deposited with the specified {@code id} as the
@@ -227,7 +227,7 @@ public interface ISession {
 	 * @return the deposited object with the specified {@code id} as the
 	 *         reference-equality key, or {@code null} if no such deposit
 	 */
-	public Object withdraw(Object id);
+	Object withdraw(Object id);
 
 	/**
 	 * Returns the object deposited with the specified {@code id} as the
@@ -237,7 +237,7 @@ public interface ISession {
 	 *            the reference-equality key
 	 * @return the deposited object
 	 */
-	public Object inquiry(Object id);
+	Object inquiry(Object id);
 
 	/**
 	 * Creates an empty buffer using the buffer factory associated with this
@@ -245,7 +245,7 @@ public interface ISession {
 	 * 
 	 * @return an empty buffer
 	 */
-	public IBuffer createBuffer();
+	IBuffer createBuffer();
 
 	/**
 	 * Attaches the specified {@code attachment} to this session.
@@ -255,19 +255,19 @@ public interface ISession {
 	 * @return the previous attachment, or {@code null} if there was no
 	 *         attachment
 	 */
-	public Object attach(Object attachment);
+	Object attach(Object attachment);
 
 	/**
 	 * Gets the current attachment.
 	 * 
 	 * @return the current attachment
 	 */
-	public Object attachment();
+	Object attachment();
 
 	/**
 	 * Detaches the current attachment off the session.
 	 * 
 	 * @return the attachment that is detached
 	 */
-	public Object detach();
+	Object detach();
 }

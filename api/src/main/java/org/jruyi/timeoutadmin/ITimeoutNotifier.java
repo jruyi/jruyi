@@ -49,33 +49,33 @@ public interface ITimeoutNotifier extends AutoCloseable {
 	/**
 	 * An {@code int} value representing Unscheduled state.
 	 */
-	public static final int UNSCHEDULED = 0x01;
+	int UNSCHEDULED = 0x01;
 	/**
 	 * An {@code int} value representing Scheduled state.
 	 */
-	public static final int SCHEDULED = 0x02;
+	int SCHEDULED = 0x02;
 	/**
 	 * An {@code int} value representing Timedout state.
 	 */
-	public static final int TIMEDOUT = 0x04;
+	int TIMEDOUT = 0x04;
 	/**
 	 * An {@code int} value representing Closed state.
 	 */
-	public static final int CLOSED = 0x08;
+	int CLOSED = 0x08;
 
 	/**
 	 * Returns the subject this notifier concerns.
 	 * 
 	 * @return the subject
 	 */
-	public Object getSubject();
+	Object getSubject();
 
 	/**
 	 * Returns the current state of this notifier.
 	 * 
 	 * @return the current state of this notifier
 	 */
-	public int state();
+	int state();
 
 	/**
 	 * Schedules a notification to be sent out in {@code timeout} seconds. The
@@ -87,26 +87,26 @@ public interface ITimeoutNotifier extends AutoCloseable {
 	 * @throws IllegalArgumentException
 	 *             if {@code timeout} is not positive
 	 */
-	public boolean schedule(int timeout);
+	boolean schedule(int timeout);
 
 	/**
 	 * Cancels the notifier.
 	 * 
 	 * @return false if either timeout or closed, otherwise true
 	 */
-	public boolean cancel();
+	boolean cancel();
 
 	/**
 	 * Resets this notifier to be able to be scheduled again if it timed out.
 	 * 
 	 * @return true if this notifier timed out, otherwise false
 	 */
-	public boolean reset();
+	boolean reset();
 
 	/**
 	 * Closes this notifier.
 	 */
-	public void close();
+	void close();
 
 	/**
 	 * Sets the listener that is interested in the notification.
@@ -114,7 +114,7 @@ public interface ITimeoutNotifier extends AutoCloseable {
 	 * @param listener
 	 *            the notification receiver
 	 */
-	public void setListener(ITimeoutListener listener);
+	void setListener(ITimeoutListener listener);
 
 	/**
 	 * Sets the executor that is used to deliver timeout notifications from this
@@ -124,5 +124,5 @@ public interface ITimeoutNotifier extends AutoCloseable {
 	 *            the executor to set
 	 * @since 2.0
 	 */
-	public void setExecutor(Executor executor);
+	void setExecutor(Executor executor);
 }

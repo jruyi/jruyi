@@ -19,33 +19,33 @@ import org.jruyi.io.IFilter;
 
 public interface IChannelService<I, O> {
 
-	public Object getConfiguration();
+	Object getConfiguration();
 
-	public IChannelAdmin getChannelAdmin();
+	IChannelAdmin getChannelAdmin();
 
-	public IBufferFactory getBufferFactory();
+	IBufferFactory getBufferFactory();
 
-	public long throttle();
+	long throttle();
 
-	public IFilter<?, ?>[] getFilterChain();
+	IFilter<?, ?>[] getFilterChain();
 
-	public void onChannelOpened(IChannel channel);
+	void onChannelOpened(IChannel channel);
 
-	public void onChannelClosed(IChannel channel);
+	void onChannelClosed(IChannel channel);
 
-	public void onMessageReceived(IChannel channel, I inMsg);
+	void onMessageReceived(IChannel channel, I inMsg);
 
-	public void beforeSendMessage(IChannel channel, O outMsg);
+	void beforeSendMessage(IChannel channel, O outMsg);
 
 	// The given {@code data} will be closed right after this method returns.
-	public void onMessageSent(IChannel channel, O outMsg);
+	void onMessageSent(IChannel channel, O outMsg);
 
 	// channel will be closed
-	public void onChannelException(IChannel channel, Throwable t);
+	void onChannelException(IChannel channel, Throwable t);
 
-	public void onChannelIdleTimedOut(IChannel channel);
+	void onChannelIdleTimedOut(IChannel channel);
 
-	public void onChannelConnectTimedOut(IChannel channel);
+	void onChannelConnectTimedOut(IChannel channel);
 
-	public void onChannelReadTimedOut(IChannel channel);
+	void onChannelReadTimedOut(IChannel channel);
 }

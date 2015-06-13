@@ -49,7 +49,7 @@ public interface IScheduler {
 	 * @throws NullPointerException
 	 *             if command is null
 	 */
-	public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit);
+	ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit);
 
 	/**
 	 * Creates and executes a ScheduledFuture that becomes enabled after the
@@ -69,7 +69,7 @@ public interface IScheduler {
 	 * @throws NullPointerException
 	 *             if callable is null
 	 */
-	public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit);
+	<V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit);
 
 	/**
 	 * Creates and executes a periodic action that becomes enabled first after
@@ -100,7 +100,7 @@ public interface IScheduler {
 	 * @throws IllegalArgumentException
 	 *             if period less than or equal to zero
 	 */
-	public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit);
+	ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit);
 
 	/**
 	 * Creates and executes a periodic action that becomes enabled first after
@@ -129,5 +129,5 @@ public interface IScheduler {
 	 * @throws IllegalArgumentException
 	 *             if delay less than or equal to zero
 	 */
-	public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit);
+	ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit);
 }

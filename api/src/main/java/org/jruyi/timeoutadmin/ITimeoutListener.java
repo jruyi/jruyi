@@ -25,5 +25,5 @@ public interface ITimeoutListener {
 	 * @param event
 	 *            the timeout event
 	 */
-	public void onTimeout(ITimeoutEvent event);
+	void onTimeout(ITimeoutEvent event);
 }

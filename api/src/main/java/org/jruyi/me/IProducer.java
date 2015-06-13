@@ -25,7 +25,7 @@ public interface IProducer {
 	 * 
 	 * @return a message
 	 */
-	public IMessage createMessage();
+	IMessage createMessage();
 
 	/**
 	 * Puts the specified {@code message} into the message queue for routing.
@@ -33,5 +33,5 @@ public interface IProducer {
 	 * @param message
 	 *            the message to be put into the message queue
 	 */
-	public void send(IMessage message);
+	void send(IMessage message);
 }

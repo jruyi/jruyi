@@ -34,7 +34,7 @@ public interface IFloatCodec {
 	 * @throws BufferUnderflowException
 	 *             if there's not enough data remaining in the {@code unitChain}
 	 */
-	public float read(IUnitChain unitChain);
+	float read(IUnitChain unitChain);
 
 	/**
 	 * Encodes the specified {@code float} value {@code f} and writes the
@@ -45,7 +45,7 @@ public interface IFloatCodec {
 	 * @param unitChain
 	 *            the unit chain where the encoded bytes to be written to
 	 */
-	public void write(float f, IUnitChain unitChain);
+	void write(float f, IUnitChain unitChain);
 
 	/**
 	 * Decodes the bytes from the specified {@code unitChain}, starting at the
@@ -60,7 +60,7 @@ public interface IFloatCodec {
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
 	 */
-	public float get(IUnitChain unitChain, int index);
+	float get(IUnitChain unitChain, int index);
 
 	/**
 	 * Encodes the specified {@code float} value {@code f} and sets the
@@ -76,7 +76,7 @@ public interface IFloatCodec {
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
 	 */
-	public void set(float f, IUnitChain unitChain, int index);
+	void set(float f, IUnitChain unitChain, int index);
 
 	/**
 	 * Encodes the specified {@code float} value {@code f} and writes the
@@ -87,5 +87,5 @@ public interface IFloatCodec {
 	 * @param unitChain
 	 *            the unit chain where the encoded bytes to be prepended to
 	 */
-	public void prepend(float f, IUnitChain unitChain);
+	void prepend(float f, IUnitChain unitChain);
 }

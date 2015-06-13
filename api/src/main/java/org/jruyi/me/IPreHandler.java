@@ -27,5 +27,5 @@ public interface IPreHandler {
 	 * @return true - forward message; false - drop message and terminate; null
 	 *         - abort
 	 */
-	public Boolean preHandle(IMessage message);
+	Boolean preHandle(IMessage message);
 }

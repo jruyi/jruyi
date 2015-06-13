@@ -29,7 +29,7 @@ public interface IThreadLocalCache<E> {
 	 * 
 	 * @return a cached object or {@code null} if no cached objects
 	 */
-	public E take();
+	E take();
 
 	/**
 	 * Puts the specified {@code e} into the local cache of the current thread.
@@ -37,5 +37,5 @@ public interface IThreadLocalCache<E> {
 	 * @param e
 	 *            the object to cache
 	 */
-	public void put(E e);
+	void put(E e);
 }

@@ -31,7 +31,7 @@ public interface IFilterOutput {
 	 * @throws NullPointerException
 	 *             if the specified {@code out} is null
 	 */
-	public void add(Object output);
+	void add(Object output);
 
 	/**
 	 * Used in {@link IFilter#onMsgDepart} to indicate if there will be more
@@ -42,5 +42,5 @@ public interface IFilterOutput {
 	 *            true if there will be more outputs
 	 * @since 2.1
 	 */
-	public void more(boolean more);
+	void more(boolean more);
 }

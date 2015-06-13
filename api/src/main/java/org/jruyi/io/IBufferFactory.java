@@ -28,5 +28,5 @@ public interface IBufferFactory {
 	 * 
 	 * @return a new buffer object
 	 */
-	public IBuffer create();
+	IBuffer create();
 }

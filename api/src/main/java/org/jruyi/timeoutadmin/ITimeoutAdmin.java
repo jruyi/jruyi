@@ -26,5 +26,5 @@ public interface ITimeoutAdmin {
 	 *            the subject of the timeout event to be sent by this notifier
 	 * @return a notifier object
 	 */
-	public ITimeoutNotifier createNotifier(Object subject);
+	ITimeoutNotifier createNotifier(Object subject);
 }

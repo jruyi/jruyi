@@ -20,28 +20,28 @@ import org.jruyi.io.ISession;
 
 public interface IChannel extends ISession, ISelectableChannel {
 
-	public IChannelService<Object, Object> channelService();
+	IChannelService<Object, Object> channelService();
 
-	public void connect(int timeout);
+	void connect(int timeout);
 
-	public void receive(ByteBuffer data);
+	void receive(ByteBuffer data);
 
-	public void write(Object data);
+	void write(Object data);
 
-	public void onReadRequired();
+	void onReadRequired();
 
-	public boolean scheduleIdleTimeout(int timeout);
+	boolean scheduleIdleTimeout(int timeout);
 
-	public boolean scheduleConnectTimeout(int timeout);
+	boolean scheduleConnectTimeout(int timeout);
 
-	public boolean scheduleReadTimeout(int timeout);
+	boolean scheduleReadTimeout(int timeout);
 
-	public boolean cancelTimeout();
+	boolean cancelTimeout();
 
 	/**
 	 * Tests whether this session is closed.
 	 * 
 	 * @return {@code true} if this session is closed, otherwise {@code false}
 	 */
-	public boolean isClosed();
+	boolean isClosed();
 }

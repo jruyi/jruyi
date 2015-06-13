@@ -20,7 +20,7 @@ import org.jruyi.io.IFilter;
 
 public interface IIoWorker extends Executor {
 
-	public void perform(IIoTask task);
+	void perform(IIoTask task);
 
-	public void perform(IIoTask task, Object msg, IFilter<?, ?>[] filters, int filterCount);
+	void perform(IIoTask task, Object msg, IFilter<?, ?>[] filters, int filterCount);
 }

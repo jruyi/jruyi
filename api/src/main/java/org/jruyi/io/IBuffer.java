@@ -53,31 +53,31 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * 
 	 * @return the <i>position</i> of the underlying buffer
 	 */
-	public int position();
+	int position();
 
 	/**
 	 * Returns the number of bytes contained in the underlying buffer.
 	 * 
 	 * @return the number of bytes contained in the underlying buffer
 	 */
-	public int size();
+	int size();
 
 	/**
 	 * Returns the number of bytes remaining in the underlying buffer.
 	 * 
 	 * @return the number of bytes remaining in the underlying buffer
 	 */
-	public int remaining();
+	int remaining();
 
 	/**
 	 * Sets <i>position</i> to the previously marked position.
 	 */
-	public void reset();
+	void reset();
 
 	/**
 	 * Sets <i>position</i> and <i>mark</i> to {@code 0}.
 	 */
-	public void rewind();
+	void rewind();
 
 	/**
 	 * Skips over the next {@code Math.min(n, remaining())} bytes. If {@code n}
@@ -91,26 +91,26 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the number of bytes to be skipped
 	 * @return the actual number of bytes skipped
 	 */
-	public int skip(int n);
+	int skip(int n);
 
 	/**
 	 * Sets <i>mark</i> to the current <i>position</i>
 	 */
-	public void mark();
+	void mark();
 
 	/**
 	 * Tests whether this buffer is empty.
 	 * 
 	 * @return {@code true} if the buffer is empty, otherwise {@code false}
 	 */
-	public boolean isEmpty();
+	boolean isEmpty();
 
 	/**
 	 * Tests whether this buffer is closed.
 	 * 
 	 * @return {@code true} if the buffer is closed, otherwise {@code false}
 	 */
-	public boolean isClosed();
+	boolean isClosed();
 
 	/**
 	 * Returns the index of the first occurrence of the specified byte {@code b}
@@ -129,7 +129,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @return the index of the first occurrence of the given {@code b} in this
 	 *         byte sequence, {@code -1} if the byte does not occur
 	 */
-	public int indexOf(byte b);
+	int indexOf(byte b);
 
 	/**
 	 * Returns the index of the first occurrence of the specified byte {@code b}
@@ -151,7 +151,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *         {@code fromIndex}(inclusive) in this byte sequence, {@code - 1}
 	 *         if the byte does not occur
 	 */
-	public int indexOf(byte b, int fromIndex);
+	int indexOf(byte b, int fromIndex);
 
 	/**
 	 * Returns the index of the first occurrence of the specified {@code bytes}
@@ -171,7 +171,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *         this byte sequence, {@code -1} if the target byte array does not
 	 *         occur
 	 */
-	public int indexOf(byte[] bytes);
+	int indexOf(byte[] bytes);
 
 	/**
 	 * Returns the index of the first occurrence of the specified {@code bytes}
@@ -192,7 +192,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *         after {@code fromIndex}(inclusive) in this byte sequence,
 	 *         {@code -1} if the target byte array does not occur
 	 */
-	public int indexOf(byte[] bytes, int fromIndex);
+	int indexOf(byte[] bytes, int fromIndex);
 
 	/**
 	 * Returns the index within this sequence of the first occurrence of the
@@ -208,7 +208,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws NullPointerException
 	 *             if {@code pattern} is {@code null}
 	 */
-	public int indexOf(ByteKmp pattern);
+	int indexOf(ByteKmp pattern);
 
 	/**
 	 * Returns the index within this sequence of the first occurrence of the
@@ -226,7 +226,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws NullPointerException
 	 *             if {@code pattern} is {@code null}
 	 */
-	public int indexOf(ByteKmp pattern, int fromIndex);
+	int indexOf(ByteKmp pattern, int fromIndex);
 
 	/**
 	 * Returns the index of the last occurrence of the specified byte {@code b}
@@ -246,7 +246,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @return the index of the last occurrence of the given {@code b} in this
 	 *         byte sequence, {@code -1} if the byte does not occur
 	 */
-	public int lastIndexOf(byte b);
+	int lastIndexOf(byte b);
 
 	/**
 	 * Returns the index of the last occurrence of the specified byte {@code b}
@@ -268,7 +268,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *         {@code fromIndex}(inclusive) in this byte sequence, {@code -1} if
 	 *         the byte does not occur
 	 */
-	public int lastIndexOf(byte b, int fromIndex);
+	int lastIndexOf(byte b, int fromIndex);
 
 	/**
 	 * Returns the index of the last occurrence of the specified byte array
@@ -283,7 +283,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *         this byte sequence, {@code -1} if the given byte sequence does
 	 *         not occur
 	 */
-	public int lastIndexOf(byte[] bytes);
+	int lastIndexOf(byte[] bytes);
 
 	/**
 	 * Returns the index of the last occurrence of the specified byte array
@@ -301,7 +301,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *         before {@code fromIndex}(inclusive) in this byte sequence,
 	 *         {@code -1} if the given byte sequence does not occur
 	 */
-	public int lastIndexOf(byte[] bytes, int fromIndex);
+	int lastIndexOf(byte[] bytes, int fromIndex);
 
 	/**
 	 * Returns the index within this sequence of the rightmost occurrence of the
@@ -316,7 +316,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws NullPointerException
 	 *             if {@code pattern} is {@code null}
 	 */
-	public int lastIndexOf(ByteKmp pattern);
+	int lastIndexOf(ByteKmp pattern);
 
 	/**
 	 * Returns the index of the last occurrence of the specified {@code pattern}
@@ -333,7 +333,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws NullPointerException
 	 *             if {@code pattern} is {@code null}
 	 */
-	public int lastIndexOf(ByteKmp pattern, int fromIndex);
+	int lastIndexOf(ByteKmp pattern, int fromIndex);
 
 	/**
 	 * Tests whether this byte sequence starts with the specified {@code bytes}.
@@ -343,7 +343,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @return true if this byte sequence starts with the specified
 	 *         {@code bytes}, otherwise false
 	 */
-	public boolean startsWith(byte[] bytes);
+	boolean startsWith(byte[] bytes);
 
 	/**
 	 * Tests whether this byte sequence ends with the specified {@code bytes}.
@@ -353,7 +353,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @return true if this byte sequence ends with the specified {@code bytes},
 	 *         otherwise false
 	 */
-	public boolean endsWith(byte[] bytes);
+	boolean endsWith(byte[] bytes);
 
 	/**
 	 * Compacts this buffer by dropping all the data before the current
@@ -365,7 +365,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * 
 	 * @return this buffer
 	 */
-	public IBuffer compact();
+	IBuffer compact();
 
 	/**
 	 * Creates a new empty buffer using the same buffer factory instance that
@@ -373,11 +373,14 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * 
 	 * @return a new empty buffer
 	 */
-	public IBuffer newBuffer();
+	IBuffer newBuffer();
 
 	/**
 	 * Splits this buffer into two pieces and returns the first piece. This
-	 * buffer holds the rest second piece.
+	 * buffer holds the rest second piece. The two pieces may share some data,
+	 * which means that changes to the content of one of them may be visible to
+	 * another one, though they have independent position, size and mark value.
+	 * So better use them as readonly.
 	 * 
 	 * @param size
 	 *            number of bytes of the first piece
@@ -385,7 +388,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws IllegalArgumentException
 	 *             if {@code size} is negative or greater than {@link #length()}
 	 */
-	public IBuffer split(int size);
+	IBuffer split(int size);
 
 	/**
 	 * Adjusts the length of the buffer to the specified {@code newLength}. If
@@ -405,12 +408,12 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws IllegalArgumentException
 	 *             if {@code newLength} is negative
 	 */
-	public IBuffer setLength(int newLength);
+	IBuffer setLength(int newLength);
 
 	/**
 	 * Empties this buffer.
 	 */
-	public void drain();
+	void drain();
 
 	/**
 	 * Writes all the remaining data into the end of the given {@code dst}. Then
@@ -423,7 +426,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws IllegalArgumentException
 	 *             if {@code dst} is this buffer
 	 */
-	public void drainTo(IBuffer dst);
+	void drainTo(IBuffer dst);
 
 	/**
 	 * Reserves the given {@code size} bytes in the head of the buffer for the
@@ -434,14 +437,14 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the number of bytes to be reserved in the head
 	 * @return the actual effective size that has been reserved
 	 */
-	public int reserveHead(int size);
+	int reserveHead(int size);
 
 	/**
 	 * Returns the number of bytes currently reserved for head.
 	 * 
 	 * @return the current number of bytes reserved for head
 	 */
-	public int headReserved();
+	int headReserved();
 
 	/**
 	 * Writes the data read from the specified channel {@code in} to this
@@ -453,7 +456,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws IOException
 	 *             if an I/O error occur
 	 */
-	public int readIn(ReadableByteChannel in) throws IOException;
+	int readIn(ReadableByteChannel in) throws IOException;
 
 	/**
 	 * Writes the data read from this buffer to the given channel {@code out} .
@@ -464,7 +467,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws IOException
 	 *             if an I/O error occurs
 	 */
-	public int writeOut(WritableByteChannel out) throws IOException;
+	int writeOut(WritableByteChannel out) throws IOException;
 
 	/**
 	 * Writes {@code count} {@code b} values into the underlying buffer. The
@@ -478,7 +481,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws IllegalArgumentException
 	 *             if {@code count} is negative
 	 */
-	public IBuffer writeFill(byte b, int count);
+	IBuffer writeFill(byte b, int count);
 
 	/**
 	 * Sets all {@code count} bytes starting at the specified {@code start} to
@@ -496,7 +499,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *             underlying buffer's <i>size</i>, minus {@code count - 1}, or
 	 *             {@code count} is negative
 	 */
-	public IBuffer setFill(int index, byte b, int count);
+	IBuffer setFill(int index, byte b, int count);
 
 	/**
 	 * Writes {@code count} {@code b} values to the head of the underlying
@@ -510,7 +513,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws IllegalArgumentException
 	 *             if {@code count} is negative
 	 */
-	public IBuffer prependFill(byte b, int count);
+	IBuffer prependFill(byte b, int count);
 
 	/**
 	 * Zero-extends the {@code byte} value at the specified index to type
@@ -531,7 +534,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index < 0} or {@code index >= length()}
 	 */
-	public int getUnsignedByte(int index);
+	int getUnsignedByte(int index);
 
 	/**
 	 * Uses the specified {@code codec} to decode the bytes starting from the
@@ -553,7 +556,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws IndexOutOfBoundsException
 	 *             if the specified {@code index} is out of bounds
 	 */
-	public int getUnsignedShort(int index, IShortCodec codec);
+	int getUnsignedShort(int index, IShortCodec codec);
 
 	/**
 	 * Returns the next byte from the underlying buffer as an unsigned 8-bit
@@ -570,7 +573,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws BufferUnderflowException
 	 *             if there are no bytes remaining in the underlying buffer
 	 */
-	public int readUnsignedByte();
+	int readUnsignedByte();
 
 	/**
 	 * Uses the specified {@code codec} to decode the bytes starting at the
@@ -590,7 +593,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws BufferUnderflowException
 	 *             if there are not enough remaining bytes to decode
 	 */
-	public int readUnsignedShort(IShortCodec codec);
+	int readUnsignedShort(IShortCodec codec);
 
 	/**
 	 * Uses the specified {@code codec} to decode the bytes starting at the
@@ -606,7 +609,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *             if the specified {@code index} is out of bounds
 	 * 
 	 */
-	public char get(int index, ICharCodec codec);
+	char get(int index, ICharCodec codec);
 
 	/**
 	 * Uses the specified {@code codec} to decode the bytes starting at the
@@ -621,7 +624,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws IndexOutOfBoundsException
 	 *             if the specified {@code index} is out of bounds
 	 */
-	public short get(int index, IShortCodec codec);
+	short get(int index, IShortCodec codec);
 
 	/**
 	 * Uses the specified {@code codec} to decode the bytes starting at the
@@ -636,7 +639,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws IndexOutOfBoundsException
 	 *             if the specified {@code index} is out of bounds
 	 */
-	public int get(int index, IIntCodec codec);
+	int get(int index, IIntCodec codec);
 
 	/**
 	 * Uses the specified {@code codec} to decode the bytes starting at the
@@ -651,7 +654,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws IndexOutOfBoundsException
 	 *             if the specified {@code index} is out of bounds
 	 */
-	public long get(int index, ILongCodec codec);
+	long get(int index, ILongCodec codec);
 
 	/**
 	 * Uses the specified {@code codec} to decode the bytes starting at the
@@ -666,7 +669,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws IndexOutOfBoundsException
 	 *             if the specified {@code index} is out of bounds
 	 */
-	public float get(int index, IFloatCodec codec);
+	float get(int index, IFloatCodec codec);
 
 	/**
 	 * Uses the specified {@code codec} to decode the bytes starting at the
@@ -681,7 +684,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws IndexOutOfBoundsException
 	 *             if the specified {@code index} is out of bounds
 	 */
-	public double get(int index, IDoubleCodec codec);
+	double get(int index, IDoubleCodec codec);
 
 	/**
 	 * Uses the specified {@code codec} to decode the bytes starting at the
@@ -698,7 +701,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws IndexOutOfBoundsException
 	 *             if the specified {@code index} is out of bounds
 	 */
-	public <T> T get(int index, ICodec<T> codec);
+	<T> T get(int index, ICodec<T> codec);
 
 	/**
 	 * Uses the specified {@code codec} to decode the bytes, starting at the
@@ -718,7 +721,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws IndexOutOfBoundsException
 	 *             if the specified {@code index} is out of bounds
 	 */
-	public <T> T get(int index, int length, ICodec<T> codec);
+	<T> T get(int index, int length, ICodec<T> codec);
 
 	/**
 	 * Uses the specified {@code codec} to decode the bytes starting at the
@@ -736,7 +739,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws IndexOutOfBoundsException
 	 *             if the specified {@code index} is out of bounds
 	 */
-	public <T> void get(int index, T dst, ICodec<T> codec);
+	<T> void get(int index, T dst, ICodec<T> codec);
 
 	/**
 	 * Uses the specified {@code codec} to decode the bytes starting at the
@@ -760,7 +763,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *             if the specified {@code index, offset or length} is out of
 	 *             bounds
 	 */
-	public <T> void get(int index, T dst, int offset, int length, ICodec<T> codec);
+	<T> void get(int index, T dst, int offset, int length, ICodec<T> codec);
 
 	/**
 	 * Returns the next byte from the underlying buffer. <i>position</i> is
@@ -770,7 +773,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws BufferUnderflowException
 	 *             if there are no bytes remaining in the underlying buffer
 	 */
-	public byte read();
+	byte read();
 
 	/**
 	 * Uses the specified {@code codec} to decode the bytes starting at
@@ -784,7 +787,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *             if there are not enough bytes remained in the underlying
 	 *             buffer
 	 */
-	public char read(ICharCodec codec);
+	char read(ICharCodec codec);
 
 	/**
 	 * Uses the specified {@code codec} to decode the bytes starting at
@@ -798,7 +801,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *             if there are not enough bytes remained in the underlying
 	 *             buffer
 	 */
-	public short read(IShortCodec codec);
+	short read(IShortCodec codec);
 
 	/**
 	 * Uses the specified {@code codec} to decode the bytes starting at
@@ -812,7 +815,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *             if there are not enough bytes remained in the underlying
 	 *             buffer
 	 */
-	public int read(IIntCodec codec);
+	int read(IIntCodec codec);
 
 	/**
 	 * Uses the specified {@code codec} to decode the bytes starting at
@@ -826,7 +829,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *             if there are not enough bytes remained in the underlying
 	 *             buffer
 	 */
-	public long read(ILongCodec codec);
+	long read(ILongCodec codec);
 
 	/**
 	 * Uses the specified {@code codec} to decode the bytes starting at
@@ -840,7 +843,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *             if there are not enough bytes remained in the underlying
 	 *             buffer
 	 */
-	public float read(IFloatCodec codec);
+	float read(IFloatCodec codec);
 
 	/**
 	 * Uses the specified {@code codec} to decode the bytes starting at
@@ -854,7 +857,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *             if there are not enough bytes remained in the underlying
 	 *             buffer
 	 */
-	public double read(IDoubleCodec codec);
+	double read(IDoubleCodec codec);
 
 	/**
 	 * Uses the specified {@code codec} to decode the bytes starting at
@@ -870,7 +873,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *             if there are not enough bytes remained in the underlying
 	 *             buffer
 	 */
-	public <T> T read(ICodec<T> codec);
+	<T> T read(ICodec<T> codec);
 
 	/**
 	 * Uses the specified {@code codec} to decode the bytes, starting at
@@ -891,7 +894,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *             if there are not enough bytes remained in the underlying
 	 *             buffer
 	 */
-	public <T> T read(int length, ICodec<T> codec);
+	<T> T read(int length, ICodec<T> codec);
 
 	/**
 	 * Uses the specified {@code codec} to decode the bytes, starting at
@@ -906,7 +909,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the codec to decode
 	 * @return the actual number of bytes decoded
 	 */
-	public <T> int read(T dst, ICodec<T> codec);
+	<T> int read(T dst, ICodec<T> codec);
 
 	/**
 	 * Uses the specified {@code codec} to decode the bytes, starting at
@@ -930,7 +933,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *             if {@code offset} or {@code length} doesn't hold the
 	 *             condition
 	 */
-	public <T> int read(T dst, int offset, int length, ICodec<T> codec);
+	<T> int read(T dst, int offset, int length, ICodec<T> codec);
 
 	/**
 	 * Sets the byte at the specified position to the given byte {@code b}.
@@ -944,7 +947,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *             if {@code index} is negative or not smaller than the buffer's
 	 *             <i>size</i>
 	 */
-	public IBuffer set(int index, byte b);
+	IBuffer set(int index, byte b);
 
 	/**
 	 * Sets the bytes starting at the specified {@code index} to the ones
@@ -961,7 +964,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
 	 */
-	public IBuffer set(int index, char c, ICharCodec codec);
+	IBuffer set(int index, char c, ICharCodec codec);
 
 	/**
 	 * Sets the bytes starting at the specified {@code index} to the ones
@@ -978,7 +981,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
 	 */
-	public IBuffer set(int index, short s, IShortCodec codec);
+	IBuffer set(int index, short s, IShortCodec codec);
 
 	/**
 	 * Sets the bytes starting at the specified {@code index} to the ones
@@ -995,7 +998,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
 	 */
-	public IBuffer set(int index, int i, IIntCodec codec);
+	IBuffer set(int index, int i, IIntCodec codec);
 
 	/**
 	 * Sets the bytes starting at the specified {@code index} to the ones
@@ -1012,7 +1015,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
 	 */
-	public IBuffer set(int index, long l, ILongCodec codec);
+	IBuffer set(int index, long l, ILongCodec codec);
 
 	/**
 	 * Sets the bytes starting at the specified {@code index} to the ones
@@ -1029,7 +1032,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
 	 */
-	public IBuffer set(int index, float f, IFloatCodec codec);
+	IBuffer set(int index, float f, IFloatCodec codec);
 
 	/**
 	 * Sets the bytes starting at the specified {@code index} to the ones
@@ -1046,7 +1049,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
 	 */
-	public IBuffer set(int index, double d, IDoubleCodec codec);
+	IBuffer set(int index, double d, IDoubleCodec codec);
 
 	/**
 	 * Sets the bytes starting at the specified {@code index} to the ones
@@ -1065,7 +1068,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
 	 */
-	public <T> IBuffer set(int index, T src, ICodec<T> codec);
+	<T> IBuffer set(int index, T src, ICodec<T> codec);
 
 	/**
 	 * Sets the bytes starting at the specified {@code index} to the ones
@@ -1089,7 +1092,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
 	 */
-	public <T> IBuffer set(int index, T src, int offset, int length, ICodec<T> codec);
+	<T> IBuffer set(int index, T src, int offset, int length, ICodec<T> codec);
 
 	/**
 	 * Writes the given byte {@code b} to the end of this buffer. The
@@ -1099,7 +1102,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the {@code byte} to be written
 	 * @return this buffer
 	 */
-	public IBuffer write(byte b);
+	IBuffer write(byte b);
 
 	/**
 	 * Writes the bytes, encoded from the specified char value {@code c} with
@@ -1111,7 +1114,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the codec to encode
 	 * @return this buffer
 	 */
-	public IBuffer write(char c, ICharCodec codec);
+	IBuffer write(char c, ICharCodec codec);
 
 	/**
 	 * Writes the bytes, encoded from the specified short value {@code s} with
@@ -1123,7 +1126,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the codec to encode
 	 * @return this buffer
 	 */
-	public IBuffer write(short s, IShortCodec codec);
+	IBuffer write(short s, IShortCodec codec);
 
 	/**
 	 * Writes the bytes, encoded from the specified int value {@code i} with the
@@ -1135,7 +1138,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the codec to encode
 	 * @return this buffer
 	 */
-	public IBuffer write(int i, IIntCodec codec);
+	IBuffer write(int i, IIntCodec codec);
 
 	/**
 	 * Writes the bytes, encoded from the specified long value {@code l} with
@@ -1147,7 +1150,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the codec to encode
 	 * @return this buffer
 	 */
-	public IBuffer write(long l, ILongCodec codec);
+	IBuffer write(long l, ILongCodec codec);
 
 	/**
 	 * Writes the bytes, encoded from the specified float value {@code f} with
@@ -1159,7 +1162,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the codec to encode
 	 * @return this buffer
 	 */
-	public IBuffer write(float f, IFloatCodec codec);
+	IBuffer write(float f, IFloatCodec codec);
 
 	/**
 	 * Writes the bytes, encoded from the specified double value {@code d} with
@@ -1171,7 +1174,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the codec to encoded
 	 * @return this buffer
 	 */
-	public IBuffer write(double d, IDoubleCodec codec);
+	IBuffer write(double d, IDoubleCodec codec);
 
 	/**
 	 * Writes the bytes, encoded from the specified object {@code src} with the
@@ -1185,7 +1188,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the codec to encode
 	 * @return this buffer
 	 */
-	public <T> IBuffer write(T src, ICodec<T> codec);
+	<T> IBuffer write(T src, ICodec<T> codec);
 
 	/**
 	 * Writes the bytes, encoded from the specified collection {@code src}
@@ -1205,7 +1208,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the codec to encode
 	 * @return this buffer
 	 */
-	public <T> IBuffer write(T src, int offset, int length, ICodec<T> codec);
+	<T> IBuffer write(T src, int offset, int length, ICodec<T> codec);
 
 	/**
 	 * Writes the given byte {@code b} to the head of the buffer.
@@ -1217,7 +1220,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the {@code byte} value to write
 	 * @return this buffer
 	 */
-	public IBuffer prepend(byte b);
+	IBuffer prepend(byte b);
 
 	/**
 	 * Writes the bytes, encoded from the specified character {@code c} with the
@@ -1229,7 +1232,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the codec to encode
 	 * @return this buffer
 	 */
-	public IBuffer prepend(char c, ICharCodec codec);
+	IBuffer prepend(char c, ICharCodec codec);
 
 	/**
 	 * Writes the bytes, encoded from the specified short value {@code s} with
@@ -1241,7 +1244,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the codec to encode
 	 * @return this buffer
 	 */
-	public IBuffer prepend(short s, IShortCodec codec);
+	IBuffer prepend(short s, IShortCodec codec);
 
 	/**
 	 * Writes the bytes, encoded from the specified int value {@code i} with the
@@ -1253,7 +1256,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the codec to encode
 	 * @return this buffer
 	 */
-	public IBuffer prepend(int i, IIntCodec codec);
+	IBuffer prepend(int i, IIntCodec codec);
 
 	/**
 	 * Writes the bytes, encoded from the specified long value {@code l} with
@@ -1265,7 +1268,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the codec to encode
 	 * @return this buffer
 	 */
-	public IBuffer prepend(long l, ILongCodec codec);
+	IBuffer prepend(long l, ILongCodec codec);
 
 	/**
 	 * Writes the bytes, encoded from the specified float value {@code f} with
@@ -1277,7 +1280,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the codec to encode
 	 * @return this buffer
 	 */
-	public IBuffer prepend(float f, IFloatCodec codec);
+	IBuffer prepend(float f, IFloatCodec codec);
 
 	/**
 	 * Writes the bytes, encoded from the specified double value {@code d} with
@@ -1289,7 +1292,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the codec to encode
 	 * @return this buffer
 	 */
-	public IBuffer prepend(double d, IDoubleCodec codec);
+	IBuffer prepend(double d, IDoubleCodec codec);
 
 	/**
 	 * Writes the bytes, encoded from the specified object {@code src} with the
@@ -1303,7 +1306,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the codec to encode
 	 * @return this buffer
 	 */
-	public <T> IBuffer prepend(T src, ICodec<T> codec);
+	<T> IBuffer prepend(T src, ICodec<T> codec);
 
 	/**
 	 * Writes the bytes, encoded from the specified collection {@code src} with
@@ -1322,7 +1325,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the codec to encode
 	 * @return this buffer
 	 */
-	public <T> IBuffer prepend(T src, int offset, int length, ICodec<T> codec);
+	<T> IBuffer prepend(T src, int offset, int length, ICodec<T> codec);
 
 	/**
 	 * Returns an {@code OutputStream} object that represents this buffer.
@@ -1330,7 +1333,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * 
 	 * @return an {@code OutputStream} object that represents this buffer
 	 */
-	public OutputStream getOutputStream();
+	OutputStream getOutputStream();
 
 	/**
 	 * Returns an {@code InputStream} object that represents this buffer.
@@ -1338,5 +1341,5 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * 
 	 * @return an {@code InputStream} object that represents this buffer
 	 */
-	public InputStream getInputStream();
+	InputStream getInputStream();
 }

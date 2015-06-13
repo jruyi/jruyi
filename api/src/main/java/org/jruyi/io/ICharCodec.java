@@ -34,7 +34,7 @@ public interface ICharCodec {
 	 * @throws BufferUnderflowException
 	 *             if there's not enough data remaining in the {@code unitChain}
 	 */
-	public char read(IUnitChain unitChain);
+	char read(IUnitChain unitChain);
 
 	/**
 	 * Encodes the specified {@code char} value {@code c} and writes the
@@ -45,7 +45,7 @@ public interface ICharCodec {
 	 * @param unitChain
 	 *            the unit chain where the encoded bytes to be written to
 	 */
-	public void write(char c, IUnitChain unitChain);
+	void write(char c, IUnitChain unitChain);
 
 	/**
 	 * Decodes the bytes from the specified {@code unitChain}, starting at the
@@ -60,7 +60,7 @@ public interface ICharCodec {
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
 	 */
-	public char get(IUnitChain unitChain, int index);
+	char get(IUnitChain unitChain, int index);
 
 	/**
 	 * Encodes the specified {@code char} value {@code c} and sets the resultant
@@ -76,7 +76,7 @@ public interface ICharCodec {
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
 	 */
-	public void set(char c, IUnitChain unitChain, int index);
+	void set(char c, IUnitChain unitChain, int index);
 
 	/**
 	 * Encodes the specified {@code char} value {@code c} and writes the
@@ -87,5 +87,5 @@ public interface ICharCodec {
 	 * @param unitChain
 	 *            the unit chain where the encoded bytes to be prepended to
 	 */
-	public void prepend(char c, IUnitChain unitChain);
+	void prepend(char c, IUnitChain unitChain);
 }

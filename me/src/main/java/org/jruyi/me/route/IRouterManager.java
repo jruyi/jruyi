@@ -16,5 +16,5 @@ package org.jruyi.me.route;
 
 public interface IRouterManager {
 
-	public IRouter getRouter(String id);
+	IRouter getRouter(String id);
 }

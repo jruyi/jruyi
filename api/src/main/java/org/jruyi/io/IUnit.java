@@ -59,7 +59,7 @@ public interface IUnit extends IByteSequence {
 	 *            the byte to set
 	 * @return this buffer unit
 	 */
-	public IUnit set(int index, byte b);
+	IUnit set(int index, byte b);
 
 	/**
 	 * Sets the bytes starting at the specified {@code index} to the ones
@@ -73,7 +73,7 @@ public interface IUnit extends IByteSequence {
 	 * @return this buffer unit
 	 * @since 2.0
 	 */
-	public IUnit set(int index, short s);
+	IUnit set(int index, short s);
 
 	/**
 	 * Sets the bytes starting at the specified {@code index} to the ones
@@ -87,7 +87,7 @@ public interface IUnit extends IByteSequence {
 	 * @return this buffer unit
 	 * @since 2.0
 	 */
-	public IUnit set(int index, int i);
+	IUnit set(int index, int i);
 
 	/**
 	 * Sets the bytes starting at the specified {@code index} to the ones
@@ -101,7 +101,7 @@ public interface IUnit extends IByteSequence {
 	 * @return this buffer unit
 	 * @since 2.0
 	 */
-	public IUnit set(int index, long l);
+	IUnit set(int index, long l);
 
 	/**
 	 * Sets the bytes starting at the specified {@code index} to the ones
@@ -115,7 +115,7 @@ public interface IUnit extends IByteSequence {
 	 * @return this buffer unit
 	 * @since 2.0
 	 */
-	public IUnit set(int index, float f);
+	IUnit set(int index, float f);
 
 	/**
 	 * Sets the bytes starting at the specified {@code index} to the ones
@@ -129,7 +129,7 @@ public interface IUnit extends IByteSequence {
 	 * @return this buffer unit
 	 * @since 2.0
 	 */
-	public IUnit set(int index, double d);
+	IUnit set(int index, double d);
 
 	/**
 	 * Decodes 2 bytes starting at the specified {@code index} from the
@@ -141,7 +141,7 @@ public interface IUnit extends IByteSequence {
 	 * @return the resultant {@code short} value
 	 * @since 2.0
 	 */
-	public short getShort(int index);
+	short getShort(int index);
 
 	/**
 	 * Decodes 4 bytes starting at the specified {@code index} from the
@@ -153,7 +153,7 @@ public interface IUnit extends IByteSequence {
 	 * @return the resultant {@code int} value
 	 * @since 2.0
 	 */
-	public int getInt(int index);
+	int getInt(int index);
 
 	/**
 	 * Decodes 8 bytes starting at the specified {@code index} from the
@@ -165,7 +165,7 @@ public interface IUnit extends IByteSequence {
 	 * @return the resultant {@code long} value
 	 * @since 2.0
 	 */
-	public long getLong(int index);
+	long getLong(int index);
 
 	/**
 	 * Decodes 4 bytes starting at the specified {@code index} from the
@@ -177,7 +177,7 @@ public interface IUnit extends IByteSequence {
 	 * @return the resultant {@code float} value
 	 * @since 2.0
 	 */
-	public float getFloat(int index);
+	float getFloat(int index);
 
 	/**
 	 * Decodes 8 bytes starting at the specified {@code index} from the
@@ -189,7 +189,7 @@ public interface IUnit extends IByteSequence {
 	 * @return the resultant {@code double} value
 	 * @since 2.0
 	 */
-	public double getDouble(int index);
+	double getDouble(int index);
 
 	/**
 	 * Sets {@code (srcEnd - srcBegin)} bytes starting at the specified
@@ -212,7 +212,7 @@ public interface IUnit extends IByteSequence {
 	 *             than {@code srcBegin}, or {@code srcEnd} is greater than
 	 *             {@code src.length()}
 	 */
-	public IUnit set(int index, IByteSequence src, int srcBegin, int srcEnd);
+	IUnit set(int index, IByteSequence src, int srcBegin, int srcEnd);
 
 	/**
 	 * Sets {@code length} bytes starting at the specified {@code index} to the
@@ -229,7 +229,7 @@ public interface IUnit extends IByteSequence {
 	 *            the number of bytes from {@code src} to set
 	 * @return this buffer unit
 	 */
-	public IUnit set(int index, byte[] src, int offset, int length);
+	IUnit set(int index, byte[] src, int offset, int length);
 
 	/**
 	 * Decodes the requested sequence of bytes to the given long array
@@ -245,7 +245,7 @@ public interface IUnit extends IByteSequence {
 	 *            offset into {@code dst}
 	 * @since 2.0
 	 */
-	public void get(int index, int length, long[] dst, int dstBegin);
+	void get(int index, int length, long[] dst, int dstBegin);
 
 	/**
 	 * Sets bytes at the specified {@code index} to the ones encoded from
@@ -263,7 +263,7 @@ public interface IUnit extends IByteSequence {
 	 * @return this buffer unit
 	 * @since 2.0
 	 */
-	public IUnit set(int index, long[] src, int offset, int length);
+	IUnit set(int index, long[] src, int offset, int length);
 
 	/**
 	 * Decodes the requested sequence of bytes to the given int array
@@ -279,7 +279,7 @@ public interface IUnit extends IByteSequence {
 	 *            offset into {@code dst}
 	 * @since 2.0
 	 */
-	public void get(int index, int length, int[] dst, int dstBegin);
+	void get(int index, int length, int[] dst, int dstBegin);
 
 	/**
 	 * Sets bytes at the specified {@code index} to the ones encoded from
@@ -297,7 +297,7 @@ public interface IUnit extends IByteSequence {
 	 * @return this buffer unit
 	 * @since 2.0
 	 */
-	public IUnit set(int index, int[] src, int offset, int length);
+	IUnit set(int index, int[] src, int offset, int length);
 
 	/**
 	 * Decodes the requested sequence of bytes to the given short array
@@ -313,7 +313,7 @@ public interface IUnit extends IByteSequence {
 	 *            offset into {@code dst}
 	 * @since 2.0
 	 */
-	public void get(int index, int length, short[] dst, int dstBegin);
+	void get(int index, int length, short[] dst, int dstBegin);
 
 	/**
 	 * Sets bytes at the specified {@code index} to the ones encoded from
@@ -331,7 +331,7 @@ public interface IUnit extends IByteSequence {
 	 * @return this buffer unit
 	 * @since 2.0
 	 */
-	public IUnit set(int index, short[] src, int offset, int length);
+	IUnit set(int index, short[] src, int offset, int length);
 
 	/**
 	 * Decodes the requested sequence of bytes to the given float array
@@ -347,7 +347,7 @@ public interface IUnit extends IByteSequence {
 	 *            offset into {@code dst}
 	 * @since 2.0
 	 */
-	public void get(int index, int length, float[] dst, int dstBegin);
+	void get(int index, int length, float[] dst, int dstBegin);
 
 	/**
 	 * Sets bytes at the specified {@code index} to the ones encoded from
@@ -365,7 +365,7 @@ public interface IUnit extends IByteSequence {
 	 * @return this buffer unit
 	 * @since 2.0
 	 */
-	public IUnit set(int index, float[] src, int offset, int length);
+	IUnit set(int index, float[] src, int offset, int length);
 
 	/**
 	 * Decodes the requested sequence of bytes to the given double array
@@ -381,7 +381,7 @@ public interface IUnit extends IByteSequence {
 	 *            offset into {@code dst}
 	 * @since 2.0
 	 */
-	public void get(int index, int length, double[] dst, int dstBegin);
+	void get(int index, int length, double[] dst, int dstBegin);
 
 	/**
 	 * Sets bytes at the specified {@code index} to the ones encoded from
@@ -399,7 +399,7 @@ public interface IUnit extends IByteSequence {
 	 * @return this buffer unit
 	 * @since 2.0
 	 */
-	public IUnit set(int index, double[] src, int offset, int length);
+	IUnit set(int index, double[] src, int offset, int length);
 
 	/**
 	 * Sets all the {@code count} bytes starting at the specified {@code index}
@@ -413,7 +413,7 @@ public interface IUnit extends IByteSequence {
 	 *            the number of bytes to set
 	 * @return this buffer unit
 	 */
-	public IUnit setFill(int index, byte b, int count);
+	IUnit setFill(int index, byte b, int count);
 
 	/**
 	 * Returns the index of the first byte of the byte sequence this buffer unit
@@ -421,7 +421,7 @@ public interface IUnit extends IByteSequence {
 	 * 
 	 * @return the <i>start</i>
 	 */
-	public int start();
+	int start();
 
 	/**
 	 * Sets the <i>start</i> of this buffer unit to the specified {@code start}.
@@ -429,14 +429,14 @@ public interface IUnit extends IByteSequence {
 	 * @param start
 	 *            the index to set as <i>start</i>
 	 */
-	public void start(int start);
+	void start(int start);
 
 	/**
 	 * Returns the <i>position</i> of this buffer unit.
 	 * 
 	 * @return the <i>position</i>
 	 */
-	public int position();
+	int position();
 
 	/**
 	 * Sets the <i>position</i> of this buffer unit to the specified
@@ -445,14 +445,14 @@ public interface IUnit extends IByteSequence {
 	 * @param position
 	 *            the position to set
 	 */
-	public void position(int position);
+	void position(int position);
 
 	/**
 	 * Returns the <i>size</i> of this buffer unit.
 	 * 
 	 * @return the <i>size</i>
 	 */
-	public int size();
+	int size();
 
 	/**
 	 * Sets the <i>size</i> of this buffer unit to the specified {@code size}.
@@ -460,35 +460,35 @@ public interface IUnit extends IByteSequence {
 	 * @param size
 	 *            the size to set
 	 */
-	public void size(int size);
+	void size(int size);
 
 	/**
 	 * Returns the number of bytes remaining in this buffer unit to be read.
 	 * 
 	 * @return the number of bytes remaining in this buffer unit
 	 */
-	public int remaining();
+	int remaining();
 
 	/**
 	 * Returns the number of bytes available in this buffer unit to be written.
 	 * 
 	 * @return the number of bytes available in this buffer unit
 	 */
-	public int available();
+	int available();
 
 	/**
 	 * Returns the number of bytes that this buffer unit can hold.
 	 * 
 	 * @return the capacity of this buffer unit
 	 */
-	public int capacity();
+	int capacity();
 
 	/**
 	 * Returns the <i>mark</i> of this buffer unit.
 	 * 
 	 * @return the mark of this buffer unit
 	 */
-	public int mark();
+	int mark();
 
 	/**
 	 * Sets the <i>mark</i> of this buffer unit to the given position.
@@ -496,44 +496,44 @@ public interface IUnit extends IByteSequence {
 	 * @param mark
 	 *            the mark to set
 	 */
-	public void mark(int mark);
+	void mark(int mark);
 
 	/**
 	 * Tests if this buffer unit can be appended more.
 	 * 
 	 * @return true if appendable, otherwise false
 	 */
-	public boolean appendable();
+	boolean appendable();
 
 	/**
 	 * Tests if this buffer unit can be prepended more.
 	 * 
 	 * @return true if prependable, otherwise false
 	 */
-	public boolean prependable();
+	boolean prependable();
 
 	/**
 	 * Tests if this buffer unit is empty.
 	 * 
 	 * @return true if empty, otherwise false
 	 */
-	public boolean isEmpty();
+	boolean isEmpty();
 
 	/**
 	 * Resets this buffer unit's position to the previously-marked position.
 	 */
-	public void reset();
+	void reset();
 
 	/**
 	 * Rewinds this buffer unit. The position and mark are set to 0.
 	 */
-	public void rewind();
+	void rewind();
 
 	/**
 	 * Clears this buffer unit. The start, position, mark and size are all set
 	 * to 0.
 	 */
-	public void clear();
+	void clear();
 
 	/**
 	 * Compacts this buffer unit by dropping all the data before the current
@@ -543,7 +543,7 @@ public interface IUnit extends IByteSequence {
 	 * This buffer unit's start is set to {@code start + position}. Its size is
 	 * set to {@code remaining()}. Its position and mark are set to zero.
 	 */
-	public void compact();
+	void compact();
 
 	/**
 	 * Skips over the next {@code Math.min(n, remaining())} bytes. If {@code n}
@@ -557,7 +557,7 @@ public interface IUnit extends IByteSequence {
 	 *            the number of bytes to be skipped
 	 * @return the actual number of bytes skipped
 	 */
-	public int skip(int n);
+	int skip(int n);
 
 	/**
 	 * Returns the {@code ByteBuffer} associated to this buffer unit, with limit
@@ -566,7 +566,7 @@ public interface IUnit extends IByteSequence {
 	 * 
 	 * @return the {@code ByteBuffer} as described
 	 */
-	public ByteBuffer getByteBufferForRead();
+	ByteBuffer getByteBufferForRead();
 
 	/**
 	 * Returns the {@code ByteBuffer} associated to this buffer unit, with limit
@@ -581,7 +581,7 @@ public interface IUnit extends IByteSequence {
 	 *            {@code ByteBuffer}
 	 * @return the {@code ByteBuffer} as described
 	 */
-	public ByteBuffer getByteBufferForRead(int offset, int length);
+	ByteBuffer getByteBufferForRead(int offset, int length);
 
 	/**
 	 * Returns the {@code ByteBuffer} associated to this buffer unit, with limit
@@ -590,7 +590,7 @@ public interface IUnit extends IByteSequence {
 	 * 
 	 * @return the {@code ByteBuffer} as described
 	 */
-	public ByteBuffer getByteBufferForWrite();
+	ByteBuffer getByteBufferForWrite();
 
 	/**
 	 * Copies the requested sequence of bytes to the given {@code dst}.
@@ -605,7 +605,7 @@ public interface IUnit extends IByteSequence {
 	 *             if {@code dst} is {@code null}.
 	 * @since 2.0
 	 */
-	public void getBytes(int srcBegin, int srcEnd, ByteBuffer dst);
+	void getBytes(int srcBegin, int srcEnd, ByteBuffer dst);
 
 	/**
 	 * Sets {@code length} bytes starting at the specified {@code index} to the
@@ -621,5 +621,25 @@ public interface IUnit extends IByteSequence {
 	 * @throws NullPointerException
 	 *             if {@code src} is {@code null}.
 	 */
-	public IUnit set(int index, int length, ByteBuffer src);
+	IUnit set(int index, int length, ByteBuffer src);
+
+	/**
+	 * Creates a new buffer unit whose content is a shared subsequence of this
+	 * buffer unit's content starting at the given {@code start} and ending at
+	 * the given {@code end - 1}.
+	 *
+	 * Changes to this buffer unit's content will be visible in the new buffer
+	 * unit, and vice versa; the two buffer units' start, size, position and
+	 * mark values will be independent.
+	 * 
+	 * The new buffer unit's start will be {@code this.start() + start}, its
+	 * position will be zero, its size will be {@code end - start} , and its
+	 * mark will be undefined.
+	 *
+	 * @param start
+	 * @param end
+	 * @return the new buffer unit
+	 * @since 2.2
+	 */
+	IUnit slice(int start, int end);
 }

@@ -24,5 +24,5 @@ public interface ICloseable extends AutoCloseable {
 	 * Closes this object to release resources that it holds.
 	 */
 	@Override
-	public void close();
+	void close();
 }

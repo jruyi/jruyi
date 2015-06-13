@@ -34,7 +34,7 @@ public interface IRouteSet {
 	 * 
 	 * @return the ID of the source end point
 	 */
-	public String from();
+	String from();
 
 	/**
 	 * Returns the route whose destination end point is the specified {@code to}
@@ -44,7 +44,7 @@ public interface IRouteSet {
 	 *            the ID of the destination end point of the route need return
 	 * @return the route {@literal [from -> to]}
 	 */
-	public IRoute getRoute(String to);
+	IRoute getRoute(String to);
 
 	/**
 	 * Defines a route {@literal [from -> to]} with the specified {@code filter}
@@ -64,7 +64,7 @@ public interface IRouteSet {
 	 * @throws InvalidSyntaxException
 	 *             if the syntax of the filter string is not correct
 	 */
-	public IRoute setRoute(String to, String filter) throws InvalidSyntaxException;
+	IRoute setRoute(String to, String filter) throws InvalidSyntaxException;
 
 	/**
 	 * Defines a route {@literal [from -> to]} with the specified {@code filter}
@@ -83,7 +83,7 @@ public interface IRouteSet {
 	 * @throws IllegalArgumentException
 	 *             if {@code to} is null or {@code to.trim()} is empty
 	 */
-	public IRoute setRoute(String to, Filter filter);
+	IRoute setRoute(String to, Filter filter);
 
 	/**
 	 * Defines a route {@literal [from -> to]}. And put this route into the
@@ -98,14 +98,14 @@ public interface IRouteSet {
 	 * @throws IllegalArgumentException
 	 *             if {@code to} is null or {@code to.trim()} is empty
 	 */
-	public IRoute setRoute(String to);
+	IRoute setRoute(String to);
 
 	/**
 	 * Gets all the routes in this route set.
 	 * 
 	 * @return all the routes in this route set
 	 */
-	public IRoute[] getRoutes();
+	IRoute[] getRoutes();
 
 	/**
 	 * Removes the route {@literal [from -> to]}.
@@ -113,12 +113,12 @@ public interface IRouteSet {
 	 * @param to
 	 *            the ID of the destination end point
 	 */
-	public void removeRoute(String to);
+	void removeRoute(String to);
 
 	/**
 	 * Clears all the routes in this route set.
 	 */
-	public void clear();
+	void clear();
 
 	/**
 	 * Persists the current route set. So all the route definitions will be kept
@@ -127,5 +127,5 @@ public interface IRouteSet {
 	 * @throws IOException
 	 *             If there's an IO error
 	 */
-	public void save() throws IOException;
+	void save() throws IOException;
 }

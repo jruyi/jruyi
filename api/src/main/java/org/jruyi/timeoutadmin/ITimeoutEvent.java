@@ -24,12 +24,12 @@ public interface ITimeoutEvent {
 	 * 
 	 * @return the subject
 	 */
-	public Object getSubject();
+	Object getSubject();
 
 	/**
 	 * Gets the timeout in seconds.
 	 * 
 	 * @return the timeout in seconds
 	 */
-	public int getTimeout();
+	int getTimeout();
 }

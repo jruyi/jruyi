@@ -14,17 +14,11 @@
 
 package org.jruyi.io.buffer;
 
-import static org.jruyi.io.buffer.Helper.SIZE_OF_INT;
-import static org.jruyi.io.buffer.Helper.SIZE_OF_LONG;
-import static org.jruyi.io.buffer.Helper.SIZE_OF_SHORT;
-import static sun.misc.Unsafe.ARRAY_BYTE_BASE_OFFSET;
-import static sun.misc.Unsafe.ARRAY_DOUBLE_BASE_OFFSET;
-import static sun.misc.Unsafe.ARRAY_FLOAT_BASE_OFFSET;
-import static sun.misc.Unsafe.ARRAY_INT_BASE_OFFSET;
-import static sun.misc.Unsafe.ARRAY_LONG_BASE_OFFSET;
-import static sun.misc.Unsafe.ARRAY_SHORT_BASE_OFFSET;
+import static org.jruyi.io.buffer.Helper.*;
+import static sun.misc.Unsafe.*;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.jruyi.common.IByteSequence;
 import org.jruyi.io.IUnit;
@@ -49,10 +43,20 @@ final class HeapUnit implements IUnit {
 
 	private ByteBuffer m_bb;
 
+	private AtomicLong m_refCount;
+
 	public HeapUnit(int capacity) {
 		final byte[] array = new byte[capacity];
 		m_array = array;
 		m_bb = ByteBuffer.wrap(array);
+	}
+
+	public HeapUnit(byte[] array, int start, int size, AtomicLong refCount) {
+		m_size = size;
+		m_start = start;
+		m_array = array;
+		m_bb = ByteBuffer.wrap(array);
+		m_refCount = refCount;
 	}
 
 	public void setCapacity(int newCapacity) {
@@ -193,6 +197,17 @@ final class HeapUnit implements IUnit {
 	public HeapUnit setFill(int index, byte b, int count) {
 		c_unsafe.setMemory(m_array, byteArrayOffset(index), count, b);
 		return this;
+	}
+
+	@Override
+	public HeapUnit slice(int start, int end) {
+		AtomicLong refCount = m_refCount;
+		if (refCount == null) {
+			refCount = new AtomicLong(2L);
+			m_refCount = refCount;
+		} else
+			refCount.incrementAndGet();
+		return new HeapUnit(m_array, m_start + start, end - start, refCount);
 	}
 
 	@Override
@@ -402,6 +417,14 @@ final class HeapUnit implements IUnit {
 		m_size -= position;
 		m_position = 0;
 		m_mark = 0;
+	}
+
+	public void cache(BufferFactory factory) {
+		final AtomicLong refCount = m_refCount;
+		if (refCount == null || (refCount.get() > 0L && refCount.decrementAndGet() == 0L)) {
+			m_refCount = null;
+			factory.cache(this);
+		}
 	}
 
 	private static long byteArrayOffset(long index) {

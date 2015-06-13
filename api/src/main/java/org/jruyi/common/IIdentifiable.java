@@ -30,5 +30,5 @@ public interface IIdentifiable<K extends Serializable> {
 	 * 
 	 * @return the identifier
 	 */
-	public K id();
+	K id();
 }

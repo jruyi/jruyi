@@ -35,23 +35,23 @@ public interface IService {
 	/**
 	 * An {@code int} value representing Inactive state.
 	 */
-	public static final int INACTIVE = 0x01;
+	int INACTIVE = 0x01;
 	/**
 	 * An {@code int} value representing Stopped state.
 	 */
-	public static final int STOPPED = 0x02;
+	int STOPPED = 0x02;
 	/**
 	 * An {@code int} value representing Active state.
 	 */
-	public static final int ACTIVE = 0x04;
+	int ACTIVE = 0x04;
 	/**
 	 * An {@code int} value representing Starting state.
 	 */
-	public static final int STARTING = 0x08;
+	int STARTING = 0x08;
 	/**
 	 * An {@code int} value representing Stopping state.
 	 */
-	public static final int STOPPING = 0x10;
+	int STOPPING = 0x10;
 
 	/**
 	 * Starts this service.
@@ -59,7 +59,7 @@ public interface IService {
 	 * @throws Exception
 	 *             thrown if this service failed to start
 	 */
-	public void start() throws Exception;
+	void start() throws Exception;
 
 	/**
 	 * Starts this service with the specified {@code options}. It's up to the
@@ -70,12 +70,12 @@ public interface IService {
 	 * @throws Exception
 	 *             thrown if this service failed to start
 	 */
-	public void start(int options) throws Exception;
+	void start(int options) throws Exception;
 
 	/**
 	 * Stops this service.
 	 */
-	public void stop();
+	void stop();
 
 	/**
 	 * Stops this service with the specified {@code options}. It's up to the
@@ -84,7 +84,7 @@ public interface IService {
 	 * @param options
 	 *            stop options
 	 */
-	public void stop(int options);
+	void stop(int options);
 
 	/**
 	 * Updates the properties of this service.
@@ -94,12 +94,12 @@ public interface IService {
 	 * @throws Exception
 	 *             if any error occurs
 	 */
-	public void update(Map<String, ?> properties) throws Exception;
+	void update(Map<String, ?> properties) throws Exception;
 
 	/**
 	 * Gets the current state of this service.
 	 * 
 	 * @return the current state of this service
 	 */
-	public int state();
+	int state();
 }

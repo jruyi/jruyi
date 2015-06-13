@@ -18,5 +18,5 @@ import java.util.Map;
 
 public interface IRoutable {
 
-	public Map<String, ?> getRoutingInfo();
+	Map<String, ?> getRoutingInfo();
 }
