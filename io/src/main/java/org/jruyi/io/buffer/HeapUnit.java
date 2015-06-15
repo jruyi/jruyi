@@ -18,7 +18,7 @@ import static org.jruyi.io.buffer.Helper.*;
 import static sun.misc.Unsafe.*;
 
 import java.nio.ByteBuffer;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jruyi.common.IByteSequence;
 import org.jruyi.io.IUnit;
@@ -43,7 +43,7 @@ final class HeapUnit implements IUnit {
 
 	private ByteBuffer m_bb;
 
-	private AtomicLong m_refCount;
+	private AtomicInteger m_refCount;
 
 	public HeapUnit(int capacity) {
 		final byte[] array = new byte[capacity];
@@ -51,7 +51,7 @@ final class HeapUnit implements IUnit {
 		m_bb = ByteBuffer.wrap(array);
 	}
 
-	public HeapUnit(byte[] array, int start, int size, AtomicLong refCount) {
+	public HeapUnit(byte[] array, int start, int size, AtomicInteger refCount) {
 		m_size = size;
 		m_start = start;
 		m_array = array;
@@ -200,14 +200,28 @@ final class HeapUnit implements IUnit {
 	}
 
 	@Override
-	public HeapUnit slice(int start, int end) {
-		AtomicLong refCount = m_refCount;
+	public HeapUnit slice(int beginIndex, int endIndex) {
+		AtomicInteger refCount = m_refCount;
 		if (refCount == null) {
-			refCount = new AtomicLong(2L);
+			refCount = new AtomicInteger(2);
 			m_refCount = refCount;
 		} else
 			refCount.incrementAndGet();
-		return new HeapUnit(m_array, m_start + start, end - start, refCount);
+		return new HeapUnit(m_array, m_start + beginIndex, endIndex - beginIndex, refCount);
+	}
+
+	@Override
+	public IUnit duplicate() {
+		AtomicInteger refCount = m_refCount;
+		if (refCount == null) {
+			refCount = new AtomicInteger(2);
+			m_refCount = refCount;
+		} else
+			refCount.incrementAndGet();
+		final HeapUnit dup = new HeapUnit(m_array, m_start, m_size, refCount);
+		dup.m_position = m_position;
+		dup.m_mark = m_mark;
+		return dup;
 	}
 
 	@Override
@@ -420,8 +434,8 @@ final class HeapUnit implements IUnit {
 	}
 
 	public void cache(BufferFactory factory) {
-		final AtomicLong refCount = m_refCount;
-		if (refCount == null || (refCount.get() > 0L && refCount.decrementAndGet() == 0L)) {
+		final AtomicInteger refCount = m_refCount;
+		if (refCount == null || (refCount.get() > 0 && refCount.decrementAndGet() == 0)) {
 			m_refCount = null;
 			factory.cache(this);
 		}

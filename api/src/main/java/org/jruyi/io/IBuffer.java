@@ -1342,4 +1342,39 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * @return an {@code InputStream} object that represents this buffer
 	 */
 	InputStream getInputStream();
+
+	/**
+	 * Creates a new buffer that shares this buffer's content.
+	 *
+	 * <p>
+	 * The content of the new buffer will start at this buffer's current
+	 * position. Changes to this buffer's content may be visible in the new
+	 * buffer, and vice versa. The two buffers' size, position and mark values
+	 * will be independent.
+	 *
+	 * <p>
+	 * The new buffer's position will be zero, its size will be the number of
+	 * bytes remaining in this buffer, and its mark will be undefined.
+	 *
+	 * @return the new buffer
+	 * @since 2.2
+	 */
+	IBuffer slice();
+
+	/**
+	 * Creates a new buffer that shares this buffer's content.
+	 *
+	 * <p>
+	 * The content of the new buffer will be the same as this buffer. Changes to
+	 * this buffer's content may be visible in the new buffer, and vice versa.
+	 * The two buffers' size, position and mark values will be independent.
+	 *
+	 * <p>
+	 * The new buffer's size, position and mark values will be identical to
+	 * those of this buffer.
+	 *
+	 * @return the new buffer
+	 * @since 2.2
+	 */
+	IBuffer duplicate();
 }

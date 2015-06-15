@@ -14,6 +14,7 @@
 
 package org.jruyi.io.udpserver;
 
+import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -21,6 +22,11 @@ import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 
 import org.jruyi.common.StrUtil;
+import org.jruyi.io.AbstractCodec;
+import org.jruyi.io.IBuffer;
+import org.jruyi.io.IUnit;
+import org.jruyi.io.IUnitChain;
+import org.jruyi.io.buffer.Util;
 import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.IIoWorker;
 import org.jruyi.io.channel.ISelectableChannel;
@@ -29,7 +35,7 @@ import org.jruyi.io.udp.UdpChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class UdpServerChannel implements ISelectableChannel, Runnable {
+final class UdpServerChannel extends AbstractCodec<SocketAddress> implements ISelectableChannel, Runnable {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(UdpServerChannel.class);
 
@@ -57,13 +63,27 @@ final class UdpServerChannel implements ISelectableChannel, Runnable {
 		return m_id;
 	}
 
+	@Override
+	public SocketAddress read(IUnitChain unitChain) {
+		try {
+			final IUnit unit = Util.lastUnit(unitChain);
+			final ByteBuffer bb = unit.getByteBufferForWrite();
+			final int n = bb.position();
+			final SocketAddress address = m_datagramChannel.receive(bb);
+			unit.size(unit.size() + bb.position() - n);
+			return address;
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	// runs on read
 	@Override
 	public void run() {
 		final UdpServer<Object, Object> server = m_udpServer;
 		try {
-			final ByteBuffer bb = server.getChannelAdmin().recvDirectBuffer();
-			final SocketAddress remoteAddr = m_datagramChannel.receive(bb);
+			final IBuffer in = server.getBufferFactory().create();
+			final SocketAddress remoteAddr = in.read(this);
 
 			IChannel channel = server.getChannel(remoteAddr);
 			if (channel == null) {
@@ -75,9 +95,7 @@ final class UdpServerChannel implements ISelectableChannel, Runnable {
 				channel.connect(-1);
 			}
 
-			bb.flip();
-			channel.receive(bb);
-			channel.onReadRequired();
+			channel.receive(in);
 		} catch (Throwable t) {
 			c_logger.error(StrUtil.join(server, " failed to receive message"), t);
 			close();

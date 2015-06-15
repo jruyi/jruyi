@@ -596,11 +596,11 @@ public interface IUnit extends IByteSequence {
 	 * Copies the requested sequence of bytes to the given {@code dst}.
 	 *
 	 * @param srcBegin
-	 *            start copying at this offset.
+	 *            start copying at this offset
 	 * @param srcEnd
-	 *            stop copying at this offset.
+	 *            stop copying at this offset
 	 * @param dst
-	 *            the {@code ByteBuffer} to copy the data into.
+	 *            the {@code ByteBuffer} to copy the data into
 	 * @throws NullPointerException
 	 *             if {@code dst} is {@code null}.
 	 * @since 2.0
@@ -625,21 +625,42 @@ public interface IUnit extends IByteSequence {
 
 	/**
 	 * Creates a new buffer unit whose content is a shared subsequence of this
-	 * buffer unit's content starting at the given {@code start} and ending at
-	 * the given {@code end - 1}.
+	 * buffer unit's content starting at the given {@code beginIndex} and ending
+	 * at the given {@code endIndex - 1}.
 	 *
+	 * <p>
 	 * Changes to this buffer unit's content will be visible in the new buffer
 	 * unit, and vice versa; the two buffer units' start, size, position and
 	 * mark values will be independent.
-	 * 
+	 *
+	 * <p>
 	 * The new buffer unit's start will be {@code this.start() + start}, its
 	 * position will be zero, its size will be {@code end - start} , and its
 	 * mark will be undefined.
 	 *
-	 * @param start
-	 * @param end
+	 * @param beginIndex
+	 *            the beginning offset, inclusive
+	 * @param endIndex
+	 *            the ending offset, exclusive
 	 * @return the new buffer unit
 	 * @since 2.2
 	 */
-	IUnit slice(int start, int end);
+	IUnit slice(int beginIndex, int endIndex);
+
+	/**
+	 * Creates a new buffer unit that shares this buffer unit's content.
+	 *
+	 * <p>
+	 * Changes to this buffer unit's content will be visible in the new buffer
+	 * unit, and vice versa; the two buffer units' start, size, position and
+	 * mark values will be independent.
+	 *
+	 * <p>
+	 * The new buffer unit's start, position, size and mark values will be
+	 * identical to those of this buffer unit.
+	 *
+	 * @return the new buffer unit
+	 * @since 2.2
+	 */
+	IUnit duplicate();
 }

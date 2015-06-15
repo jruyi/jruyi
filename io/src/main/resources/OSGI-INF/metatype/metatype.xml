@@ -26,9 +26,7 @@
 	<OCD id="channelAdmin" name="Channel Admin">
 		<AD id="numberOfSelectorThreads" name="Number of Selector Threads" type="Integer" required="false" min="0"/>
 		<AD id="numberOfIoThreads" name="Number of IO Threads" type="Integer" required="false" min="0"/>
-		<AD id="capacityOfIoRingBuffer" name="Capacity of IO RingBuffer" type="Integer" required="false" min="0"/>
-		<AD id="initCapacityOfRecvDirectBuffer" name="Initial Capacity of DirectBuffer for Reading" type="Integer" default="65536" min="8"/>
-		<AD id="initCapacityOfSendDirectBuffer" name="Initial Capacity of DirectBuffer for Writing" type="Integer" default="65536" min="8"/>
+		<AD id="capacityOfIoRingBuffer" name="Capacity of IO RingBuffer" type="Integer" default="8192" min="1"/>
 	</OCD>
 
 	<OCD id="tcpServer" name="TCP Server">

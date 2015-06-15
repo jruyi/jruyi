@@ -429,7 +429,7 @@ class BufferSpec extends Specification {
 		thirdPiece == bytes3
 	}
 
-	private def createBytes(int length) {
+	private static def createBytes(int length) {
 		byte[] bytes = new byte[length];
 		for (int i = 0; i < length; ++i)
 			bytes[i] = (byte) i;

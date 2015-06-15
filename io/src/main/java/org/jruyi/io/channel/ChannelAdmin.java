@@ -14,7 +14,6 @@
 
 package org.jruyi.io.channel;
 
-import java.nio.ByteBuffer;
 import java.util.Map;
 
 import org.jruyi.timeoutadmin.ITimeoutAdmin;
@@ -34,32 +33,11 @@ public final class ChannelAdmin implements IChannelAdmin {
 
 	private static int s_msgId = -1;
 
-	private BufferCache m_recvDirectBuffer;
-	private BufferCache m_sendDirectBuffer;
-
 	private IoThread[] m_iots;
 	private int m_iotMask;
 
 	private SelectorThread[] m_sts;
 	private ITimeoutAdmin m_tm;
-
-	static final class BufferCache extends ThreadLocal<ByteBuffer> {
-
-		private final int m_capacity;
-
-		BufferCache(int capacity) {
-			m_capacity = capacity;
-		}
-
-		public int capacity() {
-			return m_capacity;
-		}
-
-		@Override
-		protected ByteBuffer initialValue() {
-			return ByteBuffer.allocateDirect(m_capacity);
-		}
-	}
 
 	@Override
 	public void onRegisterRequired(ISelectableChannel channel) {
@@ -82,20 +60,6 @@ public final class ChannelAdmin implements IChannelAdmin {
 	}
 
 	@Override
-	public ByteBuffer recvDirectBuffer() {
-		final ByteBuffer bb = m_recvDirectBuffer.get();
-		bb.clear();
-		return bb;
-	}
-
-	@Override
-	public ByteBuffer sendDirectBuffer() {
-		final ByteBuffer bb = m_sendDirectBuffer.get();
-		bb.clear();
-		return bb;
-	}
-
-	@Override
 	public void performIoTask(IIoTask task, Object msg) {
 		getIoThread(++s_msgId).perform(task, msg, null, 0);
 	}
@@ -112,9 +76,6 @@ public final class ChannelAdmin implements IChannelAdmin {
 
 	void activate(Map<String, ?> properties) throws Throwable {
 		c_logger.info("Activating ChannelAdmin...");
-
-		m_recvDirectBuffer = new BufferCache(initCapacityOfRecvDirectBuffer(properties));
-		m_sendDirectBuffer = new BufferCache(initCapacityOfSendDirectBuffer(properties));
 
 		final int capacityOfIoRingBuffer = capacityOfIoRingBuffer(properties);
 
@@ -188,29 +149,11 @@ public final class ChannelAdmin implements IChannelAdmin {
 		return m_iots[id & m_iotMask];
 	}
 
-	private static int initCapacityOfRecvDirectBuffer(Map<String, ?> properties) {
-		final Object value = properties.get("initCapacityOfRecvDirectBuffer");
-		int capacity;
-		if (value == null || (capacity = (Integer) value) < 8)
-			capacity = 1024 * 64;
-
-		return capacity;
-	}
-
-	private static int initCapacityOfSendDirectBuffer(Map<String, ?> properties) {
-		final Object value = properties.get("initCapacityOfSendDirectBuffer");
-		int capacity;
-		if (value == null || (capacity = (Integer) value) < 8)
-			capacity = 1024 * 64;
-
-		return capacity;
-	}
-
 	private static int capacityOfIoRingBuffer(Map<String, ?> properties) {
 		final Object value = properties.get("capacityOfIoRingBuffer");
 		int capacity;
 		if (value == null || (capacity = (Integer) value) < 1)
-			capacity = 1024 * 4;
+			capacity = 1024 * 8;
 		else
 			capacity = Util.ceilingNextPowerOfTwo(capacity);
 

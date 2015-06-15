@@ -16,21 +16,15 @@ package org.jruyi.io.channel;
 
 import org.jruyi.timeoutadmin.ITimeoutNotifier;
 
-import java.nio.ByteBuffer;
-
 public interface IChannelAdmin {
 
-	public void onRegisterRequired(ISelectableChannel channel);
+	void onRegisterRequired(ISelectableChannel channel);
 
-	public void onConnectRequired(ISelectableChannel channel);
+	void onConnectRequired(ISelectableChannel channel);
 
-	public IIoWorker designateIoWorker(ISelectableChannel channel);
+	IIoWorker designateIoWorker(ISelectableChannel channel);
 
-	public void performIoTask(IIoTask task, Object msg);
+	void performIoTask(IIoTask task, Object msg);
 
-	public ITimeoutNotifier createTimeoutNotifier(ISelectableChannel channel);
-
-	public ByteBuffer recvDirectBuffer();
-
-	public ByteBuffer sendDirectBuffer();
+	ITimeoutNotifier createTimeoutNotifier(ISelectableChannel channel);
 }

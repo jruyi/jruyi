@@ -14,8 +14,7 @@
 
 package org.jruyi.io.channel;
 
-import java.nio.ByteBuffer;
-
+import org.jruyi.io.IBuffer;
 import org.jruyi.io.ISession;
 
 public interface IChannel extends ISession, ISelectableChannel {
@@ -24,7 +23,7 @@ public interface IChannel extends ISession, ISelectableChannel {
 
 	void connect(int timeout);
 
-	void receive(ByteBuffer data);
+	void receive(IBuffer in);
 
 	void write(Object data);
 

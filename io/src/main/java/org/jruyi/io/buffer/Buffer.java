@@ -44,7 +44,6 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 	static Buffer get(BufferFactory factory) {
 		final Buffer buffer = new Buffer();
-
 		buffer.m_head.set(factory.getUnit());
 		buffer.m_factory = factory;
 		return buffer;
@@ -349,7 +348,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		if (length < 1)
 			return fromIndex;
 
-		int n = 0;
+		final int n;
 		try (Blob blob = Blob.get()) {
 			blob.add(unit, unit.start() + index, unitSize - index);
 			while ((node = node.next()) != head) {
@@ -708,9 +707,9 @@ public final class Buffer implements IBuffer, IUnitChain {
 		if (size == 0)
 			return newBuffer();
 
-		final Buffer slice = getForSlice(m_factory);
+		final Buffer firstPiece = getForSplit(m_factory);
 		final BiListNode<IUnit> head = m_head;
-		slice.m_head = head;
+		firstPiece.m_head = head;
 
 		boolean adjustPosNode = false;
 		boolean adjustMarkNode = false;
@@ -740,6 +739,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 		if (n > size) {
 			final BiListNode<IUnit> temp = BiListNode.create();
 			temp.set(unit.slice(size, n));
+			unit.size(size);
 			m_head = temp;
 			if (next == head) {
 				temp.next(temp);
@@ -769,16 +769,16 @@ public final class Buffer implements IBuffer, IUnitChain {
 		}
 
 		if (adjustMarkNode) {
-			slice.m_markNode = markNode;
+			firstPiece.m_markNode = markNode;
 			m_markNode = m_head;
 		}
 
 		if (adjustPosNode) {
-			slice.m_positionNode = positionNode;
+			firstPiece.m_positionNode = positionNode;
 			m_positionNode = m_head;
 		}
 
-		return slice;
+		return firstPiece;
 	}
 
 	@SuppressWarnings("resource")
@@ -1840,13 +1840,13 @@ public final class Buffer implements IBuffer, IUnitChain {
 			m_positionNode = node;
 		}
 
-		int n = 0;
+		final int n;
 		if (node == tail || !(out instanceof GatheringByteChannel)) {
 			n = out.write(unit.getByteBufferForRead());
 			if (n > 0)
 				unit.position(unit.position() + n);
 		} else {
-			ByteBufferArray bba = ByteBufferArray.get();
+			final ByteBufferArray bba = ByteBufferArray.get();
 			try {
 				bba.add(unit.getByteBufferForRead());
 				while (node != tail) {
@@ -1883,6 +1883,60 @@ public final class Buffer implements IBuffer, IUnitChain {
 	@Override
 	public InputStream getInputStream() {
 		return new BufferInputStream(this);
+	}
+
+	@Override
+	public IBuffer slice() {
+		final Buffer slice = new Buffer();
+		final BiListNode<IUnit> sliceHead = slice.m_head;
+		BiListNode<IUnit> sliceTail = sliceHead;
+		final BiListNode<IUnit> head = m_head;
+		BiListNode<IUnit> node = m_positionNode;
+		for (;;) {
+			final IUnit unit = node.get();
+			sliceTail.set(unit.slice(unit.position(), unit.size()));
+			node = node.next();
+			if (node == head)
+				break;
+
+			sliceTail = BiListNode.create();
+			sliceHead.previous().next(sliceTail);
+			sliceTail.previous(sliceHead.previous());
+			sliceTail.next(sliceHead);
+			sliceHead.previous(sliceTail);
+		}
+		return slice;
+	}
+
+	@Override
+	public IBuffer duplicate() {
+		final Buffer dup = new Buffer();
+		final BiListNode<IUnit> dupHead = dup.m_head;
+		BiListNode<IUnit> dupTail = dupHead;
+		final BiListNode<IUnit> head = m_head;
+		final BiListNode<IUnit> positionNode = m_positionNode;
+		final BiListNode<IUnit> markNode = m_markNode;
+		BiListNode<IUnit> node = head;
+		for (;;) {
+			final IUnit unit = node.get();
+			dupTail.set(unit.duplicate());
+
+			if (node == markNode)
+				dup.m_markNode = dupTail;
+			else if (node == positionNode)
+				dup.m_positionNode = dupTail;
+
+			node = node.next();
+			if (node == head)
+				break;
+
+			dupTail = BiListNode.create();
+			dupHead.previous().next(dupTail);
+			dupTail.previous(dupHead.previous());
+			dupTail.next(dupHead);
+			dupHead.previous(dupTail);
+		}
+		return dup;
 	}
 
 	int readByte() {
@@ -2007,12 +2061,8 @@ public final class Buffer implements IBuffer, IUnitChain {
 		return true;
 	}
 
-	private static Buffer getForSlice(BufferFactory factory) {
-		// Buffer buffer = c_cache.take();
-		// if (buffer == null)
-		// buffer = new Buffer();
-
-		Buffer buffer = new Buffer();
+	private static Buffer getForSplit(BufferFactory factory) {
+		final Buffer buffer = new Buffer();
 		buffer.m_factory = factory;
 		return buffer;
 	}

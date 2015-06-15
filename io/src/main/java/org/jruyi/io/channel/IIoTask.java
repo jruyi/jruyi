@@ -18,5 +18,5 @@ import org.jruyi.io.IFilter;
 
 public interface IIoTask {
 
-	public void run(Object msg, IFilter<?, ?>[] filters, int filterCount);
+	void run(Object msg, IFilter<?, ?>[] filters, int filterCount);
 }
