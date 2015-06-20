@@ -131,7 +131,7 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 			if (listener != null)
 				listener.onSessionException(channel, throwable);
 		} catch (Throwable t) {
-			c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
+			c_logger.error(StrUtil.join(channel, "(remoteAddr=", channel.remoteAddress(), ") Unexpected Error: "), t);
 		} finally {
 			channel.close();
 		}
@@ -224,13 +224,15 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 			return;
 		}
 
-		c_logger.warn(StrUtil.join(session, " failed to send(channel closed): ", StrUtil.getLineSeparator(), msg));
+		c_logger.warn(StrUtil.join(session, "(remoteAddr=", session.remoteAddress(),
+				") failed to send(channel closed): ", StrUtil.getLineSeparator(), msg));
 
 		if (msg instanceof AutoCloseable) {
 			try {
 				((AutoCloseable) msg).close();
 			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(session, " failed to close message: ", StrUtil.getLineSeparator(), msg), t);
+				c_logger.error(StrUtil.join(session, "(remoteAddr=", session.remoteAddress(),
+						") failed to close message: ", StrUtil.getLineSeparator(), msg), t);
 			}
 		}
 	}

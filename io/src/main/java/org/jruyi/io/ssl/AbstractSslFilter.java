@@ -126,7 +126,7 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 			output.add(appBuf);
 			return false;
 		} catch (Throwable t) {
-			c_logger.error(StrUtil.join(session, " failed to unwrap"), t);
+			c_logger.error(StrUtil.join(session, "(remoteAddr=", session.remoteAddress(), ") failed to unwrap"), t);
 			appBuf.close();
 			return false;
 		} finally {
@@ -187,7 +187,7 @@ public abstract class AbstractSslFilter implements IFilter<IBuffer, IBuffer> {
 			output.add(netBuf);
 			return true;
 		} catch (Throwable t) {
-			c_logger.error(StrUtil.join(session, " failed to wrap"), t);
+			c_logger.error(StrUtil.join(session, "(remoteAddr=", session.remoteAddress(), ") failed to wrap"), t);
 			netBuf.close();
 			return false;
 		} finally {

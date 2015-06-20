@@ -133,7 +133,7 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 			if (listener != null)
 				listener.onSessionException(channel, t);
 		} catch (Throwable e) {
-			c_logger.error(StrUtil.join(channel, " Unexpected Error: "), e);
+			c_logger.error(StrUtil.join(channel, "(remoteAddr=", channel.remoteAddress(), ") Unexpected Error: "), e);
 		} finally {
 			channel.close();
 		}
@@ -185,7 +185,8 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 			try {
 				listener.onSessionClosed(channel);
 			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
+				c_logger.error(StrUtil.join(channel, "(remoteAddr=", channel.remoteAddress(), ") Unexpected Error: "),
+						t);
 			}
 		}
 	}
@@ -237,13 +238,15 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 			return;
 		}
 
-		c_logger.warn(StrUtil.join(session, " failed to send(channel closed): ", StrUtil.getLineSeparator(), msg));
+		c_logger.warn(StrUtil.join(session, "(remoteAddr=", session.remoteAddress(),
+				") failed to send(channel closed): ", StrUtil.getLineSeparator(), msg));
 
 		if (msg instanceof AutoCloseable) {
 			try {
 				((AutoCloseable) msg).close();
 			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(session, " failed to close message: ", StrUtil.getLineSeparator(), msg), t);
+				c_logger.error(StrUtil.join(session, "(remoteAddr=", session.remoteAddress(),
+						") failed to close message: ", StrUtil.getLineSeparator(), msg), t);
 			}
 		}
 	}
