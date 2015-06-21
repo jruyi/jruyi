@@ -18,21 +18,19 @@ import java.util.Map;
 
 import org.jruyi.io.IFilter;
 import org.jruyi.io.ISslContextParameters;
+import org.jruyi.io.IoConstants;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.ConfigurationPolicy;
-import org.osgi.service.component.annotations.Modified;
 
-@Component(name = "jruyi.io.ssl.fks.filter", //
-configurationPolicy = ConfigurationPolicy.REQUIRE, //
+@Component(name = IoConstants.CN_SSL_FKS_FILTER_FACTORY, //
+factory = "sslfilter.fks", //
 service = { IFilter.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class FileKeyStoreSslFilter extends AbstractSslFilter {
 
 	private final FileKeyStore m_fks = new FileKeyStore();
 
-	@Modified
 	@Override
-	protected void modified(Map<String, ?> properties) throws Exception {
+	public void modified(Map<String, ?> properties) throws Exception {
 		m_fks.modified(properties);
 		super.modified(properties);
 	}

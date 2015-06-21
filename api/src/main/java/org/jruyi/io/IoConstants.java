@@ -72,9 +72,23 @@ public final class IoConstants {
 	 */
 	public static final String FID_MSGLOG = "jruyi.io.msglog.filter";
 	/**
-	 * The filter ID of SSL filter.
+	 * The filter ID of the default SSL filter.
+	 *
+	 * @since 2.2
 	 */
-	public static final String FID_SSL = "jruyi.io.ssl.filter";
+	public static final String FID_DEFAULT_SSL = "jruyi.io.ssl.default.filter";
+	/**
+	 * The component name of filekeystore ssl filter factory component.
+	 *
+	 * @since 2.2
+	 */
+	public static final String CN_SSL_FKS_FILTER_FACTORY = "jruyi.io.ssl.fks.filter.factory";
+	/**
+	 * The component name of ssl filter factory component.
+	 * 
+	 * @since 2.2
+	 */
+	public static final String CN_SSL_FILTER_FACTORY = "jruyi.io.ssl.filter.factory";
 
 	private IoConstants() {
 	}

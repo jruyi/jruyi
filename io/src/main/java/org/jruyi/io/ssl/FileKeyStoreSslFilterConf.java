@@ -14,36 +14,43 @@
 
 package org.jruyi.io.ssl;
 
+import java.util.Map;
+
 import org.jruyi.io.IFilter;
 import org.jruyi.io.ISslContextParameters;
-import org.jruyi.io.IoConstants;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.Modified;
 
-@Component(name = IoConstants.CN_SSL_FILTER_FACTORY, //
-factory = "sslfilter", //
+@Component(name = "jruyi.io.ssl.fks.filter", //
 service = { IFilter.class }, //
-xmlns = "http://www.osgi.org/xmlns/scr/v1.2.0")
-public final class SslFilter extends AbstractSslFilter {
+configurationPolicy = ConfigurationPolicy.REQUIRE, //
+xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
+public final class FileKeyStoreSslFilterConf extends AbstractSslFilter {
 
-	private ISslContextParameters m_sslcp;
+	private final FileKeyStore m_fks = new FileKeyStore();
 
-	@Reference(name = "sslcp")
-	protected void setSslContextParameters(ISslContextParameters sslcp) {
-		m_sslcp = sslcp;
-	}
-
-	protected void unsetSslContextParameters(ISslContextParameters sslcp) {
-		m_sslcp = null;
+	@Modified
+	@Override
+	protected void modified(Map<String, ?> properties) throws Exception {
+		m_fks.modified(properties);
+		super.modified(properties);
 	}
 
 	@Override
-	protected void updatedSslContextParameters(ISslContextParameters sslcp) throws Exception {
-		super.updatedSslContextParameters(sslcp);
+	protected void activate(Map<String, ?> properties) throws Exception {
+		m_fks.activate(properties);
+		super.activate(properties);
+	}
+
+	@Override
+	protected void deactivate() {
+		super.deactivate();
+		m_fks.deactivate();
 	}
 
 	@Override
 	protected ISslContextParameters sslcp() {
-		return m_sslcp;
+		return m_fks;
 	}
 }

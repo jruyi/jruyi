@@ -14,17 +14,20 @@
 
 package org.jruyi.io.ssl;
 
+import java.util.Map;
+
 import org.jruyi.io.IFilter;
 import org.jruyi.io.ISslContextParameters;
-import org.jruyi.io.IoConstants;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 
-@Component(name = IoConstants.CN_SSL_FILTER_FACTORY, //
-factory = "sslfilter", //
+@Component(name = "jruyi.io.ssl.filter", //
 service = { IFilter.class }, //
+configurationPolicy = ConfigurationPolicy.REQUIRE, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.2.0")
-public final class SslFilter extends AbstractSslFilter {
+public final class SslFilterConf extends AbstractSslFilter {
 
 	private ISslContextParameters m_sslcp;
 
@@ -40,6 +43,12 @@ public final class SslFilter extends AbstractSslFilter {
 	@Override
 	protected void updatedSslContextParameters(ISslContextParameters sslcp) throws Exception {
 		super.updatedSslContextParameters(sslcp);
+	}
+
+	@Modified
+	@Override
+	protected void modified(Map<String, ?> properties) throws Exception {
+		super.modified(properties);
 	}
 
 	@Override

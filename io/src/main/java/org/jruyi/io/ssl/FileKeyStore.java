@@ -30,11 +30,8 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.jruyi.io.ISslContextParameters;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Modified;
 
-@Component(name = "jruyi.io.ssl.filekeystore", xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class FileKeyStore implements ISslContextParameters {
+final class FileKeyStore implements ISslContextParameters {
 
 	private static final String KS_TYPE = "keyStoreType";
 	private static final String KS_PROVIDER = "keyStoreProvider";
@@ -63,12 +60,9 @@ public final class FileKeyStore implements ISslContextParameters {
 
 	static final class Configuration {
 
-		private static final String[] KEYPROPS = {
-			KS_TYPE, KS_PROVIDER, KS_URL, KS_PASSWORD, KEY_PASSWORD };
-		private static final String[] TRUSTPROPS = {
-			CERT_VALIDATION, TS_TYPE, TS_PROVIDER, TS_URL, TS_PASSWORD };
-		private static final String[] SRPROPS = {
-			SR_ALG, SR_PROVIDER };
+		private static final String[] KEYPROPS = { KS_TYPE, KS_PROVIDER, KS_URL, KS_PASSWORD, KEY_PASSWORD };
+		private static final String[] TRUSTPROPS = { CERT_VALIDATION, TS_TYPE, TS_PROVIDER, TS_URL, TS_PASSWORD };
+		private static final String[] SRPROPS = { SR_ALG, SR_PROVIDER };
 		static final Method[] c_keyProps;
 		static final Method[] c_srProps;
 		static final Method[] c_trustProps;
@@ -321,8 +315,7 @@ public final class FileKeyStore implements ISslContextParameters {
 		return m_secureRandom;
 	}
 
-	@Modified
-	protected void modified(Map<String, ?> properties) throws Exception {
+	void modified(Map<String, ?> properties) throws Exception {
 		final Configuration newConf = new Configuration();
 		newConf.initialize(properties);
 		final Configuration conf = m_conf;
@@ -340,7 +333,7 @@ public final class FileKeyStore implements ISslContextParameters {
 		m_conf = newConf;
 	}
 
-	protected void activate(Map<String, ?> properties) throws Exception {
+	void activate(Map<String, ?> properties) throws Exception {
 		final Configuration conf = new Configuration();
 		conf.initialize(properties);
 
@@ -355,7 +348,7 @@ public final class FileKeyStore implements ISslContextParameters {
 		m_conf = conf;
 	}
 
-	protected void deactivate() {
+	void deactivate() {
 		m_conf = null;
 
 		m_keyManagers = null;
