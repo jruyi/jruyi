@@ -32,6 +32,7 @@ public final class BufferFactory implements IBufferFactory {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(BufferFactory.class);
 
+	private static final String BUFFER_ID = "jruyi.io.buffer.id";
 	private static final String UNIT_CAPACITY = "unitCapacity";
 	private static final int MIN_UNIT_CAPACITY = 8;
 
@@ -51,7 +52,7 @@ public final class BufferFactory implements IBufferFactory {
 		else
 			m_unitCapacity = value > MIN_UNIT_CAPACITY ? value : MIN_UNIT_CAPACITY;
 
-		final String id = (String) properties.get("id");
+		final String id = (String) properties.get(BUFFER_ID);
 		final String bfName = id != null ? StrUtil.join("BufferFactory[", id, "]") : "BufferFactory";
 
 		c_logger.info("{}: unitCapacity={}", bfName, m_unitCapacity);
