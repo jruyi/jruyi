@@ -9,12 +9,9 @@
 			sun.misc,
 			sun.nio.ch
 		</property>
-		<!-- CLID bindAddr
+		<!-- CLID bindAddr -->
 		<property name="jruyi.clid.bindAddr">localhost</property>
-		-->
-		<!-- CLID port
 		<property name="jruyi.clid.port">6060</property>
-		-->
 		<!-- Customized brand
 		<property name="jruyi.clid.branding.url">\${jruyi.inst.conf.url}branding.properties</property>
 		-->

@@ -275,9 +275,8 @@ public final class CliServer extends SessionListener<IBuffer, IBuffer> implement
 		final Properties conf = normalizeConf(properties);
 		if (conf.get(P_BIND_ADDR) == null) {
 			String bindAddr = bundleContext.getProperty(BINDADDR);
-			if (bindAddr == null || (bindAddr = bindAddr.trim()).length() < 1)
-				bindAddr = "localhost";
-			conf.put(P_BIND_ADDR, bindAddr);
+			if (bindAddr != null && !(bindAddr = bindAddr.trim()).isEmpty())
+				conf.put(P_BIND_ADDR, bindAddr);
 		}
 
 		if (conf.get(P_PORT) == null) {
@@ -296,8 +295,6 @@ public final class CliServer extends SessionListener<IBuffer, IBuffer> implement
 			startTcpServer(m_tsf);
 
 		m_context = bundleContext;
-
-		System.gc();
 	}
 
 	void deactivate() {
