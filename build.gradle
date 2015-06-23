@@ -60,7 +60,7 @@ allprojects {
 		log4j_slf4j_impl_version = '2.3'
 		org_apache_felix_bundlerepository_version = '2.0.4'
 		org_apache_felix_configadmin_version = '1.8.6'
-		org_apache_felix_framework_version = '5.0.0'
+		org_apache_felix_framework_version = '5.0.1'
 		org_apache_felix_gogo_runtime_version = '0.16.2'
 		org_apache_felix_metatype_version = '1.0.12'
 		org_apache_felix_scr_version = '1.8.2'
