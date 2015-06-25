@@ -15,6 +15,7 @@
 package org.jruyi.cmd.internal;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -30,13 +31,12 @@ import org.apache.felix.service.command.Parameter;
 import org.jruyi.cmd.IManual;
 import org.jruyi.common.ListNode;
 import org.jruyi.common.StrUtil;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
+import org.osgi.framework.*;
 
 public final class RuyiCmd implements IManual {
 
 	public static final RuyiCmd INST = new RuyiCmd();
+
 	private BundleContext m_context;
 
 	private RuyiCmd() {
@@ -124,7 +124,7 @@ public final class RuyiCmd implements IManual {
 		System.out.println(runtime.maxMemory());
 	}
 
-	public void help() throws Exception {
+	public void help() throws InvalidSyntaxException {
 		final ServiceReference<?>[] references = m_context.getAllServiceReferences(null, "(&("
 				+ CommandProcessor.COMMAND_SCOPE + "=*)(!(" + CommandProcessor.COMMAND_SCOPE + "=builtin)))");
 		try (ListNode<String> head = ListNode.create()) {
@@ -149,7 +149,7 @@ public final class RuyiCmd implements IManual {
 		}
 	}
 
-	public void help(String command) throws Exception {
+	public void help(String command) throws IOException, InvalidSyntaxException {
 		final int i = command.indexOf(':');
 		if (i == command.length() - 1) {
 			System.err.print("Illegal Command: ");
@@ -230,7 +230,7 @@ public final class RuyiCmd implements IManual {
 	public void grep(
 			@Parameter(names = { "-i", "--ignore-case" }, presentValue = "true", absentValue = "false") boolean ignoreCase,
 			@Parameter(names = { "-v", "--invert-match" }, presentValue = "true", absentValue = "false") boolean invertMatch,
-			String regex) throws Exception {
+			String regex) throws IOException {
 
 		if (ignoreCase)
 			regex = StrUtil.join("(?i)", regex);
@@ -246,7 +246,7 @@ public final class RuyiCmd implements IManual {
 		}
 	}
 
-	public void shutdown() throws Exception {
+	public void shutdown() throws BundleException {
 		m_context.getBundle(0).stop();
 	}
 

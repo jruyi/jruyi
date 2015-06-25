@@ -14,20 +14,13 @@
 
 package org.jruyi.cmd.conf;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Set;
+import java.io.IOException;
+import java.util.*;
 
 import org.jruyi.cmd.internal.RuyiCmd;
 import org.jruyi.common.Properties;
 import org.jruyi.common.StrUtil;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
-import org.osgi.framework.ServiceReference;
+import org.osgi.framework.*;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.metatype.AttributeDefinition;
@@ -62,7 +55,7 @@ public final class Conf {
 	 *            [name=value] ...
 	 * @throws Exception
 	 */
-	public void create(String id, String[] args) throws Exception {
+	public void create(String id, String[] args) throws IOException {
 		Properties props;
 		if (args == null || args.length < 1) {
 			props = new Properties(1);
@@ -79,10 +72,18 @@ public final class Conf {
 
 		final boolean[] factory = new boolean[1];
 		final ObjectClassDefinition ocd = getOcd(id, BOTH, factory);
-		if (ocd == null)
-			throw new Exception("Metatype NOT Found: " + id);
+		if (ocd == null) {
+			System.err.print("Metatype NOT Found: ");
+			System.err.println(id);
+			return;
+		}
 
-		props = PropUtil.normalize(props, ocd);
+		try {
+			props = PropUtil.normalize(props, ocd);
+		} catch (PropertyException e) {
+			System.err.println(e.getMessage());
+			return;
+		}
 
 		final ConfigurationAdmin ca = (ConfigurationAdmin) ca();
 		Configuration conf = factory[0] ? ca.createFactoryConfiguration(id, null) : ca.getConfiguration(id, null);
@@ -99,7 +100,7 @@ public final class Conf {
 	 *            [name[=value]] ...
 	 * @throws Exception
 	 */
-	public void update(String filter, String[] args) throws Exception {
+	public void update(String filter, String[] args) throws IOException, InvalidSyntaxException {
 		if (args == null || args.length < 1) {
 			RuyiCmd.INST.help("conf:update");
 			return;
@@ -108,8 +109,11 @@ public final class Conf {
 		final ConfigurationAdmin ca = (ConfigurationAdmin) ca();
 		final Configuration[] confs = ca.listConfigurations(normalizeFilter(filter));
 
-		if (confs == null || confs.length < 1)
-			throw new Exception("Configuration(s) NOT Found: " + filter);
+		if (confs == null || confs.length < 1) {
+			System.err.print("Configuration(s) NOT Found: ");
+			System.err.println(filter);
+			return;
+		}
 
 		final int n = args.length;
 		ArrayList<String> removedProps = null;
@@ -135,21 +139,29 @@ public final class Conf {
 				id = factoryPid;
 				ocd = getOcd(id, FACTORYPID, null);
 			}
-			if (ocd == null)
-				throw new Exception("Metatype NOT Found: " + id);
+			if (ocd == null) {
+				System.err.print("Metatype NOT Found: ");
+				System.err.println(id);
+				return;
+			}
 
 			boolean modified = false;
 			final Dictionary<String, Object> oldProps = conf.getProperties();
 			Properties newProps = new Properties(props);
 			for (Enumeration<String> e = oldProps.keys(); e.hasMoreElements();) {
-				final String key = (String) e.nextElement();
+				final String key = e.nextElement();
 				if (removedProps == null || !removedProps.contains(key)) {
 					if (!props.containsKey(key))
 						newProps.put(key, oldProps.get(key));
 				} else
 					modified = true;
 			}
-			newProps = PropUtil.normalize(newProps, ocd);
+			try {
+				newProps = PropUtil.normalize(newProps, ocd);
+			} catch (PropertyException e) {
+				System.err.println(e.getMessage());
+				return;
+			}
 
 			if (modified)
 				conf.update(newProps);
@@ -171,7 +183,7 @@ public final class Conf {
 	 *            pid | filter
 	 * @throws Exception
 	 */
-	public void delete(String filter) throws Exception {
+	public void delete(String filter) throws IOException, InvalidSyntaxException {
 		final ConfigurationAdmin ca = (ConfigurationAdmin) ca();
 		final Configuration[] confs = ca.listConfigurations(normalizeFilter(filter));
 		if (confs == null || confs.length == 0) {
@@ -191,7 +203,7 @@ public final class Conf {
 	 *            [pid | filter]
 	 * @throws Exception
 	 */
-	public void list(String[] args) throws Exception {
+	public void list(String[] args) throws IOException, InvalidSyntaxException {
 		String filter = null;
 		if (args != null) {
 			if (args.length > 1) {
@@ -228,7 +240,7 @@ public final class Conf {
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean exists(String filter) throws Exception {
+	public boolean exists(String filter) throws IOException, InvalidSyntaxException {
 		final ConfigurationAdmin ca = (ConfigurationAdmin) ca();
 		final Configuration[] confs = ca.listConfigurations(normalizeFilter(filter));
 		return (confs != null && confs.length > 0);
@@ -250,12 +262,12 @@ public final class Conf {
 		final MetaTypeService mts = (MetaTypeService) mts();
 		final Bundle[] bundles = m_context.getBundles();
 		for (Bundle bundle : bundles) {
-			MetaTypeInformation mti = mts.getMetaTypeInformation(bundle);
+			final MetaTypeInformation mti = mts.getMetaTypeInformation(bundle);
 			if (mti == null)
 				continue;
 
 			if ((type & FACTORYPID) != 0) {
-				String[] factoryPids = mti.getFactoryPids();
+				final String[] factoryPids = mti.getFactoryPids();
 				for (String factoryPid : factoryPids) {
 					if (factoryPid.equals(id)) {
 						if (factory != null)
@@ -266,7 +278,7 @@ public final class Conf {
 			}
 
 			if ((type & PID) != 0) {
-				String[] pids = mti.getPids();
+				final String[] pids = mti.getPids();
 				for (String pid : pids) {
 					if (pid.equals(id))
 						return mti.getObjectClassDefinition(id, null);
@@ -278,10 +290,10 @@ public final class Conf {
 	}
 
 	private void line(Configuration conf) {
-		Dictionary<String, ?> props = conf.getProperties();
+		final Dictionary<String, ?> props = conf.getProperties();
 
 		String id = conf.getFactoryPid();
-		ObjectClassDefinition ocd = id == null ? getOcd(conf.getPid(), PID, null) : getOcd(id, FACTORYPID, null);
+		final ObjectClassDefinition ocd = id == null ? getOcd(conf.getPid(), PID, null) : getOcd(id, FACTORYPID, null);
 		if (ocd != null) {
 			AttributeDefinition[] ads = ocd.getAttributeDefinitions(ObjectClassDefinition.ALL);
 			int n;
@@ -305,7 +317,7 @@ public final class Conf {
 			}
 		}
 
-		Enumeration<String> keys = props.keys();
+		final Enumeration<String> keys = props.keys();
 		if (keys.hasMoreElements()) {
 			id = keys.nextElement();
 			lineProperty(id, props.get(id));
@@ -319,12 +331,12 @@ public final class Conf {
 	}
 
 	private void inspect(Configuration conf) {
-		String pid = conf.getPid();
-		String factoryPid = conf.getFactoryPid();
+		final String pid = conf.getPid();
+		final String factoryPid = conf.getFactoryPid();
 		System.out.print("pid: ");
 		System.out.println(pid);
 
-		ObjectClassDefinition ocd;
+		final ObjectClassDefinition ocd;
 		if (factoryPid != null) {
 			System.out.print("factoryPid: ");
 			System.out.println(factoryPid);
@@ -336,12 +348,12 @@ public final class Conf {
 		System.out.println(conf.getBundleLocation());
 
 		System.out.println("properties: ");
-		Dictionary<String, ?> props = conf.getProperties();
+		final Dictionary<String, ?> props = conf.getProperties();
 		if (ocd != null) {
-			AttributeDefinition[] ads = ocd.getAttributeDefinitions(ObjectClassDefinition.ALL);
+			final AttributeDefinition[] ads = ocd.getAttributeDefinitions(ObjectClassDefinition.ALL);
 			if (ads != null) {
 				for (AttributeDefinition ad : ads) {
-					String id = ad.getID();
+					final String id = ad.getID();
 					Object value = props.get(id);
 					if (value != null) {
 						if (ad.getType() == AttributeDefinition.PASSWORD)
@@ -353,9 +365,9 @@ public final class Conf {
 			}
 		}
 
-		Enumeration<String> keys = props.keys();
+		final Enumeration<String> keys = props.keys();
 		while (keys.hasMoreElements()) {
-			String id = keys.nextElement();
+			final String id = keys.nextElement();
 			inspectProperty(id, props.get(id));
 		}
 	}

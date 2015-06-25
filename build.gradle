@@ -26,7 +26,7 @@ buildscript {
 apply plugin: 'distribution'
 
 version = '2.2.0-SNAPSHOT'
-description = 'A Java framework for easily developing efficient and scalable network applications'
+description = 'A Java framework for easily developing highly efficient and highly scalable network applications'
 
 ext {
 	title = 'JRuyi'
@@ -69,13 +69,14 @@ allprojects {
 		spock_core_version = '1.0-groovy-2.4'
 		slf4j_simple_version = '1.7.12'
 
+		jruyi_core_version = rootProject.version
 		jruyi_system_version = rootProject.version
 
 		jruyi_api_version = '2.2.0-SNAPSHOT'
 		jruyi_cli_version = '2.0.1-SNAPSHOT'
 		jruyi_launcher_version = '2.0.1-SNAPSHOT'
 		org_jruyi_clid_version = '2.0.1-SNAPSHOT'
-		org_jruyi_cmd_version = '2.0.1'
+		org_jruyi_cmd_version = '2.0.2-SNAPSHOT'
 		org_jruyi_common_version = '2.0.0'
 		org_jruyi_io_version = '2.2.0-SNAPSHOT'
 		org_jruyi_me_version = '2.0.0'
@@ -96,15 +97,7 @@ subprojects {
 	apply plugin: 'maven-publish'
 	apply plugin: 'com.jfrog.bintray'
 
-	configurations.compile {
-		transitive = false
-	}
-
 	compileJava {
-		options.compilerArgs << '-XDignore.symbol.file'
-		options.fork = true
-		options.forkOptions.executable = javaCompilerExecutable
-
 		sourceCompatibility = 1.7
 		targetCompatibility = 1.7
 		options.encoding = 'UTF-8'
@@ -151,14 +144,14 @@ subprojects {
 	}
 }
 
+configurations.all {
+	transitive = false
+}
+
 configurations {
 	main
 	lib
 	bundle
-}
-
-configurations.all {
-	transitive = false
 }
 
 dependencies {
