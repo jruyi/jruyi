@@ -378,7 +378,9 @@ final class FileKeyStore implements ISslContextParameters {
 		v = conf.keyManagerFactoryProvider();
 		KeyManagerFactory kmf = v == null ? KeyManagerFactory.getInstance(conf.keyManagerFactoryAlgorithm())
 				: KeyManagerFactory.getInstance(conf.keyManagerFactoryAlgorithm(), v);
-		kmf.init(ks, password);
+
+		v = conf.keyPassword();
+		kmf.init(ks, v == null ? password : v.toCharArray());
 
 		return kmf.getKeyManagers();
 	}
