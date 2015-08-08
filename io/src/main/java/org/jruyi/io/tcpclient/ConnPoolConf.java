@@ -37,7 +37,7 @@ final class ConnPoolConf extends TcpClientConf {
 	}
 
 	public void minPoolSize(Integer minPoolSize) {
-		m_minPoolSize = minPoolSize == null || minPoolSize < 0 ? 5 : minPoolSize;
+		m_minPoolSize = minPoolSize == null || minPoolSize < 0 ? 0 : minPoolSize;
 	}
 
 	public Integer maxPoolSize() {
@@ -46,7 +46,9 @@ final class ConnPoolConf extends TcpClientConf {
 
 	public void maxPoolSize(Integer maxPoolSize) {
 		final Integer minPoolSize = minPoolSize();
-		if (maxPoolSize == null || maxPoolSize < minPoolSize)
+		if (maxPoolSize == null)
+			maxPoolSize = 10;
+		if (maxPoolSize < minPoolSize)
 			maxPoolSize = minPoolSize;
 		m_maxPoolSize = maxPoolSize;
 	}

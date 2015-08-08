@@ -37,14 +37,14 @@ public final class FloatCodec {
 		 * 
 		 * @return a big-endian float codec
 		 */
-		public IFloatCodec bigEndianFloatCodec();
+		IFloatCodec bigEndianFloatCodec();
 
 		/**
 		 * Returns a little-endian float codec.
 		 * 
 		 * @return a little-endian float codec
 		 */
-		public IFloatCodec littleEndianFloatCodec();
+		IFloatCodec littleEndianFloatCodec();
 	}
 
 	/**

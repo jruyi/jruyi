@@ -45,15 +45,14 @@ public final class IntArrayCodec {
 		 *
 		 * @return a big-endian int array codec
 		 */
-		public ICodec<int[]> bigEndian();
+		ICodec<int[]> bigEndian();
 
 		/**
 		 * Returns a little-endian int array codec.
 		 *
 		 * @return a little-endian int array codec
 		 */
-		public ICodec<int[]> littleEndian();
-
+		ICodec<int[]> littleEndian();
 	}
 
 	private IntArrayCodec() {

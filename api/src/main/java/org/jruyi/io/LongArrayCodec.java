@@ -45,15 +45,14 @@ public final class LongArrayCodec {
 		 *
 		 * @return a big-endian long array codec
 		 */
-		public ICodec<long[]> bigEndian();
+		ICodec<long[]> bigEndian();
 
 		/**
 		 * Returns a little-endian long array codec.
 		 *
 		 * @return a little-endian long array codec
 		 */
-		public ICodec<long[]> littleEndian();
-
+		ICodec<long[]> littleEndian();
 	}
 
 	private LongArrayCodec() {

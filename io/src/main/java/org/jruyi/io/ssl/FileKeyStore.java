@@ -31,7 +31,7 @@ import javax.net.ssl.TrustManagerFactory;
 
 import org.jruyi.io.ISslContextParameters;
 
-final class FileKeyStore implements ISslContextParameters {
+public final class FileKeyStore implements ISslContextParameters {
 
 	private static final String KS_TYPE = "keyStoreType";
 	private static final String KS_PROVIDER = "keyStoreProvider";
@@ -321,8 +321,8 @@ final class FileKeyStore implements ISslContextParameters {
 		final Configuration conf = m_conf;
 		final KeyManager[] keyManagers = newConf.isChanged(conf, Configuration.c_keyProps) ? getKeyManagers(newConf)
 				: m_keyManagers;
-		final TrustManager[] trustManagers = newConf.isChanged(conf, Configuration.c_trustProps) ? getTrustManagers(newConf)
-				: m_trustManagers;
+		final TrustManager[] trustManagers = newConf.isChanged(conf, Configuration.c_trustProps)
+				? getTrustManagers(newConf) : m_trustManagers;
 		final SecureRandom secureRandom = newConf.isChanged(conf, Configuration.c_srProps) ? getSecureRandom(newConf)
 				: m_secureRandom;
 
@@ -333,7 +333,7 @@ final class FileKeyStore implements ISslContextParameters {
 		m_conf = newConf;
 	}
 
-	void activate(Map<String, ?> properties) throws Exception {
+	public void activate(Map<String, ?> properties) throws Exception {
 		final Configuration conf = new Configuration();
 		conf.initialize(properties);
 
@@ -348,7 +348,7 @@ final class FileKeyStore implements ISslContextParameters {
 		m_conf = conf;
 	}
 
-	void deactivate() {
+	public void deactivate() {
 		m_conf = null;
 
 		m_keyManagers = null;
@@ -400,8 +400,8 @@ final class FileKeyStore implements ISslContextParameters {
 			final char[] password = v == null ? EMPTY_CHARARRAY : v.toCharArray();
 
 			v = conf.trustStoreProvider();
-			ks = v == null ? KeyStore.getInstance(conf.trustStoreType()) : KeyStore.getInstance(conf.trustStoreType(),
-					v);
+			ks = v == null ? KeyStore.getInstance(conf.trustStoreType())
+					: KeyStore.getInstance(conf.trustStoreType(), v);
 
 			final File file = new File(trustStoreUrl);
 			try (InputStream in = file.exists() ? new FileInputStream(file) : new URL(trustStoreUrl).openStream()) {
@@ -419,8 +419,8 @@ final class FileKeyStore implements ISslContextParameters {
 
 	private SecureRandom getSecureRandom(Configuration conf) throws Exception {
 		if (conf.secureRandomAlgorithm() == null)
-			return (conf.secureRandomProvider() == null) ? null : SecureRandom.getInstance(null,
-					conf.secureRandomProvider());
+			return (conf.secureRandomProvider() == null) ? null
+					: SecureRandom.getInstance(null, conf.secureRandomProvider());
 		else if (conf.secureRandomProvider() == null)
 			return SecureRandom.getInstance(conf.secureRandomAlgorithm());
 		else

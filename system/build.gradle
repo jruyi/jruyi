@@ -24,7 +24,7 @@ ext {
 
 dependencies {
 	compile "org.osgi:org.osgi.core:$org_osgi_core_version"
-	compile "org.slf4j:slf4j-api:$slf4j_api_version"
+	compile "org.slf4j:slf4j-api:$slf4j_version"
 
 	compile project(':api')
 }

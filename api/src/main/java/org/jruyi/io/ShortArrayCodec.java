@@ -45,15 +45,14 @@ public final class ShortArrayCodec {
 		 *
 		 * @return a big-endian short array codec
 		 */
-		public ICodec<short[]> bigEndian();
+		ICodec<short[]> bigEndian();
 
 		/**
 		 * Returns a little-endian short array codec.
 		 *
 		 * @return a little-endian short array codec
 		 */
-		public ICodec<short[]> littleEndian();
-
+		ICodec<short[]> littleEndian();
 	}
 
 	private ShortArrayCodec() {

@@ -65,16 +65,16 @@ public final class ChannelAdmin implements IChannelAdmin {
 	}
 
 	@Reference(name = "timeoutAdmin", policy = ReferencePolicy.DYNAMIC)
-	synchronized void setTimeoutAdmin(ITimeoutAdmin tm) {
+	public synchronized void setTimeoutAdmin(ITimeoutAdmin tm) {
 		m_tm = tm;
 	}
 
-	synchronized void unsetTimeoutAdmin(ITimeoutAdmin tm) {
+	public synchronized void unsetTimeoutAdmin(ITimeoutAdmin tm) {
 		if (m_tm == tm)
 			m_tm = null;
 	}
 
-	void activate(Map<String, ?> properties) throws Throwable {
+	public void activate(Map<String, ?> properties) throws Throwable {
 		c_logger.info("Activating ChannelAdmin...");
 
 		final int capacityOfIoRingBuffer = capacityOfIoRingBuffer(properties);
@@ -119,7 +119,7 @@ public final class ChannelAdmin implements IChannelAdmin {
 		c_logger.info("ChannelAdmin activated");
 	}
 
-	void deactivate() {
+	public void deactivate() {
 		c_logger.info("Deactivating ChannelAdmin...");
 
 		final SelectorThread[] sts = m_sts;
@@ -153,7 +153,7 @@ public final class ChannelAdmin implements IChannelAdmin {
 		final Object value = properties.get("capacityOfIoRingBuffer");
 		int capacity;
 		if (value == null || (capacity = (Integer) value) < 1)
-			capacity = 1024 * 8;
+			capacity = 1024 * 16;
 		else
 			capacity = Util.ceilingNextPowerOfTwo(capacity);
 

@@ -18,6 +18,7 @@ import java.util.Map;
 
 import org.jruyi.common.CharsetCodec;
 import org.jruyi.common.ICharsetCodec;
+import org.jruyi.common.LineTerminator;
 import org.jruyi.io.Filter;
 import org.jruyi.io.IBuffer;
 import org.jruyi.io.IFilter;
@@ -48,35 +49,21 @@ public final class TextLineFilter extends Filter<Object, Object> {
 		return E_UNDERFLOW;
 	}
 
-	protected void activate(Map<String, ?> properties) throws Exception {
+	public void activate(Map<String, ?> properties) {
 		String v = (String) properties.get("charset");
-		if (v == null)
+		if (v == null || (v = v.trim()).isEmpty())
 			v = CharsetCodec.UTF_8;
 
 		final ICharsetCodec codec = CharsetCodec.get(v);
 
 		v = (String) properties.get("lineTerminator");
-		final LineTerminator lineTerminator = v == null ? LineTerminator.CRLF : LineTerminator.valueOf(v);
+		final LineTerminator lineTerminator = v == null || (v = v.trim()).isEmpty() ? LineTerminator.CRLF
+				: LineTerminator.valueOf(v);
 
-		m_lineTerminator = codec.encode(lineTerminator.getValue());
+		m_lineTerminator = codec.toBytes(lineTerminator.getValue());
 	}
 
-	protected void deactivate() {
+	public void deactivate() {
 		m_lineTerminator = null;
-	}
-}
-
-enum LineTerminator {
-
-	CR(new char[] { '\r' }), LF(new char[] { '\n' }), CRLF(new char[] { '\r', '\n' });
-
-	private final char[] m_value;
-
-	LineTerminator(char[] value) {
-		m_value = value;
-	}
-
-	public final char[] getValue() {
-		return m_value;
 	}
 }

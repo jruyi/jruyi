@@ -21,11 +21,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.jruyi.common.BiListNode;
 import org.jruyi.common.IService;
 import org.jruyi.common.StrUtil;
-import org.jruyi.io.IBufferFactory;
-import org.jruyi.io.IFilter;
-import org.jruyi.io.ISession;
-import org.jruyi.io.ISessionListener;
-import org.jruyi.io.IoConstants;
+import org.jruyi.io.*;
 import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.channel.IIoTask;
@@ -40,7 +36,7 @@ import org.slf4j.LoggerFactory;
 factory = "tcpclient.connpool", //
 service = { IService.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public class ConnPool<I, O> extends AbstractTcpClient<I, O> implements IIoTask {
+public class ConnPool<I, O> extends AbstractTcpClient<I, O>implements IIoTask {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(ConnPool.class);
 
@@ -224,19 +220,19 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O> implements IIoTask {
 
 	@Reference(name = "buffer", policy = ReferencePolicy.DYNAMIC)
 	@Override
-	protected void setBufferFactory(IBufferFactory bf) {
+	public void setBufferFactory(IBufferFactory bf) {
 		super.setBufferFactory(bf);
 	}
 
 	@Reference(name = "channelAdmin")
 	@Override
-	protected void setChannelAdmin(IChannelAdmin cm) {
+	public void setChannelAdmin(IChannelAdmin cm) {
 		super.setChannelAdmin(cm);
 	}
 
 	@Reference(name = "filterManager")
 	@Override
-	protected void setFilterManager(IFilterManager fm) {
+	public void setFilterManager(IFilterManager fm) {
 		super.setFilterManager(fm);
 	}
 

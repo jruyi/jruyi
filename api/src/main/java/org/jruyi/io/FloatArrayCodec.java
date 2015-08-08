@@ -45,14 +45,14 @@ public final class FloatArrayCodec {
 		 *
 		 * @return a big-endian float array codec
 		 */
-		public ICodec<float[]> bigEndian();
+		ICodec<float[]> bigEndian();
 
 		/**
 		 * Returns a little-endian float array codec.
 		 *
 		 * @return a little-endian float array codec
 		 */
-		public ICodec<float[]> littleEndian();
+		ICodec<float[]> littleEndian();
 	}
 
 	private FloatArrayCodec() {

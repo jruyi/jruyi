@@ -37,14 +37,14 @@ public final class IntCodec {
 		 * 
 		 * @return a big-endian int codec
 		 */
-		public IIntCodec bigEndianIntCodec();
+		IIntCodec bigEndianIntCodec();
 
 		/**
 		 * Returns a little-endian int codec.
 		 * 
 		 * @return a little-endian int codec
 		 */
-		public IIntCodec littleEndianIntCodec();
+		IIntCodec littleEndianIntCodec();
 
 		/**
 		 * Returns a varint int codec.
@@ -52,7 +52,7 @@ public final class IntCodec {
 		 * @return a varint int codec
 		 * @since 1.2
 		 */
-		public IIntCodec varintIntCodec();
+		IIntCodec varintIntCodec();
 	}
 
 	/**

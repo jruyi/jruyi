@@ -37,7 +37,7 @@ public interface ICodec<T> {
 	 * @throws BufferUnderflowException
 	 *             if there's not enough data remaining in the {@code unitChain}
 	 */
-	public T read(IUnitChain unitChain);
+	T read(IUnitChain unitChain);
 
 	/**
 	 * Decodes the specified {@code length} of bytes from the specified
@@ -52,7 +52,7 @@ public interface ICodec<T> {
 	 * @throws BufferUnderflowException
 	 *             if there's not enough data remaining in the {@code unitChain}
 	 */
-	public T read(IUnitChain unitChain, int length);
+	T read(IUnitChain unitChain, int length);
 
 	/**
 	 * Decodes the bytes from the specified {@code unitChain}, starting at
@@ -65,7 +65,7 @@ public interface ICodec<T> {
 	 *            the bytes from which to be decoded
 	 * @return the actual number of bytes decoded
 	 */
-	public int read(T dst, IUnitChain unitChain);
+	int read(T dst, IUnitChain unitChain);
 
 	/**
 	 * Decodes the bytes from the specified {@code unitChain}, starting at
@@ -86,7 +86,7 @@ public interface ICodec<T> {
 	 *             if {@code offset} or {@code length} doesn't hold the
 	 *             condition
 	 */
-	public int read(T dst, int offset, int length, IUnitChain unitChain);
+	int read(T dst, int offset, int length, IUnitChain unitChain);
 
 	/**
 	 * Encodes the specified {@code src} and writes the resultant bytes to the
@@ -97,7 +97,7 @@ public interface ICodec<T> {
 	 * @param unitChain
 	 *            the unit chain where the encoded bytes to be written to
 	 */
-	public void write(T src, IUnitChain unitChain);
+	void write(T src, IUnitChain unitChain);
 
 	/**
 	 * Encodes the specified {@code length} of elements in the specified
@@ -113,7 +113,7 @@ public interface ICodec<T> {
 	 * @param unitChain
 	 *            the unit chain where the encoded bytes to be written to
 	 */
-	public void write(T src, int offset, int length, IUnitChain unitChain);
+	void write(T src, int offset, int length, IUnitChain unitChain);
 
 	/**
 	 * Decodes the bytes from the specified {@code unitChain} starting at the
@@ -146,7 +146,7 @@ public interface ICodec<T> {
 	 *             if {@code index} or {@code length} does not hold the
 	 *             condition
 	 */
-	public T get(IUnitChain unitChain, int index, int length);
+	T get(IUnitChain unitChain, int index, int length);
 
 	/**
 	 * Decodes the bytes from the specified {@code unitChain} starting at the
@@ -161,7 +161,7 @@ public interface ICodec<T> {
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
 	 */
-	public void get(T dst, IUnitChain unitChain, int index);
+	void get(T dst, IUnitChain unitChain, int index);
 
 	/**
 	 * Decodes the bytes from the specified {@code unitChain} starting at the
@@ -183,7 +183,7 @@ public interface ICodec<T> {
 	 *             if {@code offset} or {@code length} does not hold the
 	 *             condition, or {@code index} is out of bounds
 	 */
-	public void get(T dst, int offset, int length, IUnitChain unitChain, int index);
+	void get(T dst, int offset, int length, IUnitChain unitChain, int index);
 
 	/**
 	 * Encodes the specified {@code src} and sets the resultant bytes to the
@@ -198,7 +198,7 @@ public interface ICodec<T> {
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
 	 */
-	public void set(T src, IUnitChain unitChain, int index);
+	void set(T src, IUnitChain unitChain, int index);
 
 	/**
 	 * Encodes the specified {@code length} of elements in the specified
@@ -218,7 +218,7 @@ public interface ICodec<T> {
 	 * @param index
 	 *            the offset of the first byte in the current unit to be set
 	 */
-	public void set(T src, int offset, int length, IUnitChain unitChain, int index);
+	void set(T src, int offset, int length, IUnitChain unitChain, int index);
 
 	/**
 	 * Encodes the specified {@code src} and writes the resultant bytes to the
@@ -229,7 +229,7 @@ public interface ICodec<T> {
 	 * @param unitChain
 	 *            the unit chain where the encoded bytes to be prepended to
 	 */
-	public void prepend(T src, IUnitChain unitChain);
+	void prepend(T src, IUnitChain unitChain);
 
 	/**
 	 * Encodes the specified {@code length} of elements in the specified
@@ -246,5 +246,5 @@ public interface ICodec<T> {
 	 * @param unitChain
 	 *            the unit chain where the encoded bytes to be prepended to
 	 */
-	public void prepend(T src, int offset, int length, IUnitChain unitChain);
+	void prepend(T src, int offset, int length, IUnitChain unitChain);
 }

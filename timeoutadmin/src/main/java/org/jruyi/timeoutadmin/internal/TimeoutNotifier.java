@@ -41,15 +41,15 @@ final class TimeoutNotifier implements ITimeoutNotifier {
 
 	interface IState {
 
-		public boolean schedule(TimeoutNotifier notifier, int timeout);
+		boolean schedule(TimeoutNotifier notifier, int timeout);
 
-		public boolean cancel(TimeoutNotifier notifier);
+		boolean cancel(TimeoutNotifier notifier);
 
-		public boolean reset(TimeoutNotifier notifier);
+		boolean reset(TimeoutNotifier notifier);
 
-		public void close(TimeoutNotifier notifier);
+		void close(TimeoutNotifier notifier);
 
-		public int state();
+		int state();
 	}
 
 	static final class Scheduled implements IState {

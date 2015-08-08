@@ -46,14 +46,14 @@ public final class DoubleArrayCodec {
 		 *
 		 * @return a big-endian double array codec
 		 */
-		public ICodec<double[]> bigEndian();
+		ICodec<double[]> bigEndian();
 
 		/**
 		 * Returns a little-endian double array codec.
 		 *
 		 * @return a little-endian double array codec
 		 */
-		public ICodec<double[]> littleEndian();
+		ICodec<double[]> littleEndian();
 
 	}
 

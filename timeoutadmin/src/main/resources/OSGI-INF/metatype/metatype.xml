@@ -23,7 +23,7 @@
 		<AD id="corePoolSize" name="Core Pool Size" type="Integer" min="1" default="1"/>
 		<AD id="maxPoolSize" name="Maximum Pool Size" type="Integer" min="1" default="4"/>
 		<AD id="keepAliveTimeInSeconds" name="Keep Alive Time(s)" type="Integer" min="0" default="10"/>
-		<AD id="queueCapacity" name="Queue Capacity" type="Integer" default="2048"/>
+		<AD id="queueCapacity" name="Queue Capacity" type="Integer" default="4096"/>
 		<AD id="terminationWaitTimeInSeconds" name="Termination Wait Time(s)" type="Integer" default="60"/>
 	</OCD>
 

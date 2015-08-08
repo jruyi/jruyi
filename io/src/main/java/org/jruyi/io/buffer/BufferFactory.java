@@ -30,14 +30,15 @@ import org.slf4j.LoggerFactory;
 @Component(name = "jruyi.io.buffer", xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class BufferFactory implements IBufferFactory {
 
+	public static final int MIN_UNIT_CAPACITY = 8;
+
+	public static final String BUFFER_ID = "jruyi.io.buffer.id";
+	public static final String UNIT_CAPACITY = "unitCapacity";
+
 	private static final Logger c_logger = LoggerFactory.getLogger(BufferFactory.class);
 
-	private static final String BUFFER_ID = "jruyi.io.buffer.id";
-	private static final String UNIT_CAPACITY = "unitCapacity";
-	private static final int MIN_UNIT_CAPACITY = 8;
-
 	private final IThreadLocalCache<HeapUnit> m_unitCache = ThreadLocalCache.weakLinkedCache();
-	private int m_unitCapacity;
+	private int m_unitCapacity = 1024 * 8;
 
 	@Override
 	public IBuffer create() {
@@ -45,20 +46,22 @@ public final class BufferFactory implements IBufferFactory {
 	}
 
 	@Modified
-	void modified(Map<String, ?> properties) {
+	public void modified(Map<String, ?> properties) {
 		final Integer value = (Integer) properties.get(UNIT_CAPACITY);
+		final int unitCapacity;
 		if (value == null)
-			m_unitCapacity = 1024 * 8;
+			unitCapacity = 1024 * 8;
 		else
-			m_unitCapacity = value > MIN_UNIT_CAPACITY ? value : MIN_UNIT_CAPACITY;
+			unitCapacity = value > MIN_UNIT_CAPACITY ? value : MIN_UNIT_CAPACITY;
+		m_unitCapacity = unitCapacity;
 
 		final String id = (String) properties.get(BUFFER_ID);
 		final String bfName = id != null ? StrUtil.join("BufferFactory[", id, "]") : "BufferFactory";
 
-		c_logger.info("{}: unitCapacity={}", bfName, m_unitCapacity);
+		c_logger.info("{}: unitCapacity={}", bfName, unitCapacity);
 	}
 
-	void activate(Map<String, ?> properties) {
+	public void activate(Map<String, ?> properties) {
 		modified(properties);
 	}
 

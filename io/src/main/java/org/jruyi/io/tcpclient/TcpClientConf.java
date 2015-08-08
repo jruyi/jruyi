@@ -21,8 +21,7 @@ import org.jruyi.io.tcp.TcpChannelConf;
 
 class TcpClientConf extends TcpChannelConf {
 
-	private static final String[] M_PROPS = {
-		"addr", "port" };
+	private static final String[] M_PROPS = { "addr", "port" };
 	private static final Method[] c_mProps;
 	private Integer m_initialCapacityOfChannelMap;
 	private Integer m_connectTimeoutInSeconds;

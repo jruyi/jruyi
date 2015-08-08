@@ -45,42 +45,42 @@ public final class StringCodec {
 		 *
 		 * @return a utf-8 string codec
 		 */
-		public ICodec<String> utf_8();
+		ICodec<String> utf_8();
 
 		/**
 		 * Returns a utf-16 string codec.
 		 *
 		 * @return a utf-16 string codec
 		 */
-		public ICodec<String> utf_16();
+		ICodec<String> utf_16();
 
 		/**
 		 * Returns a utf-16le string codec.
 		 *
 		 * @return a utf-16le string codec
 		 */
-		public ICodec<String> utf_16le();
+		ICodec<String> utf_16le();
 
 		/**
 		 * Returns a utf-16be string codec.
 		 *
 		 * @return a utf-16be string codec
 		 */
-		public ICodec<String> utf_16be();
+		ICodec<String> utf_16be();
 
 		/**
 		 * Returns an iso-8859-1 string codec.
 		 *
 		 * @return an iso-8859-1 string codec
 		 */
-		public ICodec<String> iso_8859_1();
+		ICodec<String> iso_8859_1();
 
 		/**
 		 * Returns a us-ascii string codec.
 		 *
 		 * @return a us-ascii string codec
 		 */
-		public ICodec<String> us_ascii();
+		ICodec<String> us_ascii();
 
 		/**
 		 * Returns a codec to encode/decode string in the specified charset.
@@ -89,7 +89,7 @@ public final class StringCodec {
 		 *            the charset to encode/decode
 		 * @return a codec to encode/decode string in the specified charset
 		 */
-		public ICodec<String> charset(String charsetName);
+		ICodec<String> charset(String charsetName);
 	}
 
 	private StringCodec() {

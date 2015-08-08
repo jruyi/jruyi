@@ -14,14 +14,8 @@
 
 package org.jruyi.io.ssl;
 
-import java.security.KeyStore;
-import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
 
 import org.jruyi.io.IFilter;
 import org.jruyi.io.ISslContextParameters;
@@ -42,32 +36,6 @@ public final class DefaultSslFilter extends AbstractSslFilter {
 
 	private ISslContextParameters m_sslcp;
 
-	static final class SslContextParameters implements ISslContextParameters {
-
-		private final TrustManager[] m_trustManagers;
-
-		SslContextParameters() throws Exception {
-			final TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-			tmf.init((KeyStore) null);
-			m_trustManagers = tmf.getTrustManagers();
-		}
-
-		@Override
-		public KeyManager[] getKeyManagers() throws Exception {
-			return null;
-		}
-
-		@Override
-		public TrustManager[] getCertManagers() throws Exception {
-			return m_trustManagers;
-		}
-
-		@Override
-		public SecureRandom getSecureRandom() throws Exception {
-			return null;
-		}
-	}
-
 	@Override
 	protected ISslContextParameters sslcp() {
 		return m_sslcp;
@@ -75,9 +43,10 @@ public final class DefaultSslFilter extends AbstractSslFilter {
 
 	@Override
 	protected void activate(Map<String, ?> properties) throws Exception {
-		m_sslcp = new SslContextParameters();
+		m_sslcp = DefaultSslContextParameters.INST;
 		final Map<String, Object> props = new HashMap<>(properties);
 		props.put("hostname", ""); // For SAN verification
+		props.put("endpointIdentificationAlgorithm", "HTTPS");
 		super.activate(props);
 	}
 

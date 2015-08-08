@@ -31,11 +31,11 @@ public interface IFilter<I, O> {
 	/**
 	 * Indicates that more data is needed to parse out the length of a message.
 	 */
-	public static final int E_UNDERFLOW = 0;
+	int E_UNDERFLOW = 0;
 	/**
 	 * Fail to parse the length of a message
 	 */
-	public static final int E_ERROR = -1;
+	int E_ERROR = -1;
 
 	/**
 	 * Returns the minimum size of a message, usually the number of bytes that
@@ -44,7 +44,7 @@ public interface IFilter<I, O> {
 	 * @return the minimum size of a message
 	 * @since 2.0
 	 */
-	public int msgMinSize();
+	int msgMinSize();
 
 	/**
 	 * Returns the message length by reading and parsing the specified
@@ -61,7 +61,7 @@ public interface IFilter<I, O> {
 	 *         {@code in} is not sufficient to parse out the message length,
 	 *         which means that more data needs to be read<br>
 	 */
-	public int tellBoundary(ISession session, IBuffer in);
+	int tellBoundary(ISession session, IBuffer in);
 
 	/**
 	 * Filters the incoming data which is passed from the left most filter to
@@ -92,7 +92,7 @@ public interface IFilter<I, O> {
 	 *            filter chain
 	 * @return true if going to next filter otherwise false.
 	 */
-	public boolean onMsgArrive(ISession session, I msg, IFilterOutput output);
+	boolean onMsgArrive(ISession session, I msg, IFilterOutput output);
 
 	/**
 	 * Filters the outgoing data which is passed from the right most filter to
@@ -117,5 +117,5 @@ public interface IFilter<I, O> {
 	 *            filter chain
 	 * @return true if going to the next filter otherwise false
 	 */
-	public boolean onMsgDepart(ISession session, O msg, IFilterOutput output);
+	boolean onMsgDepart(ISession session, O msg, IFilterOutput output);
 }

@@ -26,19 +26,19 @@
 	<OCD id="channelAdmin" name="Channel Admin">
 		<AD id="numberOfSelectorThreads" name="Number of Selector Threads" type="Integer" required="false" min="0"/>
 		<AD id="numberOfIoThreads" name="Number of IO Threads" type="Integer" required="false" min="0"/>
-		<AD id="capacityOfIoRingBuffer" name="Capacity of IO RingBuffer" type="Integer" default="8192" min="1"/>
+		<AD id="capacityOfIoRingBuffer" name="Capacity of IO RingBuffer" type="Integer" default="16384" min="1"/>
 	</OCD>
 
 	<OCD id="tcpServer" name="TCP Server">
-		<AD id="jruyi.me.endpoint.id" name="Endpoint ID" type="String" required="true"/>
+		<AD id="jruyi.me.endpoint.id" name="Endpoint ID" type="String"/>
 		<AD id="jruyi.me.endpoint.lazy" name="Endpoint Lazy Loading" type="Boolean" required="false"/>
 		<AD id="jruyi.me.endpoint.prehandlers" name="Endpoint PreHandlers" type="String" cardinality="65535" required="false"/>
 		<AD id="jruyi.me.endpoint.posthandlers" name="Endpoint PostHandlers" type="String" cardinality="65535" required="false"/>
 		<AD id="buffer.target" name="Filter for Selecting Buffer Factory" type="String" required="false"/>
 		<AD id="bindAddr" name="Bind Address" type="String" required="false"/>
 		<AD id="port" name="Port" type="Integer" min="0" max="65535"/>
-		<AD id="throttle" name="Throttle" type="Long" min="-1" default="0"/>
 		<AD id="backlog" name="Backlog" type="Integer" min="1" required="false"/>
+		<AD id="throttle" name="Throttle" type="Long" min="-1" default="0"/>
 		<AD id="sessionIdleTimeoutInSeconds" name="Session Idle Timeout(s)" type="Integer" min="-1" default="300"/>
 		<AD id="initCapacityOfChannelMap" name="Initial Capacity of Channel Map" type="Integer" min="4" default="2048"/>
 		<AD id="filters" name="Filter Chain" type="String" cardinality="65535" required="false"/>
@@ -54,19 +54,20 @@
 	</OCD>
 
 	<OCD id="tcpShortConn" name="TCP Client - ShortConn">
-		<AD id="jruyi.me.endpoint.id" name="Endpoint ID" type="String" required="true"/>
+		<AD id="jruyi.me.endpoint.id" name="Endpoint ID" type="String"/>
 		<AD id="jruyi.me.endpoint.lazy" name="Endpoint Lazy Loading" type="Boolean" required="false"/>
 		<AD id="jruyi.me.endpoint.prehandlers" name="Endpoint PreHandlers" type="String" cardinality="65535" required="false"/>
 		<AD id="jruyi.me.endpoint.posthandlers" name="Endpoint PostHandlers" type="String" cardinality="65535" required="false"/>
 		<AD id="buffer.target" name="Filter for Selecting Buffer Factory" type="String" required="false"/>
-		<AD id="addr" name="Host Address" type="String" required="true"/>
+		<AD id="addr" name="Host Address" type="String"/>
 		<AD id="port" name="Port" type="Integer" min="0" max="65535" required="false"/>
 		<AD id="throttle" name="Throttle" type="Long" min="-1" default="0"/>
-		<AD id="connectTimeoutInSeconds" name="Connect Timeout(s)" type="Integer" min="-1" default="6"/>
+		<AD id="connectTimeoutInSeconds" name="Connect Timeout(s)" type="Integer" min="0" default="6"/>
 		<AD id="readTimeoutInSeconds" name="Read Timeout(s)" type="Integer" min="-1" default="30"/>
-		<AD id="initCapacityOfChannelMap" name="Initial Capacity of Channel Map" type="Integer" min="4" default="1024"/>
+		<AD id="initCapacityOfChannelMap" name="Initial Capacity of Channel Map" type="Integer" min="4" default="512"/>
 		<AD id="filters" name="Filter Chain" type="String" cardinality="65535" required="false"/>
 		<AD id="reuseAddr" name="Reuse Address" type="Boolean" default="false"/>
+		<AD id="keepAlive" name="Keep Alive" type="Boolean" required="false"/>
 		<AD id="soLinger" name="Linger" type="Integer" min="0" required="false"/>
 		<AD id="recvBufSize" name="Receive Buffer Size" type="Integer" min="1" required="false"/>
 		<AD id="sendBufSize" name="Send Buffer Size" type="Integer" min="1" required="false"/>
@@ -77,18 +78,18 @@
 	</OCD>
 
 	<OCD id="tcpConnPool" name="TCP Client - ConnPool">
-		<AD id="jruyi.me.endpoint.id" name="Endpoint ID" type="String" required="true"/>
+		<AD id="jruyi.me.endpoint.id" name="Endpoint ID" type="String"/>
 		<AD id="jruyi.me.endpoint.lazy" name="Endpoint Lazy Loading" type="Boolean" required="false"/>
 		<AD id="jruyi.me.endpoint.prehandlers" name="Endpoint PreHandlers" type="String" cardinality="65535" required="false"/>
 		<AD id="jruyi.me.endpoint.posthandlers" name="Endpoint PostHandlers" type="String" cardinality="65535" required="false"/>
 		<AD id="buffer.target" name="Filter for Selecting Buffer Factory" type="String" required="false"/>
-		<AD id="addr" name="Host Address" type="String" required="true"/>
-		<AD id="port" name="Port" type="Integer" min="0" max="65535" required="true"/>
+		<AD id="addr" name="Host Address" type="String"/>
+		<AD id="port" name="Port" type="Integer" min="0" max="65535"/>
 		<AD id="throttle" name="Throttle" type="Long" min="-1" default="0"/>
-		<AD id="connectTimeoutInSeconds" name="Connect Timeout(s)" type="Integer" min="-1" default="6"/>
+		<AD id="connectTimeoutInSeconds" name="Connect Timeout(s)" type="Integer" min="0" default="6"/>
 		<AD id="readTimeoutInSeconds" name="Read Timeout(s)" type="Integer" min="-1" default="30"/>
-		<AD id="minPoolSize" name="Minimum Pool Size" type="Integer" min="0" default="5"/>
-		<AD id="maxPoolSize" name="Maximum Pool Size" type="Integer" min="0" default="10"/>
+		<AD id="minPoolSize" name="Minimum Pool Size" type="Integer" min="0" default="0"/>
+		<AD id="maxPoolSize" name="Maximum Pool Size" type="Integer" min="1" default="10"/>
 		<AD id="idleTimeoutInSeconds" name="Idle Timeout(s)" type="Integer" min="-1" default="60"/>
 		<AD id="filters" name="Filter Chain" type="String" cardinality="65535" required="false"/>
 		<AD id="reuseAddr" name="Reuse Address" type="Boolean" default="false"/>
@@ -103,18 +104,18 @@
 	</OCD>
 
 	<OCD id="tcpMuxConnPool" name="TCP Client Mux - ConnPool">
-		<AD id="jruyi.me.endpoint.id" name="Endpoint ID" type="String" required="true"/>
+		<AD id="jruyi.me.endpoint.id" name="Endpoint ID" type="String"/>
 		<AD id="jruyi.me.endpoint.lazy" name="Endpoint Lazy Loading" type="Boolean" required="false"/>
 		<AD id="jruyi.me.endpoint.prehandlers" name="Endpoint PreHandlers" type="String" cardinality="65535" required="false"/>
 		<AD id="jruyi.me.endpoint.posthandlers" name="Endpoint PostHandlers" type="String" cardinality="65535" required="false"/>
 		<AD id="buffer.target" name="Filter for Selecting Buffer Factory" type="String" required="false"/>
-		<AD id="addr" name="Host Address" type="String" required="true"/>
-		<AD id="port" name="Port" type="Integer" min="0" max="65535" required="true"/>
+		<AD id="addr" name="Host Address" type="String"/>
+		<AD id="port" name="Port" type="Integer" min="0" max="65535"/>
 		<AD id="throttle" name="Throttle" type="Long" min="-1" default="0"/>
-		<AD id="connectTimeoutInSeconds" name="Connect Timeout(s)" type="Integer" min="-1" default="6"/>
+		<AD id="connectTimeoutInSeconds" name="Connect Timeout(s)" type="Integer" min="0" default="6"/>
 		<AD id="readTimeoutInSeconds" name="Read Timeout(s)" type="Integer" min="-1" default="30"/>
-		<AD id="minPoolSize" name="Minimum Pool Size" type="Integer" min="0" default="5"/>
-		<AD id="maxPoolSize" name="Maximum Pool Size" type="Integer" min="0" default="10"/>
+		<AD id="minPoolSize" name="Minimum Pool Size" type="Integer" min="0" default="0"/>
+		<AD id="maxPoolSize" name="Maximum Pool Size" type="Integer" min="1" default="10"/>
 		<AD id="idleTimeoutInSeconds" name="Idle Timeout(s)" type="Integer" min="-1" default="60"/>
 		<AD id="filters" name="Filter Chain" type="String" cardinality="65535" required="false"/>
 		<AD id="reuseAddr" name="Reuse Address" type="Boolean" default="false"/>
@@ -129,7 +130,7 @@
 	</OCD>
 
 	<OCD id="udpServer" name="UDP Server">
-		<AD id="jruyi.me.endpoint.id" name="Endpoint ID" type="String" required="true"/>
+		<AD id="jruyi.me.endpoint.id" name="Endpoint ID" type="String"/>
 		<AD id="jruyi.me.endpoint.lazy" name="Endpoint Lazy Loading" type="Boolean" required="false"/>
 		<AD id="jruyi.me.endpoint.prehandlers" name="Endpoint PreHandlers" type="String" cardinality="65535" required="false"/>
 		<AD id="jruyi.me.endpoint.posthandlers" name="Endpoint PostHandlers" type="String" cardinality="65535" required="false"/>
@@ -144,13 +145,13 @@
 	</OCD>
 
 	<OCD id="udpClient" name="UDP Client">
-		<AD id="jruyi.me.endpoint.id" name="Endpoint ID" type="String" required="true"/>
+		<AD id="jruyi.me.endpoint.id" name="Endpoint ID" type="String"/>
 		<AD id="jruyi.me.endpoint.lazy" name="Endpoint Lazy Loading" type="Boolean" required="false"/>
 		<AD id="jruyi.me.endpoint.prehandlers" name="Endpoint PreHandlers" type="String" cardinality="65535" required="false"/>
 		<AD id="jruyi.me.endpoint.posthandlers" name="Endpoint PostHandlers" type="String" cardinality="65535" required="false"/>
 		<AD id="buffer.target" name="Filter for Selecting Buffer Factory" type="String" required="false"/>
-		<AD id="addr" name="Host Address" type="String" required="true"/>
-		<AD id="port" name="Port" type="Integer" min="0" max="65535" required="true"/>
+		<AD id="addr" name="Host Address" type="String"/>
+		<AD id="port" name="Port" type="Integer" min="0" max="65535"/>
 		<AD id="filters" name="Filter Chain" type="String" cardinality="65535" required="false"/>
 		<AD id="broadcast" name="Broadcast" type="Boolean" default="false"/>
 		<AD id="trafficClass" name="Traffic Class" type="Integer" min="0" max="255" required="false"/>
@@ -163,6 +164,7 @@
 			<Option label="CR" value="CR"/>
 			<Option label="LF" value="LF"/>
 			<Option label="CRLF" value="CRLF"/>
+			<Option label="LFCR" value="LFCR"/>
 		</AD>
 	</OCD>
 

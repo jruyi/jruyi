@@ -32,7 +32,7 @@ public class TcpChannelConf {
 	private Boolean m_tcpNoDelay;
 	private Integer m_trafficClass;
 	private Boolean m_oobInline;
-	private Integer[] m_performancePreferences;
+	private int[] m_performancePreferences;
 
 	public void initialize(Map<String, ?> properties) {
 		port((Integer) properties.get("port"));
@@ -46,7 +46,7 @@ public class TcpChannelConf {
 		tcpNoDelay((Boolean) properties.get("tcpNoDelay"));
 		trafficClass((Integer) properties.get("trafficClass"));
 		oobInline((Boolean) properties.get("oobInline"));
-		performancePreferences((Integer[]) properties.get("performancePreferences"));
+		performancePreferences((int[]) properties.get("performancePreferences"));
 	}
 
 	public final String ip() {
@@ -148,11 +148,11 @@ public class TcpChannelConf {
 		m_oobInline = oobInline;
 	}
 
-	public final void performancePreferences(Integer[] performancePreferences) {
+	public final void performancePreferences(int[] performancePreferences) {
 		m_performancePreferences = performancePreferences;
 	}
 
-	public final Integer[] performancePreferences() {
+	public final int[] performancePreferences() {
 		return m_performancePreferences;
 	}
 }

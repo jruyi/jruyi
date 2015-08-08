@@ -53,7 +53,7 @@ public final class TimeoutAdmin implements ITimeoutAdmin, IDumpable {
 
 	private IScheduler m_scheduler;
 	private ThreadPoolExecutor m_executor;
-	private int m_queueCapacity = 2048;
+	private int m_queueCapacity = 4096;
 	private int m_terminationWaitTime = 60;
 
 	static {
@@ -171,17 +171,17 @@ public final class TimeoutAdmin implements ITimeoutAdmin, IDumpable {
 	}
 
 	@Reference(name = "scheduler", policy = ReferencePolicy.DYNAMIC)
-	synchronized void setScheduler(IScheduler scheduler) {
+	public synchronized void setScheduler(IScheduler scheduler) {
 		m_scheduler = scheduler;
 	}
 
-	synchronized void unsetScheduler(IScheduler scheduler) {
+	public synchronized void unsetScheduler(IScheduler scheduler) {
 		if (m_scheduler == scheduler)
 			m_scheduler = null;
 	}
 
 	@Modified
-	void modified(Map<String, ?> properties) throws Exception {
+	public void modified(Map<String, ?> properties) {
 		final ThreadPoolExecutor executor = m_executor;
 		final boolean allowCoreThreadTimeOut = getAllowCoreThreadTimeOut(properties);
 		final int keepAliveTime = getKeepAliveTime(properties, (int) executor.getKeepAliveTime(TimeUnit.SECONDS));
@@ -212,7 +212,7 @@ public final class TimeoutAdmin implements ITimeoutAdmin, IDumpable {
 		c_logger.info(StrUtil.join("TimeoutAdmin updated: ", this));
 	}
 
-	void activate(Map<String, ?> properties) throws Throwable {
+	public void activate(Map<String, ?> properties) {
 
 		final boolean allowCoreThreadTimeOut = getAllowCoreThreadTimeOut(properties);
 		final int keepAliveTime = getKeepAliveTime(properties, 10);
@@ -239,7 +239,7 @@ public final class TimeoutAdmin implements ITimeoutAdmin, IDumpable {
 		c_logger.info(StrUtil.join("TimeoutAdmin activated: ", this));
 	}
 
-	void deactivate() {
+	public void deactivate() {
 		c_logger.info("Deactivating TimeoutAdmin...");
 
 		try {
@@ -323,23 +323,23 @@ public final class TimeoutAdmin implements ITimeoutAdmin, IDumpable {
 		return v == null ? 1 : (Integer) v;
 	}
 
-	private static int getMaxPoolSize(Map<String, ?> properties, int corePoolSize) throws Exception {
+	private static int getMaxPoolSize(Map<String, ?> properties, int corePoolSize) {
 		final Object v = properties.get(P_MAX_POOLSIZE);
 		int maxPoolSize = v == null ? 4 : (Integer) v;
 		if (maxPoolSize < corePoolSize)
-			throw new Exception("Property[" + P_MAX_POOLSIZE + "] cannot be less than Property[" + P_CORE_POOLSIZE
-					+ "]");
+			throw new RuntimeException(
+					"Property[" + P_MAX_POOLSIZE + "] cannot be less than Property[" + P_CORE_POOLSIZE + "]");
 
 		return maxPoolSize;
 	}
 
-	private static Integer getKeepAliveTime(Map<String, ?> properties, Integer defaultValue) throws Exception {
+	private static Integer getKeepAliveTime(Map<String, ?> properties, Integer defaultValue) {
 		final Integer keepAliveTime = (Integer) properties.get(P_KEEPALIVE_TIME);
 		if (keepAliveTime == null)
 			return defaultValue;
 
 		if (keepAliveTime < 0)
-			throw new Exception("Property[" + P_KEEPALIVE_TIME + "] has to be non-negative");
+			throw new RuntimeException("Property[" + P_KEEPALIVE_TIME + "] has to be non-negative");
 		return keepAliveTime;
 	}
 
@@ -362,10 +362,11 @@ public final class TimeoutAdmin implements ITimeoutAdmin, IDumpable {
 	private static ThreadPoolExecutor newExecutor(int corePoolSize, int maxPoolSize, long keepAliveTime,
 			int queueCapacity, boolean allowCoreThreadTimeOut) {
 		final ThreadPoolExecutor executor = new ThreadPoolExecutor(corePoolSize, maxPoolSize, keepAliveTime,
-				TimeUnit.SECONDS, queueCapacity < 0 ? new LinkedBlockingQueue<Runnable>()
+				TimeUnit.SECONDS,
+				queueCapacity < 0 ? new LinkedBlockingQueue<Runnable>()
 						: (queueCapacity > 0 ? new ArrayBlockingQueue<Runnable>(queueCapacity)
-								: new SynchronousQueue<Runnable>()), DeliveryThreadFactory.INST,
-				new ThreadPoolExecutor.CallerRunsPolicy());
+								: new SynchronousQueue<Runnable>()),
+				DeliveryThreadFactory.INST, new ThreadPoolExecutor.CallerRunsPolicy());
 		executor.allowCoreThreadTimeOut(allowCoreThreadTimeOut);
 		return executor;
 	}

@@ -1,0 +1,106 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply plugin: 'org.jruyi.osgibnd'
+
+archivesBaseName = 'jruyi-core'
+version = jruyi_core_version
+description = 'The core of JRuyi, a Java framework for easily developing highly efficient and highly scalable network applications'
+
+ext {
+	title = 'JRuyi Core'
+}
+
+configurations {
+	embed {
+		transitive = false
+	}
+}
+
+dependencies {
+	compile "org.osgi:org.osgi.compendium:$org_osgi_compendium_version"
+	compile "org.slf4j:slf4j-api:$slf4j_version"
+	compile "com.lmax:disruptor:$disruptor_version"
+
+	compile project(':api')
+	compile project(':common')
+	compile project(':io')
+	compile project(':timeoutadmin')
+
+	embed project(':common')
+	embed project(':io')
+	embed project(':timeoutadmin')
+}
+
+processResources {
+	configurations.embed.files.each { jar ->
+		from(zipTree(jar)) {
+			exclude '**/META-INF/**', '**/OSGI-INF/**', '**/HELP-INF/**'
+		}
+	}
+}
+
+jar {
+	manifest {
+		attributes(
+				'Export-Package': 'org.jruyi.common,org.jruyi.timeoutadmin,org.jruyi.io,org.jruyi.core',
+				'Import-Package': '!org.osgi.*,!org.jruyi.me,*',
+		)
+	}
+}
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+
+			artifactId archivesBaseName
+
+			from components.java
+
+			pom.withXml {
+				def projectNode = asNode()
+				projectNode.appendNode('name', title)
+				projectNode.appendNode('description', description)
+				projectNode.appendNode('url', organizationUrl)
+
+				def organizationNode = projectNode.appendNode('organization')
+				organizationNode.appendNode('name', organizationName)
+				organizationNode.appendNode('url', organizationUrl)
+
+				def licenseNode = projectNode.appendNode('licenses').appendNode('license')
+				licenseNode.appendNode('name', licenseName)
+				licenseNode.appendNode('url', licenseUrl)
+				licenseNode.appendNode('distribution', 'repo')
+
+				projectNode.dependencies.'*'.findAll() {
+					it.scope.text() == 'runtime'
+				}.each() {
+					it.scope*.value = 'provided'
+				}
+			}
+
+			artifact sourcesJar
+		}
+	}
+}
+
+bintray {
+	pkg {
+		name = archivesBaseName
+		desc = description
+		version {
+			name = project.version
+		}
+	}
+}

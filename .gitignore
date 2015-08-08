@@ -17,6 +17,7 @@
 /clid/build
 /cmd/build
 /common/build
+/core/build
 /io/build
 /launcher/build
 /me/build
@@ -31,6 +32,7 @@
 /clid/bin
 /cmd/bin
 /common/bin
+/core/bin
 /io/bin
 /launcher/bin
 /me/bin
@@ -38,4 +40,3 @@
 /system/bin
 /timeoutadmin/bin
 /tpe/bin
-

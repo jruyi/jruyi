@@ -32,19 +32,19 @@ public final class FileKeyStoreSslFilterConf extends AbstractSslFilter {
 
 	@Modified
 	@Override
-	protected void modified(Map<String, ?> properties) throws Exception {
+	public void modified(Map<String, ?> properties) throws Exception {
 		m_fks.modified(properties);
 		super.modified(properties);
 	}
 
 	@Override
-	protected void activate(Map<String, ?> properties) throws Exception {
+	public void activate(Map<String, ?> properties) throws Exception {
 		m_fks.activate(properties);
 		super.activate(properties);
 	}
 
 	@Override
-	protected void deactivate() {
+	public void deactivate() {
 		super.deactivate();
 		m_fks.deactivate();
 	}

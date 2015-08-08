@@ -37,14 +37,14 @@ public final class DoubleCodec {
 		 * 
 		 * @return a big-endian double codec
 		 */
-		public IDoubleCodec bigEndianDoubleCodec();
+		IDoubleCodec bigEndianDoubleCodec();
 
 		/**
 		 * Returns a little-endian double codec.
 		 * 
 		 * @return a little-endian double codec
 		 */
-		public IDoubleCodec littleEndianDoubleCodec();
+		IDoubleCodec littleEndianDoubleCodec();
 	}
 
 	/**

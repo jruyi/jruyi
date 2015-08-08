@@ -44,14 +44,14 @@ public final class Codec {
 		 * 
 		 * @return a byte array codec
 		 */
-		public ICodec<byte[]> byteArray();
+		ICodec<byte[]> byteArray();
 
 		/**
 		 * Returns a byte sequence codec.
 		 * 
 		 * @return a byte sequence codec
 		 */
-		public ICodec<IByteSequence> byteSequence();
+		ICodec<IByteSequence> byteSequence();
 
 		/**
 		 * Returns a {@code ByteBuffer} codec.
@@ -59,7 +59,7 @@ public final class Codec {
 		 * @return a {@code ByteBuffer} codec
 		 * @since 2.0
 		 */
-		public ICodec<ByteBuffer> byteBuffer();
+		ICodec<ByteBuffer> byteBuffer();
 	}
 
 	private Codec() {

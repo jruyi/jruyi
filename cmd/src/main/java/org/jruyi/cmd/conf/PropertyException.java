@@ -16,6 +16,8 @@ package org.jruyi.cmd.conf;
 
 public final class PropertyException extends Exception {
 
+	private static final long serialVersionUID = 5027655298085556806L;
+
 	public PropertyException(String message) {
 		super(message);
 	}

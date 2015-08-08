@@ -14,6 +14,8 @@
 
 package org.jruyi.io.ssl;
 
+import java.util.Map;
+
 import org.jruyi.io.IFilter;
 import org.jruyi.io.ISslContextParameters;
 import org.jruyi.io.IoConstants;
@@ -29,12 +31,22 @@ public final class SslFilter extends AbstractSslFilter {
 	private ISslContextParameters m_sslcp;
 
 	@Reference(name = "sslcp")
-	protected void setSslContextParameters(ISslContextParameters sslcp) {
+	public void setSslContextParameters(ISslContextParameters sslcp) {
 		m_sslcp = sslcp;
 	}
 
-	protected void unsetSslContextParameters(ISslContextParameters sslcp) {
+	public void unsetSslContextParameters(ISslContextParameters sslcp) {
 		m_sslcp = null;
+	}
+
+	@Override
+	public void activate(Map<String, ?> properties) throws Exception {
+		super.activate(properties);
+	}
+
+	@Override
+	public void deactivate() {
+		super.deactivate();
 	}
 
 	@Override

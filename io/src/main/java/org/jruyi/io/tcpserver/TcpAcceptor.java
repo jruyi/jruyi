@@ -120,16 +120,16 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable, IVisitor<TcpSe
 	}
 
 	@Reference(name = "channelAdmin", policy = ReferencePolicy.DYNAMIC)
-	synchronized void setChannelAdmin(IChannelAdmin ca) {
+	public synchronized void setChannelAdmin(IChannelAdmin ca) {
 		m_ca = ca;
 	}
 
-	synchronized void unsetChannelAdmin(IChannelAdmin ca) {
+	public synchronized void unsetChannelAdmin(IChannelAdmin ca) {
 		if (m_ca == ca)
 			m_ca = null;
 	}
 
-	void activate() throws Exception {
+	public void activate() throws Exception {
 		c_logger.info("Starting TcpAcceptor...");
 
 		m_selector = Selector.open();
@@ -140,7 +140,7 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable, IVisitor<TcpSe
 		c_logger.info("TcpAcceptor started");
 	}
 
-	void deactivate() {
+	public void deactivate() {
 		c_logger.info("Stopping TcpAcceptor...");
 
 		m_thread.interrupt();

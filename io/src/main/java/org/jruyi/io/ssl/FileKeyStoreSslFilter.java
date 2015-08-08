@@ -30,7 +30,7 @@ public final class FileKeyStoreSslFilter extends AbstractSslFilter {
 	private final FileKeyStore m_fks = new FileKeyStore();
 
 	@Override
-	public void modified(Map<String, ?> properties) throws Exception {
+	protected void modified(Map<String, ?> properties) throws Exception {
 		m_fks.modified(properties);
 		super.modified(properties);
 	}

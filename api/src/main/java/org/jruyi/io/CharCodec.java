@@ -37,14 +37,14 @@ public final class CharCodec {
 		 * 
 		 * @return a big-endian char codec
 		 */
-		public ICharCodec bigEndianCharCodec();
+		ICharCodec bigEndianCharCodec();
 
 		/**
 		 * Returns a little-endian char codec.
 		 * 
 		 * @return a little-endian codec
 		 */
-		public ICharCodec littleEndianCharCodec();
+		ICharCodec littleEndianCharCodec();
 	}
 
 	/**

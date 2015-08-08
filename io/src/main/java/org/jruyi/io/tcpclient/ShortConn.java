@@ -151,19 +151,19 @@ public final class ShortConn<I, O> extends AbstractTcpClient<I, O> {
 
 	@Reference(name = "buffer", policy = ReferencePolicy.DYNAMIC)
 	@Override
-	protected void setBufferFactory(IBufferFactory bf) {
+	public void setBufferFactory(IBufferFactory bf) {
 		super.setBufferFactory(bf);
 	}
 
 	@Reference(name = "channelAdmin")
 	@Override
-	protected void setChannelAdmin(IChannelAdmin cm) {
+	public void setChannelAdmin(IChannelAdmin cm) {
 		super.setChannelAdmin(cm);
 	}
 
 	@Reference(name = "filterManager")
 	@Override
-	protected void setFilterManager(IFilterManager fm) {
+	public void setFilterManager(IFilterManager fm) {
 		super.setFilterManager(fm);
 	}
 

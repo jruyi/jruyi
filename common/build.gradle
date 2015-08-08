@@ -26,11 +26,15 @@ ext {
 dependencies {
 	compile "org.osgi:org.osgi.core:$org_osgi_core_version"
 	compile "org.osgi:org.osgi.compendium:$org_osgi_compendium_version"
-	compile "org.slf4j:slf4j-api:$slf4j_api_version"
+	compile "org.slf4j:slf4j-api:$slf4j_version"
 
 	compile "org.jruyi:jruyi-api:2.0.0"
 
+	testCompile "org.codehaus.groovy:groovy-all:$groovy_version"
 	testCompile "org.spockframework:spock-core:$spock_core_version"
+	testCompile "cglib:cglib-nodep:$cglib_nodep_version"
+	testCompile "org.objenesis:objenesis:$objenesis_version"
+	testCompile "junit:junit:$junit_version"
 }
 
 jar {

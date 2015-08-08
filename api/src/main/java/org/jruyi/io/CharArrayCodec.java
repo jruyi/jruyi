@@ -35,8 +35,8 @@ public final class CharArrayCodec {
 
 	/**
 	 * This interface defines all the methods that a char array codec provider
-	 * has to implement. It is used to separate the implementation provider from
-	 * the API module.
+	 * has to implement. It is used to separate the implementation of the
+	 * provider from the API module.
 	 */
 	public interface ICharArrayCodecProvider {
 
@@ -45,42 +45,42 @@ public final class CharArrayCodec {
 		 *
 		 * @return a utf-8 char array codec
 		 */
-		public ICodec<char[]> utf_8();
+		ICodec<char[]> utf_8();
 
 		/**
 		 * Returns a utf-16 char array codec.
 		 *
 		 * @return a utf-16 char array codec
 		 */
-		public ICodec<char[]> utf_16();
+		ICodec<char[]> utf_16();
 
 		/**
 		 * Returns a utf-16le char array codec.
 		 *
 		 * @return a utf-16le char array codec
 		 */
-		public ICodec<char[]> utf_16le();
+		ICodec<char[]> utf_16le();
 
 		/**
 		 * Returns a utf-16be char array codec.
 		 *
 		 * @return a utf-16be char array codec
 		 */
-		public ICodec<char[]> utf_16be();
+		ICodec<char[]> utf_16be();
 
 		/**
 		 * Returns an iso-8859-1 char array codec.
 		 *
 		 * @return an iso-8859-1 char array codec
 		 */
-		public ICodec<char[]> iso_8859_1();
+		ICodec<char[]> iso_8859_1();
 
 		/**
 		 * Returns a us-ascii char array codec.
 		 *
 		 * @return a us-ascii char array codec
 		 */
-		public ICodec<char[]> us_ascii();
+		ICodec<char[]> us_ascii();
 
 		/**
 		 * Returns a codec to encode/decode char array in the specified charset.
@@ -89,7 +89,7 @@ public final class CharArrayCodec {
 		 *            the charset to encode/decode
 		 * @return a codec to encode/decode char array in the specified charset
 		 */
-		public ICodec<char[]> charset(String charsetName);
+		ICodec<char[]> charset(String charsetName);
 	}
 
 	private CharArrayCodec() {

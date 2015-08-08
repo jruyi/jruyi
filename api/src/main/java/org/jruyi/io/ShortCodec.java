@@ -37,14 +37,14 @@ public final class ShortCodec {
 		 * 
 		 * @return a big-endian short codec
 		 */
-		public IShortCodec bigEndianShortCodec();
+		IShortCodec bigEndianShortCodec();
 
 		/**
 		 * Returns a little-endian short codec.
 		 * 
 		 * @return a little-endian short codec
 		 */
-		public IShortCodec littleEndianShortCodec();
+		IShortCodec littleEndianShortCodec();
 
 		/**
 		 * Returns a varint short codec.
@@ -52,7 +52,7 @@ public final class ShortCodec {
 		 * @return a varint short codec
 		 * @since 1.2
 		 */
-		public IShortCodec varintShortCodec();
+		IShortCodec varintShortCodec();
 	}
 
 	/**

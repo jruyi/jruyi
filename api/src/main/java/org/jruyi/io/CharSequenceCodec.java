@@ -46,42 +46,42 @@ public final class CharSequenceCodec {
 		 *
 		 * @return a utf-8 char sequence codec
 		 */
-		public ICodec<CharSequence> utf_8();
+		ICodec<CharSequence> utf_8();
 
 		/**
 		 * Returns a utf-16 char sequence codec.
 		 *
 		 * @return a utf-16 char sequence codec
 		 */
-		public ICodec<CharSequence> utf_16();
+		ICodec<CharSequence> utf_16();
 
 		/**
 		 * Returns a utf-16le char sequence codec.
 		 *
 		 * @return a utf-16le char sequence codec
 		 */
-		public ICodec<CharSequence> utf_16le();
+		ICodec<CharSequence> utf_16le();
 
 		/**
 		 * Returns a utf-16be char sequence codec.
 		 *
 		 * @return a utf-16be char sequence codec
 		 */
-		public ICodec<CharSequence> utf_16be();
+		ICodec<CharSequence> utf_16be();
 
 		/**
 		 * Returns an iso-8859-1 char sequence codec.
 		 *
 		 * @return an iso-8859-1 char sequence codec
 		 */
-		public ICodec<CharSequence> iso_8859_1();
+		ICodec<CharSequence> iso_8859_1();
 
 		/**
 		 * Returns a us-ascii char sequence codec.
 		 *
 		 * @return a us-ascii char sequence codec
 		 */
-		public ICodec<CharSequence> us_ascii();
+		ICodec<CharSequence> us_ascii();
 
 		/**
 		 * Returns a codec to encode/decode char sequence in the specified
@@ -92,7 +92,7 @@ public final class CharSequenceCodec {
 		 * @return a codec to encode/decode char sequence in the specified
 		 *         charset
 		 */
-		public ICodec<CharSequence> charset(String charsetName);
+		ICodec<CharSequence> charset(String charsetName);
 	}
 
 	private CharSequenceCodec() {

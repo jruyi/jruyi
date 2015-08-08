@@ -41,7 +41,8 @@ import org.slf4j.LoggerFactory;
 factory = "tcpclient.mux", //
 service = { IService.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class TcpClientMux<I extends IIdentifiable<?>, O extends IIdentifiable<?>> extends AbstractTcpClient<I, O> {
+public final class TcpClientMux<I extends IIdentifiable<?>, O extends IIdentifiable<?>>
+		extends AbstractTcpClient<I, O> {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(TcpClientMux.class);
 
@@ -190,33 +191,33 @@ public final class TcpClientMux<I extends IIdentifiable<?>, O extends IIdentifia
 
 	@Reference(name = "buffer", policy = ReferencePolicy.DYNAMIC)
 	@Override
-	protected void setBufferFactory(IBufferFactory bf) {
+	public void setBufferFactory(IBufferFactory bf) {
 		super.setBufferFactory(bf);
 	}
 
 	@Reference(name = "channelAdmin")
 	@Override
-	protected void setChannelAdmin(IChannelAdmin cm) {
+	public void setChannelAdmin(IChannelAdmin cm) {
 		super.setChannelAdmin(cm);
 	}
 
 	@Reference(name = "filterManager")
 	@Override
-	protected void setFilterManager(IFilterManager fm) {
+	public void setFilterManager(IFilterManager fm) {
 		super.setFilterManager(fm);
 	}
 
 	@Reference(name = "timeoutAdmin")
-	protected void setTimeoutAdmin(ITimeoutAdmin ta) {
+	public void setTimeoutAdmin(ITimeoutAdmin ta) {
 		m_ta = ta;
 	}
 
-	protected void unsetTimeoutAdmin(ITimeoutAdmin ta) {
+	public void unsetTimeoutAdmin(ITimeoutAdmin ta) {
 		m_ta = null;
 	}
 
 	@Override
-	protected void activate(Map<String, ?> properties) throws Exception {
+	public void activate(Map<String, ?> properties) throws Exception {
 		super.activate(properties);
 		final int n = configuration().initialCapacityOfChannelMap();
 		int initialCapacity = n << 5;
@@ -226,7 +227,7 @@ public final class TcpClientMux<I extends IIdentifiable<?>, O extends IIdentifia
 	}
 
 	@Override
-	protected void deactivate() {
+	public void deactivate() {
 		super.deactivate();
 		final Collection<ITimeoutNotifier> notifiers = m_notifiers.values();
 		m_notifiers = null;

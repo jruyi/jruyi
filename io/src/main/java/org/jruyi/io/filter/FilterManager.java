@@ -27,14 +27,14 @@ configurationPolicy = ConfigurationPolicy.IGNORE, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class FilterManager implements IFilterManager {
 
-	private static final IFilter<?, ?>[] EMPTY = new IFilter[0];
+	private static final IFilterList EMPTY = new FilterList();
 
 	@SuppressWarnings("rawtypes")
 	private IServiceHolderManager<IFilter> m_manager;
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
-	public IFilter<?, ?>[] getFilters(String[] filterIds) {
+	public IFilterList getFilters(String[] filterIds) {
 		int n = filterIds.length;
 		if (n < 1)
 			return EMPTY;
@@ -44,7 +44,7 @@ public final class FilterManager implements IFilterManager {
 		for (int i = 0; i < n; ++i)
 			filters[i] = new FilterDelegator(manager.getServiceHolder(filterIds[i]));
 
-		return filters;
+		return new FilterList(filters);
 	}
 
 	@Override

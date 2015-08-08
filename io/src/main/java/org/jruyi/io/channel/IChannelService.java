@@ -15,7 +15,7 @@
 package org.jruyi.io.channel;
 
 import org.jruyi.io.IBufferFactory;
-import org.jruyi.io.IFilter;
+import org.jruyi.io.filter.IFilterList;
 
 public interface IChannelService<I, O> {
 
@@ -27,7 +27,7 @@ public interface IChannelService<I, O> {
 
 	long throttle();
 
-	IFilter<?, ?>[] getFilterChain();
+	IFilterList getFilterChain();
 
 	void onChannelOpened(IChannel channel);
 

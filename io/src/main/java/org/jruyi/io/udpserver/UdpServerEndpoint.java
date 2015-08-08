@@ -81,7 +81,7 @@ public final class UdpServerEndpoint extends SessionListener<Object, Object> imp
 	@Override
 	public void onMessage(IMessage message) {
 		try {
-			Object msg = message.detach();
+			final Object msg = message.detach();
 			ISession session = (ISession) message.withdraw(this);
 			m_ss.write(session, msg);
 		} finally {

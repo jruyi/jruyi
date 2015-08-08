@@ -64,9 +64,9 @@ public final class TcpChannel extends Channel {
 
 	@Override
 	protected void onAccepted() throws Exception {
-		Socket socket = m_socketChannel.socket();
+		final Socket socket = m_socketChannel.socket();
 
-		TcpChannelConf conf = (TcpChannelConf) channelService().getConfiguration();
+		final TcpChannelConf conf = (TcpChannelConf) channelService().getConfiguration();
 
 		// IP_TOS
 		Integer integer = conf.trafficClass();
@@ -136,17 +136,17 @@ public final class TcpChannel extends Channel {
 
 	@Override
 	protected boolean connect() throws Exception {
-		SocketChannel socketChannel = SocketChannel.open();
+		final SocketChannel socketChannel = SocketChannel.open();
 		m_socketChannel = socketChannel;
 
-		Socket socket = socketChannel.socket();
+		final Socket socket = socketChannel.socket();
 
-		TcpChannelConf conf = (TcpChannelConf) channelService().getConfiguration();
+		final TcpChannelConf conf = (TcpChannelConf) channelService().getConfiguration();
 
 		if (conf.reuseAddr())
 			socket.setReuseAddress(true);
 
-		Integer[] performancePreferences = conf.performancePreferences();
+		final int[] performancePreferences = conf.performancePreferences();
 		if (performancePreferences != null) {
 			int n = performancePreferences.length;
 			int connectionTime = 0;
@@ -181,7 +181,7 @@ public final class TcpChannel extends Channel {
 
 	@Override
 	protected void onClose() throws Exception {
-		SocketChannel socketChannel = m_socketChannel;
+		final SocketChannel socketChannel = m_socketChannel;
 		if (socketChannel != null)
 			socketChannel.close();
 	}

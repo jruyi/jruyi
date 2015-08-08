@@ -28,12 +28,16 @@ dependencies {
 	compile "org.osgi:org.osgi.core:$org_osgi_core_version"
 	compile "org.osgi:org.osgi.compendium:$org_osgi_compendium_version"
 	compile "org.apache.felix:org.apache.felix.gogo.runtime:$org_apache_felix_gogo_runtime_version"
-	compile "org.slf4j:slf4j-api:$slf4j_api_version"
+	compile "org.slf4j:slf4j-api:$slf4j_version"
 
 	compile project(':api')
 
+	testCompile "org.codehaus.groovy:groovy-all:$groovy_version"
 	testCompile "org.spockframework:spock-core:$spock_core_version"
-	testCompile "org.slf4j:slf4j-simple:$slf4j_simple_version"
+	testCompile "org.slf4j:slf4j-simple:$slf4j_version"
+	testCompile "org.objenesis:objenesis:$objenesis_version"
+	testCompile "cglib:cglib-nodep:$cglib_nodep_version"
+	testCompile "junit:junit:$junit_version"
 
 	testCompile project(':common')
 }

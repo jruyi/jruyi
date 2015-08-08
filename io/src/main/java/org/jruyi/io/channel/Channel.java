@@ -653,7 +653,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			if (msg == null)
 				return;
 
-			final IFilter<?, ?>[] filters = channelService().getFilterChain();
+			final IFilter<?, ?>[] filters = channelService().getFilterChain().filters();
 			m_ioWorker.perform(m_writeThread, msg, filters, filters.length);
 		} catch (Throwable t) {
 			onException(t);
@@ -926,7 +926,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 		MsgArrayList inMsgs = MsgArrayList.get();
 		MsgArrayList outMsgs = MsgArrayList.get();
 		final IChannelService<Object, Object> cs = m_channelService;
-		final IFilter<?, ?>[] filters = cs.getFilterChain();
+		final IFilter<?, ?>[] filters = cs.getFilterChain().filters();
 		try {
 			for (int k = 0, m = filters.length; k < m; ++k) {
 				if (in instanceof IBuffer) {
@@ -970,7 +970,8 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 	}
 
 	@SuppressWarnings("resource")
-	private boolean onAccumulate(int k, IFilter<?, ?>[] filters, MsgArrayList inMsgs, MsgArrayList outMsgs, IBuffer in) {
+	private boolean onAccumulate(int k, IFilter<?, ?>[] filters, MsgArrayList inMsgs, MsgArrayList outMsgs,
+			IBuffer in) {
 		final IFilter<?, ?> filter = filters[k];
 		// mergeContext -start
 		int msgLen = 0;

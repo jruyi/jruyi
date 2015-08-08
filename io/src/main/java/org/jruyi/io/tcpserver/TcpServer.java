@@ -14,11 +14,7 @@
 
 package org.jruyi.io.tcpserver;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.SocketAddress;
-import java.net.SocketException;
+import java.net.*;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.ServerSocketChannel;
 import java.util.Arrays;
@@ -32,15 +28,11 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import org.jruyi.common.IService;
 import org.jruyi.common.Service;
 import org.jruyi.common.StrUtil;
-import org.jruyi.io.IBufferFactory;
-import org.jruyi.io.IFilter;
-import org.jruyi.io.ISession;
-import org.jruyi.io.ISessionListener;
-import org.jruyi.io.ISessionService;
-import org.jruyi.io.IoConstants;
+import org.jruyi.io.*;
 import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.channel.IChannelService;
+import org.jruyi.io.filter.IFilterList;
 import org.jruyi.io.filter.IFilterManager;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -65,7 +57,7 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 	private IFilterManager m_fm;
 	private ITcpAcceptor m_acceptor;
 
-	private IFilter<?, ?>[] m_filters;
+	private IFilterList m_filters;
 	private boolean m_closed;
 	private ISessionListener<I, O> m_listener;
 	private ConcurrentHashMap<Object, IChannel> m_channels;
@@ -77,7 +69,7 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 	}
 
 	@Override
-	public Object getConfiguration() {
+	public Configuration getConfiguration() {
 		return m_conf;
 	}
 
@@ -97,7 +89,7 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 	}
 
 	@Override
-	public IFilter<?, ?>[] getFilterChain() {
+	public IFilterList getFilterChain() {
 		return m_filters;
 	}
 
@@ -344,43 +336,43 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 	}
 
 	@Reference(name = "buffer", policy = ReferencePolicy.DYNAMIC)
-	protected synchronized void setBufferFactory(IBufferFactory bf) {
+	public synchronized void setBufferFactory(IBufferFactory bf) {
 		m_bf = bf;
 	}
 
-	protected synchronized void unsetBufferFactory(IBufferFactory bf) {
+	public synchronized void unsetBufferFactory(IBufferFactory bf) {
 		if (m_bf == bf)
 			m_bf = null;
 	}
 
 	@Reference(name = "channelAdmin")
-	protected void setChannelAdmin(IChannelAdmin ca) {
+	public void setChannelAdmin(IChannelAdmin ca) {
 		m_ca = ca;
 	}
 
-	protected void unsetChannelAdmin(IChannelAdmin ca) {
+	public void unsetChannelAdmin(IChannelAdmin ca) {
 		m_ca = null;
 	}
 
 	@Reference(name = "filterManager")
-	protected void setFilterManager(IFilterManager fm) {
+	public void setFilterManager(IFilterManager fm) {
 		m_fm = fm;
 	}
 
-	protected void unsetFilterManager(IFilterManager fm) {
+	public void unsetFilterManager(IFilterManager fm) {
 		m_fm = null;
 	}
 
 	@Reference(name = "tcpAcceptor")
-	protected void setTcpAcceptor(ITcpAcceptor acceptor) {
+	public void setTcpAcceptor(ITcpAcceptor acceptor) {
 		m_acceptor = acceptor;
 	}
 
-	protected void unsetTcpAcceptor(ITcpAcceptor acceptor) {
+	public void unsetTcpAcceptor(ITcpAcceptor acceptor) {
 		m_acceptor = null;
 	}
 
-	protected void activate(Map<String, ?> properties) throws Exception {
+	public void activate(Map<String, ?> properties) throws Exception {
 		String id = (String) properties.get(IoConstants.SERVICE_ID);
 		m_caption = StrUtil.join("TcpServer[", id, "]");
 
@@ -389,7 +381,7 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 		updateConf(conf);
 	}
 
-	protected void deactivate() {
+	public void deactivate() {
 		stop();
 
 		closeChannels();
@@ -444,7 +436,7 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 	}
 
 	private static void initSocket(ServerSocket socket, Configuration conf) throws SocketException {
-		final Integer[] performancePreferences = conf.performancePreferences();
+		final int[] performancePreferences = conf.performancePreferences();
 		if (performancePreferences != null) {
 			int n = performancePreferences.length;
 			int connectionTime = 0;

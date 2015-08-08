@@ -23,7 +23,7 @@ ext {
 dependencies {
 	compile "org.osgi:org.osgi.core:$org_osgi_core_version"
 	compile "commons-cli:commons-cli:$commons_cli_version"
-	compile "org.apache.logging.log4j:log4j-core:$log4j_core_version"
+	compile "org.apache.logging.log4j:log4j-core:$log4j_version"
 
 	compile "org.jruyi:jruyi-api:2.0.0"
 }

@@ -33,6 +33,8 @@ processResources {
 			org_jruyi_me_version          : parsePackageVersion(org_jruyi_me_version),
 			org_jruyi_timeoutadmin_version: parsePackageVersion(org_jruyi_timeoutadmin_version),
 			org_jruyi_tpe_version         : parsePackageVersion(org_jruyi_tpe_version),
+
+			org_jruyi_core_version        : parsePackageVersion(jruyi_core_version),
 	])
 }
 

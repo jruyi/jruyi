@@ -37,14 +37,14 @@ public final class LongCodec {
 		 * 
 		 * @return a big-endian long codec
 		 */
-		public ILongCodec bigEndian();
+		ILongCodec bigEndian();
 
 		/**
 		 * Returns a little-endian long codec.
 		 * 
 		 * @return a little-endian long codec
 		 */
-		public ILongCodec littleEndian();
+		ILongCodec littleEndian();
 
 		/**
 		 * Returns a varint long codec.
@@ -52,7 +52,7 @@ public final class LongCodec {
 		 * @return a varint long codec.
 		 * @since 1.2
 		 */
-		public ILongCodec varint();
+		ILongCodec varint();
 	}
 
 	private LongCodec() {
