@@ -15,6 +15,7 @@ package org.jruyi.timeoutadmin.internal;
 
 import java.util.Map;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.jruyi.common.BiListNode;
 import org.jruyi.common.IDumpable;
@@ -82,6 +83,7 @@ public final class TimeoutAdmin implements ITimeoutAdmin, IDumpable {
 
 	final class TimeWheel implements Runnable {
 
+		private final ReentrantLock[] m_locks;
 		private final BiListNode<TimeoutEvent>[] m_wheel;
 		private final int m_capacityMask;
 
@@ -90,16 +92,20 @@ public final class TimeoutAdmin implements ITimeoutAdmin, IDumpable {
 		private int m_hand;
 
 		public TimeWheel(int capacity) {
+			final ReentrantLock[] locks = new ReentrantLock[capacity];
 			// one more as a tail node for conveniently iterating the timeout
 			// sublist
 			@SuppressWarnings("unchecked")
 			final BiListNode<TimeoutEvent>[] wheel = (BiListNode<TimeoutEvent>[]) new BiListNode<?>[capacity + 1];
 			final LinkedList<TimeoutEvent> list = m_list;
-			for (int i = 0; i < capacity; ++i)
+			for (int i = 0; i < capacity; ++i) {
+				locks[i] = new ReentrantLock();
 				// create sentinel nodes
 				wheel[i] = list.addLast(null);
+			}
 			wheel[capacity] = list.addLast(null);
 
+			m_locks = locks;
 			m_wheel = wheel;
 			m_capacityMask = capacity - 1;
 		}
@@ -132,21 +138,21 @@ public final class TimeoutAdmin implements ITimeoutAdmin, IDumpable {
 		void schedule(TimeoutNotifier notifier, TimeoutEvent event, int offset) {
 			final int n = getEffectiveIndex(m_hand + offset);
 			event.setTimeWheelAndIndex(this, n);
-			notifier.setNode(m_list.syncInsertAfter(m_wheel[n], event, getLock(n)));
+			notifier.setNode(m_list.syncInsertAfter(m_wheel[n], event, lock(n)));
 		}
 
-		void reschedule(TimeoutNotifier notifier, int offset, Object srcLock) {
+		void reschedule(TimeoutNotifier notifier, int offset, final ReentrantLock srcLock) {
 			final BiListNode<TimeoutEvent> node = notifier.getNode();
 			final TimeoutEvent event = node.get();
 			final int n = getEffectiveIndex(m_hand + offset);
 			event.setTimeWheelAndIndex(this, n);
 
-			final Object dstLock = getLock(n);
+			final ReentrantLock dstLock = lock(n);
 			m_list.syncMoveAfter(m_wheel[n], node, srcLock, dstLock);
 		}
 
-		Object getLock(int index) {
-			return m_wheel[index];
+		ReentrantLock lock(int index) {
+			return m_locks[index];
 		}
 
 		private int getEffectiveIndex(int index) {
@@ -277,7 +283,7 @@ public final class TimeoutAdmin implements ITimeoutAdmin, IDumpable {
 
 	void reschedule(TimeoutNotifier notifier, int timeout) {
 		final TimeoutEvent event = notifier.getNode().get();
-		final Object srcLock = event.getTimeWheel().getLock(event.getIndex());
+		final ReentrantLock srcLock = event.getTimeWheel().lock(event.getIndex());
 		if (timeout < UNIT_TW2 * 2)
 			m_tw1.reschedule(notifier, timeout, srcLock);
 		else {
@@ -292,7 +298,7 @@ public final class TimeoutAdmin implements ITimeoutAdmin, IDumpable {
 		final BiListNode<TimeoutEvent> node = notifier.getNode();
 		notifier.clearNode();
 		final TimeoutEvent event = node.get();
-		final Object lock = event.getTimeWheel().getLock(event.getIndex());
+		final ReentrantLock lock = event.getTimeWheel().lock(event.getIndex());
 		m_list.syncRemove(node, lock);
 
 		// release the timeout event
@@ -303,7 +309,7 @@ public final class TimeoutAdmin implements ITimeoutAdmin, IDumpable {
 		final BiListNode<TimeoutEvent> node = notifier.getNode();
 		notifier.clearNode();
 		final TimeoutEvent event = node.get();
-		final Object lock = event.getTimeWheel().getLock(event.getIndex());
+		final ReentrantLock lock = event.getTimeWheel().lock(event.getIndex());
 		m_list.syncRemove(node, lock);
 
 		final Executor executor = notifier.getExecutor();
