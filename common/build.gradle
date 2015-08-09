@@ -28,7 +28,7 @@ dependencies {
 	compile "org.osgi:org.osgi.compendium:$org_osgi_compendium_version"
 	compile "org.slf4j:slf4j-api:$slf4j_version"
 
-	compile "org.jruyi:jruyi-api:2.0.0"
+	compile project(":api")
 
 	testCompile "org.codehaus.groovy:groovy-all:$groovy_version"
 	testCompile "org.spockframework:spock-core:$spock_core_version"

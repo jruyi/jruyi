@@ -14,11 +14,7 @@
 
 package org.jruyi.launcher;
 
-import static org.jruyi.system.Constants.JRUYI_HOME_DIR;
-import static org.jruyi.system.Constants.JRUYI_INST_CONF_URL;
-import static org.jruyi.system.Constants.JRUYI_INST_NAME;
-import static org.jruyi.system.Constants.JRUYI_VENDOR;
-import static org.jruyi.system.Constants.JRUYI_VERSION;
+import static org.jruyi.system.Constants.*;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -40,6 +36,7 @@ public final class Main {
 
 	private static final String RUYI_PROPERTY = "property";
 	private static final String LOG4J_CONF = "log4j.configurationFile";
+	private static final String LOG4J_DISABLE_JMX = "log4j2.disable.jmx";
 	private Object m_ruyi;
 
 	static final class MainHolder {
@@ -129,9 +126,12 @@ public final class Main {
 				JRUYI_INST_CONF_URL);
 
 		System.setProperty(ShutdownCallbackRegistry.SHUTDOWN_CALLBACK_REGISTRY, Log4jCallback.class.getName());
-		final String confFile = System.getProperty(LOG4J_CONF);
-		if (confFile == null || confFile.trim().isEmpty())
+		final String log4jConf = System.getProperty(LOG4J_CONF);
+		if (log4jConf == null || log4jConf.trim().isEmpty())
 			System.setProperty(LOG4J_CONF, instConfUrl + "log4j2.xml");
+		final String log4jDisableJmx = System.getProperty(LOG4J_DISABLE_JMX);
+		if (log4jDisableJmx == null || log4jDisableJmx.trim().isEmpty())
+			System.setProperty(LOG4J_DISABLE_JMX, "true");
 
 		m_ruyi = ruyi;
 	}

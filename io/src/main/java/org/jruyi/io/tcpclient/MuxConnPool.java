@@ -124,7 +124,7 @@ public final class MuxConnPool<I extends IIdentifiable<?>, O extends IIdentifiab
 
 	@Reference(name = "buffer", policy = ReferencePolicy.DYNAMIC)
 	@Override
-	public synchronized void setBufferFactory(IBufferFactory bf) {
+	public void setBufferFactory(IBufferFactory bf) {
 		super.setBufferFactory(bf);
 	}
 
