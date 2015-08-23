@@ -67,8 +67,9 @@ allprojects {
 		objenesis_version = '2.1'
 		spock_core_version = '1.0-groovy-2.4'
 
-		jruyi_core_version = rootProject.version
 		jruyi_system_version = rootProject.version
+
+		jruyi_core_version = '2.2.0-SNAPSHOT'
 
 		jruyi_api_version = '2.2.0-SNAPSHOT'
 		jruyi_cli_version = '2.0.1-SNAPSHOT'
