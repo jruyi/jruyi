@@ -29,9 +29,9 @@ configurations {
 }
 
 dependencies {
-	compile "org.osgi:org.osgi.compendium:$org_osgi_compendium_version"
-	compile "org.slf4j:slf4j-api:$slf4j_version"
-	compile "com.lmax:disruptor:$disruptor_version"
+	compile "org.osgi:org.osgi.compendium:4.3.1"
+	compile "org.slf4j:slf4j-api:1.7.12"
+	compile "com.lmax:disruptor:3.3.2"
 
 	compile project(':api')
 	compile project(':common')

@@ -23,7 +23,7 @@ ext {
 }
 
 dependencies {
-	compile "org.osgi:org.osgi.core:$org_osgi_core_version"
+	compile "org.osgi:org.osgi.core:4.3.1"
 	compile "org.slf4j:slf4j-api:$slf4j_version"
 
 	compile project(':api')

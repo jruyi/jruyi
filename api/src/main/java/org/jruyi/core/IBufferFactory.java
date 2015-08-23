@@ -35,7 +35,7 @@ public interface IBufferFactory extends org.jruyi.io.IBufferFactory {
 		 *            the capacity to configure
 		 * @return this object
 		 * @throws IllegalArgumentException
-		 *             if {@code unitCapacity} < 8
+		 *             if {@code unitCapacity < 8}
 		 */
 		IConfiguration unitCapacity(int unitCapacity);
 

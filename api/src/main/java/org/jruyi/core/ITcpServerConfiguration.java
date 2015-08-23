@@ -133,6 +133,7 @@ public interface ITcpServerConfiguration {
 	 * option SO_LINGER. behavior.
 	 *
 	 * @param soLinger
+	 *            the seconds to linger for
 	 * @return this configuration
 	 * @throws IllegalArgumentException
 	 *             if the specified {@code soLinger} is negative

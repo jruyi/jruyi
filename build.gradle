@@ -50,17 +50,14 @@ allprojects {
 	}
 
 	ext {
-		org_osgi_core_version = '5.0.0'
-		org_osgi_compendium_version = '5.0.0'
 		commons_cli_version = '1.3'
 		disruptor_version = '3.3.2'
-		jline_version = '2.12.1'
+		jline_version = '2.13'
 		log4j_version = '2.3'
-		org_apache_felix_bundlerepository_version = '2.0.4'
-		org_apache_felix_configadmin_version = '1.8.6'
+		org_apache_felix_configadmin_version = '1.8.8'
 		org_apache_felix_framework_version = '5.0.1'
 		org_apache_felix_gogo_runtime_version = '0.16.2'
-		org_apache_felix_metatype_version = '1.0.12'
+		org_apache_felix_metatype_version = '1.1.2'
 		org_apache_felix_scr_version = '1.8.2'
 		slf4j_version = '1.7.12'
 
@@ -80,15 +77,14 @@ allprojects {
 		org_jruyi_cmd_version = '2.0.2-SNAPSHOT'
 		org_jruyi_common_version = '2.2.0-SNAPSHOT'
 		org_jruyi_io_version = '2.2.0-SNAPSHOT'
-		org_jruyi_me_version = '2.0.0'
-		org_jruyi_osgi_log_version = '2.0.0'
+		org_jruyi_me_version = '2.0.1-SNAPSHOT'
+		org_jruyi_osgi_log_version = '2.0.1-SNAPSHOT'
 		org_jruyi_timeoutadmin_version = '2.0.1-SNAPSHOT'
-		org_jruyi_tpe_version = '2.0.0'
+		org_jruyi_tpe_version = '2.0.1-SNAPSHOT'
 	}
 
 	repositories {
 		jcenter()
-		mavenCentral()
 	}
 
 	configurations.all {

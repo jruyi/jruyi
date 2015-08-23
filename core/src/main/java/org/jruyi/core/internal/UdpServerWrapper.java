@@ -114,22 +114,24 @@ final class UdpServerWrapper<I, O> implements IUdpServerConfiguration, INioServi
 	}
 
 	@Override
-	public void bufferFactory(IBufferFactory bufferFactory) {
+	public UdpServerWrapper<I, O> bufferFactory(IBufferFactory bufferFactory) {
 		if (bufferFactory == null)
 			throw new NullPointerException("bufferFactory cannot be null");
 		m_bf = bufferFactory;
 		m_udpServer.setBufferFactory(bufferFactory instanceof BufferFactoryWrapper
 				? ((BufferFactoryWrapper) bufferFactory).unwrap() : bufferFactory);
+		return this;
 	}
 
 	@Override
-	public IFilterChain getFilterChain() {
+	public IFilterChain filterChain() {
 		return m_filterChain;
 	}
 
 	@Override
-	public void setSessionListener(ISessionListener<I, O> listener) {
+	public UdpServerWrapper<I, O> sessionListener(ISessionListener<I, O> listener) {
 		m_udpServer.setSessionListener(listener);
+		return this;
 	}
 
 	@Override

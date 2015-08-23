@@ -23,10 +23,10 @@ ext {
 }
 
 dependencies {
-	compile "org.osgi:org.osgi.core:$org_osgi_core_version"
-	compile "org.osgi:org.osgi.compendium:$org_osgi_compendium_version"
-	compile "org.apache.felix:org.apache.felix.gogo.runtime:$org_apache_felix_gogo_runtime_version"
-	compile "org.slf4j:slf4j-api:$slf4j_version"
+	compile "org.osgi:org.osgi.core:4.3.1"
+	compile "org.osgi:org.osgi.compendium:4.3.1"
+	compile "org.apache.felix:org.apache.felix.gogo.runtime:0.16.2"
+	compile "org.slf4j:slf4j-api:1.7.12"
 
 	compile "org.jruyi:jruyi-api:2.0.0"
 }

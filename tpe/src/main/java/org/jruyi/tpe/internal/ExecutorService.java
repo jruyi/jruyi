@@ -15,12 +15,7 @@
 package org.jruyi.tpe.internal;
 
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.Executor;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import org.jruyi.common.IDumpable;
 import org.jruyi.common.StrUtil;
@@ -219,8 +214,8 @@ public final class ExecutorService implements Executor, IExecutorProfiler, IDump
 		return new RuyiThreadPoolExecutor(corePoolSize, maxPoolSize, keepAliveTime, TimeUnit.SECONDS,
 				queueCapacity < 0 ? new LinkedBlockingQueue<Runnable>()
 						: (queueCapacity > 0 ? new ArrayBlockingQueue<Runnable>(queueCapacity)
-								: new SynchronousQueue<Runnable>()), new PooledThreadFactory(),
-				new ThreadPoolExecutor.CallerRunsPolicy());
+								: new SynchronousQueue<Runnable>()),
+				new PooledThreadFactory(), new ThreadPoolExecutor.CallerRunsPolicy());
 	}
 
 	private static int getCorePoolSize(Map<String, ?> properties) {
@@ -235,15 +230,15 @@ public final class ExecutorService implements Executor, IExecutorProfiler, IDump
 		Object v = properties.get(P_MAX_POOLSIZE);
 		if (v == null) {
 			int maxPoolSize = corePoolSize << 1;
-			if (maxPoolSize < 1 || maxPoolSize >= 500)
+			if (maxPoolSize < 1)
 				maxPoolSize = corePoolSize;
 			return maxPoolSize;
 		}
 
 		int maxPoolSize = (Integer) v;
 		if (maxPoolSize < corePoolSize)
-			throw new Exception("Property[" + P_MAX_POOLSIZE + "] cannot be less than Property[" + P_CORE_POOLSIZE
-					+ "]");
+			throw new Exception(
+					"Property[" + P_MAX_POOLSIZE + "] cannot be less than Property[" + P_CORE_POOLSIZE + "]");
 
 		return maxPoolSize;
 	}

@@ -147,7 +147,7 @@ public final class RuyiCoreProvider implements RuyiCore.IRuyiCore {
 
 	@Override
 	public IFileKeyStoreBuilder newFileKeyStoreBuilder() {
-		return null;
+		return new FileKeyStoreBuilder();
 	}
 
 	@Override

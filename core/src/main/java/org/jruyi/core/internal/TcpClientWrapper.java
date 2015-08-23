@@ -58,22 +58,24 @@ final class TcpClientWrapper<I, O> extends TcpClientConfiguration
 	}
 
 	@Override
-	public void bufferFactory(IBufferFactory bufferFactory) {
+	public TcpClientWrapper<I, O> bufferFactory(IBufferFactory bufferFactory) {
 		if (bufferFactory == null)
 			throw new NullPointerException("bufferFactory cannot be null");
 		m_bf = bufferFactory;
 		m_tcpClient.setBufferFactory(bufferFactory instanceof BufferFactoryWrapper
 				? ((BufferFactoryWrapper) bufferFactory).unwrap() : bufferFactory);
+		return this;
 	}
 
 	@Override
-	public FilterChain getFilterChain() {
+	public FilterChain filterChain() {
 		return m_filterChain;
 	}
 
 	@Override
-	public void setSessionListener(ISessionListener<I, O> listener) {
+	public TcpClientWrapper<I, O> sessionListener(ISessionListener<I, O> listener) {
 		m_tcpClient.setSessionListener(listener);
+		return this;
 	}
 
 	@Override

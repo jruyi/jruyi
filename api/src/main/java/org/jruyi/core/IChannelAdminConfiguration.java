@@ -28,7 +28,7 @@ public interface IChannelAdminConfiguration {
 	 *            the number of selector threads to configure
 	 * @return this object
 	 * @throws IllegalArgumentException
-	 *             if {@code numberOfSelectorThreads} < 0
+	 *             if {@code numberOfSelectorThreads < 0}
 	 */
 	IChannelAdminConfiguration numberOfSelectorThreads(Integer numberOfSelectorThreads);
 
@@ -39,7 +39,7 @@ public interface IChannelAdminConfiguration {
 	 *            the number of IO threads to configure
 	 * @return this object
 	 * @throws IllegalArgumentException
-	 *             if {@code numberOfIoThreads} < 0
+	 *             if {@code numberOfIoThreads < 0}
 	 */
 	IChannelAdminConfiguration numberOfIoThreads(Integer numberOfIoThreads);
 
@@ -50,7 +50,7 @@ public interface IChannelAdminConfiguration {
 	 *            the capacity of IO ring buffer to configure
 	 * @return this object
 	 * @throws IllegalArgumentException
-	 *             if {@code capacityOfIoRingBuffer} < 1
+	 *             if {@code capacityOfIoRingBuffer < 1}
 	 */
 	IChannelAdminConfiguration capacityOfIoRingBuffer(int capacityOfIoRingBuffer);
 

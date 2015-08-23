@@ -21,7 +21,7 @@ import org.jruyi.io.ISessionListener;
  * An event based IO service using Java NIO.
  *
  * @param <I>
- *            The type of the data to be recevied
+ *            The type of the data to be received
  * @param <O>
  *            The type of the data to be sent
  * @param <C>
@@ -49,7 +49,7 @@ public interface INioService<I, O, C> {
 	 * 
 	 * @return the filter chain
 	 */
-	IFilterChain getFilterChain();
+	IFilterChain filterChain();
 
 	/**
 	 * Returns the buffer factory associated with this NIO service.
@@ -63,8 +63,9 @@ public interface INioService<I, O, C> {
 	 * 
 	 * @param bufferFactory
 	 *            the buffer factory to associate
+	 * @return this NIO service
 	 */
-	void bufferFactory(IBufferFactory bufferFactory);
+	INioService<I, O, C> bufferFactory(IBufferFactory bufferFactory);
 
 	/**
 	 * Sets the specified listener to this NIO service to handle all the IO
@@ -72,8 +73,9 @@ public interface INioService<I, O, C> {
 	 * 
 	 * @param listener
 	 *            the listener to set
+	 * @return this NIO service
 	 */
-	void setSessionListener(ISessionListener<I, O> listener);
+	INioService<I, O, C> sessionListener(ISessionListener<I, O> listener);
 
 	/**
 	 * Establishes a connection to the remote peer.
@@ -89,7 +91,7 @@ public interface INioService<I, O, C> {
 	void closeSession(ISession session);
 
 	/**
-	 * Writes the specified {@code msg} the sepcified {@code session}.
+	 * Writes the specified {@code msg} the specified {@code session}.
 	 * 
 	 * @param session
 	 *            the session to be written to
