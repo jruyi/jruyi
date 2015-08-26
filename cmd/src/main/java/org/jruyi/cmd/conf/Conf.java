@@ -79,7 +79,7 @@ public final class Conf {
 		}
 
 		try {
-			props = PropUtil.normalize(props, ocd);
+			props = PropUtil.normalize(props, ocd, null);
 		} catch (PropertyException e) {
 			System.err.println(e.getMessage());
 			return;
@@ -157,7 +157,7 @@ public final class Conf {
 					modified = true;
 			}
 			try {
-				newProps = PropUtil.normalize(newProps, ocd);
+				newProps = PropUtil.normalize(newProps, ocd, props);
 			} catch (PropertyException e) {
 				System.err.println(e.getMessage());
 				return;

@@ -39,11 +39,11 @@ public final class PropUtil {
 			}
 
 			@Override
-			public Object convertToVector(String[] strs) {
-				Vector<String> vec = new Vector<>(strs.length);
+			public Object convertToList(String[] strs) {
+				final List<String> list = new ArrayList<>(strs.length);
 				for (String str : strs)
-					vec.add(str);
-				return vec;
+					list.add(str);
+				return list;
 			}
 
 			@Override
@@ -60,8 +60,8 @@ public final class PropUtil {
 
 			@Override
 			public Object convert(String[] strs) {
-				int n = strs.length;
-				long[] longs = new long[n];
+				final int n = strs.length;
+				final long[] longs = new long[n];
 				for (int i = 0; i < n; ++i)
 					longs[i] = Long.parseLong(strs[i]);
 
@@ -69,11 +69,11 @@ public final class PropUtil {
 			}
 
 			@Override
-			public Object convertToVector(String[] strs) {
-				Vector<Long> vec = new Vector<>(strs.length);
+			public Object convertToList(String[] strs) {
+				final List<Long> list = new ArrayList<>(strs.length);
 				for (String str : strs)
-					vec.add(Long.valueOf(str));
-				return vec;
+					list.add(Long.valueOf(str));
+				return list;
 			}
 
 			@Override
@@ -90,8 +90,8 @@ public final class PropUtil {
 
 			@Override
 			public Object convert(String[] strs) {
-				int n = strs.length;
-				int[] ints = new int[n];
+				final int n = strs.length;
+				final int[] ints = new int[n];
 				for (int i = 0; i < n; ++i)
 					ints[i] = Integer.parseInt(strs[i]);
 
@@ -99,11 +99,11 @@ public final class PropUtil {
 			}
 
 			@Override
-			public Object convertToVector(String[] strs) {
-				Vector<Integer> vec = new Vector<>(strs.length);
+			public Object convertToList(String[] strs) {
+				final List<Integer> list = new ArrayList<>(strs.length);
 				for (String str : strs)
-					vec.add(Integer.valueOf(str));
-				return vec;
+					list.add(Integer.valueOf(str));
+				return list;
 			}
 
 			@Override
@@ -120,8 +120,8 @@ public final class PropUtil {
 
 			@Override
 			public Object convert(String[] strs) {
-				int n = strs.length;
-				short[] shorts = new short[n];
+				final int n = strs.length;
+				final short[] shorts = new short[n];
 				for (int i = 0; i < n; ++i)
 					shorts[i] = Short.parseShort(strs[i]);
 
@@ -129,11 +129,11 @@ public final class PropUtil {
 			}
 
 			@Override
-			public Object convertToVector(String[] strs) {
-				Vector<Short> vec = new Vector<>(strs.length);
+			public Object convertToList(String[] strs) {
+				final List<Short> list = new ArrayList<>(strs.length);
 				for (String str : strs)
-					vec.add(Short.valueOf(str));
-				return vec;
+					list.add(Short.valueOf(str));
+				return list;
 			}
 
 			@Override
@@ -150,8 +150,8 @@ public final class PropUtil {
 
 			@Override
 			public Object convert(String[] strs) {
-				int n = strs.length;
-				char[] chars = new char[n];
+				final int n = strs.length;
+				final char[] chars = new char[n];
 				for (int i = 0; i < n; ++i)
 					chars[i] = strs[i].charAt(0);
 
@@ -159,11 +159,11 @@ public final class PropUtil {
 			}
 
 			@Override
-			public Object convertToVector(String[] strs) {
-				Vector<Character> vec = new Vector<>(strs.length);
+			public Object convertToList(String[] strs) {
+				final List<Character> list = new ArrayList<>(strs.length);
 				for (String str : strs)
-					vec.add(str.charAt(0));
-				return vec;
+					list.add(str.charAt(0));
+				return list;
 			}
 
 			@Override
@@ -180,8 +180,8 @@ public final class PropUtil {
 
 			@Override
 			public Object convert(String[] strs) {
-				int n = strs.length;
-				byte[] bytes = new byte[n];
+				final int n = strs.length;
+				final byte[] bytes = new byte[n];
 				for (int i = 0; i < n; ++i)
 					bytes[i] = Byte.parseByte(strs[i]);
 
@@ -189,11 +189,11 @@ public final class PropUtil {
 			}
 
 			@Override
-			public Object convertToVector(String[] strs) {
-				Vector<Byte> vec = new Vector<>(strs.length);
+			public Object convertToList(String[] strs) {
+				final List<Byte> list = new ArrayList<>(strs.length);
 				for (String str : strs)
-					vec.add(Byte.valueOf(str));
-				return vec;
+					list.add(Byte.valueOf(str));
+				return list;
 			}
 
 			@Override
@@ -210,8 +210,8 @@ public final class PropUtil {
 
 			@Override
 			public Object convert(String[] strs) {
-				int n = strs.length;
-				double[] doubles = new double[n];
+				final int n = strs.length;
+				final double[] doubles = new double[n];
 				for (int i = 0; i < n; ++i)
 					doubles[i] = Double.parseDouble(strs[i]);
 
@@ -219,11 +219,11 @@ public final class PropUtil {
 			}
 
 			@Override
-			public Object convertToVector(String[] strs) {
-				Vector<Double> vec = new Vector<>(strs.length);
+			public Object convertToList(String[] strs) {
+				final List<Double> list = new ArrayList<>(strs.length);
 				for (String str : strs)
-					vec.add(Double.valueOf(str));
-				return vec;
+					list.add(Double.valueOf(str));
+				return list;
 			}
 
 			@Override
@@ -240,8 +240,8 @@ public final class PropUtil {
 
 			@Override
 			public Object convert(String[] strs) {
-				int n = strs.length;
-				float[] floats = new float[n];
+				final int n = strs.length;
+				final float[] floats = new float[n];
 				for (int i = 0; i < n; ++i)
 					floats[i] = Float.parseFloat(strs[i]);
 
@@ -249,11 +249,11 @@ public final class PropUtil {
 			}
 
 			@Override
-			public Object convertToVector(String[] strs) {
-				Vector<Float> vec = new Vector<>(strs.length);
+			public Object convertToList(String[] strs) {
+				final List<Float> list = new ArrayList<>(strs.length);
 				for (String str : strs)
-					vec.add(Float.valueOf(str));
-				return vec;
+					list.add(Float.valueOf(str));
+				return list;
 			}
 
 			@Override
@@ -270,8 +270,8 @@ public final class PropUtil {
 
 			@Override
 			public boolean[] convert(String[] strs) {
-				int n = strs.length;
-				boolean[] booleans = new boolean[n];
+				final int n = strs.length;
+				final boolean[] booleans = new boolean[n];
 				for (int i = 0; i < n; ++i)
 					booleans[i] = Boolean.parseBoolean(strs[i]);
 
@@ -279,11 +279,11 @@ public final class PropUtil {
 			}
 
 			@Override
-			public Object convertToVector(String[] strs) {
-				Vector<Boolean> vec = new Vector<>(strs.length);
+			public Object convertToList(String[] strs) {
+				final List<Boolean> list = new ArrayList<>(strs.length);
 				for (String str : strs)
-					vec.add(Boolean.valueOf(str));
-				return vec;
+					list.add(Boolean.valueOf(str));
+				return list;
 			}
 
 			@Override
@@ -296,7 +296,7 @@ public final class PropUtil {
 
 		public abstract Object convert(String[] strs);
 
-		public abstract Object convertToVector(String[] strs);
+		public abstract Object convertToList(String[] strs);
 
 		public abstract boolean checkType(Class<?> clazz);
 
@@ -331,7 +331,8 @@ public final class PropUtil {
 	private PropUtil() {
 	}
 
-	static Properties normalize(Dictionary<String, ?> props, ObjectClassDefinition ocd) throws PropertyException {
+	static Properties normalize(Dictionary<String, ?> props, ObjectClassDefinition ocd, Map<String, ?> userProps)
+			throws PropertyException {
 		AttributeDefinition[] ads = ocd.getAttributeDefinitions(ObjectClassDefinition.REQUIRED);
 		if (ads != null && ads.length > 0 && props == null)
 			throw new PropertyException(StrUtil.join("Property[", ads[0].getID(), "] is required"));
@@ -344,9 +345,15 @@ public final class PropUtil {
 		if (ads != null)
 			normalize(props, conf, ads, false);
 
-		if (!props.isEmpty())
-			throw new PropertyException(
-					StrUtil.join("Illegal property[", props.keys().nextElement(), "] for ", ocd.getID()));
+		if (!props.isEmpty()) {
+			final Enumeration<String> keys = props.keys();
+			do {
+				final String key = keys.nextElement();
+				if (userProps == null || userProps.containsKey(key))
+					throw new PropertyException(
+							StrUtil.join("Illegal property[", props.keys().nextElement(), "] for ", ocd.getID()));
+			} while (keys.hasMoreElements());
+		}
 		return conf;
 	}
 
@@ -390,7 +397,8 @@ public final class PropUtil {
 				for (int i = 0; iter.hasNext(); ++i) {
 					final Object obj = iter.next();
 					if (!type.checkType(obj.getClass()))
-						throw new PropertyException(StrUtil.join("Property[", id, "](", i, ") should be of type: ", type));
+						throw new PropertyException(
+								StrUtil.join("Property[", id, "](", i, ") should be of type: ", type));
 
 					final String message = ad.validate(String.valueOf(obj));
 					if (message != null && message.length() > 0)
@@ -427,7 +435,7 @@ public final class PropUtil {
 		else if (ad.getCardinality() > 0)
 			conf.put(id, type.convert(values));
 		else
-			conf.put(id, type.convertToVector(values));
+			conf.put(id, type.convertToList(values));
 	}
 
 	private static void handleDefaultValues(AttributeDefinition ad, Map<String, Object> conf, boolean required)
@@ -442,7 +450,7 @@ public final class PropUtil {
 			else if (cardinality > 0)
 				conf.put(id, type.convert(defaultValues));
 			else
-				conf.put(id, type.convertToVector(defaultValues));
+				conf.put(id, type.convertToList(defaultValues));
 		} else if (required)
 			throw new PropertyException(StrUtil.join("Property[", id, "] is required"));
 	}
