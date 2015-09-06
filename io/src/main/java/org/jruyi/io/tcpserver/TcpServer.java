@@ -14,7 +14,11 @@
 
 package org.jruyi.io.tcpserver;
 
-import java.net.*;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.SocketAddress;
+import java.net.SocketException;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.ServerSocketChannel;
 import java.util.Arrays;
@@ -26,12 +30,20 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.jruyi.common.IService;
+import org.jruyi.common.ITimeoutNotifier;
+import org.jruyi.common.ITimer;
+import org.jruyi.common.ITimerAdmin;
 import org.jruyi.common.Service;
 import org.jruyi.common.StrUtil;
-import org.jruyi.io.*;
+import org.jruyi.io.IBufferFactory;
+import org.jruyi.io.ISession;
+import org.jruyi.io.ISessionListener;
+import org.jruyi.io.ISessionService;
+import org.jruyi.io.IoConstants;
 import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.channel.IChannelService;
+import org.jruyi.io.common.Util;
 import org.jruyi.io.filter.IFilterList;
 import org.jruyi.io.filter.IFilterManager;
 import org.osgi.service.component.annotations.Component;
@@ -48,14 +60,17 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 
 	private static final Logger c_logger = LoggerFactory.getLogger(TcpServer.class);
 
-	private String m_caption;
-	private Configuration m_conf;
-	private ServerSocketChannel m_ssc;
-
 	private IBufferFactory m_bf;
+	private ITimerAdmin m_ta;
 	private IChannelAdmin m_ca;
 	private IFilterManager m_fm;
 	private ITcpAcceptor m_acceptor;
+
+	private ITimer m_timer;
+
+	private String m_caption;
+	private Configuration m_conf;
+	private ServerSocketChannel m_ssc;
 
 	private IFilterList m_filters;
 	private boolean m_closed;
@@ -91,6 +106,11 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 	@Override
 	public IFilterList getFilterChain() {
 		return m_filters;
+	}
+
+	@Override
+	public <S> ITimeoutNotifier<S> createTimeoutNotifier(S subject) {
+		return m_timer.createNotifier(subject);
 	}
 
 	@Override
@@ -255,8 +275,7 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 		if (host != null)
 			bindAddr = InetAddress.getByName(host);
 
-		if (m_channels == null)
-			m_channels = new ConcurrentHashMap<>(conf.initCapacityOfChannelMap());
+		m_timer.start();
 
 		ServerSocketChannel ssc = ServerSocketChannel.open();
 		try {
@@ -281,6 +300,7 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 			}
 			c_logger.error(StrUtil.join(this, " failed to start"), e);
 			m_ssc = null;
+			m_timer.stop();
 			throw e;
 		}
 	}
@@ -309,8 +329,10 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 			writeLock.unlock();
 		}
 
-		if (options == 0)
+		if (options == 0) {
 			closeChannels();
+			m_timer.stop();
+		}
 
 		c_logger.info(StrUtil.join(this, " stopped"));
 	}
@@ -323,16 +345,24 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 	@Override
 	protected boolean updateInternal(Map<String, ?> properties) throws Exception {
 
-		String id = (String) properties.get(IoConstants.SERVICE_ID);
+		final String id = (String) properties.get(IoConstants.SERVICE_ID);
 		m_caption = StrUtil.join("TcpServer[", id, "]");
 
-		Configuration newConf = new Configuration();
+		final Configuration newConf = new Configuration();
 		newConf.initialize(properties);
 
-		Configuration oldConf = m_conf;
-		updateConf(newConf);
+		final Configuration oldConf = m_conf;
+		updateFilters(newConf);
 
-		return oldConf.isMandatoryChanged(newConf);
+		final boolean changed = oldConf.isMandatoryChanged(newConf);
+		if (!changed) {
+			final int timeout = newConf.sessionIdleTimeoutInSeconds();
+			m_timer.configuration().wheelSize(Util.max(timeout, 0)).apply();
+			if (timeout == 0)
+				closeChannels();
+		}
+		m_conf = newConf;
+		return changed;
 	}
 
 	@Reference(name = "buffer", policy = ReferencePolicy.DYNAMIC)
@@ -343,6 +373,16 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 	public synchronized void unsetBufferFactory(IBufferFactory bf) {
 		if (m_bf == bf)
 			m_bf = null;
+	}
+
+	@Reference(name = "timerAdmin", policy = ReferencePolicy.DYNAMIC)
+	public synchronized void setTimerAdmin(ITimerAdmin ta) {
+		m_ta = ta;
+	}
+
+	public synchronized void unsetTimerAdmin(ITimerAdmin ta) {
+		if (m_ta == ta)
+			m_ta = null;
 	}
 
 	@Reference(name = "channelAdmin")
@@ -373,20 +413,25 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 	}
 
 	public void activate(Map<String, ?> properties) throws Exception {
-		String id = (String) properties.get(IoConstants.SERVICE_ID);
+		final String id = (String) properties.get(IoConstants.SERVICE_ID);
 		m_caption = StrUtil.join("TcpServer[", id, "]");
 
-		Configuration conf = new Configuration();
+		final Configuration conf = new Configuration();
 		conf.initialize(properties);
-		updateConf(conf);
+		updateFilters(conf);
+		m_conf = conf;
+
+		m_channels = new ConcurrentHashMap<>(conf.initCapacityOfChannelMap());
+		m_timer = m_ta.createTimer(Util.max(conf.sessionIdleTimeoutInSeconds(), 0));
 	}
 
 	public void deactivate() {
 		stop();
+		m_timer = null;
+		m_channels = null;
 
-		closeChannels();
-
-		updateConf(null);
+		updateFilters(null);
+		m_conf = null;
 	}
 
 	SelectableChannel getSelectableChannel() {
@@ -394,7 +439,7 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 	}
 
 	private boolean scheduleIdleTimeout(IChannel channel) {
-		int timeout = m_conf.sessionIdleTimeoutInSeconds();
+		final int timeout = m_conf.sessionIdleTimeoutInSeconds();
 		if (timeout > 0)
 			return channel.scheduleIdleTimeout(timeout);
 
@@ -404,16 +449,14 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 		return true;
 	}
 
-	private void updateConf(Configuration newConf) {
-		String[] newNames = newConf == null ? StrUtil.getEmptyStringArray() : newConf.filters();
+	private void updateFilters(Configuration newConf) {
+		final String[] newNames = newConf == null ? StrUtil.getEmptyStringArray() : newConf.filters();
 		String[] oldNames = StrUtil.getEmptyStringArray();
-		IFilterManager fm = m_fm;
+		final IFilterManager fm = m_fm;
 		if (m_conf == null)
 			m_filters = fm.getFilters(oldNames);
 		else
 			oldNames = m_conf.filters();
-
-		m_conf = newConf;
 
 		if (Arrays.equals(newNames, oldNames))
 			return;
@@ -423,16 +466,9 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 	}
 
 	private void closeChannels() {
-		if (m_channels == null)
-			return;
-
-		if (m_channels.size() > 0) {
-			Collection<IChannel> channels = m_channels.values();
-			for (IChannel channel : channels)
-				channel.close();
-		}
-
-		m_channels = null;
+		final Collection<IChannel> channels = m_channels.values();
+		for (final IChannel channel : channels)
+			channel.close();
 	}
 
 	private static void initSocket(ServerSocket socket, Configuration conf) throws SocketException {

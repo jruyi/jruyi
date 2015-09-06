@@ -14,11 +14,19 @@
 
 package org.jruyi.core.internal;
 
-import org.jruyi.core.*;
+import org.jruyi.common.timer.TimerAdmin;
+import org.jruyi.core.IChannelAdminConfiguration;
+import org.jruyi.core.IFileKeyStoreBuilder;
+import org.jruyi.core.ISslFilterBuilder;
+import org.jruyi.core.ITcpClientBuilder;
+import org.jruyi.core.ITcpServerBuilder;
+import org.jruyi.core.ITextLineFilterBuilder;
+import org.jruyi.core.IUdpClientBuilder;
+import org.jruyi.core.IUdpServerBuilder;
+import org.jruyi.core.RuyiCore;
 import org.jruyi.io.IFilter;
 import org.jruyi.io.channel.ChannelAdmin;
 import org.jruyi.io.msglog.MsgLogFilter;
-import org.jruyi.timeoutadmin.internal.TimeoutAdmin;
 
 public final class RuyiCoreProvider implements RuyiCore.IRuyiCore {
 
@@ -28,7 +36,7 @@ public final class RuyiCoreProvider implements RuyiCore.IRuyiCore {
 
 	private final BufferFactoryWrapper m_bf = new BufferFactoryWrapper();
 	private final SchedulerWrapper m_scheduler = new SchedulerWrapper();
-	private final TimeoutAdminWrapper m_ta = new TimeoutAdminWrapper();
+	private final TimerAdmin m_ta = new TimerAdmin();
 	private final TcpAcceptorWrapper m_tcpAcceptor = new TcpAcceptorWrapper();
 	private final ChannelAdmin m_ca = new ChannelAdmin();
 
@@ -54,17 +62,12 @@ public final class RuyiCoreProvider implements RuyiCore.IRuyiCore {
 			final SchedulerWrapper scheduler = m_scheduler;
 			scheduler.start();
 
-			final TimeoutAdminWrapper taw = m_ta;
-			final TimeoutAdmin ta = taw.unwrap();
-			ta.setScheduler(scheduler.unwrap());
-			taw.start();
+			m_ta.setScheduler(scheduler.unwrap());
 
 			final ChannelAdmin ca = m_ca;
-			ca.setTimeoutAdmin(ta);
 			try {
 				ca.activate(m_caConf.properties());
 			} catch (Throwable t) {
-				taw.stop();
 				scheduler.stop();
 				throw t;
 			}
@@ -85,14 +88,9 @@ public final class RuyiCoreProvider implements RuyiCore.IRuyiCore {
 			m_tcpAcceptor.unsetChannelAdmin(ca);
 
 			ca.deactivate();
-			final TimeoutAdminWrapper taw = m_ta;
-			final TimeoutAdmin ta = taw.unwrap();
-			ca.unsetTimeoutAdmin(ta);
 
-			taw.stop();
 			final SchedulerWrapper scheduler = m_scheduler;
-			ta.unsetScheduler(scheduler.unwrap());
-
+			m_ta.unsetScheduler(scheduler.unwrap());
 			scheduler.stop();
 		}
 	}
@@ -126,7 +124,7 @@ public final class RuyiCoreProvider implements RuyiCore.IRuyiCore {
 	}
 
 	@Override
-	public TimeoutAdminWrapper getTimeoutAdmin() {
+	public TimerAdmin getTimerAdmin() {
 		return m_ta;
 	}
 

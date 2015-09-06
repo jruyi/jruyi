@@ -51,8 +51,6 @@ import org.jruyi.io.IoConstants;
 import org.jruyi.io.SessionListener;
 import org.jruyi.io.StringCodec;
 import org.jruyi.system.Constants;
-import org.jruyi.timeoutadmin.ITimeoutAdmin;
-import org.jruyi.timeoutadmin.ITimeoutNotifier;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
@@ -70,7 +68,7 @@ import org.slf4j.LoggerFactory;
 immediate = true, //
 property = { IoConstants.FILTER_ID + "=jruyi.clid.filter" }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class CliServer extends SessionListener<IBuffer, IBuffer> implements IFilter<IBuffer, IBuffer> {
+public final class CliServer extends SessionListener<IBuffer, IBuffer>implements IFilter<IBuffer, IBuffer> {
 
 	public static final String SERVICE_ID = "jruyi.clid";
 
@@ -92,11 +90,9 @@ public final class CliServer extends SessionListener<IBuffer, IBuffer> implement
 	private static final String[] FILTERS = { "jruyi.clid.filter" };
 
 	private static final String P_SESSION_IDLE_TIMEOUT = "sessionIdleTimeout";
-	private static final String P_FLUSH_THRESHOLD = "flushThreshold";
 
 	private ComponentFactory m_tsf;
 	private CommandProcessor m_cp;
-	private ITimeoutAdmin m_ta;
 
 	private BundleContext m_context;
 	private ComponentInstance m_tcpServer;
@@ -142,8 +138,7 @@ public final class CliServer extends SessionListener<IBuffer, IBuffer> implement
 		@SuppressWarnings("unchecked")
 		final ISessionService<IBuffer, IBuffer> ss = (ISessionService<IBuffer, IBuffer>) m_tcpServer.getInstance();
 
-		final ITimeoutNotifier tn = m_ta.createNotifier(null);
-		final OutBufferStream outBufferStream = new OutBufferStream(ss, session, tn);
+		final OutBufferStream outBufferStream = new OutBufferStream(ss, session);
 		final ErrBufferStream errBufferStream = new ErrBufferStream(outBufferStream);
 		final PrintStream out = new PrintStream(outBufferStream, true);
 		final PrintStream err = new PrintStream(errBufferStream, true);
@@ -216,8 +211,8 @@ public final class CliServer extends SessionListener<IBuffer, IBuffer> implement
 	}
 
 	@Reference(name = "tsf", //
-	policy = ReferencePolicy.DYNAMIC,//
-	cardinality = ReferenceCardinality.OPTIONAL,//
+	policy = ReferencePolicy.DYNAMIC, //
+	cardinality = ReferenceCardinality.OPTIONAL, //
 	target = "(component.name=" + IoConstants.CN_TCPSERVER_FACTORY + ")")
 	synchronized void setTcpServerFactory(ComponentFactory tsf) throws Throwable {
 		if (m_tcpServer != null)
@@ -245,22 +240,11 @@ public final class CliServer extends SessionListener<IBuffer, IBuffer> implement
 		m_cp = null;
 	}
 
-	@Reference(name = "ta")
-	void setTimeoutAdmin(ITimeoutAdmin ta) {
-		m_ta = ta;
-	}
-
-	void unsetTimeoutAdmin(ITimeoutAdmin ta) {
-		m_ta = null;
-	}
-
 	@Modified
 	void modified(Map<String, ?> properties) throws Exception {
 		@SuppressWarnings("unchecked")
 		final ISessionService<IBuffer, IBuffer> ss = (ISessionService<IBuffer, IBuffer>) m_tcpServer.getInstance();
 		ss.update(normalizeConf(properties));
-
-		OutBufferStream.flushThreshold((Integer) properties.get(P_FLUSH_THRESHOLD));
 	}
 
 	void activate(ComponentContext context, Map<String, ?> properties) throws Throwable {
@@ -269,8 +253,6 @@ public final class CliServer extends SessionListener<IBuffer, IBuffer> implement
 
 		provision(bundleContext);
 		loadBrandingInfo(bundleContext.getProperty(BRANDING_URL), bundleContext);
-
-		OutBufferStream.flushThreshold((Integer) properties.get(P_FLUSH_THRESHOLD));
 
 		final Properties conf = normalizeConf(properties);
 		if (conf.get(P_BIND_ADDR) == null) {
@@ -485,8 +467,8 @@ public final class CliServer extends SessionListener<IBuffer, IBuffer> implement
 		if (url != null)
 			branding.putAll(loadBrandingProps(new URL(url).openStream()));
 
-		m_welcome = CharsetCodec.get(CharsetCodec.UTF_8).toBytes(
-				StrUtil.filterProps(branding.getProperty(WELCOME), context));
+		m_welcome = CharsetCodec.get(CharsetCodec.UTF_8)
+				.toBytes(StrUtil.filterProps(branding.getProperty(WELCOME), context));
 	}
 
 	private static java.util.Properties loadBrandingProps(InputStream in) throws Throwable {
@@ -566,8 +548,8 @@ public final class CliServer extends SessionListener<IBuffer, IBuffer> implement
 	private void writeCommands(OutBufferStream bs) {
 		final ServiceReference<?>[] references;
 		try {
-			references = m_context.getAllServiceReferences(null, "(&(" + CommandProcessor.COMMAND_SCOPE + "=*)(!("
-					+ CommandProcessor.COMMAND_SCOPE + "=builtin)))");
+			references = m_context.getAllServiceReferences(null,
+					"(&(" + CommandProcessor.COMMAND_SCOPE + "=*)(!(" + CommandProcessor.COMMAND_SCOPE + "=builtin)))");
 		} catch (Throwable t) {
 			// should never go here
 			c_logger.error("Failed to get commands", t);

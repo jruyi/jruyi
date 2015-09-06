@@ -146,6 +146,7 @@ final class UdpClientWrapper<I, O> implements IUdpClientConfiguration, INioServi
 		udpClient.setBufferFactory(bf instanceof BufferFactoryWrapper ? ((BufferFactoryWrapper) bf).unwrap() : bf);
 		udpClient.setChannelAdmin(ruyiCore.channelAdmin());
 		udpClient.setFilterManager(m_filterChain);
+
 		udpClient.activate(m_properties);
 		udpClient.start();
 

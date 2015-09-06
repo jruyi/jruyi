@@ -12,29 +12,29 @@
  * limitations under the License.
  */
 
-package org.jruyi.timeoutadmin.internal;
+package org.jruyi.common.timer;
 
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.jruyi.common.BiListNode;
 
-final class LinkedList<E> {
+final class TimeoutList {
 
-	private final BiListNode<E> m_head;
+	private final BiListNode<TimeoutEvent<?>> m_head;
 
-	LinkedList() {
-		BiListNode<E> head = BiListNode.create();
+	TimeoutList() {
+		BiListNode<TimeoutEvent<?>> head = BiListNode.create();
 		head.previous(head);
 		head.next(head);
 
 		m_head = head;
 	}
 
-	BiListNode<E> addLast(E e) {
-		final BiListNode<E> head = m_head;
-		final BiListNode<E> headPrevious = head.previous();
-		final BiListNode<E> newNode = BiListNode.create();
-		newNode.set(e);
+	BiListNode<TimeoutEvent<?>> addLast(TimeoutEvent<?> event) {
+		final BiListNode<TimeoutEvent<?>> head = m_head;
+		final BiListNode<TimeoutEvent<?>> headPrevious = head.previous();
+		final BiListNode<TimeoutEvent<?>> newNode = BiListNode.create();
+		newNode.set(event);
 		newNode.previous(headPrevious);
 		newNode.next(head);
 		headPrevious.next(newNode);
@@ -42,12 +42,13 @@ final class LinkedList<E> {
 		return newNode;
 	}
 
-	BiListNode<E> syncInsertAfter(BiListNode<E> node, E e, ReentrantLock lock) {
-		final BiListNode<E> newNode = BiListNode.create();
-		newNode.set(e);
+	BiListNode<TimeoutEvent<?>> syncInsertAfter(BiListNode<TimeoutEvent<?>> node, TimeoutEvent<?> event,
+			ReentrantLock lock) {
+		final BiListNode<TimeoutEvent<?>> newNode = BiListNode.create();
+		newNode.set(event);
 		lock.lock();
 		try {
-			final BiListNode<E> next = node.next();
+			final BiListNode<TimeoutEvent<?>> next = node.next();
 			newNode.previous(node);
 			newNode.next(next);
 			next.previous(newNode);
@@ -58,13 +59,14 @@ final class LinkedList<E> {
 		return newNode;
 	}
 
-	void syncMoveAfter(BiListNode<E> posNode, BiListNode<E> node, ReentrantLock lock1, ReentrantLock lock2) {
+	void syncMoveAfter(BiListNode<TimeoutEvent<?>> posNode, BiListNode<TimeoutEvent<?>> node, ReentrantLock lock1,
+			ReentrantLock lock2) {
 		lock1.lock();
 		try {
 			lock2.lock();
 			try {
-				final BiListNode<E> previous = node.previous();
-				BiListNode<E> next = node.next();
+				final BiListNode<TimeoutEvent<?>> previous = node.previous();
+				BiListNode<TimeoutEvent<?>> next = node.next();
 
 				previous.next(next);
 				next.previous(previous);
@@ -82,18 +84,20 @@ final class LinkedList<E> {
 		}
 	}
 
-	E syncRemove(BiListNode<E> node, ReentrantLock lock) {
+	TimeoutEvent<?> syncRemove(BiListNode<TimeoutEvent<?>> node, ReentrantLock lock) {
 		lock.lock();
 		try {
-			final BiListNode<E> previous = node.previous();
-			final BiListNode<E> next = node.next();
+			final BiListNode<TimeoutEvent<?>> previous = node.previous();
+			final BiListNode<TimeoutEvent<?>> next = node.next();
 			previous.next(next);
 			next.previous(previous);
 		} finally {
 			lock.unlock();
 		}
-		E e = node.get();
-		node.close();
-		return e;
+		try {
+			return node.get();
+		} finally {
+			node.close();
+		}
 	}
 }

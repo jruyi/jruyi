@@ -20,6 +20,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.jruyi.common.IIdentifiable;
 import org.jruyi.common.IService;
+import org.jruyi.common.ITimeoutEvent;
+import org.jruyi.common.ITimeoutListener;
+import org.jruyi.common.ITimeoutNotifier;
+import org.jruyi.common.ITimerAdmin;
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.IBufferFactory;
 import org.jruyi.io.ISessionListener;
@@ -27,10 +31,6 @@ import org.jruyi.io.IoConstants;
 import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.filter.IFilterManager;
-import org.jruyi.timeoutadmin.ITimeoutAdmin;
-import org.jruyi.timeoutadmin.ITimeoutEvent;
-import org.jruyi.timeoutadmin.ITimeoutListener;
-import org.jruyi.timeoutadmin.ITimeoutNotifier;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferencePolicy;
@@ -47,10 +47,9 @@ public final class MuxConnPool<I extends IIdentifiable<?>, O extends IIdentifiab
 
 	private static final Object OUTMSG_LISTENER = new Object();
 
-	private ConcurrentHashMap<Object, ITimeoutNotifier> m_notifiers;
-	private ITimeoutAdmin m_ta;
+	private ConcurrentHashMap<Object, ITimeoutNotifier<O>> m_notifiers;
 
-	final class MsgTimeoutListener implements ITimeoutListener {
+	final class MsgTimeoutListener implements ITimeoutListener<O> {
 
 		private final IChannel m_channel;
 
@@ -59,9 +58,8 @@ public final class MuxConnPool<I extends IIdentifiable<?>, O extends IIdentifiab
 		}
 
 		@Override
-		public void onTimeout(ITimeoutEvent event) {
-			@SuppressWarnings("unchecked")
-			final O outMsg = (O) event.getSubject();
+		public void onTimeout(ITimeoutEvent<O> event) {
+			final O outMsg = event.subject();
 			notifiers().remove(outMsg.id());
 			final ISessionListener<I, O> listener = listener();
 			if (listener != null) {
@@ -78,13 +76,13 @@ public final class MuxConnPool<I extends IIdentifiable<?>, O extends IIdentifiab
 	public void beforeSendMessage(IChannel channel, O outMsg) {
 		final int timeout = configuration().readTimeoutInSeconds();
 		if (timeout > 0) {
-			final ITimeoutNotifier tn = m_ta.createNotifier(outMsg);
+			final ITimeoutNotifier<O> tn = createTimeoutNotifier(outMsg);
 			if (m_notifiers.put(outMsg.id(), tn) != null) {
 				c_logger.error("Collision of message ID: {}", outMsg.id());
 				channel.close();
 				return;
 			}
-			tn.setListener(getListener(channel));
+			tn.listener(getListener(channel));
 			tn.schedule(timeout);
 		}
 	}
@@ -100,7 +98,7 @@ public final class MuxConnPool<I extends IIdentifiable<?>, O extends IIdentifiab
 
 	@Override
 	public void onMessageReceived(IChannel channel, I inMsg) {
-		final ITimeoutNotifier tn = m_notifiers.remove(inMsg.id());
+		final ITimeoutNotifier<O> tn = m_notifiers.remove(inMsg.id());
 		if (tn == null || !tn.cancel()) {
 			if (inMsg instanceof AutoCloseable) {
 				try {
@@ -140,13 +138,10 @@ public final class MuxConnPool<I extends IIdentifiable<?>, O extends IIdentifiab
 		super.setFilterManager(fm);
 	}
 
-	@Reference(name = "timeoutAdmin")
-	public void setTimeoutAdmin(ITimeoutAdmin ta) {
-		m_ta = ta;
-	}
-
-	public void unsetTimeoutAdmin(ITimeoutAdmin ta) {
-		m_ta = null;
+	@Reference(name = "timerAdmin", policy = ReferencePolicy.DYNAMIC)
+	@Override
+	public void setTimerAdmin(ITimerAdmin ta) {
+		super.setTimerAdmin(ta);
 	}
 
 	@Override
@@ -162,18 +157,19 @@ public final class MuxConnPool<I extends IIdentifiable<?>, O extends IIdentifiab
 	@Override
 	public void deactivate() {
 		super.deactivate();
-		final Collection<ITimeoutNotifier> notifiers = m_notifiers.values();
+		final Collection<ITimeoutNotifier<O>> notifiers = m_notifiers.values();
 		m_notifiers = null;
-		for (ITimeoutNotifier notifier : notifiers)
+		for (ITimeoutNotifier<?> notifier : notifiers)
 			notifier.close();
 	}
 
-	ConcurrentHashMap<Object, ITimeoutNotifier> notifiers() {
+	ConcurrentHashMap<Object, ITimeoutNotifier<O>> notifiers() {
 		return m_notifiers;
 	}
 
-	private ITimeoutListener getListener(IChannel channel) {
-		ITimeoutListener listener = (ITimeoutListener) channel.inquiry(OUTMSG_LISTENER);
+	private ITimeoutListener<O> getListener(IChannel channel) {
+		@SuppressWarnings("unchecked")
+		ITimeoutListener<O> listener = (ITimeoutListener<O>) channel.inquiry(OUTMSG_LISTENER);
 		if (listener == null) {
 			listener = new MsgTimeoutListener(channel);
 			channel.deposit(OUTMSG_LISTENER, listener);

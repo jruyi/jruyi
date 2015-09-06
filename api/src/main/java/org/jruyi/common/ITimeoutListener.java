@@ -12,19 +12,23 @@
  * limitations under the License.
  */
 
-package org.jruyi.timeoutadmin;
+package org.jruyi.common;
 
 /**
- * Service for creating notifiers.
+ * This interface defines a callback method for being invoked on timeout events.
+ * 
+ * @param <S>
+ *            Type of subject
+ * 
+ * @since 2.3
  */
-public interface ITimeoutAdmin {
+public interface ITimeoutListener<S> {
 
 	/**
-	 * Creates a notifier with the specified {@code subject}.
-	 * 
-	 * @param subject
-	 *            the subject of the timeout event to be sent by this notifier
-	 * @return a notifier object
+	 * Callback method on timeout.
+	 *
+	 * @param event
+	 *            the timeout event
 	 */
-	ITimeoutNotifier createNotifier(Object subject);
+	void onTimeout(ITimeoutEvent<S> event);
 }

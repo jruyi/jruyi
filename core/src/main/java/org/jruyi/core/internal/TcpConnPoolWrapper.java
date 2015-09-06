@@ -103,8 +103,10 @@ final class TcpConnPoolWrapper<I, O> extends TcpConnPoolConfiguration
 		final ConnPool<I, O> connPool = m_connPool;
 		final IBufferFactory bf = m_bf;
 		connPool.setBufferFactory(bf instanceof BufferFactoryWrapper ? ((BufferFactoryWrapper) bf).unwrap() : bf);
+		connPool.setTimerAdmin(ruyiCore.getTimerAdmin());
 		connPool.setChannelAdmin(ruyiCore.channelAdmin());
 		connPool.setFilterManager(m_filterChain);
+
 		connPool.activate(properties());
 		connPool.start();
 
@@ -123,6 +125,7 @@ final class TcpConnPoolWrapper<I, O> extends TcpConnPoolConfiguration
 
 		connPool.unsetFilterManager(m_filterChain);
 		connPool.unsetChannelAdmin(ruyiCore.channelAdmin());
+		connPool.unsetTimerAdmin(ruyiCore.getTimerAdmin());
 		final IBufferFactory bf = m_bf;
 		connPool.unsetBufferFactory(bf instanceof BufferFactoryWrapper ? ((BufferFactoryWrapper) bf).unwrap() : bf);
 

@@ -36,11 +36,9 @@ dependencies {
 	compile project(':api')
 	compile project(':common')
 	compile project(':io')
-	compile project(':timeoutadmin')
 
 	embed project(':common')
 	embed project(':io')
-	embed project(':timeoutadmin')
 }
 
 processResources {
@@ -54,7 +52,7 @@ processResources {
 jar {
 	manifest {
 		attributes(
-				'Export-Package': 'org.jruyi.common,org.jruyi.timeoutadmin,org.jruyi.io,org.jruyi.core',
+				'Export-Package': 'org.jruyi.common,org.jruyi.io,org.jruyi.core',
 				'Import-Package': '!org.osgi.*,!org.jruyi.me,*',
 		)
 	}

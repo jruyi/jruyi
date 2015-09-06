@@ -23,15 +23,19 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.jruyi.common.*;
+import org.jruyi.common.ICloseable;
+import org.jruyi.common.IDumpable;
+import org.jruyi.common.IThreadLocalCache;
+import org.jruyi.common.ITimeoutEvent;
+import org.jruyi.common.ITimeoutListener;
+import org.jruyi.common.ITimeoutNotifier;
+import org.jruyi.common.StrUtil;
 import org.jruyi.common.StringBuilder;
+import org.jruyi.common.ThreadLocalCache;
 import org.jruyi.io.IBuffer;
 import org.jruyi.io.IFilter;
 import org.jruyi.io.IFilterOutput;
 import org.jruyi.io.common.LinkedQueue;
-import org.jruyi.timeoutadmin.ITimeoutEvent;
-import org.jruyi.timeoutadmin.ITimeoutListener;
-import org.jruyi.timeoutadmin.ITimeoutNotifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +52,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 	private ISelector m_selector;
 	private final IIoWorker m_ioWorker;
 	private SelectionKey m_selectionKey;
-	private ITimeoutNotifier m_timeoutNotifier;
+	private ITimeoutNotifier<Channel> m_timeoutNotifier;
 	private ReadThread m_readThread;
 	private WriteThread m_writeThread;
 
@@ -507,13 +511,13 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 		}
 	}
 
-	static final class IdleTimeoutListener implements ITimeoutListener {
+	static final class IdleTimeoutListener implements ITimeoutListener<Channel> {
 
-		static final ITimeoutListener INST = new IdleTimeoutListener();
+		static final ITimeoutListener<Channel> INST = new IdleTimeoutListener();
 
 		@Override
-		public void onTimeout(ITimeoutEvent event) {
-			final Channel channel = (Channel) event.getSubject();
+		public void onTimeout(ITimeoutEvent<Channel> event) {
+			final Channel channel = event.subject();
 			try {
 				channel.channelService().onChannelIdleTimedOut(channel);
 			} catch (Throwable t) {
@@ -522,13 +526,13 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 		}
 	}
 
-	static final class ConnectTimeoutListener implements ITimeoutListener {
+	static final class ConnectTimeoutListener implements ITimeoutListener<Channel> {
 
-		static final ITimeoutListener INST = new ConnectTimeoutListener();
+		static final ITimeoutListener<Channel> INST = new ConnectTimeoutListener();
 
 		@Override
-		public void onTimeout(ITimeoutEvent event) {
-			final Channel channel = (Channel) event.getSubject();
+		public void onTimeout(ITimeoutEvent<Channel> event) {
+			final Channel channel = event.subject();
 			try {
 				channel.channelService().onChannelConnectTimedOut(channel);
 			} catch (Throwable t) {
@@ -537,13 +541,13 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 		}
 	}
 
-	static final class ReadTimeoutListener implements ITimeoutListener {
+	static final class ReadTimeoutListener implements ITimeoutListener<Channel> {
 
-		static final ITimeoutListener INST = new ReadTimeoutListener();
+		static final ITimeoutListener<Channel> INST = new ReadTimeoutListener();
 
 		@Override
-		public void onTimeout(ITimeoutEvent event) {
-			final Channel channel = (Channel) event.getSubject();
+		public void onTimeout(ITimeoutEvent<Channel> event) {
+			final Channel channel = event.subject();
 			try {
 				channel.channelService().onChannelReadTimedOut(channel);
 			} catch (Throwable t) {
@@ -561,7 +565,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 	@Override
 	public final void run() {
-		final IChannelService<Object, Object> channelService = m_channelService;
+		final IChannelService<Object, Object> cs = m_channelService;
 		try {
 			m_storage = new IdentityHashMap<>();
 
@@ -570,13 +574,12 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			createReadThread();
 			createWriteThread();
 
-			IChannelAdmin ca = channelService.getChannelAdmin();
-			m_timeoutNotifier = createTimeoutNotifier(ca);
+			m_timeoutNotifier = cs.createTimeoutNotifier(this);
 			selectableChannel().configureBlocking(false);
 
-			channelService.onChannelOpened(this);
+			cs.onChannelOpened(this);
 
-			ca.onRegisterRequired(this);
+			cs.getChannelAdmin().onRegisterRequired(this);
 
 		} catch (Throwable t) {
 			onException(t);
@@ -590,40 +593,40 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 	@Override
 	public final boolean scheduleIdleTimeout(int timeout) {
-		final ITimeoutNotifier timeoutNotifier = m_timeoutNotifier;
+		final ITimeoutNotifier<Channel> timeoutNotifier = m_timeoutNotifier;
 		if (timeoutNotifier == null)
 			return false;
 
-		timeoutNotifier.setListener(IdleTimeoutListener.INST);
-		timeoutNotifier.setExecutor(m_ioWorker);
+		timeoutNotifier.listener(IdleTimeoutListener.INST);
+		timeoutNotifier.executor(m_ioWorker);
 		return timeoutNotifier.schedule(timeout);
 	}
 
 	@Override
 	public final boolean scheduleConnectTimeout(int timeout) {
-		final ITimeoutNotifier timeoutNotifier = m_timeoutNotifier;
+		final ITimeoutNotifier<Channel> timeoutNotifier = m_timeoutNotifier;
 		if (timeoutNotifier == null)
 			return false;
 
-		timeoutNotifier.setListener(ConnectTimeoutListener.INST);
-		timeoutNotifier.setExecutor(m_ioWorker);
+		timeoutNotifier.listener(ConnectTimeoutListener.INST);
+		timeoutNotifier.executor(m_ioWorker);
 		return timeoutNotifier.schedule(timeout);
 	}
 
 	@Override
 	public final boolean scheduleReadTimeout(int timeout) {
-		final ITimeoutNotifier timeoutNotifier = m_timeoutNotifier;
+		final ITimeoutNotifier<Channel> timeoutNotifier = m_timeoutNotifier;
 		if (timeoutNotifier == null)
 			return false;
 
-		timeoutNotifier.setListener(ReadTimeoutListener.INST);
-		timeoutNotifier.setExecutor(m_ioWorker);
+		timeoutNotifier.listener(ReadTimeoutListener.INST);
+		timeoutNotifier.executor(m_ioWorker);
 		return timeoutNotifier.schedule(timeout);
 	}
 
 	@Override
 	public final boolean cancelTimeout() {
-		final ITimeoutNotifier timeoutNotifier = m_timeoutNotifier;
+		final ITimeoutNotifier<Channel> timeoutNotifier = m_timeoutNotifier;
 		return timeoutNotifier != null && timeoutNotifier.cancel();
 	}
 
@@ -672,7 +675,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			onException(t);
 		}
 
-		final ITimeoutNotifier tn = m_timeoutNotifier;
+		final ITimeoutNotifier<Channel> tn = m_timeoutNotifier;
 		if (tn != null)
 			tn.close();
 
@@ -843,14 +846,14 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 		try {
 			m_storage = new IdentityHashMap<>();
 
-			final IChannelAdmin ca = m_channelService.getChannelAdmin();
-			m_timeoutNotifier = createTimeoutNotifier(ca);
+			final IChannelService<Object, Object> cs = m_channelService;
+			m_timeoutNotifier = cs.createTimeoutNotifier(this);
 			if (connect()) {
 				onConnectInternal(true);
 			} else {
 				if (timeout > 0)
 					scheduleConnectTimeout(timeout);
-				ca.onConnectRequired(this);
+				cs.getChannelAdmin().onConnectRequired(this);
 			}
 		} catch (Throwable t) {
 			onException(t);
@@ -916,10 +919,6 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 	protected abstract ReadableByteChannel readableByteChannel();
 
 	protected abstract WritableByteChannel writableByteChannel();
-
-	protected ITimeoutNotifier createTimeoutNotifier(IChannelAdmin ca) {
-		return ca.createTimeoutNotifier(this);
-	}
 
 	// If returns false, this channel need be closed
 	final boolean onReadIn(Object in) {

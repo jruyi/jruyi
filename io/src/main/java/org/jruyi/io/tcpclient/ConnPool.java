@@ -20,11 +20,17 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.jruyi.common.BiListNode;
 import org.jruyi.common.IService;
+import org.jruyi.common.ITimerAdmin;
 import org.jruyi.common.StrUtil;
-import org.jruyi.io.*;
+import org.jruyi.io.IBufferFactory;
+import org.jruyi.io.IFilter;
+import org.jruyi.io.ISession;
+import org.jruyi.io.ISessionListener;
+import org.jruyi.io.IoConstants;
 import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.channel.IIoTask;
+import org.jruyi.io.common.Util;
 import org.jruyi.io.filter.IFilterManager;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -236,21 +242,26 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O>implements IIoTask {
 		super.setFilterManager(fm);
 	}
 
+	@Reference(name = "timerAdmin", policy = ReferencePolicy.DYNAMIC)
+	@Override
+	public void setTimerAdmin(ITimerAdmin ta) {
+		super.setTimerAdmin(ta);
+	}
+
 	@Override
 	ConnPoolConf configuration() {
 		return m_conf;
 	}
 
 	@Override
-	TcpClientConf updateConf(Map<String, ?> props) {
-		final ConnPoolConf conf = m_conf;
-		if (props == null)
-			m_conf = null;
-		else {
-			final ConnPoolConf newConf = new ConnPoolConf();
-			newConf.initialize(props);
-			m_conf = newConf;
-		}
+	void configuration(TcpClientConf conf) {
+		m_conf = (ConnPoolConf) conf;
+	}
+
+	@Override
+	TcpClientConf createConf(Map<String, ?> props) {
+		final ConnPoolConf conf = new ConnPoolConf();
+		conf.initialize(props);
 		return conf;
 	}
 
@@ -276,6 +287,11 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O>implements IIoTask {
 
 		// keepAliveTime == 0, the channel need be closed immediately
 		channel.close();
+	}
+
+	@Override
+	int timeout(TcpClientConf conf) {
+		return Util.max(super.timeout(conf), ((ConnPoolConf) conf).idleTimeoutInSeconds());
 	}
 
 	/**

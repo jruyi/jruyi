@@ -19,17 +19,6 @@ if {not {conf:exists jruyi.common.scheduler}} {
 		terminationWaitTimeInSeconds=60
 }
 
-# TimeoutAdmin
-if {not {conf:exists jruyi.timeoutadmin}} {
-	conf:create jruyi.timeoutadmin \
-		allowCoreThreadTimeOut=true \
-		corePoolSize=1 \
-		maxPoolSize=4 \
-		keepAliveTimeInSeconds=10 \
-		queueCapacity=4096 \
-		terminationWaitTimeInSeconds=60
-}
-
 # ChannelAdmin
 # Let n be the number of available processors.
 # When numberOfSelectorThreads < 0, the minimum integer which is a power of 2 and not less than n, will be used.

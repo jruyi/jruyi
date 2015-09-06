@@ -18,6 +18,7 @@ import java.lang.reflect.Method;
 import java.util.Map;
 
 import org.jruyi.common.IService;
+import org.jruyi.common.ITimerAdmin;
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.IBufferFactory;
 import org.jruyi.io.ISession;
@@ -167,9 +168,20 @@ public final class ShortConn<I, O> extends AbstractTcpClient<I, O> {
 		super.setFilterManager(fm);
 	}
 
+	@Reference(name = "timerAdmin", policy = ReferencePolicy.DYNAMIC)
+	@Override
+	public void setTimerAdmin(ITimerAdmin ta) {
+		super.setTimerAdmin(ta);
+	}
+
 	@Override
 	TcpClientConf configuration() {
 		return m_conf;
+	}
+
+	@Override
+	void configuration(TcpClientConf conf) {
+		m_conf = conf;
 	}
 
 	@Override
@@ -178,15 +190,9 @@ public final class ShortConn<I, O> extends AbstractTcpClient<I, O> {
 	}
 
 	@Override
-	TcpClientConf updateConf(Map<String, ?> props) {
-		final TcpClientConf conf = m_conf;
-		if (props == null)
-			m_conf = null;
-		else {
-			TcpClientConf newConf = new TcpClientConf();
-			newConf.initialize(props);
-			m_conf = newConf;
-		}
+	TcpClientConf createConf(Map<String, ?> props) {
+		final TcpClientConf conf = new TcpClientConf();
+		conf.initialize(props);
 		return conf;
 	}
 }

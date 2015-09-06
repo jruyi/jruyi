@@ -12,55 +12,51 @@
  * limitations under the License.
  */
 
-package org.jruyi.timeoutadmin.internal;
-
-import java.util.concurrent.TimeUnit;
+package org.jruyi.common.timer;
 
 import org.jruyi.common.IThreadLocalCache;
+import org.jruyi.common.ITimeoutEvent;
+import org.jruyi.common.ITimeoutListener;
 import org.jruyi.common.StrUtil;
 import org.jruyi.common.ThreadLocalCache;
-import org.jruyi.timeoutadmin.ITimeoutEvent;
-import org.jruyi.timeoutadmin.ITimeoutListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class TimeoutEvent implements ITimeoutEvent, Runnable {
+final class TimeoutEvent<S> implements ITimeoutEvent<S>, Runnable {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(TimeoutEvent.class);
-	private static final IThreadLocalCache<TimeoutEvent> c_cache = ThreadLocalCache.weakLinkedCache();
+	private static final IThreadLocalCache<TimeoutEvent<?>> c_cache = ThreadLocalCache.weakLinkedCache();
 	private int m_timeout;
-	private long m_expireTime;
-	private TimeoutAdmin.TimeWheel m_timeWheel;
 	private int m_index;
-	private TimeoutNotifier m_notifier;
+	private TimeoutNotifier<S> m_notifier;
 
 	private TimeoutEvent() {
 	}
 
-	static TimeoutEvent get(TimeoutNotifier notifier, int timeout) {
-		TimeoutEvent event = c_cache.take();
+	static <S> TimeoutEvent<S> get(TimeoutNotifier<S> notifier, int timeout) {
+		@SuppressWarnings("unchecked")
+		TimeoutEvent<S> event = (TimeoutEvent<S>) c_cache.take();
 		if (event == null)
-			event = new TimeoutEvent();
+			event = new TimeoutEvent<S>();
 
 		event.m_notifier = notifier;
 		event.m_timeout = timeout;
-		event.m_expireTime = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(timeout);
 		return event;
 	}
 
 	@Override
-	public Object getSubject() {
-		return m_notifier.getSubject();
+	public S subject() {
+		return m_notifier.subject();
 	}
 
 	@Override
-	public int getTimeout() {
+	public int timeout() {
 		return m_timeout;
 	}
 
 	@Override
 	public void run() {
-		final ITimeoutListener listener = m_notifier.getListener();
+		final ITimeoutListener<S> listener = m_notifier.listener();
 		if (listener == null) {
 			release();
 			return;
@@ -69,34 +65,24 @@ final class TimeoutEvent implements ITimeoutEvent, Runnable {
 		try {
 			listener.onTimeout(this);
 		} catch (Throwable t) {
-			c_logger.error(StrUtil.join("Error on timeout: ", getSubject()), t);
+			c_logger.error(StrUtil.join("Error on timeout: ", subject()), t);
 		}
 	}
 
-	TimeoutNotifier getNotifier() {
+	TimeoutNotifier<?> notifier() {
 		return m_notifier;
 	}
 
-	TimeoutAdmin.TimeWheel getTimeWheel() {
-		return m_timeWheel;
-	}
-
-	void setTimeWheelAndIndex(TimeoutAdmin.TimeWheel timeWheel, int index) {
-		m_timeWheel = timeWheel;
+	void index(int index) {
 		m_index = index;
 	}
 
-	int getIndex() {
+	int index() {
 		return m_index;
-	}
-
-	long expireTime() {
-		return m_expireTime;
 	}
 
 	void release() {
 		m_notifier = null;
-		m_timeWheel = null;
 		c_cache.put(this);
 	}
 }

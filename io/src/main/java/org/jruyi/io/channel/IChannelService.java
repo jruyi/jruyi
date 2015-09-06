@@ -14,6 +14,7 @@
 
 package org.jruyi.io.channel;
 
+import org.jruyi.common.ITimeoutNotifier;
 import org.jruyi.io.IBufferFactory;
 import org.jruyi.io.filter.IFilterList;
 
@@ -28,6 +29,8 @@ public interface IChannelService<I, O> {
 	long throttle();
 
 	IFilterList getFilterChain();
+
+	<S> ITimeoutNotifier<S> createTimeoutNotifier(S channel);
 
 	void onChannelOpened(IChannel channel);
 

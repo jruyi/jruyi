@@ -12,18 +12,29 @@
  * limitations under the License.
  */
 
-package org.jruyi.timeoutadmin;
+package org.jruyi.common;
 
 /**
- * This interface defines a callback method for being called on timeout events.
+ * An event indicating that time is out.
+ * 
+ * @param <S>
+ *            Type of subject
+ *
+ * @since 2.3
  */
-public interface ITimeoutListener {
+public interface ITimeoutEvent<S> {
 
 	/**
-	 * Callback method on timeout.
-	 * 
-	 * @param event
-	 *            the timeout event
+	 * Returns the subject of this event.
+	 *
+	 * @return the subject
 	 */
-	void onTimeout(ITimeoutEvent event);
+	S subject();
+
+	/**
+	 * Returns the timeout in seconds.
+	 *
+	 * @return the timeout in seconds
+	 */
+	int timeout();
 }

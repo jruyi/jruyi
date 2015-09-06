@@ -17,6 +17,7 @@ package org.jruyi.io.tcpclient;
 import java.util.Map;
 
 import org.jruyi.common.IService;
+import org.jruyi.common.ITimerAdmin;
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.IBufferFactory;
 import org.jruyi.io.ISessionListener;
@@ -170,21 +171,26 @@ public final class TcpClient<I, O> extends AbstractTcpClient<I, O> {
 		super.setFilterManager(fm);
 	}
 
+	@Reference(name = "timerAdmin", policy = ReferencePolicy.DYNAMIC)
+	@Override
+	public void setTimerAdmin(ITimerAdmin ta) {
+		super.setTimerAdmin(ta);
+	}
+
 	@Override
 	TcpClientConf configuration() {
 		return m_conf;
 	}
 
 	@Override
-	TcpClientConf updateConf(Map<String, ?> props) {
-		final TcpClientConf conf = m_conf;
-		if (props == null)
-			m_conf = null;
-		else {
-			final TcpClientConf newConf = new TcpClientConf();
-			newConf.initialize(props);
-			m_conf = newConf;
-		}
+	void configuration(TcpClientConf conf) {
+		m_conf = conf;
+	}
+
+	@Override
+	TcpClientConf createConf(Map<String, ?> props) {
+		final TcpClientConf conf = new TcpClientConf();
+		conf.initialize(props);
 		return conf;
 	}
 }

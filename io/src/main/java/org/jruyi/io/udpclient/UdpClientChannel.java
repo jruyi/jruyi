@@ -14,19 +14,12 @@
 
 package org.jruyi.io.udpclient;
 
-import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.channel.IChannelService;
 import org.jruyi.io.udp.UdpChannel;
-import org.jruyi.timeoutadmin.ITimeoutNotifier;
 
 final class UdpClientChannel extends UdpChannel {
 
 	public UdpClientChannel(IChannelService<Object, Object> channelService) {
 		super(channelService);
-	}
-
-	@Override
-	protected ITimeoutNotifier createTimeoutNotifier(IChannelAdmin ca) {
-		return null;
 	}
 }

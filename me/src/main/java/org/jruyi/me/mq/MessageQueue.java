@@ -19,9 +19,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.jruyi.common.BiListNode;
+import org.jruyi.common.IScheduler;
 import org.jruyi.common.IServiceHolderManager;
 import org.jruyi.common.ServiceHolderManager;
 import org.jruyi.common.StrUtil;
@@ -32,10 +35,6 @@ import org.jruyi.me.IProcessor;
 import org.jruyi.me.MeConstants;
 import org.jruyi.me.route.IRouter;
 import org.jruyi.me.route.IRouterManager;
-import org.jruyi.timeoutadmin.ITimeoutAdmin;
-import org.jruyi.timeoutadmin.ITimeoutEvent;
-import org.jruyi.timeoutadmin.ITimeoutListener;
-import org.jruyi.timeoutadmin.ITimeoutNotifier;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
@@ -49,10 +48,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Component(name = "jruyi.me.mq", //
-service = {}, //
 property = { "endpoint.target=(" + MeConstants.EP_ID + "=*)", "processor.target=(" + MeConstants.EP_ID + "=*)", }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.2.0")
-public final class MessageQueue implements ITimeoutListener {
+public final class MessageQueue {
 
 	static final PreHandlerDelegator[] EMPTY_PREHANDLERS = new PreHandlerDelegator[0];
 	static final PostHandlerDelegator[] EMPTY_POSTHANDLERS = new PostHandlerDelegator[0];
@@ -63,41 +61,52 @@ public final class MessageQueue implements ITimeoutListener {
 	private final ConcurrentHashMap<String, Endpoint> m_endpoints;
 	private final ReentrantLock m_lock;
 	private final HashMap<Object, Endpoint> m_refEps;
-	private ConcurrentHashMap<String, BiListNode<MsgNotifier>> m_nodes;
+	private ConcurrentHashMap<String, BiListNode<MsgTask>> m_nodes;
 	private IServiceHolderManager<IPreHandler> m_preHandlerManager;
 	private IServiceHolderManager<IPostHandler> m_postHandlerManager;
 
 	private IRouterManager m_rm;
 	private Executor m_executor;
-	private ITimeoutAdmin m_ta;
+	private IScheduler m_scheduler;
 
 	private volatile ComponentContext m_context;
 	private int m_msgTimeout = 10;
 
-	static final class MsgNotifier {
+	static final class MsgTask implements Runnable {
 
-		private Message m_msg;
-		private ITimeoutNotifier m_notifier;
+		private final MessageQueue m_queue;
+		private final Message m_msg;
+		private final BiListNode<MsgTask> m_node;
+		private volatile ScheduledFuture<?> m_sf;
 
-		MsgNotifier(Message msg, ITimeoutNotifier notifier) {
+		MsgTask(MessageQueue queue, Message msg, BiListNode<MsgTask> node) {
+			m_queue = queue;
 			m_msg = msg;
-			m_notifier = notifier;
+			m_node = node;
 		}
 
-		void msg(Message msg) {
-			m_msg = msg;
+		@Override
+		public void run() {
+			try (final Message msg = m_msg) {
+				m_queue.removeNode(m_node);
+				c_logger.warn(StrUtil.join("Message timed out:", msg));
+			}
+		}
+
+		void scheduledFuture(ScheduledFuture<?> sf) {
+			m_sf = sf;
 		}
 
 		Message msg() {
 			return m_msg;
 		}
 
-		void notifier(ITimeoutNotifier notifier) {
-			m_notifier = notifier;
-		}
+		boolean cancel() {
+			final ScheduledFuture<?> sf = m_sf;
+			if (sf == null)
+				return false;
 
-		ITimeoutNotifier notifier() {
-			return m_notifier;
+			return sf.cancel(false);
 		}
 	}
 
@@ -105,15 +114,6 @@ public final class MessageQueue implements ITimeoutListener {
 		m_endpoints = new ConcurrentHashMap<>();
 		m_refEps = new HashMap<>();
 		m_lock = new ReentrantLock();
-	}
-
-	@Override
-	public void onTimeout(ITimeoutEvent event) {
-		@SuppressWarnings("unchecked")
-		final BiListNode<MsgNotifier> node = (BiListNode<MsgNotifier>) event.getSubject();
-		try (Message msg = removeNode(node)) {
-			c_logger.warn(StrUtil.join("Message timed out:", msg));
-		}
 	}
 
 	@Reference(name = "routerManager", policy = ReferencePolicy.DYNAMIC)
@@ -126,16 +126,6 @@ public final class MessageQueue implements ITimeoutListener {
 			m_rm = null;
 	}
 
-	@Reference(name = "timeoutAdmin", policy = ReferencePolicy.DYNAMIC)
-	synchronized void setTimeoutAdmin(ITimeoutAdmin ta) {
-		m_ta = ta;
-	}
-
-	synchronized void unsetTimeoutAdmin(ITimeoutAdmin ta) {
-		if (m_ta == ta)
-			m_ta = null;
-	}
-
 	@Reference(name = "executor", policy = ReferencePolicy.DYNAMIC)
 	synchronized void setExecutor(Executor executor) {
 		m_executor = executor;
@@ -144,6 +134,16 @@ public final class MessageQueue implements ITimeoutListener {
 	synchronized void unsetExecutor(Executor executor) {
 		if (m_executor == executor)
 			m_executor = null;
+	}
+
+	@Reference(name = "scheduler", policy = ReferencePolicy.DYNAMIC)
+	synchronized void setScheduler(IScheduler scheduler) {
+		m_scheduler = scheduler;
+	}
+
+	synchronized void unsetScheduler(IScheduler scheduler) {
+		if (m_scheduler == scheduler)
+			m_scheduler = null;
 	}
 
 	@Reference(name = "endpoint", service = IEndpoint.class, cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
@@ -270,11 +270,11 @@ public final class MessageQueue implements ITimeoutListener {
 
 	@SuppressWarnings("resource")
 	void deactivate() {
-		final Collection<BiListNode<MsgNotifier>> nodes = m_nodes.values();
-		for (BiListNode<MsgNotifier> head : nodes) {
-			BiListNode<MsgNotifier> node = head.next();
+		final Collection<BiListNode<MsgTask>> nodes = m_nodes.values();
+		for (BiListNode<MsgTask> head : nodes) {
+			BiListNode<MsgTask> node = head.next();
 			while (node != head) {
-				node.get().notifier().close();
+				node.get().cancel();
 				node = node.next();
 			}
 		}
@@ -305,9 +305,9 @@ public final class MessageQueue implements ITimeoutListener {
 				message.setEndpoint(mqProxy);
 				m_executor.execute(message);
 			} else {
-				BiListNode<MsgNotifier> node = schedule(message);
+				BiListNode<MsgTask> node = schedule(message);
 				mqProxy = m_endpoints.get(dst);
-				if (mqProxy != null && node.get().notifier().cancel()) {
+				if (mqProxy != null && node.get().cancel()) {
 					removeNode(node);
 					message.setEndpoint(mqProxy);
 					m_executor.execute(message);
@@ -369,7 +369,8 @@ public final class MessageQueue implements ITimeoutListener {
 	private String getId(ServiceReference<?> reference) {
 		String id = (String) reference.getProperty(MeConstants.EP_ID);
 		if (id == null) {
-			c_logger.error(StrUtil.join(reference.getProperty(Constants.SERVICE_PID), ": Missing " + MeConstants.EP_ID));
+			c_logger.error(
+					StrUtil.join(reference.getProperty(Constants.SERVICE_PID), ": Missing " + MeConstants.EP_ID));
 			return null;
 		}
 
@@ -411,19 +412,16 @@ public final class MessageQueue implements ITimeoutListener {
 		}
 	}
 
-	private BiListNode<MsgNotifier> schedule(Message message) {
-		final BiListNode<MsgNotifier> node = BiListNode.create();
-		final ITimeoutNotifier notifier = m_ta.createNotifier(node);
-		notifier.setListener(this);
-		notifier.setExecutor(m_executor);
-		final MsgNotifier mn = new MsgNotifier(message, notifier);
-		node.set(mn);
+	private BiListNode<MsgTask> schedule(Message message) {
+		final BiListNode<MsgTask> node = BiListNode.create();
+		final MsgTask msgTask = new MsgTask(this, message, node);
+		node.set(msgTask);
 
-		final BiListNode<MsgNotifier> head = getHead(message.to());
+		final BiListNode<MsgTask> head = getHead(message.to());
 		final ReentrantLock lock = m_lock;
 		lock.lock();
 		try {
-			BiListNode<MsgNotifier> previous = head.previous();
+			BiListNode<MsgTask> previous = head.previous();
 			previous.next(node);
 			node.previous(previous);
 			node.next(head);
@@ -432,17 +430,17 @@ public final class MessageQueue implements ITimeoutListener {
 			lock.unlock();
 		}
 
-		notifier.schedule(m_msgTimeout);
+		msgTask.scheduledFuture(m_scheduler.schedule(msgTask, m_msgTimeout, TimeUnit.SECONDS));
 		return node;
 	}
 
-	private BiListNode<MsgNotifier> getHead(String endpointId) {
-		BiListNode<MsgNotifier> head = m_nodes.get(endpointId);
+	private BiListNode<MsgTask> getHead(String endpointId) {
+		BiListNode<MsgTask> head = m_nodes.get(endpointId);
 		if (head == null) {
-			head = BiListNode.<MsgNotifier> create();
+			head = BiListNode.create();
 			head.previous(head);
 			head.next(head);
-			BiListNode<MsgNotifier> node = m_nodes.putIfAbsent(endpointId, head);
+			BiListNode<MsgTask> node = m_nodes.putIfAbsent(endpointId, head);
 			if (node != null) {
 				head.close();
 				head = node;
@@ -452,12 +450,12 @@ public final class MessageQueue implements ITimeoutListener {
 		return head;
 	}
 
-	private Message removeNode(BiListNode<MsgNotifier> node) {
+	private Message removeNode(BiListNode<MsgTask> node) {
 		final ReentrantLock lock = m_lock;
 		lock.lock();
 		try {
-			final BiListNode<MsgNotifier> previous = node.previous();
-			final BiListNode<MsgNotifier> next = node.next();
+			final BiListNode<MsgTask> previous = node.previous();
+			final BiListNode<MsgTask> next = node.next();
 			previous.next(next);
 			next.previous(previous);
 		} finally {
@@ -469,7 +467,7 @@ public final class MessageQueue implements ITimeoutListener {
 	}
 
 	private void wakeMsgs(Endpoint endpoint) {
-		final BiListNode<MsgNotifier> head = m_nodes.get(endpoint.id());
+		final BiListNode<MsgTask> head = m_nodes.get(endpoint.id());
 		if (head == null)
 			return;
 
@@ -477,13 +475,13 @@ public final class MessageQueue implements ITimeoutListener {
 		final ReentrantLock lock = m_lock;
 		lock.lock();
 		try {
-			BiListNode<MsgNotifier> node = head.next();
+			BiListNode<MsgTask> node = head.next();
 			while (node != head) {
-				if (!node.get().notifier().cancel())
+				if (!node.get().cancel())
 					continue;
 
-				final BiListNode<MsgNotifier> previous = node.previous();
-				final BiListNode<MsgNotifier> next = node.next();
+				final BiListNode<MsgTask> previous = node.previous();
+				final BiListNode<MsgTask> next = node.next();
 				previous.next(next);
 				next.previous(previous);
 

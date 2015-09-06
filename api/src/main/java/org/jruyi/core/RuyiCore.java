@@ -14,10 +14,10 @@
 
 package org.jruyi.core;
 
+import org.jruyi.common.ITimerAdmin;
 import org.jruyi.core.internal.RuyiCoreProvider;
 import org.jruyi.io.IBufferFactory;
 import org.jruyi.io.IFilter;
-import org.jruyi.timeoutadmin.ITimeoutAdmin;
 
 /**
  * A holder for Scheduler and TimeoutAdmin services. It also provides factory
@@ -71,11 +71,12 @@ public final class RuyiCore {
 		IScheduler getScheduler();
 
 		/**
-		 * Returns the Timeout Admin serivce.
+		 * Returns the TimerAdmin service.
 		 * 
-		 * @return the Timeout Admin service
+		 * @return the TimerAdmin service
+		 * @since 2.3
 		 */
-		ITimeoutAdmin getTimeoutAdmin();
+		ITimerAdmin getTimerAdmin();
 
 		/**
 		 * Returns the filter of MsgLog.
@@ -179,12 +180,13 @@ public final class RuyiCore {
 	}
 
 	/**
-	 * Returns the Timeout Admin serivce.
-	 *
-	 * @return the Timeout Admin service
+	 * Returns the TimerAdmin service.
+	 * 
+	 * @return the TimerAdmin service
+	 * @since 2.3
 	 */
-	public static ITimeoutAdmin getTimeoutAdmin() {
-		return c_ruyiCore.getTimeoutAdmin();
+	public static ITimerAdmin getTimerAdmin() {
+		return c_ruyiCore.getTimerAdmin();
 	}
 
 	/**

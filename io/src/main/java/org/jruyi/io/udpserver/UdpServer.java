@@ -14,7 +14,11 @@
 
 package org.jruyi.io.udpserver;
 
-import java.net.*;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.net.SocketException;
 import java.nio.channels.DatagramChannel;
 import java.util.Arrays;
 import java.util.Collection;
@@ -25,12 +29,20 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.jruyi.common.IService;
+import org.jruyi.common.ITimeoutNotifier;
+import org.jruyi.common.ITimer;
+import org.jruyi.common.ITimerAdmin;
 import org.jruyi.common.Service;
 import org.jruyi.common.StrUtil;
-import org.jruyi.io.*;
+import org.jruyi.io.IBufferFactory;
+import org.jruyi.io.ISession;
+import org.jruyi.io.ISessionListener;
+import org.jruyi.io.ISessionService;
+import org.jruyi.io.IoConstants;
 import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.channel.IChannelService;
+import org.jruyi.io.common.Util;
 import org.jruyi.io.filter.IFilterList;
 import org.jruyi.io.filter.IFilterManager;
 import org.osgi.service.component.annotations.Component;
@@ -54,6 +66,9 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 	private IBufferFactory m_bf;
 	private IChannelAdmin m_ca;
 	private IFilterManager m_fm;
+	private ITimerAdmin m_ta;
+
+	private ITimer m_timer;
 
 	private IFilterList m_filters;
 	private boolean m_closed;
@@ -84,6 +99,11 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 	@Override
 	public IFilterList getFilterChain() {
 		return m_filters;
+	}
+
+	@Override
+	public <S> ITimeoutNotifier<S> createTimeoutNotifier(S subject) {
+		return m_timer.createNotifier(subject);
 	}
 
 	@Override
@@ -241,9 +261,17 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 		newConf.initialize(properties);
 
 		final Configuration oldConf = m_conf;
-		updateConf(newConf);
+		updateFilters(newConf);
 
-		return oldConf.isMandatoryChanged(newConf, Configuration.getMandatoryPropsAccessors());
+		final boolean changed = oldConf.isMandatoryChanged(newConf, Configuration.getMandatoryPropsAccessors());
+		if (!changed) {
+			final int timeout = newConf.sessionIdleTimeoutInSeconds();
+			m_timer.configuration().wheelSize(Util.max(timeout, 0)).apply();
+			if (timeout == 0)
+				closeChannels();
+		}
+		m_conf = newConf;
+		return changed;
 	}
 
 	@Override
@@ -258,7 +286,7 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 		if (host != null)
 			bindAddr = InetAddress.getByName(host);
 
-		m_channels = new ConcurrentHashMap<>(conf.initCapacityOfChannelMap());
+		m_timer.start();
 
 		final SocketAddress localAddr;
 		final DatagramChannel datagramChannel = DatagramChannel.open();
@@ -276,6 +304,7 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 			c_logger.error(StrUtil.join(this, " failed to start"), t);
 			m_datagramChannel = null;
 			m_channels = null;
+			m_timer.stop();
 			throw t;
 		}
 
@@ -307,13 +336,11 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 			writeLock.unlock();
 		}
 
-		final Collection<IChannel> channels = m_channels.values();
-		for (IChannel channel : channels)
-			channel.close();
-
-		m_channels = null;
+		closeChannels();
 
 		m_datagramChannel = null;
+
+		m_timer.stop();
 
 		c_logger.info(StrUtil.join(this, " stopped"));
 	}
@@ -346,18 +373,34 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 		m_fm = null;
 	}
 
+	@Reference(name = "timerAdmin", policy = ReferencePolicy.DYNAMIC)
+	public synchronized void setTimerAdmin(ITimerAdmin ta) {
+		m_ta = ta;
+	}
+
+	public synchronized void unsetTimerAdmin(ITimerAdmin ta) {
+		if (m_ta == ta)
+			m_ta = null;
+	}
+
 	public void activate(Map<String, ?> properties) throws Exception {
 		final String id = (String) properties.get(IoConstants.SERVICE_ID);
 		m_caption = StrUtil.join("UdpServer[", id, "]");
 		final Configuration conf = new Configuration();
 		conf.initialize(properties);
-		updateConf(conf);
+		updateFilters(conf);
+		m_conf = conf;
+
+		m_channels = new ConcurrentHashMap<>(conf.initCapacityOfChannelMap());
+		m_timer = m_ta.createTimer(Util.max(conf.sessionIdleTimeoutInSeconds(), 0));
 	}
 
 	public void deactivate() {
 		stop();
+		m_timer = null;
+		m_channels = null;
 
-		updateConf(null);
+		updateFilters(null);
 	}
 
 	IChannel getChannel(SocketAddress key) {
@@ -373,7 +416,7 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 			socket.setReceiveBufferSize(recvBufSize);
 	}
 
-	private void updateConf(Configuration newConf) {
+	private void updateFilters(Configuration newConf) {
 		final String[] newNames = newConf == null ? StrUtil.getEmptyStringArray() : newConf.filters();
 		String[] oldNames = StrUtil.getEmptyStringArray();
 		final IFilterManager fm = m_fm;
@@ -381,8 +424,6 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 			m_filters = fm.getFilters(oldNames);
 		else
 			oldNames = m_conf.filters();
-
-		m_conf = newConf;
 
 		if (Arrays.equals(newNames, oldNames))
 			return;
@@ -400,5 +441,11 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 			channel.close();
 
 		return true;
+	}
+
+	private void closeChannels() {
+		final Collection<IChannel> channels = m_channels.values();
+		for (IChannel channel : channels)
+			channel.close();
 	}
 }

@@ -160,8 +160,10 @@ final class UdpServerWrapper<I, O> implements IUdpServerConfiguration, INioServi
 		final UdpServer<I, O> udpServer = m_udpServer;
 		final IBufferFactory bf = m_bf;
 		udpServer.setBufferFactory(bf instanceof BufferFactoryWrapper ? ((BufferFactoryWrapper) bf).unwrap() : bf);
+		udpServer.setTimerAdmin(ruyiCore.getTimerAdmin());
 		udpServer.setChannelAdmin(ruyiCore.channelAdmin());
 		udpServer.setFilterManager(m_filterChain);
+
 		udpServer.activate(m_properties);
 		udpServer.start();
 
@@ -181,6 +183,7 @@ final class UdpServerWrapper<I, O> implements IUdpServerConfiguration, INioServi
 
 		udpServer.unsetFilterManager(m_filterChain);
 		udpServer.unsetChannelAdmin(ruyiCore.channelAdmin());
+		udpServer.unsetTimerAdmin(ruyiCore.getTimerAdmin());
 		final IBufferFactory bf = m_bf;
 		udpServer.unsetBufferFactory(bf instanceof BufferFactoryWrapper ? ((BufferFactoryWrapper) bf).unwrap() : bf);
 

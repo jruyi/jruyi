@@ -22,9 +22,14 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.jruyi.common.IService;
+import org.jruyi.common.ITimeoutNotifier;
 import org.jruyi.common.Service;
 import org.jruyi.common.StrUtil;
-import org.jruyi.io.*;
+import org.jruyi.io.IBufferFactory;
+import org.jruyi.io.ISession;
+import org.jruyi.io.ISessionListener;
+import org.jruyi.io.ISessionService;
+import org.jruyi.io.IoConstants;
 import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.channel.IChannelService;
@@ -80,6 +85,11 @@ public final class UdpClient<I, O> extends Service implements IChannelService<I,
 	@Override
 	public IFilterList getFilterChain() {
 		return m_filters;
+	}
+
+	@Override
+	public <S> ITimeoutNotifier<S> createTimeoutNotifier(S subject) {
+		return null;
 	}
 
 	@Override
@@ -159,17 +169,17 @@ public final class UdpClient<I, O> extends Service implements IChannelService<I,
 
 	@Override
 	public void onChannelIdleTimedOut(IChannel channel) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public void onChannelConnectTimedOut(IChannel channel) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public void onChannelReadTimedOut(IChannel channel) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -213,9 +223,10 @@ public final class UdpClient<I, O> extends Service implements IChannelService<I,
 
 	@Override
 	protected boolean updateInternal(Map<String, ?> properties) throws Exception {
-		final Configuration oldConf = updateConf(properties);
-		final Configuration newConf = m_conf;
-		updateFilters(oldConf, newConf);
+		final Configuration newConf = createConf(properties);
+		updateFilters(newConf);
+		final Configuration oldConf = m_conf;
+		m_conf = newConf;
 
 		return oldConf.isMandatoryChanged(newConf, Configuration.getMandatoryPropsAccessors());
 	}
@@ -280,24 +291,21 @@ public final class UdpClient<I, O> extends Service implements IChannelService<I,
 		final String id = (String) properties.get(IoConstants.SERVICE_ID);
 		m_caption = StrUtil.join("UdpClient[", id, "]");
 
-		updateFilters(updateConf(properties), m_conf);
+		final Configuration conf = createConf(properties);
+		updateFilters(conf);
+		m_conf = conf;
 	}
 
 	public void deactivate() {
 		stop();
 
-		updateFilters(updateConf(null), null);
+		updateFilters(null);
+		m_conf = null;
 	}
 
-	private Configuration updateConf(Map<String, ?> props) {
-		final Configuration conf = m_conf;
-		if (props == null)
-			m_conf = null;
-		else {
-			final Configuration newConf = new Configuration();
-			newConf.initialize(props);
-			m_conf = newConf;
-		}
+	private Configuration createConf(Map<String, ?> props) {
+		final Configuration conf = new Configuration();
+		conf.initialize(props);
 		return conf;
 	}
 
@@ -330,10 +338,11 @@ public final class UdpClient<I, O> extends Service implements IChannelService<I,
 		return channel;
 	}
 
-	private void updateFilters(Configuration oldConf, Configuration newConf) {
+	private void updateFilters(Configuration newConf) {
 		final String[] newNames = newConf == null ? StrUtil.getEmptyStringArray() : newConf.filters();
 		String[] oldNames = StrUtil.getEmptyStringArray();
 		final IFilterManager fm = m_fm;
+		final Configuration oldConf = m_conf;
 		if (oldConf == null)
 			m_filters = fm.getFilters(oldNames);
 		else

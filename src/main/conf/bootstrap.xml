@@ -43,7 +43,6 @@
 
 	<bundle url="\${jruyi.bundle.base.url}org.jruyi.common-${jruyiCommonVersion}.jar"/>
 	<bundle url="\${jruyi.bundle.base.url}org.jruyi.tpe-${jruyiTpeVersion}.jar"/>
-	<bundle url="\${jruyi.bundle.base.url}org.jruyi.timeoutadmin-${jruyiTimeoutAdminVersion}.jar"/>
 	<bundle url="\${jruyi.bundle.base.url}org.jruyi.me-${jruyiMeVersion}.jar"/>
 	<bundle url="\${jruyi.bundle.base.url}org.jruyi.io-${jruyiIoVersion}.jar"/>
 

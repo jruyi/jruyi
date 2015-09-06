@@ -14,8 +14,6 @@
 
 package org.jruyi.io.channel;
 
-import org.jruyi.timeoutadmin.ITimeoutNotifier;
-
 public interface IChannelAdmin {
 
 	void onRegisterRequired(ISelectableChannel channel);
@@ -25,6 +23,4 @@ public interface IChannelAdmin {
 	IIoWorker designateIoWorker(ISelectableChannel channel);
 
 	void performIoTask(IIoTask task, Object msg);
-
-	ITimeoutNotifier createTimeoutNotifier(ISelectableChannel channel);
 }

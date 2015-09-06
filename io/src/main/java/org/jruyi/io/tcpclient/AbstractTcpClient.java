@@ -23,6 +23,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
+import org.jruyi.common.ITimeoutNotifier;
+import org.jruyi.common.ITimer;
+import org.jruyi.common.ITimerAdmin;
 import org.jruyi.common.Service;
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.IBufferFactory;
@@ -33,6 +36,7 @@ import org.jruyi.io.IoConstants;
 import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.channel.IChannelService;
+import org.jruyi.io.common.Util;
 import org.jruyi.io.filter.IFilterList;
 import org.jruyi.io.filter.IFilterManager;
 import org.jruyi.io.tcp.TcpChannel;
@@ -44,10 +48,14 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 
 	private static final Logger c_logger = LoggerFactory.getLogger(AbstractTcpClient.class);
 
-	private String m_caption;
 	private IChannelAdmin m_ca;
 	private IFilterManager m_fm;
 	private IBufferFactory m_bf;
+	private ITimerAdmin m_ta;
+
+	private ITimer m_timer;
+
+	private String m_caption;
 	private IFilterList m_filters;
 	private boolean m_closed = true;
 	private ISessionListener<I, O> m_listener;
@@ -72,6 +80,11 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 	@Override
 	public void setSessionListener(ISessionListener<I, O> listener) {
 		m_listener = listener;
+	}
+
+	@Override
+	public <S> ITimeoutNotifier<S> createTimeoutNotifier(S subject) {
+		return m_timer.createNotifier(subject);
 	}
 
 	@Override
@@ -177,17 +190,24 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 
 	@Override
 	protected boolean updateInternal(Map<String, ?> properties) throws Exception {
-		final TcpClientConf oldConf = updateConf(properties);
-		final TcpClientConf newConf = configuration();
-		updateFilters(oldConf, newConf);
-
-		return oldConf.isMandatoryChanged(newConf);
+		final TcpClientConf newConf = createConf(properties);
+		updateFilters(newConf);
+		final TcpClientConf oldConf = configuration();
+		boolean changed = oldConf.isMandatoryChanged(newConf);
+		if (!changed) {
+			final int timeout = timeout(newConf);
+			m_timer.configuration().wheelSize(Util.max(timeout, 0)).apply();
+			if (timeout == 0)
+				closeChannels();
+		}
+		configuration(newConf);
+		return changed;
 	}
 
 	@Override
 	protected void startInternal() {
 		m_closed = false;
-		m_channels = new ConcurrentHashMap<>(configuration().initialCapacityOfChannelMap());
+		m_timer.start();
 	}
 
 	@Override
@@ -200,11 +220,9 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 			writeLock.unlock();
 		}
 
-		final Collection<IChannel> channels = m_channels.values();
-		m_channels = null;
+		closeChannels();
 
-		for (IChannel channel : channels)
-			channel.close();
+		m_timer.stop();
 	}
 
 	public void setChannelAdmin(IChannelAdmin cm) {
@@ -232,22 +250,45 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 			m_bf = bf;
 	}
 
+	public synchronized void setTimerAdmin(ITimerAdmin ta) {
+		m_ta = ta;
+	}
+
+	public synchronized void unsetTimerAdmin(ITimerAdmin ta) {
+		if (m_ta == ta)
+			m_ta = null;
+	}
+
 	public void activate(Map<String, ?> properties) throws Exception {
 		final String id = (String) properties.get(IoConstants.SERVICE_ID);
 
 		m_caption = StrUtil.join("TcpClient[", id, "]");
-		updateFilters(updateConf(properties), configuration());
+		final TcpClientConf conf = createConf(properties);
+		updateFilters(conf);
+		configuration(conf);
+
+		m_channels = new ConcurrentHashMap<>(conf.initialCapacityOfChannelMap());
+		m_timer = m_ta.createTimer(Util.max(timeout(conf), 0));
 	}
 
 	public void deactivate() {
 		stop();
 
-		updateFilters(updateConf(null), null);
+		m_timer = null;
+		m_channels = null;
+
+		updateFilters(null);
 	}
 
-	abstract TcpClientConf updateConf(Map<String, ?> props);
+	abstract TcpClientConf createConf(Map<String, ?> props);
 
 	abstract TcpClientConf configuration();
+
+	abstract void configuration(TcpClientConf conf);
+
+	int timeout(TcpClientConf conf) {
+		return Util.max(conf.connectTimeoutInSeconds(), conf.readTimeoutInSeconds());
+	}
 
 	Method[] getMandatoryPropsAccessors() {
 		return TcpClientConf.getMandatoryPropsAccessors();
@@ -278,10 +319,11 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 		channel.scheduleReadTimeout(timeout);
 	}
 
-	private void updateFilters(TcpChannelConf oldConf, TcpChannelConf newConf) {
+	private void updateFilters(TcpChannelConf newConf) {
 		final String[] newNames = newConf == null ? StrUtil.getEmptyStringArray() : newConf.filters();
 		String[] oldNames = StrUtil.getEmptyStringArray();
 		final IFilterManager fm = m_fm;
+		final TcpChannelConf oldConf = configuration();
 		if (oldConf == null)
 			m_filters = fm.getFilters(oldNames);
 		else
@@ -292,5 +334,11 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 
 		m_filters = fm.getFilters(newNames);
 		fm.ungetFilters(oldNames);
+	}
+
+	private void closeChannels() {
+		final Collection<IChannel> channels = m_channels.values();
+		for (IChannel channel : channels)
+			channel.close();
 	}
 }

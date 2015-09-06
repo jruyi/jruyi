@@ -16,11 +16,7 @@ package org.jruyi.io.channel;
 
 import java.util.Map;
 
-import org.jruyi.timeoutadmin.ITimeoutAdmin;
-import org.jruyi.timeoutadmin.ITimeoutNotifier;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +33,6 @@ public final class ChannelAdmin implements IChannelAdmin {
 	private int m_iotMask;
 
 	private SelectorThread[] m_sts;
-	private ITimeoutAdmin m_tm;
 
 	@Override
 	public void onRegisterRequired(ISelectableChannel channel) {
@@ -55,23 +50,8 @@ public final class ChannelAdmin implements IChannelAdmin {
 	}
 
 	@Override
-	public ITimeoutNotifier createTimeoutNotifier(ISelectableChannel channel) {
-		return m_tm.createNotifier(channel);
-	}
-
-	@Override
 	public void performIoTask(IIoTask task, Object msg) {
 		getIoThread(++s_msgId).perform(task, msg, null, 0);
-	}
-
-	@Reference(name = "timeoutAdmin", policy = ReferencePolicy.DYNAMIC)
-	public synchronized void setTimeoutAdmin(ITimeoutAdmin tm) {
-		m_tm = tm;
-	}
-
-	public synchronized void unsetTimeoutAdmin(ITimeoutAdmin tm) {
-		if (m_tm == tm)
-			m_tm = null;
 	}
 
 	public void activate(Map<String, ?> properties) throws Throwable {

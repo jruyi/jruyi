@@ -35,6 +35,7 @@
 		<AD id="jruyi.me.endpoint.prehandlers" name="Endpoint PreHandlers" type="String" cardinality="65535" required="false"/>
 		<AD id="jruyi.me.endpoint.posthandlers" name="Endpoint PostHandlers" type="String" cardinality="65535" required="false"/>
 		<AD id="buffer.target" name="Filter for Selecting Buffer Factory" type="String" required="false"/>
+		<AD id="lazyTimer" name="Whether Timer Starts on Demand" type="Boolean" default="false"/>
 		<AD id="bindAddr" name="Bind Address" type="String" required="false"/>
 		<AD id="port" name="Port" type="Integer" min="0" max="65535"/>
 		<AD id="backlog" name="Backlog" type="Integer" min="1" required="false"/>

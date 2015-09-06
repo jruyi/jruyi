@@ -12,24 +12,14 @@
  * limitations under the License.
  */
 
-package org.jruyi.timeoutadmin;
+package org.jruyi.io.common;
 
-/**
- * An event indicating that the time is out.
- */
-public interface ITimeoutEvent {
+public final class Util {
 
-	/**
-	 * Gets the subject of this event.
-	 * 
-	 * @return the subject
-	 */
-	Object getSubject();
+	private Util() {
+	}
 
-	/**
-	 * Gets the timeout in seconds.
-	 * 
-	 * @return the timeout in seconds
-	 */
-	int getTimeout();
+	public static int max(int m1, int m2) {
+		return m1 > m2 ? m1 : m2;
+	}
 }

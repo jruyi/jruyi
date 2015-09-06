@@ -261,9 +261,11 @@ final class TcpServerWrapper<I, O> implements ITcpServerConfiguration, INioServi
 		final TcpServer<I, O> tcpServer = m_tcpServer;
 		final IBufferFactory bf = m_bf;
 		tcpServer.setBufferFactory(bf instanceof BufferFactoryWrapper ? ((BufferFactoryWrapper) bf).unwrap() : bf);
+		tcpServer.setTimerAdmin(ruyiCore.getTimerAdmin());
 		tcpServer.setChannelAdmin(ruyiCore.channelAdmin());
 		tcpServer.setTcpAcceptor(tcpAcceptor.unwrap());
 		tcpServer.setFilterManager(m_filterChain);
+
 		tcpServer.activate(m_properties);
 		tcpServer.start();
 
@@ -285,6 +287,7 @@ final class TcpServerWrapper<I, O> implements ITcpServerConfiguration, INioServi
 		tcpServer.unsetFilterManager(m_filterChain);
 		tcpServer.unsetTcpAcceptor(tcpAcceptor.unwrap());
 		tcpServer.unsetChannelAdmin(ruyiCore.channelAdmin());
+		tcpServer.unsetTimerAdmin(ruyiCore.getTimerAdmin());
 		final IBufferFactory bf = m_bf;
 		tcpServer.unsetBufferFactory(bf instanceof BufferFactoryWrapper ? ((BufferFactoryWrapper) bf).unwrap() : bf);
 
