@@ -15,15 +15,27 @@
 package org.jruyi.clid;
 
 import org.apache.felix.service.command.CommandSession;
+import org.jruyi.common.ITimeoutNotifier;
+import org.jruyi.io.ISession;
 
 final class Context {
 
 	private final CommandSession m_cs;
 	private final ErrBufferStream m_err;
+	private ITimeoutNotifier<ISession> m_tn;
 
 	public Context(CommandSession cs, ErrBufferStream err) {
 		m_cs = cs;
 		m_err = err;
+	}
+
+	public Context timeoutNotifier(ITimeoutNotifier<ISession> tn) {
+		m_tn = tn;
+		return this;
+	}
+
+	public ITimeoutNotifier<ISession> timeoutNotifier() {
+		return m_tn;
 	}
 
 	public CommandSession commandSession() {

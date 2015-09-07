@@ -38,6 +38,11 @@ import org.apache.felix.service.command.CommandSession;
 import org.jruyi.common.BytesBuilder;
 import org.jruyi.common.CharsetCodec;
 import org.jruyi.common.ICharsetCodec;
+import org.jruyi.common.ITimeoutEvent;
+import org.jruyi.common.ITimeoutListener;
+import org.jruyi.common.ITimeoutNotifier;
+import org.jruyi.common.ITimer;
+import org.jruyi.common.ITimerAdmin;
 import org.jruyi.common.IntStack;
 import org.jruyi.common.Properties;
 import org.jruyi.common.StrUtil;
@@ -66,9 +71,11 @@ import org.slf4j.LoggerFactory;
 
 @Component(name = CliServer.SERVICE_ID, //
 immediate = true, //
+service = IFilter.class, //
 property = { IoConstants.FILTER_ID + "=jruyi.clid.filter" }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class CliServer extends SessionListener<IBuffer, IBuffer>implements IFilter<IBuffer, IBuffer> {
+public final class CliServer extends SessionListener<IBuffer, IBuffer>
+		implements ITimeoutListener<ISession>, IFilter<IBuffer, IBuffer> {
 
 	public static final String SERVICE_ID = "jruyi.clid";
 
@@ -77,7 +84,7 @@ public final class CliServer extends SessionListener<IBuffer, IBuffer>implements
 	private static final String BRANDING_URL = "jruyi.clid.branding.url";
 	private static final String BINDADDR = "jruyi.clid.bindAddr";
 	private static final String PORT = "jruyi.clid.port";
-	private static final String SESSIONIDLETIMEOUT = "jruyi.clid.sessionIdleTimeout";
+	private static final String SESSIONIDLETIMEOUT = "jruyi.clid.sessionIdleTimeoutInSeconds";
 
 	private static final String WELCOME = "welcome";
 	private static final String SCOPE = "SCOPE";
@@ -89,15 +96,20 @@ public final class CliServer extends SessionListener<IBuffer, IBuffer>implements
 
 	private static final String[] FILTERS = { "jruyi.clid.filter" };
 
-	private static final String P_SESSION_IDLE_TIMEOUT = "sessionIdleTimeout";
+	private static final String P_SESSION_IDLE_TIMEOUT = "sessionIdleTimeoutInSeconds";
 
 	private ComponentFactory m_tsf;
 	private CommandProcessor m_cp;
+	private ITimerAdmin m_ta;
+
+	private ITimer m_timer;
+	private long m_timerRefCount;
 
 	private BundleContext m_context;
 	private ComponentInstance m_tcpServer;
 	private Properties m_conf;
 	private byte[] m_welcome;
+	private int m_sessionIdleTimeoutInSeconds;
 
 	@Override
 	public int msgMinSize() {
@@ -134,10 +146,21 @@ public final class CliServer extends SessionListener<IBuffer, IBuffer>implements
 	}
 
 	@Override
-	public void onSessionOpened(ISession session) {
+	public void onTimeout(ITimeoutEvent<ISession> event) {
+		final ISession session = event.subject();
+		c_logger.debug("{}: IDLE_TIMEOUT", session);
+
 		@SuppressWarnings("unchecked")
 		final ISessionService<IBuffer, IBuffer> ss = (ISessionService<IBuffer, IBuffer>) m_tcpServer.getInstance();
+		ss.closeSession(session);
+	}
 
+	@Override
+	public void onSessionOpened(ISession session) {
+		startTimer();
+
+		@SuppressWarnings("unchecked")
+		final ISessionService<IBuffer, IBuffer> ss = (ISessionService<IBuffer, IBuffer>) m_tcpServer.getInstance();
 		final OutBufferStream outBufferStream = new OutBufferStream(ss, session);
 		final ErrBufferStream errBufferStream = new ErrBufferStream(outBufferStream);
 		final PrintStream out = new PrintStream(outBufferStream, true);
@@ -145,27 +168,67 @@ public final class CliServer extends SessionListener<IBuffer, IBuffer>implements
 		final CommandSession cs = m_cp.createSession(null, out, err);
 		cs.put(SCOPE, "builtin:*");
 
-		session.deposit(this, new Context(cs, errBufferStream));
+		final Context context = new Context(cs, errBufferStream);
+		session.deposit(this, context);
 
 		outBufferStream.write(m_welcome);
 		outBufferStream.write(ClidConstants.CR);
 		outBufferStream.write(ClidConstants.LF);
 		writeCommands(outBufferStream);
 		outBufferStream.writeOut(getPrompt(session));
+
+		final int timeout = m_sessionIdleTimeoutInSeconds;
+		if (timeout > 0) {
+			final ITimeoutNotifier<ISession> tn = m_timer.createNotifier(session);
+			context.timeoutNotifier(tn);
+			tn.listener(this);
+			tn.schedule(timeout);
+		} else if (timeout == 0)
+			ss.closeSession(session);
 	}
 
 	@Override
 	public void onSessionClosed(ISession session) {
 		final Context context = (Context) session.withdraw(this);
 		if (context != null) {
-			CommandSession cs = context.commandSession();
+			final CommandSession cs = context.commandSession();
 			cs.getConsole().close();
 			cs.close();
+			final ITimeoutNotifier<ISession> tn = context.timeoutNotifier();
+			if (tn != null)
+				tn.close();
 		}
+
+		stopTimer();
 	}
 
 	@Override
 	public void onMessageReceived(ISession session, IBuffer inMsg) {
+		final int timeout = m_sessionIdleTimeoutInSeconds;
+		if (timeout == 0) {
+			@SuppressWarnings("unchecked")
+			final ISessionService<IBuffer, IBuffer> ss = (ISessionService<IBuffer, IBuffer>) m_tcpServer.getInstance();
+			ss.closeSession(session);
+			inMsg.close();
+			return;
+		}
+
+		final Context context = (Context) session.inquiry(this);
+		ITimeoutNotifier<ISession> tn = context.timeoutNotifier();
+		if (timeout > 0) {
+			if (tn == null) {
+				tn = m_timer.createNotifier(session);
+				context.timeoutNotifier(tn);
+				tn.listener(this);
+			}
+			tn.schedule(timeout);
+		} else {
+			if (tn != null) {
+				context.timeoutNotifier(null);
+				tn.close();
+			}
+		}
+
 		String cmdline;
 		try {
 			cmdline = inMsg.remaining() > 0 ? inMsg.read(StringCodec.utf_8()) : null;
@@ -173,7 +236,6 @@ public final class CliServer extends SessionListener<IBuffer, IBuffer>implements
 			inMsg.close();
 		}
 
-		final Context context = (Context) session.inquiry(this);
 		final CommandSession cs = context.commandSession();
 		final ErrBufferStream err = context.errBufferStream();
 		final OutBufferStream out = err.outBufferStream();
@@ -240,11 +302,26 @@ public final class CliServer extends SessionListener<IBuffer, IBuffer>implements
 		m_cp = null;
 	}
 
+	@Reference(name = "timerAdmin")
+	void setTimerAdmin(ITimerAdmin ta) {
+		m_ta = ta;
+	}
+
+	void unsetTimerAdmin(ITimerAdmin ta) {
+		m_ta = null;
+	}
+
 	@Modified
 	void modified(Map<String, ?> properties) throws Exception {
 		@SuppressWarnings("unchecked")
 		final ISessionService<IBuffer, IBuffer> ss = (ISessionService<IBuffer, IBuffer>) m_tcpServer.getInstance();
-		ss.update(normalizeConf(properties));
+		final Properties conf = normalizeConf(properties);
+		String v = (String) conf.get(P_SESSION_IDLE_TIMEOUT);
+		final int sessionIdleTimeoutInSeconds = (v == null) ? 300 : Integer.parseInt(v);
+		conf.put(P_SESSION_IDLE_TIMEOUT, -1);
+		m_timer.configuration().wheelSize(max(sessionIdleTimeoutInSeconds, 0)).apply();
+		m_sessionIdleTimeoutInSeconds = sessionIdleTimeoutInSeconds;
+		ss.update(conf);
 	}
 
 	void activate(ComponentContext context, Map<String, ?> properties) throws Throwable {
@@ -262,16 +339,19 @@ public final class CliServer extends SessionListener<IBuffer, IBuffer>implements
 		}
 
 		if (conf.get(P_PORT) == null) {
-			String v = bundleContext.getProperty(PORT);
+			final String v = bundleContext.getProperty(PORT);
 			Integer port = v == null ? 6060 : Integer.valueOf(v);
 			conf.put(P_PORT, port);
 		}
 
-		if (conf.get(P_SESSION_IDLE_TIMEOUT) == null) {
-			String v = bundleContext.getProperty(SESSIONIDLETIMEOUT);
-			Integer sessionIdleTimeout = v == null ? 300 : Integer.valueOf(v);
-			conf.put(P_SESSION_IDLE_TIMEOUT, sessionIdleTimeout);
-		}
+		String v = (String) conf.get(P_SESSION_IDLE_TIMEOUT);
+		if (v == null)
+			v = bundleContext.getProperty(SESSIONIDLETIMEOUT);
+		final int sessionIdleTimeoutInSeconds = v == null ? 300 : Integer.parseInt(v);
+		conf.put(P_SESSION_IDLE_TIMEOUT, -1);
+
+		m_timer = m_ta.createTimer(max(sessionIdleTimeoutInSeconds, 0));
+		m_sessionIdleTimeoutInSeconds = sessionIdleTimeoutInSeconds;
 
 		if (m_tsf != null)
 			startTcpServer(m_tsf);
@@ -281,6 +361,8 @@ public final class CliServer extends SessionListener<IBuffer, IBuffer>implements
 
 	void deactivate() {
 		stopTcpServer();
+		m_timer.stop();
+		m_timer = null;
 		m_context = null;
 		m_conf = null;
 	}
@@ -571,5 +653,25 @@ public final class CliServer extends SessionListener<IBuffer, IBuffer>implements
 	private String getPrompt(ISession session) {
 		final InetSocketAddress localAddr = (InetSocketAddress) session.localAddress();
 		return StrUtil.join(localAddr.getHostName(), ':', localAddr.getPort(), "> ");
+	}
+
+	private void startTimer() {
+		synchronized (m_timer) {
+			if (++m_timerRefCount == 1L)
+				m_timer.start();
+		}
+	}
+
+	private void stopTimer() {
+		synchronized (m_timer) {
+			if (m_timerRefCount < 1L)
+				return;
+			if (--m_timerRefCount == 0L)
+				m_timer.stop();
+		}
+	}
+
+	private static int max(int m1, int m2) {
+		return m1 > m2 ? m1 : m2;
 	}
 }

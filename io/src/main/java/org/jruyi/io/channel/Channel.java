@@ -574,7 +574,10 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			createReadThread();
 			createWriteThread();
 
-			m_timeoutNotifier = cs.createTimeoutNotifier(this);
+			final ITimeoutNotifier<Channel> timeoutNotifier = cs.createTimeoutNotifier(this);
+			timeoutNotifier.executor(m_ioWorker);
+			m_timeoutNotifier = timeoutNotifier;
+
 			selectableChannel().configureBlocking(false);
 
 			cs.onChannelOpened(this);
@@ -598,7 +601,6 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			return false;
 
 		timeoutNotifier.listener(IdleTimeoutListener.INST);
-		timeoutNotifier.executor(m_ioWorker);
 		return timeoutNotifier.schedule(timeout);
 	}
 
@@ -609,7 +611,6 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			return false;
 
 		timeoutNotifier.listener(ConnectTimeoutListener.INST);
-		timeoutNotifier.executor(m_ioWorker);
 		return timeoutNotifier.schedule(timeout);
 	}
 
@@ -620,7 +621,6 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			return false;
 
 		timeoutNotifier.listener(ReadTimeoutListener.INST);
-		timeoutNotifier.executor(m_ioWorker);
 		return timeoutNotifier.schedule(timeout);
 	}
 
@@ -847,7 +847,9 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 			m_storage = new IdentityHashMap<>();
 
 			final IChannelService<Object, Object> cs = m_channelService;
-			m_timeoutNotifier = cs.createTimeoutNotifier(this);
+			final ITimeoutNotifier<Channel> timeoutNotifier = cs.createTimeoutNotifier(this);
+			timeoutNotifier.executor(m_ioWorker);
+			m_timeoutNotifier = timeoutNotifier;
 			if (connect()) {
 				onConnectInternal(true);
 			} else {
