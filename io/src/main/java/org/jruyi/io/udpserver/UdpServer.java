@@ -24,9 +24,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.jruyi.common.IService;
 import org.jruyi.common.ITimeoutNotifier;
@@ -71,10 +68,9 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 	private ITimer m_timer;
 
 	private IFilterList m_filters;
-	private boolean m_closed;
+	private volatile boolean m_stopped = true;
 	private ISessionListener<I, O> m_listener;
 	private ConcurrentHashMap<Object, IChannel> m_channels;
-	private final ReentrantReadWriteLock m_lock = new ReentrantReadWriteLock();
 
 	@Override
 	public Object getConfiguration() {
@@ -167,20 +163,13 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 		c_logger.debug("{}: OPENED", channel);
 
 		final Object key = channel.remoteAddress();
-		final ReadLock readLock = m_lock.readLock();
-		if (!readLock.tryLock()) {
+		final ConcurrentHashMap<Object, IChannel> channels = m_channels;
+		if (channels != null)
+			channels.put(key, channel);
+
+		if (m_stopped) {
 			channel.close();
 			return;
-		}
-
-		try {
-			if (m_closed) {
-				channel.close();
-				return;
-			}
-			m_channels.put(key, channel);
-		} finally {
-			readLock.unlock();
 		}
 
 		final ISessionListener<I, O> listener = m_listener;
@@ -278,7 +267,7 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 	protected void startInternal() throws Exception {
 		c_logger.info(StrUtil.join("Starting ", this, "..."));
 
-		m_closed = false;
+		m_stopped = false;
 
 		final Configuration conf = m_conf;
 		InetAddress bindAddr = null;
@@ -322,18 +311,12 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 	protected void stopInternal() {
 		c_logger.info(StrUtil.join("Stopping ", this, "..."));
 
+		m_stopped = true;
+
 		try {
 			m_datagramChannel.close();
 		} catch (Throwable t) {
 			c_logger.error(StrUtil.join(this, " failed to close DatagramChannel"), t);
-		}
-
-		final WriteLock writeLock = m_lock.writeLock();
-		writeLock.lock();
-		try {
-			m_closed = true;
-		} finally {
-			writeLock.unlock();
 		}
 
 		closeChannels();

@@ -14,18 +14,21 @@
 
 buildscript {
 	repositories {
+		maven {
+			url 'https://plugins.gradle.org/m2/'
+		}
 		jcenter()
 	}
 
 	dependencies {
-		classpath 'org.jruyi.gradle:osgibnd-gradle-plugin:0.3.0'
+		classpath 'gradle.plugin.org.jruyi.gradle:osgibnd-gradle-plugin:0.4.0'
 		classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
 	}
 }
 
 apply plugin: 'distribution'
 
-version = '2.3.0'
+version = '2.3.1-SNAPSHOT'
 description = 'A Java framework for easily developing highly efficient and highly scalable network applications'
 
 ext {
@@ -69,7 +72,7 @@ allprojects {
 
 		jruyi_system_version = rootProject.version
 
-		jruyi_core_version = '2.3.0'
+		jruyi_core_version = '2.3.1-SNAPSHOT'
 
 		jruyi_api_version = '2.3.0'
 		jruyi_cli_version = '2.0.1'
@@ -77,7 +80,7 @@ allprojects {
 		org_jruyi_clid_version = '2.3.0'
 		org_jruyi_cmd_version = '2.0.3'
 		org_jruyi_common_version = '2.3.0'
-		org_jruyi_io_version = '2.3.0'
+		org_jruyi_io_version = '2.3.1-SNAPSHOT'
 		org_jruyi_me_version = '2.0.2'
 		org_jruyi_osgi_log_version = '2.0.1'
 		org_jruyi_tpe_version = '2.0.1'

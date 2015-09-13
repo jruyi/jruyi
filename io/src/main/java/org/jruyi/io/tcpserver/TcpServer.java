@@ -25,9 +25,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.jruyi.common.IService;
 import org.jruyi.common.ITimeoutNotifier;
@@ -73,10 +70,9 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 	private ServerSocketChannel m_ssc;
 
 	private IFilterList m_filters;
-	private boolean m_closed;
+	private volatile boolean m_stopped = true;
 	private ISessionListener<I, O> m_listener;
-	private ConcurrentHashMap<Object, IChannel> m_channels;
-	private final ReentrantReadWriteLock m_lock = new ReentrantReadWriteLock();
+	private ConcurrentHashMap<Long, IChannel> m_channels;
 
 	@Override
 	public void setSessionListener(ISessionListener<I, O> listener) {
@@ -155,24 +151,14 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 	public void onChannelOpened(IChannel channel) {
 		c_logger.debug("{}: OPENED", channel);
 
-		Object id = channel.id();
-		final ReadLock readLock = m_lock.readLock();
-		if (!readLock.tryLock()) {
+		final Long id = channel.id();
+		final ConcurrentHashMap<Long, IChannel> channels = m_channels;
+		if (channels != null)
+			channels.put(id, channel);
+
+		if (m_stopped) {
 			channel.close();
 			return;
-		}
-
-		try {
-			if (m_closed) {
-				channel.close();
-				return;
-			}
-
-			m_channels.put(id, channel);
-		} catch (Throwable t) {
-			c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
-		} finally {
-			readLock.unlock();
 		}
 
 		// failed to schedule, channel has been closed
@@ -188,7 +174,7 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 	public void onChannelClosed(IChannel channel) {
 		c_logger.debug("{}: CLOSED", channel);
 
-		final ConcurrentHashMap<Object, IChannel> channels = m_channels;
+		final ConcurrentHashMap<Long, IChannel> channels = m_channels;
 		if (channels != null)
 			channels.remove(channel.id());
 
@@ -240,7 +226,7 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 
 	@Override
 	public void write(ISession session, O msg) {
-		final ConcurrentHashMap<Object, IChannel> channels = m_channels;
+		final ConcurrentHashMap<Long, IChannel> channels = m_channels;
 		if (channels == null)
 			return;
 
@@ -267,22 +253,22 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 	protected void startInternal() throws Exception {
 		c_logger.info(StrUtil.join("Starting ", this, "..."));
 
-		m_closed = false;
+		m_stopped = false;
 
-		Configuration conf = m_conf;
+		final Configuration conf = m_conf;
 		InetAddress bindAddr = null;
-		String host = conf.bindAddr();
+		final String host = conf.bindAddr();
 		if (host != null)
 			bindAddr = InetAddress.getByName(host);
 
 		m_timer.start();
 
-		ServerSocketChannel ssc = ServerSocketChannel.open();
+		final ServerSocketChannel ssc = ServerSocketChannel.open();
 		try {
-			ServerSocket socket = ssc.socket();
+			final ServerSocket socket = ssc.socket();
 			initSocket(socket, conf);
-			SocketAddress ep = new InetSocketAddress(bindAddr, conf.port());
-			Integer backlog = conf.backlog();
+			final SocketAddress ep = new InetSocketAddress(bindAddr, conf.port());
+			final Integer backlog = conf.backlog();
 			if (backlog == null)
 				socket.bind(ep);
 			else
@@ -314,20 +300,14 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 	protected void stopInternal(int options) {
 		c_logger.info(StrUtil.join("Stopping ", this, "..."));
 
+		m_stopped = true;
+
 		try {
 			m_ssc.close();
 		} catch (Throwable t) {
 			c_logger.error(StrUtil.join(this, " failed to close ServerSocketChannel"), t);
 		}
 		m_ssc = null;
-
-		final WriteLock writeLock = m_lock.writeLock();
-		writeLock.lock();
-		try {
-			m_closed = true;
-		} finally {
-			writeLock.unlock();
-		}
 
 		if (options == 0) {
 			closeChannels();

@@ -17,9 +17,6 @@ package org.jruyi.io.udpclient;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.jruyi.common.IService;
 import org.jruyi.common.ITimeoutNotifier;
@@ -56,11 +53,10 @@ public final class UdpClient<I, O> extends Service implements IChannelService<I,
 	private IFilterManager m_fm;
 
 	private IFilterList m_filters;
-	private boolean m_closed = true;
+	private volatile boolean m_stopped = true;
 	private ISessionListener<I, O> m_listener;
 	private volatile IChannel m_channel;
 	private final ReentrantLock m_channelLock = new ReentrantLock();
-	private final ReentrantReadWriteLock m_lock = new ReentrantReadWriteLock();
 
 	@Override
 	public Object getConfiguration() {
@@ -96,21 +92,10 @@ public final class UdpClient<I, O> extends Service implements IChannelService<I,
 	public void onChannelOpened(IChannel channel) {
 		c_logger.debug("{}: OPENED", channel);
 
-		final ReadLock readLock = m_lock.readLock();
-		if (!readLock.tryLock()) {
+		m_channel = channel;
+		if (m_stopped) {
 			channel.close();
 			return;
-		}
-		try {
-			if (m_closed) {
-				channel.close();
-				return;
-			}
-			m_channel = channel;
-		} catch (Throwable t) {
-			c_logger.error(StrUtil.join(channel, " Unexpected Error: "), t);
-		} finally {
-			readLock.unlock();
 		}
 
 		final ISessionListener<I, O> listener = m_listener;
@@ -235,7 +220,7 @@ public final class UdpClient<I, O> extends Service implements IChannelService<I,
 	protected void startInternal() throws Exception {
 		c_logger.info(StrUtil.join("Starting ", this, "..."));
 
-		m_closed = false;
+		m_stopped = false;
 
 		c_logger.info(StrUtil.join(this, " started"));
 	}
@@ -244,13 +229,7 @@ public final class UdpClient<I, O> extends Service implements IChannelService<I,
 	protected void stopInternal() {
 		c_logger.info(StrUtil.join("Stopping ", this, "..."));
 
-		final WriteLock writeLock = m_lock.writeLock();
-		writeLock.lock();
-		try {
-			m_closed = true;
-		} finally {
-			writeLock.unlock();
-		}
+		m_stopped = true;
 
 		final IChannel channel = m_channel;
 		if (channel != null)
@@ -315,24 +294,19 @@ public final class UdpClient<I, O> extends Service implements IChannelService<I,
 		if (channel != null)
 			return channel;
 
-		final ReadLock readLock = m_lock.readLock();
-		if (!readLock.tryLock())
+		if (m_stopped)
 			return null;
 
+		final ReentrantLock channelLock = m_channelLock;
+		channelLock.lock();
 		try {
-			final ReentrantLock channelLock = m_channelLock;
-			channelLock.lock();
-			try {
-				channel = m_channel;
-				if (channel == null) {
-					channel = new UdpClientChannel((IChannelService<Object, Object>) this);
-					channel.connect(-1);
-				}
-			} finally {
-				channelLock.unlock();
+			channel = m_channel;
+			if (channel == null) {
+				channel = new UdpClientChannel((IChannelService<Object, Object>) this);
+				channel.connect(-1);
 			}
 		} finally {
-			readLock.unlock();
+			channelLock.unlock();
 		}
 
 		return channel;

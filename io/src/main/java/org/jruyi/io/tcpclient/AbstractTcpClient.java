@@ -19,9 +19,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.jruyi.common.ITimeoutNotifier;
 import org.jruyi.common.ITimer;
@@ -57,10 +54,9 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 
 	private String m_caption;
 	private IFilterList m_filters;
-	private boolean m_closed = true;
+	private volatile boolean m_stopped = true;
 	private ISessionListener<I, O> m_listener;
-	private ConcurrentHashMap<Object, IChannel> m_channels;
-	private final ReentrantReadWriteLock m_lock = new ReentrantReadWriteLock();
+	private ConcurrentHashMap<Long, IChannel> m_channels;
 
 	@Override
 	public final Object getConfiguration() {
@@ -125,7 +121,7 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 	public void onChannelClosed(IChannel channel) {
 		c_logger.debug("{}: CLOSED", channel);
 
-		final ConcurrentHashMap<Object, IChannel> channels = m_channels;
+		final ConcurrentHashMap<Long, IChannel> channels = m_channels;
 		if (channels != null)
 			channels.remove(channel.id());
 	}
@@ -160,21 +156,14 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 	public void onChannelOpened(IChannel channel) {
 		c_logger.debug("{}: OPENED", channel);
 
-		final Object id = channel.id();
-		final ReadLock readLock = m_lock.readLock();
-		if (!readLock.tryLock()) {
+		final Long id = channel.id();
+		final ConcurrentHashMap<Long, IChannel> channels = m_channels;
+		if (channels != null)
+			channels.put(id, channel);
+
+		if (m_stopped) {
 			channel.close();
 			return;
-		}
-		try {
-			if (m_closed) {
-				channel.close();
-				return;
-			}
-
-			m_channels.put(id, channel);
-		} finally {
-			readLock.unlock();
 		}
 	}
 
@@ -206,22 +195,14 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 
 	@Override
 	protected void startInternal() {
-		m_closed = false;
+		m_stopped = false;
 		m_timer.start();
 	}
 
 	@Override
 	protected void stopInternal() {
-		final WriteLock writeLock = m_lock.writeLock();
-		writeLock.lock();
-		try {
-			m_closed = true;
-		} finally {
-			writeLock.unlock();
-		}
-
+		m_stopped = true;
 		closeChannels();
-
 		m_timer.stop();
 	}
 
