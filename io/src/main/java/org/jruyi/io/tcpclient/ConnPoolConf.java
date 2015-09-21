@@ -18,6 +18,8 @@ import java.util.Map;
 
 final class ConnPoolConf extends TcpClientConf {
 
+	private static final int MAX_POOL_SIZE = 0xFFFF;
+
 	private Integer m_minPoolSize;
 	private Integer m_maxPoolSize;
 	private Integer m_idleTimeoutInSeconds;
@@ -37,7 +39,7 @@ final class ConnPoolConf extends TcpClientConf {
 	}
 
 	public void minPoolSize(Integer minPoolSize) {
-		m_minPoolSize = minPoolSize == null || minPoolSize < 0 ? 0 : minPoolSize;
+		m_minPoolSize = minPoolSize == null || minPoolSize < 0 || minPoolSize > MAX_POOL_SIZE ? 0 : minPoolSize;
 	}
 
 	public Integer maxPoolSize() {
@@ -50,6 +52,8 @@ final class ConnPoolConf extends TcpClientConf {
 			maxPoolSize = 10;
 		if (maxPoolSize < minPoolSize)
 			maxPoolSize = minPoolSize;
+		if (maxPoolSize > MAX_POOL_SIZE)
+			maxPoolSize = MAX_POOL_SIZE;
 		m_maxPoolSize = maxPoolSize;
 	}
 

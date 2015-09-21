@@ -30,7 +30,9 @@ import org.jruyi.io.ISessionListener;
 import org.jruyi.io.IoConstants;
 import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.IChannelAdmin;
+import org.jruyi.io.channel.IChannelService;
 import org.jruyi.io.filter.IFilterManager;
+import org.jruyi.io.tcp.TcpChannel;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferencePolicy;
@@ -45,28 +47,27 @@ public final class MuxConnPool<I extends IIdentifiable<?>, O extends IIdentifiab
 
 	private static final Logger c_logger = LoggerFactory.getLogger(MuxConnPool.class);
 
-	private static final Object OUTMSG_LISTENER = new Object();
-
 	private ConcurrentHashMap<Object, ITimeoutNotifier<O>> m_notifiers;
 
-	final class MsgTimeoutListener implements ITimeoutListener<O> {
+	static final class PooledMuxChannel<O extends IIdentifiable<?>> extends PooledChannel
+			implements ITimeoutListener<O> {
 
-		private final IChannel m_channel;
-
-		MsgTimeoutListener(IChannel channel) {
-			m_channel = channel;
+		PooledMuxChannel(IChannelService<Object, Object> cs) {
+			super(cs);
 		}
 
 		@Override
 		public void onTimeout(ITimeoutEvent<O> event) {
+			@SuppressWarnings({ "unchecked", "rawtypes" })
+			final MuxConnPool<?, O> connPool = (MuxConnPool) channelService();
 			final O outMsg = event.subject();
-			notifiers().remove(outMsg.id());
-			final ISessionListener<I, O> listener = listener();
+			connPool.notifiers().remove(outMsg.id());
+			final ISessionListener<?, O> listener = connPool.listener();
 			if (listener != null) {
 				try {
-					listener.onSessionReadTimedOut(m_channel, outMsg);
+					listener.onSessionReadTimedOut(this, outMsg);
 				} catch (Throwable t) {
-					onChannelException(m_channel, t);
+					connPool.onChannelException(this, t);
 				}
 			}
 		}
@@ -82,7 +83,9 @@ public final class MuxConnPool<I extends IIdentifiable<?>, O extends IIdentifiab
 				channel.close();
 				return;
 			}
-			tn.listener(getListener(channel));
+			@SuppressWarnings("unchecked")
+			final PooledMuxChannel<O> pooledChannel = (PooledMuxChannel<O>) channel;
+			tn.listener(pooledChannel);
 			tn.schedule(timeout);
 		}
 	}
@@ -93,7 +96,7 @@ public final class MuxConnPool<I extends IIdentifiable<?>, O extends IIdentifiab
 		if (listener != null)
 			listener.onMessageSent(channel, outMsg);
 
-		poolChannel(channel);
+		poolChannel((PooledChannel) channel);
 	}
 
 	@Override
@@ -163,17 +166,13 @@ public final class MuxConnPool<I extends IIdentifiable<?>, O extends IIdentifiab
 			notifier.close();
 	}
 
-	ConcurrentHashMap<Object, ITimeoutNotifier<O>> notifiers() {
-		return m_notifiers;
+	@Override
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	TcpChannel newChannel() {
+		return new PooledMuxChannel<O>((IChannelService) this);
 	}
 
-	private ITimeoutListener<O> getListener(IChannel channel) {
-		@SuppressWarnings("unchecked")
-		ITimeoutListener<O> listener = (ITimeoutListener<O>) channel.inquiry(OUTMSG_LISTENER);
-		if (listener == null) {
-			listener = new MsgTimeoutListener(channel);
-			channel.deposit(OUTMSG_LISTENER, listener);
-		}
-		return listener;
+	ConcurrentHashMap<Object, ITimeoutNotifier<O>> notifiers() {
+		return m_notifiers;
 	}
 }

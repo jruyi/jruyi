@@ -38,6 +38,7 @@ final class SelectorThread implements ICloseable, Runnable, ISelector, EventPoll
 	private RingBuffer<SelectorEvent> m_ringBuffer;
 	private Thread m_thread;
 	private Selector m_selector;
+	private volatile boolean m_needWake = true;
 
 	@Override
 	public boolean onEvent(SelectorEvent event, long sequence, boolean endOfBatch) throws Exception {
@@ -46,6 +47,7 @@ final class SelectorThread implements ICloseable, Runnable, ISelector, EventPoll
 	}
 
 	public void open(int id, int capacity) throws Exception {
+		m_needWake = true;
 		m_selector = Selector.open();
 		m_thread = new Thread(this, "jruyi-selector-" + id);
 		m_ringBuffer = RingBuffer.createMultiProducer(SelectorEventFactory.INST, capacity);
@@ -98,6 +100,7 @@ final class SelectorThread implements ICloseable, Runnable, ISelector, EventPoll
 				if (currentThread.isInterrupted())
 					break;
 
+				m_needWake = true;
 				poller.poll(this);
 
 				if (n < 1)
@@ -178,6 +181,10 @@ final class SelectorThread implements ICloseable, Runnable, ISelector, EventPoll
 		} finally {
 			ringBuffer.publish(sequence);
 		}
-		m_selector.wakeup();
+
+		if (m_needWake) {
+			m_needWake = false;
+			m_selector.wakeup();
+		}
 	}
 }

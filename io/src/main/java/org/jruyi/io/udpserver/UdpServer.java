@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.jruyi.common.IService;
 import org.jruyi.common.ITimeoutNotifier;
@@ -56,6 +57,8 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 
 	private static final Logger c_logger = LoggerFactory.getLogger(UdpServer.class);
 
+	private final AtomicLong m_sequence = new AtomicLong(0L);
+
 	private String m_caption;
 	private Configuration m_conf;
 	private DatagramChannel m_datagramChannel;
@@ -71,6 +74,11 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 	private volatile boolean m_stopped = true;
 	private ISessionListener<I, O> m_listener;
 	private ConcurrentHashMap<Object, IChannel> m_channels;
+
+	@Override
+	public long generateId() {
+		return m_sequence.incrementAndGet();
+	}
 
 	@Override
 	public Object getConfiguration() {

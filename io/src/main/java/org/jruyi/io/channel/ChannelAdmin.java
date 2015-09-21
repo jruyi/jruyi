@@ -27,10 +27,10 @@ public final class ChannelAdmin implements IChannelAdmin {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(ChannelAdmin.class);
 
-	private static int s_msgId = -1;
+	private static int s_sequence = -1;
 
-	private IoThread[] m_iots;
-	private int m_iotMask;
+	private IoWorker[] m_iows;
+	private int m_iowMask;
 
 	private SelectorThread[] m_sts;
 
@@ -46,12 +46,12 @@ public final class ChannelAdmin implements IChannelAdmin {
 
 	@Override
 	public IIoWorker designateIoWorker(ISelectableChannel channel) {
-		return getIoThread(channel.id().intValue());
+		return getIoWorker(channel.id().intValue());
 	}
 
 	@Override
 	public void performIoTask(IIoTask task, Object msg) {
-		getIoThread(++s_msgId).perform(task, msg, null, 0);
+		getIoWorker(++s_sequence).perform(task, msg, null, 0);
 	}
 
 	public void activate(Map<String, ?> properties) throws Throwable {
@@ -60,16 +60,16 @@ public final class ChannelAdmin implements IChannelAdmin {
 		final int capacityOfIoRingBuffer = capacityOfIoRingBuffer(properties);
 
 		int count = numberOfIoThreads(properties);
-		final IoThread[] iots = new IoThread[count];
+		final IoWorker[] iows = new IoWorker[count];
 		for (int i = 0; i < count; ++i) {
 			@SuppressWarnings("resource")
-			final IoThread iot = new IoThread();
-			iot.open(i, capacityOfIoRingBuffer);
-			iots[i] = iot;
+			final IoWorker iow = new IoWorker();
+			iow.open(i, capacityOfIoRingBuffer);
+			iows[i] = iow;
 		}
 
-		m_iotMask = count - 1;
-		m_iots = iots;
+		m_iowMask = count - 1;
+		m_iows = iows;
 
 		try {
 			count = numberOfSelectors(properties);
@@ -92,7 +92,7 @@ public final class ChannelAdmin implements IChannelAdmin {
 			}
 			m_sts = sts;
 		} catch (Throwable t) {
-			stopIoThreads();
+			stopIoWorkers();
 			throw t;
 		}
 
@@ -107,16 +107,16 @@ public final class ChannelAdmin implements IChannelAdmin {
 		for (SelectorThread st : sts)
 			st.close();
 
-		stopIoThreads();
+		stopIoWorkers();
 
 		c_logger.info("ChannelAdmin deactivated");
 	}
 
-	private void stopIoThreads() {
-		final IoThread[] iots = m_iots;
-		m_iots = null;
-		for (IoThread iot : iots)
-			iot.close();
+	private void stopIoWorkers() {
+		final IoWorker[] iows = m_iows;
+		m_iows = null;
+		for (IoWorker iow : iows)
+			iow.close();
 	}
 
 	private SelectorThread getSelectorThread(int id) {
@@ -125,8 +125,8 @@ public final class ChannelAdmin implements IChannelAdmin {
 		return sts[i];
 	}
 
-	private IoThread getIoThread(int id) {
-		return m_iots[id & m_iotMask];
+	private IoWorker getIoWorker(int id) {
+		return m_iows[id & m_iowMask];
 	}
 
 	private static int capacityOfIoRingBuffer(Map<String, ?> properties) {

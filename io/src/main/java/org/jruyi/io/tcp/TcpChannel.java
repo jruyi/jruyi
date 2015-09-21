@@ -24,7 +24,7 @@ import java.nio.channels.WritableByteChannel;
 import org.jruyi.io.channel.Channel;
 import org.jruyi.io.channel.IChannelService;
 
-public final class TcpChannel extends Channel {
+public class TcpChannel extends Channel {
 
 	private SocketChannel m_socketChannel;
 

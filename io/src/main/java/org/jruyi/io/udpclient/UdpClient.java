@@ -16,6 +16,7 @@ package org.jruyi.io.udpclient;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.jruyi.common.IService;
@@ -45,6 +46,9 @@ xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class UdpClient<I, O> extends Service implements IChannelService<I, O>, ISessionService<I, O> {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(UdpClient.class);
+
+	private final AtomicLong m_sequence = new AtomicLong(0L);
+
 	private String m_caption;
 	private Configuration m_conf;
 
@@ -57,6 +61,11 @@ public final class UdpClient<I, O> extends Service implements IChannelService<I,
 	private ISessionListener<I, O> m_listener;
 	private volatile IChannel m_channel;
 	private final ReentrantLock m_channelLock = new ReentrantLock();
+
+	@Override
+	public long generateId() {
+		return m_sequence.incrementAndGet();
+	}
 
 	@Override
 	public Object getConfiguration() {

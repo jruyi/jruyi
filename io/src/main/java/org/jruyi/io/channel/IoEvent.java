@@ -14,15 +14,32 @@
 
 package org.jruyi.io.channel;
 
+import org.jruyi.common.ICloseable;
+import org.jruyi.common.IThreadLocalCache;
+import org.jruyi.common.ThreadLocalCache;
 import org.jruyi.io.IFilter;
 
-final class IoEvent {
+final class IoEvent implements ICloseable {
+
+	private static final IThreadLocalCache<IoEvent> c_cache = ThreadLocalCache.weakLinkedCache();
 
 	private Runnable m_command;
 	private IIoTask m_task;
 	private Object m_msg;
 	private IFilter<?, ?>[] m_filters;
 	private int m_filterCount;
+
+	public static IoEvent create() {
+		IoEvent event = c_cache.take();
+		if (event == null)
+			event = new IoEvent();
+		return event;
+	}
+
+	@Override
+	public void close() {
+		c_cache.put(this);
+	}
 
 	public IoEvent command(Runnable command) {
 		m_command = command;

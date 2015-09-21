@@ -29,9 +29,11 @@ import org.jruyi.io.ISessionListener;
 import org.jruyi.io.IoConstants;
 import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.IChannelAdmin;
+import org.jruyi.io.channel.IChannelService;
 import org.jruyi.io.channel.IIoTask;
 import org.jruyi.io.common.Util;
 import org.jruyi.io.filter.IFilterManager;
+import org.jruyi.io.tcp.TcpChannel;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferencePolicy;
@@ -46,14 +48,39 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O>implements IIoTask {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(ConnPool.class);
 
-	private static final Object REQ = new Object();
-	private static final Object QUEUE_KEY = new Object();
-
 	private ConnPoolConf m_conf;
 	private final BiListNode<IChannel> m_channelQueueHead;
 	private int m_channelQueueSize;
 	private final ReentrantLock m_channelQueueLock;
 	private final AtomicInteger m_poolSize;
+
+	static class PooledChannel extends TcpChannel {
+
+		private BiListNode<IChannel> m_node;
+		private Object m_request;
+
+		PooledChannel(IChannelService<Object, Object> cs) {
+			super(cs);
+		}
+
+		public void attachRequest(Object request) {
+			m_request = request;
+		}
+
+		public Object detachRequest() {
+			final Object request = m_request;
+			m_request = null;
+			return request;
+		}
+
+		public void node(BiListNode<IChannel> node) {
+			m_node = node;
+		}
+
+		public BiListNode<IChannel> node() {
+			return m_node;
+		}
+	}
 
 	public ConnPool() {
 		final BiListNode<IChannel> node = BiListNode.create();
@@ -102,12 +129,12 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O>implements IIoTask {
 		if (timeout > 0)
 			scheduleReadTimeout(channel, timeout);
 		else if (timeout == 0) // means no response is expected
-			poolChannel(channel);
+			poolChannel((PooledChannel) channel);
 	}
 
 	@Override
 	public void onMessageSent(IChannel channel, O outMsg) {
-		channel.deposit(REQ, outMsg);
+		((PooledChannel) channel).attachRequest(outMsg);
 		final ISessionListener<I, O> listener = listener();
 		if (listener != null)
 			listener.onMessageSent(channel, outMsg);
@@ -129,12 +156,13 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O>implements IIoTask {
 			return;
 		}
 
-		channel.withdraw(REQ);
+		final PooledChannel pooledChannel = (PooledChannel) channel;
+		pooledChannel.attachRequest(null);
 		final ISessionListener<I, O> listener = listener();
 		if (listener != null)
 			listener.onMessageReceived(channel, inMsg);
 
-		poolChannel(channel);
+		poolChannel(pooledChannel);
 	}
 
 	@Override
@@ -163,10 +191,10 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O>implements IIoTask {
 	}
 
 	@Override
-	@SuppressWarnings({ "unchecked" })
 	public void onChannelIdleTimedOut(IChannel channel) {
 		c_logger.debug("{}: IDLE_TIMEOUT", channel);
 
+		final PooledChannel pooledChannel = (PooledChannel) channel;
 		final BiListNode<IChannel> node;
 		final ReentrantLock lock = m_channelQueueLock;
 		lock.lock();
@@ -177,9 +205,10 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O>implements IIoTask {
 			// Both are going to remove the node. So null-check of the element
 			// the node holding is used to tell whether this node has already
 			// been removed.
-			if ((node = (BiListNode<IChannel>) channel.withdraw(QUEUE_KEY)) == null)
+			if ((node = pooledChannel.node()) == null)
 				return;
 
+			pooledChannel.node(null);
 			removeNode(node);
 		} finally {
 			lock.unlock();
@@ -199,7 +228,7 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O>implements IIoTask {
 	@Override
 	public void onChannelReadTimedOut(IChannel channel) {
 		@SuppressWarnings("unchecked")
-		final O outMsg = (O) channel.withdraw(REQ);
+		final O outMsg = (O) ((PooledChannel) channel).detachRequest();
 		final ISessionListener<I, O> listener = listener();
 		if (listener != null)
 			listener.onSessionReadTimedOut(channel, outMsg);
@@ -265,7 +294,7 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O>implements IIoTask {
 		return conf;
 	}
 
-	void poolChannel(IChannel channel) {
+	void poolChannel(PooledChannel channel) {
 		final ConnPoolConf conf = m_conf;
 		final int keepAliveTime = conf.idleTimeoutInSeconds();
 		final ReentrantLock lock = m_channelQueueLock;
@@ -294,9 +323,15 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O>implements IIoTask {
 		return Util.max(super.timeout(conf), ((ConnPoolConf) conf).idleTimeoutInSeconds());
 	}
 
+	@Override
+	@SuppressWarnings("unchecked")
+	TcpChannel newChannel() {
+		return new PooledChannel((IChannelService<Object, Object>) this);
+	}
+
 	/**
 	 * Increments the pool size if it is less than the given {@code limit}.
-	 * 
+	 *
 	 * @return true if pool size is incremented, otherwise false
 	 */
 	private boolean compareAndIncrement(int limit) {
@@ -326,7 +361,7 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O>implements IIoTask {
 				// bound node has been removed. So the detach operation has to
 				// be synchronized.
 				channel = node.get();
-				channel.withdraw(QUEUE_KEY);
+				((PooledChannel) channel).node(null);
 			} finally {
 				lock.unlock();
 			}
@@ -336,10 +371,10 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O>implements IIoTask {
 		return channel;
 	}
 
-	private BiListNode<IChannel> newNode(IChannel channel) {
+	private BiListNode<IChannel> newNode(PooledChannel channel) {
 		final BiListNode<IChannel> node = BiListNode.create();
 		node.set(channel);
-		channel.deposit(QUEUE_KEY, node);
+		channel.node(node);
 		return node;
 	}
 

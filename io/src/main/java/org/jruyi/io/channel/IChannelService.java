@@ -20,6 +20,8 @@ import org.jruyi.io.filter.IFilterList;
 
 public interface IChannelService<I, O> {
 
+	long generateId();
+
 	Object getConfiguration();
 
 	IChannelAdmin getChannelAdmin();

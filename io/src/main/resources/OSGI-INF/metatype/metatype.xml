@@ -35,7 +35,6 @@
 		<AD id="jruyi.me.endpoint.prehandlers" name="Endpoint PreHandlers" type="String" cardinality="65535" required="false"/>
 		<AD id="jruyi.me.endpoint.posthandlers" name="Endpoint PostHandlers" type="String" cardinality="65535" required="false"/>
 		<AD id="buffer.target" name="Filter for Selecting Buffer Factory" type="String" required="false"/>
-		<AD id="lazyTimer" name="Whether Timer Starts on Demand" type="Boolean" default="false"/>
 		<AD id="bindAddr" name="Bind Address" type="String" required="false"/>
 		<AD id="port" name="Port" type="Integer" min="0" max="65535"/>
 		<AD id="backlog" name="Backlog" type="Integer" min="1" required="false"/>
@@ -89,8 +88,8 @@
 		<AD id="throttle" name="Throttle" type="Long" min="-1" default="0"/>
 		<AD id="connectTimeoutInSeconds" name="Connect Timeout(s)" type="Integer" min="0" default="6"/>
 		<AD id="readTimeoutInSeconds" name="Read Timeout(s)" type="Integer" min="-1" default="30"/>
-		<AD id="minPoolSize" name="Minimum Pool Size" type="Integer" min="0" default="0"/>
-		<AD id="maxPoolSize" name="Maximum Pool Size" type="Integer" min="1" default="10"/>
+		<AD id="minPoolSize" name="Minimum Pool Size" type="Integer" min="0" max="65535" default="0"/>
+		<AD id="maxPoolSize" name="Maximum Pool Size" type="Integer" min="1" max="65535" default="10"/>
 		<AD id="idleTimeoutInSeconds" name="Idle Timeout(s)" type="Integer" min="-1" default="60"/>
 		<AD id="filters" name="Filter Chain" type="String" cardinality="65535" required="false"/>
 		<AD id="reuseAddr" name="Reuse Address" type="Boolean" default="false"/>
@@ -115,8 +114,8 @@
 		<AD id="throttle" name="Throttle" type="Long" min="-1" default="0"/>
 		<AD id="connectTimeoutInSeconds" name="Connect Timeout(s)" type="Integer" min="0" default="6"/>
 		<AD id="readTimeoutInSeconds" name="Read Timeout(s)" type="Integer" min="-1" default="30"/>
-		<AD id="minPoolSize" name="Minimum Pool Size" type="Integer" min="0" default="0"/>
-		<AD id="maxPoolSize" name="Maximum Pool Size" type="Integer" min="1" default="10"/>
+		<AD id="minPoolSize" name="Minimum Pool Size" type="Integer" min="0" max="65535" default="0"/>
+		<AD id="maxPoolSize" name="Maximum Pool Size" type="Integer" min="1" max="65535" default="10"/>
 		<AD id="idleTimeoutInSeconds" name="Idle Timeout(s)" type="Integer" min="-1" default="60"/>
 		<AD id="filters" name="Filter Chain" type="String" cardinality="65535" required="false"/>
 		<AD id="reuseAddr" name="Reuse Address" type="Boolean" default="false"/>

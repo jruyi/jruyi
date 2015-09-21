@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.jruyi.common.ITimeoutNotifier;
 import org.jruyi.common.ITimer;
@@ -45,6 +46,8 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 
 	private static final Logger c_logger = LoggerFactory.getLogger(AbstractTcpClient.class);
 
+	private final AtomicLong m_sequence = new AtomicLong(0L);
+
 	private IChannelAdmin m_ca;
 	private IFilterManager m_fm;
 	private IBufferFactory m_bf;
@@ -57,6 +60,11 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 	private volatile boolean m_stopped = true;
 	private ISessionListener<I, O> m_listener;
 	private ConcurrentHashMap<Long, IChannel> m_channels;
+
+	@Override
+	public long generateId() {
+		return m_sequence.incrementAndGet();
+	}
 
 	@Override
 	public final Object getConfiguration() {
@@ -178,7 +186,7 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 	}
 
 	@Override
-	protected boolean updateInternal(Map<String, ?> properties) throws Exception {
+	protected final boolean updateInternal(Map<String, ?> properties) throws Exception {
 		final TcpClientConf newConf = createConf(properties);
 		updateFilters(newConf);
 		final TcpClientConf oldConf = configuration();
@@ -280,14 +288,12 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 	}
 
 	final void connect() {
-		@SuppressWarnings({ "resource", "unchecked" })
-		final TcpChannel channel = new TcpChannel((IChannelService<Object, Object>) this);
+		final TcpChannel channel = newChannel();
 		channel.connect(configuration().connectTimeoutInSeconds());
 	}
 
 	final void connect(Object attachment) {
-		@SuppressWarnings({ "resource", "unchecked" })
-		final TcpChannel channel = new TcpChannel((IChannelService<Object, Object>) this);
+		final TcpChannel channel = newChannel();
 		channel.attach(attachment);
 		channel.connect(configuration().connectTimeoutInSeconds());
 	}
@@ -298,6 +304,11 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 
 	final void scheduleReadTimeout(IChannel channel, int timeout) {
 		channel.scheduleReadTimeout(timeout);
+	}
+
+	@SuppressWarnings({ "unchecked" })
+	TcpChannel newChannel() {
+		return new TcpChannel((IChannelService<Object, Object>) this);
 	}
 
 	private void updateFilters(TcpChannelConf newConf) {

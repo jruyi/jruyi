@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.jruyi.common.IService;
 import org.jruyi.common.ITimeoutNotifier;
@@ -57,6 +58,8 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 
 	private static final Logger c_logger = LoggerFactory.getLogger(TcpServer.class);
 
+	private final AtomicLong m_sequence = new AtomicLong(0L);
+
 	private IBufferFactory m_bf;
 	private ITimerAdmin m_ta;
 	private IChannelAdmin m_ca;
@@ -73,6 +76,11 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 	private volatile boolean m_stopped = true;
 	private ISessionListener<I, O> m_listener;
 	private ConcurrentHashMap<Long, IChannel> m_channels;
+
+	@Override
+	public long generateId() {
+		return m_sequence.incrementAndGet();
+	}
 
 	@Override
 	public void setSessionListener(ISessionListener<I, O> listener) {

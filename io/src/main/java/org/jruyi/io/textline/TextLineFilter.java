@@ -35,6 +35,11 @@ public final class TextLineFilter extends Filter<Object, Object> {
 	private byte[] m_lineTerminator;
 
 	@Override
+	public int msgMinSize() {
+		return m_lineTerminator.length;
+	}
+
+	@Override
 	public int tellBoundary(ISession session, IBuffer in) {
 		byte[] lineTerminator = m_lineTerminator;
 		int i = in.indexOf(lineTerminator, in.position());

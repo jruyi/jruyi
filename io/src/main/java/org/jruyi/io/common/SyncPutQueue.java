@@ -49,6 +49,19 @@ public final class SyncPutQueue<E> {
 		}
 	}
 
+	public E poll() {
+		final ListNode<E> head = m_head;
+		if (head == m_tail)
+			return null;
+
+		final ListNode<E> node = head.next();
+		final E e = node.get();
+		node.set(null);
+		m_head = node;
+		head.close();
+		return e;
+	}
+
 	public void accept(IVisitor<E> visitor) {
 		final ListNode<E> tail = m_tail;
 		ListNode<E> node = m_head;

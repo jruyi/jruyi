@@ -65,6 +65,9 @@ public final class BufferFactory implements IBufferFactory {
 		modified(properties);
 	}
 
+	public void deactivate() {
+	}
+
 	IUnit getUnit() {
 		HeapUnit unit = m_unitCache.take();
 		if (unit == null)

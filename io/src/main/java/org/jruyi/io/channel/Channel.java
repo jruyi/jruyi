@@ -21,7 +21,6 @@ import java.nio.channels.WritableByteChannel;
 import java.util.IdentityHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.jruyi.common.ICloseable;
 import org.jruyi.common.IDumpable;
@@ -42,7 +41,7 @@ import org.slf4j.LoggerFactory;
 public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(Channel.class);
-	private static final AtomicLong c_sequence = new AtomicLong(0L);
+
 	private final Long m_id;
 	private final IChannelService<Object, Object> m_channelService;
 	private final AtomicBoolean m_closed;
@@ -557,7 +556,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 	}
 
 	protected Channel(IChannelService<Object, Object> channelService) {
-		m_id = generateId();
+		m_id = channelService.generateId();
 		m_channelService = channelService;
 		m_closed = new AtomicBoolean(false);
 		m_ioWorker = channelService.getChannelAdmin().designateIoWorker(this);
@@ -565,7 +564,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 	@Override
 	public final void run() {
-		final IChannelService<Object, Object> cs = m_channelService;
+		final IChannelService<?, ?> cs = m_channelService;
 		try {
 			m_storage = new IdentityHashMap<>();
 
@@ -1092,9 +1091,5 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 	private void createReadThread() {
 		m_readThread = new ReadThread(this);
-	}
-
-	private long generateId() {
-		return c_sequence.incrementAndGet();
 	}
 }
