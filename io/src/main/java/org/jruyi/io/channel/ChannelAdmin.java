@@ -133,7 +133,7 @@ public final class ChannelAdmin implements IChannelAdmin {
 		final Object value = properties.get("capacityOfIoRingBuffer");
 		int capacity;
 		if (value == null || (capacity = (Integer) value) < 1)
-			capacity = 1024 * 16;
+			capacity = 1024 * 4;
 		else
 			capacity = Util.ceilingNextPowerOfTwo(capacity);
 

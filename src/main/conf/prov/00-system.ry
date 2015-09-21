@@ -27,7 +27,7 @@ if {not {conf:exists jruyi.io.channeladmin}} {
 	conf:create jruyi.io.channeladmin \
 		numberOfSelectorThreads=0 \
 		numberOfIoThreads=0 \
-		capacityOfIoRingBuffer=16384
+		capacityOfIoRingBuffer=4096
 }
 
 # ExecutorService, Thread Pool Executor
@@ -35,8 +35,6 @@ if {not {conf:exists jruyi.io.channeladmin}} {
 # The default maxPoolSize = 2 * corePoolSize. If maxPoolSize < 1, then maxPoolSize = corePoolSize.
 if {not {conf:exists jruyi.tpe}} {
 	conf:create jruyi.tpe \
-		corePoolSize=200 \
-		maxPoolSize=200 \
 		keepAliveTimeInSeconds=10 \
 		queueCapacity=8192 \
 		terminationWaitTimeInSeconds=60
