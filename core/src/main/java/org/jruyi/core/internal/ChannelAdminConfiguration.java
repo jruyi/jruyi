@@ -24,7 +24,7 @@ final class ChannelAdminConfiguration implements IChannelAdminConfiguration {
 
 	private Integer m_numberOfSelectorThreads;
 	private Integer m_numberOfIoThreads;
-	private int m_capacityOfIoRingBuffer = 1024 * 16;
+	private int m_capacityOfIoRingBuffer = 1024 * 4;
 
 	@Override
 	public IChannelAdminConfiguration numberOfSelectorThreads(Integer numberOfSelectorThreads) {

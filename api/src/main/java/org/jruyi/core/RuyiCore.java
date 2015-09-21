@@ -16,7 +16,6 @@ package org.jruyi.core;
 
 import org.jruyi.common.ITimerAdmin;
 import org.jruyi.core.internal.RuyiCoreProvider;
-import org.jruyi.io.IBufferFactory;
 import org.jruyi.io.IFilter;
 
 /**

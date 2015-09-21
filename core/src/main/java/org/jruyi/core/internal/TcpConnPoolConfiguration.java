@@ -48,8 +48,8 @@ abstract class TcpConnPoolConfiguration extends TcpClientConfiguration implement
 
 	@Override
 	public TcpConnPoolConfiguration minPoolSize(int minPoolSize) {
-		if (minPoolSize < 0)
-			throw new IllegalArgumentException(StrUtil.join("Illegal minPoolSize: ", minPoolSize, " >= 0"));
+		if (minPoolSize < 0 || minPoolSize > 65535)
+			throw new IllegalArgumentException(StrUtil.join("Illegal minPoolSize: 0 <= ", minPoolSize, " < 65536"));
 		properties().put("minPoolSize", minPoolSize);
 		return this;
 	}
@@ -62,8 +62,8 @@ abstract class TcpConnPoolConfiguration extends TcpClientConfiguration implement
 
 	@Override
 	public TcpConnPoolConfiguration maxPoolSize(int maxPoolSize) {
-		if (maxPoolSize < 1)
-			throw new IllegalArgumentException(StrUtil.join("Illegal maxPoolSize: ", maxPoolSize, " > 0"));
+		if (maxPoolSize < 1 || maxPoolSize > 65535)
+			throw new IllegalArgumentException(StrUtil.join("Illegal maxPoolSize: 0 < ", maxPoolSize, " < 65536"));
 		properties().put("maxPoolSize", maxPoolSize);
 		return this;
 	}

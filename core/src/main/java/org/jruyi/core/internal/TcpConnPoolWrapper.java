@@ -47,8 +47,9 @@ final class TcpConnPoolWrapper<I, O> extends TcpConnPoolConfiguration
 	}
 
 	@Override
-	public void apply() throws Throwable {
-		m_connPool.update(properties());
+	public synchronized void apply() throws Throwable {
+		if (m_started)
+			m_connPool.update(properties());
 	}
 
 	@Override

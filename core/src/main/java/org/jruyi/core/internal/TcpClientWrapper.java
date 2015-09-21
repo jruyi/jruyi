@@ -48,8 +48,9 @@ final class TcpClientWrapper<I, O> extends TcpClientConfiguration
 	}
 
 	@Override
-	public void apply() throws Throwable {
-		m_tcpClient.update(properties());
+	public synchronized void apply() throws Throwable {
+		if (m_started)
+			m_tcpClient.update(properties());
 	}
 
 	@Override

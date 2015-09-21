@@ -17,10 +17,10 @@ package org.jruyi.common;
 /**
  * An {@code Object} hash set.
  * <p>
- * This class uses a simple thread local cache mechanism for
- * {@code HashSet<Object>}
+ * This class uses a simple thread local cache mechanism for {@code HashSet
+ * <Object>}
  */
-public final class HashSet extends java.util.HashSet<Object> implements ICloseable {
+public final class HashSet extends java.util.HashSet<Object>implements ICloseable {
 
 	private static final long serialVersionUID = -8986434770383785065L;
 	private static final IThreadLocalCache<HashSet> c_cache = ThreadLocalCache.weakArrayCache();

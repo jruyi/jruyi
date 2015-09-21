@@ -28,6 +28,7 @@ final class SchedulerWrapper implements IScheduler, IScheduler.IConfiguration {
 
 	private final Map<String, Object> m_properties = new HashMap<>(2);
 	private final Scheduler m_scheduler = new Scheduler();
+	private boolean m_started;
 
 	@Override
 	public IConfiguration numberOfThreads(int numberOfThreads) {
@@ -57,7 +58,8 @@ final class SchedulerWrapper implements IScheduler, IScheduler.IConfiguration {
 
 	@Override
 	public synchronized void apply() {
-		m_scheduler.modified(m_properties);
+		if (m_started)
+			m_scheduler.modified(m_properties);
 	}
 
 	@Override
@@ -90,10 +92,16 @@ final class SchedulerWrapper implements IScheduler, IScheduler.IConfiguration {
 	}
 
 	synchronized void start() throws Throwable {
+		if (m_started)
+			return;
+		m_started = true;
 		m_scheduler.activate(m_properties);
 	}
 
 	synchronized void stop() {
-		m_scheduler.deactivate();
+		if (m_started) {
+			m_started = false;
+			m_scheduler.deactivate();
+		}
 	}
 }

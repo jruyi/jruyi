@@ -26,6 +26,7 @@ final class BufferFactoryWrapper implements IBufferFactory, IBufferFactory.IConf
 
 	private final Map<String, Object> m_properties = new HashMap<>(2);
 	private final BufferFactory m_bf = new BufferFactory();
+	private boolean m_started;
 
 	public BufferFactoryWrapper() {
 	}
@@ -68,14 +69,22 @@ final class BufferFactoryWrapper implements IBufferFactory, IBufferFactory.IConf
 
 	@Override
 	public synchronized void apply() {
-		m_bf.modified(m_properties);
+		if (m_started)
+			m_bf.modified(m_properties);
 	}
 
 	synchronized void start() {
+		if (m_started)
+			return;
+		m_started = true;
 		m_bf.activate(m_properties);
 	}
 
 	synchronized void stop() {
+		if (m_started) {
+			m_started = false;
+			m_bf.deactivate();
+		}
 	}
 
 	BufferFactory unwrap() {

@@ -202,8 +202,9 @@ final class TcpServerWrapper<I, O> implements ITcpServerConfiguration, INioServi
 	}
 
 	@Override
-	public void apply() throws Throwable {
-		m_tcpServer.update(m_properties);
+	public synchronized void apply() throws Throwable {
+		if (m_started)
+			m_tcpServer.update(m_properties);
 	}
 
 	@Override

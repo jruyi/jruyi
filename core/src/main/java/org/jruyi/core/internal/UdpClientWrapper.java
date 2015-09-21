@@ -88,8 +88,9 @@ final class UdpClientWrapper<I, O> implements IUdpClientConfiguration, INioServi
 	}
 
 	@Override
-	public void apply() throws Throwable {
-		m_udpClient.update(m_properties);
+	public synchronized void apply() throws Throwable {
+		if (m_started)
+			m_udpClient.update(m_properties);
 	}
 
 	@Override

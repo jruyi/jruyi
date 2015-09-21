@@ -48,8 +48,9 @@ final class TcpMuxConnPoolWrapper<I extends IIdentifiable<?>, O extends IIdentif
 	}
 
 	@Override
-	public void apply() throws Throwable {
-		m_muxConnPool.update(properties());
+	public synchronized void apply() throws Throwable {
+		if (m_started)
+			m_muxConnPool.update(properties());
 	}
 
 	@Override
@@ -94,7 +95,7 @@ final class TcpMuxConnPoolWrapper<I extends IIdentifiable<?>, O extends IIdentif
 	}
 
 	@Override
-	public void start() throws Throwable {
+	public synchronized void start() throws Throwable {
 		if (m_started)
 			return;
 
@@ -115,7 +116,7 @@ final class TcpMuxConnPoolWrapper<I extends IIdentifiable<?>, O extends IIdentif
 	}
 
 	@Override
-	public void stop() {
+	public synchronized void stop() {
 		if (!m_started)
 			return;
 		m_started = false;
