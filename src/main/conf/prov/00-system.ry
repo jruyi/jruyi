@@ -30,6 +30,13 @@ if {not {conf:exists jruyi.io.channeladmin}} {
 		capacityOfIoRingBuffer=4096
 }
 
+# CLI Daemon
+if {not {conf:exists jruyi.clid}} {
+	conf:create jruyi.clid \
+		bindAddr=localhost \
+		port=6060
+}
+
 # ExecutorService, Thread Pool Executor
 # The default corePoolSize is 2 * Runtime.getRuntime().availableProcessors()
 # The default maxPoolSize = 2 * corePoolSize. If maxPoolSize < 1, then maxPoolSize = corePoolSize.

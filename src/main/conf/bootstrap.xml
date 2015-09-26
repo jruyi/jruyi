@@ -24,12 +24,6 @@
 			sun.misc,
 			sun.nio.ch
 		</property>
-		<!-- CLID bindAddr -->
-		<property name="jruyi.clid.bindAddr">localhost</property>
-		<property name="jruyi.clid.port">6060</property>
-		<!-- Customized brand
-		<property name="jruyi.clid.branding.url">\${jruyi.inst.conf.url}branding.properties</property>
-		-->
 	</framework>
 
 	<bundle startLevel="1" url="\${jruyi.bundle.base.url}org.jruyi.osgi.log-${jruyiOsgiLogVersion}.jar"/>
