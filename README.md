@@ -17,7 +17,7 @@ JRuyi provides an event-driven asynchronous IO framework.
 High throughput, low latency; provides a thread-local cache mechanism to avoid frequent creation of large objects such as buffers; provides chained buffers to minimize unnecessary memory copy.
 
 #### TCP Connection Pooling and Multiplexing
-Provides an efficient IO service with TCP connection pooling and multiplexing.
+Provides an efficient IO service supporting TCP connection pooling and multiplexing.
 
 #### Extensible Command Line
 A command-line/shell backed by Apache Felix Gogo Runtime. New commands can be easily added via OSGi services.
