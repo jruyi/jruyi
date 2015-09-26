@@ -61,6 +61,25 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 	private ISessionListener<I, O> m_listener;
 	private ConcurrentHashMap<Long, IChannel> m_channels;
 
+	static final class TcpClientChannel extends TcpChannel {
+
+		private Object m_request;
+
+		TcpClientChannel(IChannelService<Object, Object> cs) {
+			super(cs);
+		}
+
+		public void attachRequest(Object request) {
+			m_request = request;
+		}
+
+		public Object detachRequest() {
+			final Object request = m_request;
+			m_request = null;
+			return request;
+		}
+	}
+
 	@Override
 	public long generateId() {
 		return m_sequence.incrementAndGet();
@@ -308,7 +327,7 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 
 	@SuppressWarnings({ "unchecked" })
 	TcpChannel newChannel() {
-		return new TcpChannel((IChannelService<Object, Object>) this);
+		return new TcpClientChannel((IChannelService<Object, Object>) this);
 	}
 
 	private void updateFilters(TcpChannelConf newConf) {

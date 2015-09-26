@@ -42,7 +42,6 @@ public final class ShortConn<I, O> extends AbstractTcpClient<I, O> {
 	private static final Logger c_logger = LoggerFactory.getLogger(ShortConn.class);
 
 	private static final Method[] EMTPY_MANDATORY_PROPS = new Method[0];
-	private static final Object REQ = new Object();
 
 	private TcpClientConf m_conf;
 
@@ -63,7 +62,7 @@ public final class ShortConn<I, O> extends AbstractTcpClient<I, O> {
 
 	@Override
 	public void onMessageSent(IChannel channel, O outMsg) {
-		channel.deposit(REQ, outMsg);
+		((TcpClientChannel) channel).attachRequest(outMsg);
 		final ISessionListener<I, O> listener = listener();
 		if (listener != null)
 			listener.onMessageSent(channel, outMsg);
@@ -73,7 +72,7 @@ public final class ShortConn<I, O> extends AbstractTcpClient<I, O> {
 	public void onMessageReceived(IChannel channel, I inMsg) {
 		// if false, channel has timed out.
 		if (cancelReadTimeout(channel)) {
-			channel.withdraw(REQ);
+			((TcpClientChannel) channel).attachRequest(null);
 			final ISessionListener<I, O> listener = listener();
 			if (listener != null)
 				listener.onMessageReceived(channel, inMsg);
@@ -120,7 +119,7 @@ public final class ShortConn<I, O> extends AbstractTcpClient<I, O> {
 	@Override
 	public void onChannelReadTimedOut(IChannel channel) {
 		@SuppressWarnings("unchecked")
-		final O outMsg = (O) channel.withdraw(REQ);
+		final O outMsg = (O) ((TcpClientChannel) channel).detachRequest();
 		final ISessionListener<I, O> listener = listener();
 		if (listener != null)
 			listener.onSessionReadTimedOut(channel, outMsg);

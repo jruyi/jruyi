@@ -39,8 +39,6 @@ public final class TcpClient<I, O> extends AbstractTcpClient<I, O> {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(TcpClient.class);
 
-	private static final Object REQ = new Object();
-
 	private TcpClientConf m_conf;
 
 	@Override
@@ -57,7 +55,7 @@ public final class TcpClient<I, O> extends AbstractTcpClient<I, O> {
 
 	@Override
 	public void onMessageSent(IChannel channel, O outMsg) {
-		channel.deposit(REQ, outMsg);
+		((TcpClientChannel) channel).attachRequest(outMsg);
 		final ISessionListener<I, O> listener = listener();
 		if (listener != null)
 			listener.onMessageSent(channel, outMsg);
@@ -77,7 +75,7 @@ public final class TcpClient<I, O> extends AbstractTcpClient<I, O> {
 			return;
 		}
 
-		channel.withdraw(REQ);
+		((TcpClientChannel) channel).attachRequest(null);
 		final ISessionListener<I, O> listener = listener();
 		if (listener != null)
 			listener.onMessageReceived(channel, inMsg);
@@ -116,7 +114,7 @@ public final class TcpClient<I, O> extends AbstractTcpClient<I, O> {
 	@Override
 	public void onChannelReadTimedOut(IChannel channel) {
 		@SuppressWarnings("unchecked")
-		final O outMsg = (O) channel.withdraw(REQ);
+		final O outMsg = (O) ((TcpClientChannel) channel).detachRequest();
 		final ISessionListener<I, O> listener = listener();
 		if (listener != null)
 			listener.onSessionReadTimedOut(channel, outMsg);
