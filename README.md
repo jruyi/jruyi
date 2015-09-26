@@ -1,4 +1,6 @@
-## Introduction
+## JRuyi
+
+[![Build Status](https://travis-ci.org/jruyi/jruyi.svg?branch=develop)](https://travis-ci.org/jruyi/jruyi)
 
 JRuyi is a Java framework for easily developing **efficient**, **scalable** and **flexible** network applications.  It hides the Java socket API by providing an event-driven asynchronous API over various transports, such as TCP and UDP, via [Java NIO](http://en.wikipedia.org/wiki/New_I/O).
 
