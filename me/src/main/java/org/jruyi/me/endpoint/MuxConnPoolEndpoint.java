@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package org.jruyi.io.tcpclient;
+package org.jruyi.me.endpoint;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,7 +39,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Component(name = "jruyi.io.tcpclient.mux.connpool", //
+@Component(name = "jruyi.me.endpoint.muxconnpool", //
 configurationPolicy = ConfigurationPolicy.REQUIRE, //
 service = { IEndpoint.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")

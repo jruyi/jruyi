@@ -12,12 +12,11 @@
  * limitations under the License.
  */
 
-package org.jruyi.io.udpserver;
+package org.jruyi.me.endpoint;
 
 import java.util.Map;
 
 import org.jruyi.common.Properties;
-import org.jruyi.common.StrUtil;
 import org.jruyi.io.ISession;
 import org.jruyi.io.ISessionService;
 import org.jruyi.io.IoConstants;
@@ -34,33 +33,21 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-@Component(name = "jruyi.io.udpserver", //
+@Component(name = "jruyi.me.endpoint.udpclient", //
 configurationPolicy = ConfigurationPolicy.REQUIRE, //
 service = { IEndpoint.class }, //
-property = { MeConstants.EP_LAZY + ":Boolean=false" }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public final class UdpServerEndpoint extends SessionListener<Object, Object> implements IConsumer, IEndpoint {
-
-	private static final Logger c_logger = LoggerFactory.getLogger(UdpServerEndpoint.class);
+public final class UdpClientEndpoint extends SessionListener<Object, Object> implements IConsumer, IEndpoint {
 
 	private ComponentFactory m_cf;
-	private ComponentInstance m_udpServer;
+	private ComponentInstance m_udpClient;
 	private ISessionService<Object, Object> m_ss;
 	private IProducer m_producer;
 
 	@Override
 	public void producer(IProducer producer) {
 		m_producer = producer;
-		if (producer != null) {
-			try {
-				m_ss.start();
-			} catch (Throwable t) {
-				c_logger.error(StrUtil.join("Failed to start ", m_ss), t);
-			}
-		}
 	}
 
 	@Override
@@ -69,53 +56,51 @@ public final class UdpServerEndpoint extends SessionListener<Object, Object> imp
 	}
 
 	@Override
-	public void onMessageReceived(ISession session, Object msg) {
-		final IProducer producer = m_producer;
-		final IMessage message = producer.createMessage();
-		message.deposit(this, session);
-		message.attach(msg);
-
-		producer.send(message);
-	}
-
-	@Override
 	public void onMessage(IMessage message) {
 		try {
-			final Object msg = message.detach();
-			ISession session = (ISession) message.withdraw(this);
-			m_ss.write(session, msg);
+			final Object outMsg = message.detach();
+			m_ss.write(null, outMsg);
 		} finally {
 			message.close();
 		}
 	}
 
-	@Reference(name = "udpServer", //
-	target = "(" + ComponentConstants.COMPONENT_NAME + "=" + IoConstants.CN_UDPSERVER_FACTORY + ")")
-	protected void setUdpServer(ComponentFactory cf) {
+	@Override
+	public void onMessageReceived(ISession session, Object msg) {
+		IProducer producer = m_producer;
+		IMessage message = producer.createMessage();
+		message.attach(msg);
+		producer.send(message);
+	}
+
+	@Reference(name = "udpClient", //
+	target = "(" + ComponentConstants.COMPONENT_NAME + "=" + IoConstants.CN_UDPCLIENT_FACTORY + ")")
+	void setUdpClient(ComponentFactory cf) {
 		m_cf = cf;
 	}
 
-	protected void unsetUdpServer(ComponentFactory cf) {
+	void unsetUdpClient(ComponentFactory cf) {
 		m_cf = null;
 	}
 
 	@Modified
-	protected void modified(Map<String, ?> properties) throws Exception {
+	void modified(Map<String, ?> properties) throws Exception {
 		m_ss.update(normalizeConfiguration(properties));
 	}
 
-	protected void activate(Map<String, ?> properties) throws Exception {
-		final ComponentInstance udpServer = m_cf.newInstance(normalizeConfiguration(properties));
+	void activate(Map<String, ?> properties) throws Exception {
+		final ComponentInstance udpClient = m_cf.newInstance(normalizeConfiguration(properties));
 		@SuppressWarnings("unchecked")
-		final ISessionService<Object, Object> ss = (ISessionService<Object, Object>) udpServer.getInstance();
+		final ISessionService<Object, Object> ss = (ISessionService<Object, Object>) udpClient.getInstance();
 		ss.setSessionListener(this);
-		m_udpServer = udpServer;
+		ss.start();
+		m_udpClient = udpClient;
 		m_ss = ss;
 	}
 
-	protected void deactivate() {
-		m_udpServer.dispose();
-		m_udpServer = null;
+	void deactivate() {
+		m_udpClient.dispose();
+		m_udpClient = null;
 		m_ss = null;
 	}
 

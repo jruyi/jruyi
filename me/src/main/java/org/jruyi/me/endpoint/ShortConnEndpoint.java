@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package org.jruyi.io.tcpclient;
+package org.jruyi.me.endpoint;
 
 import java.io.Closeable;
 import java.util.Map;
@@ -39,7 +39,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Component(name = "jruyi.io.tcpclient.shortconn", //
+@Component(name = "jruyi.me.endpoint.shortconn", //
 configurationPolicy = ConfigurationPolicy.REQUIRE, //
 service = { IEndpoint.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
@@ -143,20 +143,20 @@ public final class ShortConnEndpoint extends SessionListener<Object, Object> imp
 
 	@Reference(name = "shortConn", //
 	target = "(" + ComponentConstants.COMPONENT_NAME + "=" + IoConstants.CN_TCPCLIENT_SHORTCONN_FACTORY + ")")
-	protected void setShortConn(ComponentFactory cf) {
+	void setShortConn(ComponentFactory cf) {
 		m_cf = cf;
 	}
 
-	protected void unsetShortConn(ComponentFactory cf) {
+	void unsetShortConn(ComponentFactory cf) {
 		m_cf = null;
 	}
 
 	@Modified
-	protected void modified(Map<String, ?> properties) throws Exception {
+	void modified(Map<String, ?> properties) throws Exception {
 		m_ss.update(normalizeConfiguration(properties));
 	}
 
-	protected void activate(Map<String, ?> properties) throws Exception {
+	void activate(Map<String, ?> properties) throws Exception {
 		final ComponentInstance shortConn = m_cf.newInstance(normalizeConfiguration(properties));
 		@SuppressWarnings("unchecked")
 		final ISessionService<Object, Object> ss = (ISessionService<Object, Object>) shortConn.getInstance();
@@ -167,7 +167,7 @@ public final class ShortConnEndpoint extends SessionListener<Object, Object> imp
 		m_ss = ss;
 	}
 
-	protected void deactivate() {
+	void deactivate() {
 		m_shortConn.dispose();
 	}
 

@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package org.jruyi.io.tcpserver;
+package org.jruyi.me.endpoint;
 
 import java.util.Map;
 
@@ -34,7 +34,7 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 
-@Component(name = "jruyi.io.tcpserver", //
+@Component(name = "jruyi.me.endpoint.tcpserver", //
 configurationPolicy = ConfigurationPolicy.REQUIRE, //
 service = { IEndpoint.class }, //
 property = { MeConstants.EP_LAZY + ":Boolean=false" }, //
@@ -86,20 +86,20 @@ public final class TcpServerEndpoint extends SessionListener<Object, Object> imp
 
 	@Reference(name = "tcpServer", //
 	target = "(" + ComponentConstants.COMPONENT_NAME + "=" + IoConstants.CN_TCPSERVER_FACTORY + ")")
-	protected void setTcpServer(ComponentFactory cf) {
+	void setTcpServer(ComponentFactory cf) {
 		m_cf = cf;
 	}
 
-	protected void unsetTcpServer(ComponentFactory cf) {
+	void unsetTcpServer(ComponentFactory cf) {
 		m_cf = null;
 	}
 
 	@Modified
-	protected void modified(Map<String, ?> properties) throws Exception {
+	void modified(Map<String, ?> properties) throws Exception {
 		m_ss.update(normalizeConfiguration(properties));
 	}
 
-	protected void activate(Map<String, ?> properties) throws Exception {
+	void activate(Map<String, ?> properties) throws Exception {
 		final ComponentInstance tcpServer = m_cf.newInstance(normalizeConfiguration(properties));
 		@SuppressWarnings("unchecked")
 		final ISessionService<Object, Object> ss = (ISessionService<Object, Object>) tcpServer.getInstance();
@@ -108,7 +108,7 @@ public final class TcpServerEndpoint extends SessionListener<Object, Object> imp
 		m_ss = ss;
 	}
 
-	protected void deactivate() {
+	void deactivate() {
 		m_tcpServer.dispose();
 		m_tcpServer = null;
 		m_ss = null;

@@ -35,6 +35,8 @@ jar {
 	manifest {
 		attributes(
 				'Export-Package': 'org.jruyi.me',
+				'Import-Package': 'org.jruyi.io;resolution:=optional,*',
+				'DynamicImport-Package': 'org.jruyi.io',
 				'-dsannotations': '*',
 		)
 	}

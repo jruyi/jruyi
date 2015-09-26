@@ -293,16 +293,16 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 			localAddr = new InetSocketAddress(bindAddr, conf.port());
 			socket.bind(localAddr);
 			datagramChannel.configureBlocking(false);
-		} catch (Throwable t) {
+		} catch (Exception e) {
 			try {
 				datagramChannel.close();
-			} catch (Throwable e) {
+			} catch (Throwable t) {
 			}
-			c_logger.error(StrUtil.join(this, " failed to start"), t);
+			c_logger.error(StrUtil.join(this, " failed to start"), e);
 			m_datagramChannel = null;
 			m_channels = null;
 			m_timer.stop();
-			throw t;
+			throw e;
 		}
 
 		m_datagramChannel = datagramChannel;

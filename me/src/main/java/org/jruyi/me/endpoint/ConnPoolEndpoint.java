@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package org.jruyi.io.tcpclient;
+package org.jruyi.me.endpoint;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,7 +38,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Component(name = "jruyi.io.tcpclient.connpool", //
+@Component(name = "jruyi.me.endpoint.connpool", //
 configurationPolicy = ConfigurationPolicy.REQUIRE, //
 service = { IEndpoint.class }, //
 xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
@@ -142,20 +142,20 @@ public final class ConnPoolEndpoint extends SessionListener<Object, Object> impl
 
 	@Reference(name = "connPool", //
 	target = "(" + ComponentConstants.COMPONENT_NAME + "=" + IoConstants.CN_TCPCLIENT_CONNPOOL_FACTORY + ")")
-	protected void setConnPool(ComponentFactory cf) {
+	void setConnPool(ComponentFactory cf) {
 		m_cf = cf;
 	}
 
-	protected void unsetConnPool(ComponentFactory cf) {
+	void unsetConnPool(ComponentFactory cf) {
 		m_cf = null;
 	}
 
 	@Modified
-	protected void modified(Map<String, ?> properties) throws Exception {
+	void modified(Map<String, ?> properties) throws Exception {
 		m_ss.update(normalizeConfiguration(properties));
 	}
 
-	protected void activate(Map<String, ?> properties) throws Exception {
+	void activate(Map<String, ?> properties) throws Exception {
 		final ComponentInstance connPool = m_cf.newInstance(normalizeConfiguration(properties));
 		@SuppressWarnings("unchecked")
 		final ISessionService<Object, Object> ss = (ISessionService<Object, Object>) connPool.getInstance();
@@ -166,7 +166,7 @@ public final class ConnPoolEndpoint extends SessionListener<Object, Object> impl
 		m_ss = ss;
 	}
 
-	protected void deactivate() {
+	void deactivate() {
 		m_connPool.dispose();
 	}
 

@@ -72,7 +72,7 @@ allprojects {
 
 		jruyi_system_version = rootProject.version
 
-		jruyi_core_version = '2.3.1'
+		jruyi_core_version = '2.3.2-SNAPSHOT'
 
 		jruyi_api_version = '2.3.1'
 		jruyi_cli_version = '2.0.1'
@@ -80,8 +80,8 @@ allprojects {
 		org_jruyi_clid_version = '2.3.2-SNAPSHOT'
 		org_jruyi_cmd_version = '2.0.4'
 		org_jruyi_common_version = '2.3.2-SNAPSHOT'
-		org_jruyi_io_version = '2.3.1'
-		org_jruyi_me_version = '2.0.3'
+		org_jruyi_io_version = '2.3.2-SNAPSHOT'
+		org_jruyi_me_version = '2.0.4-SNAPSHOT'
 		org_jruyi_osgi_log_version = '2.0.2'
 		org_jruyi_tpe_version = '2.0.2'
 	}
