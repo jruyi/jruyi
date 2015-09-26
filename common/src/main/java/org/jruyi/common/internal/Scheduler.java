@@ -115,9 +115,10 @@ public final class Scheduler implements IScheduler {
 		m_conf = conf;
 
 		final int numberOfThreads = conf.numberOfThreads();
-		m_executor.setCorePoolSize(numberOfThreads);
-
-		c_logger.info("Scheduler modified: numberOfThreads={}", numberOfThreads);
+		if (m_executor.getCorePoolSize() != numberOfThreads) {
+			m_executor.setCorePoolSize(numberOfThreads);
+			c_logger.info("Scheduler modified: numberOfThreads={}", numberOfThreads);
+		}
 	}
 
 	public void activate(Map<String, ?> properties) {
