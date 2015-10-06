@@ -15,6 +15,7 @@
 package org.jruyi.io.channel;
 
 import java.nio.channels.CancelledKeyException;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.ClosedSelectorException;
 import java.nio.channels.SelectionKey;
 
@@ -25,7 +26,7 @@ enum SelectorOp {
 		public void run(ISelector selector, ISelectableChannel channel) {
 			try {
 				channel.register(selector, SelectionKey.OP_READ);
-			} catch (ClosedSelectorException e) {
+			} catch (ClosedSelectorException | ClosedChannelException e) {
 			} catch (Throwable t) {
 				channel.onException(t);
 			}
@@ -36,7 +37,7 @@ enum SelectorOp {
 		public void run(ISelector selector, ISelectableChannel channel) {
 			try {
 				channel.register(selector, SelectionKey.OP_CONNECT);
-			} catch (ClosedSelectorException e) {
+			} catch (ClosedSelectorException | ClosedChannelException e) {
 			} catch (Throwable t) {
 				channel.onException(t);
 			}
