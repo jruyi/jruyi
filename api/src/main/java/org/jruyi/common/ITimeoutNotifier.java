@@ -18,8 +18,8 @@ import java.util.concurrent.Executor;
 
 /**
  * A {@code ITimeoutNotifier} is used to schedule a timeout notification of the
- * interested <i>subject</i>. It has 4 states in all. They are Unscheduled,
- * Scheduled, TimedOut and Closed.
+ * interested <i>subject</i>. It has 3 states in all. They are Unscheduled,
+ * Scheduled and TimedOut.
  *
  * <p>
  * The state transitions are listed below.
@@ -28,28 +28,21 @@ import java.util.concurrent.Executor;
  * [Unscheduled] --(schedule)-&gt; [Scheduled]
  * [Scheduled] --(cancel)-&gt; [Unscheduled]
  * [Scheduled] --(timeout)-&gt; [TimedOut]
- * [TimedOut] --(reset)-&gt; [Unscheduled]
- * [Scheduled | Unscheduled | TimedOut] --(close)-&gt; [Closed]
  * </pre>
  *
  * <p>
  * When {@code ITimeoutNotifier} is created, the initial state is Unscheduled.
- * Except close event, when 2 more events occur concurrently, only the one
- * winning the lock will be taken. The others will fail fast.
  *
  * <p>
  * When {@code ITimeoutNotifier} goes into state TimedOut, <i>schedule</i>/
- * <i>cancel</i> will not work until it gets <i>reset</i>.
- *
- * <p>
- * After {@code ITimeoutNotifier} closes, it will not work anymore.
+ * <i>cancel</i> will not work anymore.
  *
  * @param <S>
  *            type of subject
  * 
  * @since 2.3
  */
-public interface ITimeoutNotifier<S> extends AutoCloseable {
+public interface ITimeoutNotifier<S> {
 
 	/**
 	 * An {@code int} value representing Unscheduled state.
@@ -63,10 +56,6 @@ public interface ITimeoutNotifier<S> extends AutoCloseable {
 	 * An {@code int} value representing Timedout state.
 	 */
 	int TIMEDOUT = 0x04;
-	/**
-	 * An {@code int} value representing Closed state.
-	 */
-	int CLOSED = 0x08;
 
 	/**
 	 * Returns the subject this notifier concerns.
@@ -100,18 +89,6 @@ public interface ITimeoutNotifier<S> extends AutoCloseable {
 	 * @return false if either timeout or closed, otherwise true
 	 */
 	boolean cancel();
-
-	/**
-	 * Resets this notifier to be able to be scheduled again if it timed out.
-	 *
-	 * @return true if this notifier timed out, otherwise false
-	 */
-	boolean reset();
-
-	/**
-	 * Closes this notifier.
-	 */
-	void close();
 
 	/**
 	 * Sets the listener that is interested in the notification.

@@ -215,7 +215,7 @@ public final class CliServer extends SessionListener<IBuffer, IBuffer>
 			cs.close();
 			final ITimeoutNotifier<ISession> tn = context.timeoutNotifier();
 			if (tn != null)
-				tn.close();
+				tn.cancel();
 		}
 
 		stopTimer();
@@ -244,7 +244,7 @@ public final class CliServer extends SessionListener<IBuffer, IBuffer>
 		} else {
 			if (tn != null) {
 				context.timeoutNotifier(null);
-				tn.close();
+				tn.cancel();
 			}
 		}
 

@@ -15,183 +15,139 @@
 package org.jruyi.common.timer;
 
 import java.util.concurrent.Executor;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.jruyi.common.BiListNode;
+import org.jruyi.common.ITimeoutEvent;
 import org.jruyi.common.ITimeoutListener;
 import org.jruyi.common.ITimeoutNotifier;
 import org.jruyi.common.StrUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-final class TimeoutNotifier<S> implements ITimeoutNotifier<S> {
+final class TimeoutNotifier<S> implements ITimeoutNotifier<S>, ITimeoutEvent<S>, Runnable {
+
+	private static final Logger c_logger = LoggerFactory.getLogger(TimeoutNotifier.class);
 
 	private final S m_subject;
 	private final Timer m_ta;
-	private final ReentrantLock m_lock;
-	private BiListNode<TimeoutEvent<?>> m_node;
-	private ITimeoutListener<S> m_listener;
-	private IState m_state = Unscheduled.INST;
+	private int m_index;
+	private int m_timeout;
+	private BiListNode<TimeoutNotifier<?>> m_node;
+	private volatile ITimeoutListener<S> m_listener;
+	private State m_state = State.UNSCHEDULED;
 	private Executor m_executor;
 
 	TimeoutNotifier(S subject, Timer ta) {
 		m_subject = subject;
 		m_ta = ta;
-		m_lock = new ReentrantLock();
 	}
 
-	interface IState {
+	enum State {
 
-		boolean schedule(TimeoutNotifier<?> notifier, int timeout);
+		UNSCHEDULED {
+			@Override
+			public boolean schedule(TimeoutNotifier<?> notifier, int timeout) {
+				notifier.timer().schedule(notifier, timeout);
+				notifier.changeState(SCHEDULED);
+				return true;
+			}
 
-		boolean cancel(TimeoutNotifier<?> notifier);
+			@Override
+			public boolean cancel(TimeoutNotifier<?> notifier) {
+				return true;
+			}
 
-		boolean reset(TimeoutNotifier<?> notifier);
+			@Override
+			boolean onTimeout(TimeoutNotifier<?> notifier) {
+				return false;
+			}
 
-		void close(TimeoutNotifier<?> notifier);
+			@Override
+			public int state() {
+				return ITimeoutNotifier.UNSCHEDULED;
+			}
+		},
+		SCHEDULED {
+			@Override
+			public boolean schedule(TimeoutNotifier<?> notifier, int timeout) {
+				return notifier.timer().reschedule(notifier, timeout);
+			}
 
-		int state();
-	}
+			@Override
+			public boolean cancel(TimeoutNotifier<?> notifier) {
+				if (notifier.timer().cancel(notifier)) {
+					notifier.changeState(UNSCHEDULED);
+					return true;
+				} else
+					return false;
+			}
 
-	static final class Scheduled implements IState {
+			@Override
+			boolean onTimeout(TimeoutNotifier<?> notifier) {
+				notifier.changeState(TIMEDOUT);
+				return true;
+			}
 
-		public static final IState INST = new Scheduled();
+			@Override
+			public int state() {
+				return ITimeoutNotifier.SCHEDULED;
+			}
+		},
+		TIMEDOUT {
+			@Override
+			public boolean schedule(TimeoutNotifier<?> notifier, int timeout) {
+				return false;
+			}
 
-		private Scheduled() {
-		}
+			@Override
+			public boolean cancel(TimeoutNotifier<?> notifier) {
+				return false;
+			}
 
-		@Override
-		public boolean schedule(TimeoutNotifier<?> notifier, int timeout) {
-			notifier.getTimeoutAdmin().reschedule(notifier, timeout);
-			return true;
-		}
+			@Override
+			boolean onTimeout(TimeoutNotifier<?> notifier) {
+				throw new IllegalStateException();
+			}
 
-		@Override
-		public boolean cancel(TimeoutNotifier<?> notifier) {
-			notifier.getTimeoutAdmin().cancel(notifier);
-			notifier.changeState(Unscheduled.INST);
-			return true;
-		}
+			@Override
+			public int state() {
+				return ITimeoutNotifier.TIMEDOUT;
+			}
+		};
 
-		@Override
-		public boolean reset(TimeoutNotifier<?> notifier) {
-			return false;
-		}
+		abstract boolean schedule(TimeoutNotifier<?> notifier, int timeout);
 
-		@Override
-		public void close(TimeoutNotifier<?> notifier) {
-			notifier.getTimeoutAdmin().cancel(notifier);
-			notifier.changeState(Closed.INST);
-		}
+		abstract boolean cancel(TimeoutNotifier<?> notifier);
 
-		@Override
-		public int state() {
-			return SCHEDULED;
-		}
-	}
+		abstract boolean onTimeout(TimeoutNotifier<?> notifier);
 
-	static final class Unscheduled implements IState {
-
-		public static final IState INST = new Unscheduled();
-
-		private Unscheduled() {
-		}
-
-		@Override
-		public boolean schedule(TimeoutNotifier<?> notifier, int timeout) {
-			notifier.getTimeoutAdmin().schedule(notifier, timeout);
-			notifier.changeState(Scheduled.INST);
-			return true;
-		}
-
-		@Override
-		public boolean cancel(TimeoutNotifier<?> notifier) {
-			return true;
-		}
-
-		@Override
-		public boolean reset(TimeoutNotifier<?> notifier) {
-			return false;
-		}
-
-		@Override
-		public void close(TimeoutNotifier<?> notifier) {
-			notifier.changeState(Closed.INST);
-		}
-
-		@Override
-		public int state() {
-			return UNSCHEDULED;
-		}
-	}
-
-	static final class TimedOut implements IState {
-
-		public static final IState INST = new TimedOut();
-
-		private TimedOut() {
-		}
-
-		@Override
-		public boolean schedule(TimeoutNotifier<?> notifier, int timeout) {
-			return false;
-		}
-
-		@Override
-		public boolean cancel(TimeoutNotifier<?> notifier) {
-			return false;
-		}
-
-		@Override
-		public boolean reset(TimeoutNotifier<?> notifier) {
-			notifier.changeState(Unscheduled.INST);
-			return true;
-		}
-
-		@Override
-		public void close(TimeoutNotifier<?> notifier) {
-			notifier.changeState(Closed.INST);
-		}
-
-		@Override
-		public int state() {
-			return TIMEDOUT;
-		}
-	}
-
-	static final class Closed implements IState {
-
-		public static final IState INST = new Closed();
-
-		private Closed() {
-		}
-
-		@Override
-		public boolean cancel(TimeoutNotifier<?> notifier) {
-			return false;
-		}
-
-		@Override
-		public boolean schedule(TimeoutNotifier<?> notifier, int timeout) {
-			return false;
-		}
-
-		@Override
-		public boolean reset(TimeoutNotifier<?> notifier) {
-			return false;
-		}
-
-		@Override
-		public void close(TimeoutNotifier<?> notifier) {
-		}
-
-		@Override
-		public int state() {
-			return CLOSED;
-		}
+		abstract int state();
 	}
 
 	@Override
 	public S subject() {
 		return m_subject;
+	}
+
+	@Override
+	public int timeout() {
+		return m_timeout;
+	}
+
+	@Override
+	public void run() {
+		if (!onTimeout())
+			return;
+
+		final ITimeoutListener<S> listener = m_listener;
+		if (listener == null)
+			return;
+
+		try {
+			listener.onTimeout(this);
+		} catch (Throwable t) {
+			c_logger.error(StrUtil.join("Error on timeout: ", subject()), t);
+		}
 	}
 
 	@Override
@@ -205,52 +161,12 @@ final class TimeoutNotifier<S> implements ITimeoutNotifier<S> {
 		if (timeout < 1 || timeout > wheelSize)
 			throw new IllegalArgumentException(StrUtil.join("Illegal timeout: 0 < ", timeout, " <= ", wheelSize));
 
-		final ReentrantLock lock = m_lock;
-		if (!lock.tryLock()) // fail-fast
-			return false;
-
-		try {
-			return m_state.schedule(this, timeout);
-		} finally {
-			lock.unlock();
-		}
+		return m_state.schedule(this, timeout);
 	}
 
 	@Override
 	public boolean cancel() {
-		final ReentrantLock lock = m_lock;
-		if (!lock.tryLock()) // fail-fast
-			return false;
-
-		try {
-			return m_state.cancel(this);
-		} finally {
-			lock.unlock();
-		}
-	}
-
-	@Override
-	public boolean reset() {
-		final ReentrantLock lock = m_lock;
-		if (!lock.tryLock()) // fail-fast
-			return false;
-
-		try {
-			return m_state.reset(this);
-		} finally {
-			lock.unlock();
-		}
-	}
-
-	@Override
-	public void close() {
-		final ReentrantLock lock = m_lock;
-		lock.lock();
-		try {
-			m_state.close(this);
-		} finally {
-			lock.unlock();
-		}
+		return m_state.cancel(this);
 	}
 
 	@Override
@@ -263,30 +179,20 @@ final class TimeoutNotifier<S> implements ITimeoutNotifier<S> {
 		m_executor = executor;
 	}
 
-	void onTimeout(int hand) {
-		final ReentrantLock lock = m_lock;
-		// If the lock cannot be acquired, which means this notifier is being
-		// cancelled, rescheduled or closed, just skip.
-		if (!lock.tryLock())
-			return;
-
-		try {
-			// If this notifier is not in the same timeout list,
-			// which means it has been cancelled or rescheduled,
-			// then skip.
-			final TimeoutEvent<?> event = m_node.get();
-			if (event == null || hand != event.index())
-				return;
-
-			changeState(TimedOut.INST);
-			m_ta.fireTimeout(this);
-		} finally {
-			lock.unlock();
-		}
+	void timeout(int timeout) {
+		m_timeout = timeout;
 	}
 
-	ITimeoutListener<S> listener() {
-		return m_listener;
+	boolean onTimeout() {
+		return m_state.onTimeout(this);
+	}
+
+	void index(int index) {
+		m_index = index;
+	}
+
+	int index() {
+		return m_index;
 	}
 
 	Executor getExecutor() {
@@ -294,7 +200,7 @@ final class TimeoutNotifier<S> implements ITimeoutNotifier<S> {
 	}
 
 	// Set when scheduled
-	void setNode(BiListNode<TimeoutEvent<?>> biListNode) {
+	void node(BiListNode<TimeoutNotifier<?>> biListNode) {
 		m_node = biListNode;
 	}
 
@@ -303,15 +209,15 @@ final class TimeoutNotifier<S> implements ITimeoutNotifier<S> {
 		m_node = null;
 	}
 
-	Timer getTimeoutAdmin() {
+	Timer timer() {
 		return m_ta;
 	}
 
-	BiListNode<TimeoutEvent<?>> getNode() {
+	BiListNode<TimeoutNotifier<?>> node() {
 		return m_node;
 	}
 
-	void changeState(IState state) {
+	void changeState(State state) {
 		m_state = state;
 	}
 }

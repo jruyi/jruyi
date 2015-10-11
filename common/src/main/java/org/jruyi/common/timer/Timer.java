@@ -36,7 +36,7 @@ final class Timer implements ITimer, ITimerConfiguration, Runnable {
 	private final TimerConfiguration m_conf;
 	private final TimeoutList m_list;
 	private ReentrantLock[] m_locks;
-	private BiListNode<TimeoutEvent<?>>[] m_wheel;
+	private BiListNode<TimeoutNotifier<?>>[] m_wheel;
 	private int m_mask;
 
 	private IScheduler m_scheduler;
@@ -45,7 +45,7 @@ final class Timer implements ITimer, ITimerConfiguration, Runnable {
 
 	// The hand that points to the current timeout list, nodes of which
 	// are between m_wheel[m_hand] and m_wheel[m_hand + 1].
-	private int m_hand;
+	private volatile int m_hand;
 
 	public Timer(TimerConfiguration conf) {
 		if (conf == null)
@@ -55,7 +55,7 @@ final class Timer implements ITimer, ITimerConfiguration, Runnable {
 		final ReentrantLock[] locks = new ReentrantLock[capacity];
 		// one more as a tail node for conveniently iterating the timeout list
 		@SuppressWarnings("unchecked")
-		final BiListNode<TimeoutEvent<?>>[] wheel = (BiListNode<TimeoutEvent<?>>[]) new BiListNode<?>[capacity + 1];
+		final BiListNode<TimeoutNotifier<?>>[] wheel = (BiListNode<TimeoutNotifier<?>>[]) new BiListNode<?>[capacity + 1];
 		final TimeoutList list = new TimeoutList();
 		for (int i = 0; i < capacity; ++i) {
 			locks[i] = new ReentrantLock();
@@ -125,7 +125,7 @@ final class Timer implements ITimer, ITimerConfiguration, Runnable {
 		final ReentrantLock[] locks = new ReentrantLock[capacity];
 		System.arraycopy(m_locks, 0, locks, 0, oldCapacity);
 		@SuppressWarnings("unchecked")
-		final BiListNode<TimeoutEvent<?>>[] wheel = (BiListNode<TimeoutEvent<?>>[]) new BiListNode<?>[capacity + 1];
+		final BiListNode<TimeoutNotifier<?>>[] wheel = (BiListNode<TimeoutNotifier<?>>[]) new BiListNode<?>[capacity + 1];
 		System.arraycopy(m_wheel, 0, wheel, 0, oldCapacity + 1);
 		final TimeoutList list = m_list;
 		do {
@@ -159,21 +159,36 @@ final class Timer implements ITimer, ITimerConfiguration, Runnable {
 	public void run() {
 		final int hand = m_hand;
 		final int nextHand = hand + 1;
-		final BiListNode<TimeoutEvent<?>>[] wheel = m_wheel;
-		final BiListNode<TimeoutEvent<?>> begin = wheel[hand];
-		final BiListNode<TimeoutEvent<?>> end = wheel[nextHand];
-		BiListNode<TimeoutEvent<?>> node;
-		while ((node = begin.next()) != end) {
+		final BiListNode<TimeoutNotifier<?>>[] wheel = m_wheel;
+		final BiListNode<TimeoutNotifier<?>> begin = wheel[hand];
+		final BiListNode<TimeoutNotifier<?>> end = wheel[nextHand];
+		final TimeoutList list = m_list;
+		final ReentrantLock lock = lock(hand);
+		for (;;) {
 			final TimeoutNotifier<?> notifier;
-			final TimeoutEvent<?> event = node.get();
+			final BiListNode<TimeoutNotifier<?>> node;
+			lock.lock();
+			try {
+				node = begin.next();
+				if (node == end)
+					break;
+				list.remove(node);
+				notifier = node.get();
+				notifier.clearNode();
+			} finally {
+				lock.unlock();
+			}
 
-			// If this node has been cancelled, just skip.
-			// Otherwise, go ahead.
-			if (event != null && (notifier = event.notifier()) != null)
-				// Passing "hand" for checking the notifier is still in this
-				// same timeout sublist. Otherwise it may be cancelled or
-				// rescheduled, and needs to be skipped.
-				notifier.onTimeout(hand);
+			final Executor executor = notifier.getExecutor();
+			if (executor != null) {
+				try {
+					executor.execute(notifier);
+					return;
+				} catch (Throwable t) {
+					c_logger.warn("Failed to execute timeout delivery. Will use tick thread to execute.", t);
+				}
+			}
+			notifier.run();
 		}
 
 		// tick
@@ -181,54 +196,66 @@ final class Timer implements ITimer, ITimerConfiguration, Runnable {
 	}
 
 	void schedule(TimeoutNotifier<?> notifier, int timeout) {
-		final TimeoutEvent<?> event = TimeoutEvent.get(notifier, timeout);
+		final BiListNode<TimeoutNotifier<?>> newNode = BiListNode.create();
+		notifier.timeout(timeout);
+		newNode.set(notifier);
+		notifier.node(newNode);
 		final int index = getEffectiveIndex(m_hand + timeout);
-		event.index(index);
-		notifier.setNode(m_list.syncInsertAfter(m_wheel[index], event, lock(index)));
+		notifier.index(index);
+		final BiListNode<TimeoutNotifier<?>> node = m_wheel[index];
+		final ReentrantLock lock = lock(index);
+		lock.lock();
+		try {
+			m_list.insertAfter(node, newNode);
+		} finally {
+			lock.unlock();
+		}
 	}
 
-	void reschedule(TimeoutNotifier<?> notifier, int timeout) {
-		final BiListNode<TimeoutEvent<?>> node = notifier.getNode();
-		final TimeoutEvent<?> event = node.get();
-		final ReentrantLock lock1 = lock(event.index());
+	boolean reschedule(TimeoutNotifier<?> notifier, int timeout) {
+		final TimeoutList list = m_list;
+
+		final ReentrantLock lockSrc = lock(notifier.index());
+		final BiListNode<TimeoutNotifier<?>> node;
+		lockSrc.lock();
+		try {
+			node = notifier.node();
+			if (node == null)
+				return false;
+			list.remove(node);
+		} finally {
+			lockSrc.unlock();
+		}
 
 		// dest list
 		final int index = getEffectiveIndex(m_hand + timeout);
-		event.index(index);
-		final BiListNode<TimeoutEvent<?>> destHead = m_wheel[index];
-		final ReentrantLock lock2 = lock(index);
-
-		m_list.syncMoveAfter(destHead, node, lock1, lock2);
-	}
-
-	void cancel(TimeoutNotifier<?> notifier) {
-		final BiListNode<TimeoutEvent<?>> node = notifier.getNode();
-		notifier.clearNode();
-		TimeoutEvent<?> event = node.get();
-		final ReentrantLock lock = lock(event.index());
-		event = m_list.syncRemove(node, lock);
-
-		// release the timeout event
-		event.release();
-	}
-
-	void fireTimeout(TimeoutNotifier<?> notifier) {
-		final BiListNode<TimeoutEvent<?>> node = notifier.getNode();
-		notifier.clearNode();
-		final ReentrantLock lock = lock(m_hand);
-		final TimeoutEvent<?> event = m_list.syncRemove(node, lock);
-
-		final Executor executor = notifier.getExecutor();
-		if (executor != null) {
-			try {
-				executor.execute(event);
-				return;
-			} catch (Throwable t) {
-				c_logger.warn("Failed to execute timeout delivery. Will use tick thread to execute.", t);
-			}
+		notifier.index(index);
+		final BiListNode<TimeoutNotifier<?>> destHead = m_wheel[index];
+		final ReentrantLock lockDst = lock(index);
+		lockDst.lock();
+		try {
+			list.insertAfter(destHead, node);
+		} finally {
+			lockDst.unlock();
 		}
+		return true;
+	}
 
-		event.run();
+	boolean cancel(TimeoutNotifier<?> notifier) {
+		final BiListNode<TimeoutNotifier<?>> node;
+		final ReentrantLock lock = lock(notifier.index());
+		lock.lock();
+		try {
+			node = notifier.node();
+			if (node == null)
+				return false;
+			m_list.remove(node);
+		} finally {
+			lock.unlock();
+		}
+		notifier.clearNode();
+		node.close();
+		return true;
 	}
 
 	private void startTicking() {
