@@ -85,6 +85,7 @@ public final class MuxConnPool<I extends IIdentifiable<?>, O extends IIdentifiab
 			}
 			@SuppressWarnings("unchecked")
 			final PooledMuxChannel<O> pooledChannel = (PooledMuxChannel<O>) channel;
+			tn.executor(channel.ioWorker());
 			tn.listener(pooledChannel);
 			tn.schedule(timeout);
 		}
@@ -163,7 +164,7 @@ public final class MuxConnPool<I extends IIdentifiable<?>, O extends IIdentifiab
 		final Collection<ITimeoutNotifier<O>> notifiers = m_notifiers.values();
 		m_notifiers = null;
 		for (ITimeoutNotifier<?> notifier : notifiers)
-			notifier.close();
+			notifier.cancel();
 	}
 
 	@Override

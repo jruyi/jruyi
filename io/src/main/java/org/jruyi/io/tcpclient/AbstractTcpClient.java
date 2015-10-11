@@ -283,7 +283,6 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 		stop();
 
 		m_timer = null;
-		m_channels = null;
 
 		updateFilters(null);
 	}

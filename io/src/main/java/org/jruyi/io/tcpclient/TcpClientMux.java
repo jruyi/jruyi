@@ -90,6 +90,7 @@ public final class TcpClientMux<I extends IIdentifiable<?>, O extends IIdentifia
 				return;
 			}
 			tn.listener(getListener(channel));
+			tn.executor(channel.ioWorker());
 			tn.schedule(timeout);
 		}
 	}
@@ -227,7 +228,7 @@ public final class TcpClientMux<I extends IIdentifiable<?>, O extends IIdentifia
 		final Collection<ITimeoutNotifier<O>> notifiers = m_notifiers.values();
 		m_notifiers = null;
 		for (ITimeoutNotifier<?> notifier : notifiers)
-			notifier.close();
+			notifier.cancel();
 	}
 
 	@Override

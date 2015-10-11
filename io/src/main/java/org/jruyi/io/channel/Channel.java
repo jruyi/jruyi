@@ -563,29 +563,8 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 	}
 
 	@Override
-	public final void run() {
-		final IChannelService<?, ?> cs = m_channelService;
-		try {
-			m_storage = new IdentityHashMap<>();
-
-			onAccepted();
-
-			createReadThread();
-			createWriteThread();
-
-			final ITimeoutNotifier<Channel> timeoutNotifier = cs.createTimeoutNotifier(this);
-			timeoutNotifier.executor(m_ioWorker);
-			m_timeoutNotifier = timeoutNotifier;
-
-			selectableChannel().configureBlocking(false);
-
-			cs.onChannelOpened(this);
-
-			cs.getChannelAdmin().onRegisterRequired(this);
-
-		} catch (Throwable t) {
-			onException(t);
-		}
+	public IIoWorker ioWorker() {
+		return m_ioWorker;
 	}
 
 	@Override
@@ -668,21 +647,7 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 		if (closed.get() || !closed.compareAndSet(false, true))
 			return;
 
-		try {
-			onClose();
-		} catch (Throwable t) {
-			onException(t);
-		}
-
-		final ITimeoutNotifier<Channel> tn = m_timeoutNotifier;
-		if (tn != null)
-			tn.close();
-
-		try {
-			m_channelService.onChannelClosed(this);
-		} catch (Throwable t) {
-			c_logger.error("Unexpected Error", t);
-		}
+		m_ioWorker.execute(this);
 	}
 
 	@Override
@@ -903,6 +868,14 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 	}
 
 	@Override
+	public final void run() {
+		if (isClosed())
+			onCloseInternal();
+		else
+			onAcceptInternal();
+	}
+
+	@Override
 	public final void onAccept() {
 		m_ioWorker.execute(this);
 	}
@@ -967,6 +940,49 @@ public abstract class Channel implements IChannel, IDumpable, Runnable {
 
 	final void onWriteRequired() {
 		m_selector.onWriteRequired(this);
+	}
+
+	private void onAcceptInternal() {
+		final IChannelService<?, ?> cs = m_channelService;
+		try {
+			m_storage = new IdentityHashMap<>();
+
+			onAccepted();
+
+			createReadThread();
+			createWriteThread();
+
+			final ITimeoutNotifier<Channel> timeoutNotifier = cs.createTimeoutNotifier(this);
+			timeoutNotifier.executor(m_ioWorker);
+			m_timeoutNotifier = timeoutNotifier;
+
+			selectableChannel().configureBlocking(false);
+
+			cs.onChannelOpened(this);
+
+			cs.getChannelAdmin().onRegisterRequired(this);
+
+		} catch (Throwable t) {
+			onException(t);
+		}
+	}
+
+	private void onCloseInternal() {
+		try {
+			onClose();
+		} catch (Throwable t) {
+			onException(t);
+		}
+
+		final ITimeoutNotifier<Channel> tn = m_timeoutNotifier;
+		if (tn != null)
+			tn.cancel();
+
+		try {
+			m_channelService.onChannelClosed(this);
+		} catch (Throwable t) {
+			c_logger.error("Unexpected Error", t);
+		}
 	}
 
 	@SuppressWarnings("resource")

@@ -416,7 +416,6 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 	public void deactivate() {
 		stop();
 		m_timer = null;
-		m_channels = null;
 
 		updateFilters(null);
 		m_conf = null;
