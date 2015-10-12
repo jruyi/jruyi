@@ -78,4 +78,18 @@ public interface IScheduler extends org.jruyi.common.IScheduler {
 	 * @return the configuration
 	 */
 	IConfiguration configuration();
+
+	/**
+	 * Starts this scheduler.
+	 *
+	 * @since 2.4
+	 */
+	void start();
+
+	/**
+	 * Stops this scheduler.
+	 *
+	 * @since 2.4
+	 */
+	void stop();
 }

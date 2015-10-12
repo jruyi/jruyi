@@ -47,6 +47,7 @@ public final class RuyiCoreProvider implements RuyiCore.IRuyiCore {
 	}
 
 	private RuyiCoreProvider() {
+		m_ta.setScheduler(m_scheduler.unwrap());
 	}
 
 	public static RuyiCoreProvider getInstance() {
@@ -59,16 +60,13 @@ public final class RuyiCoreProvider implements RuyiCore.IRuyiCore {
 
 	synchronized void start() throws Throwable {
 		if (m_count == 0) {
-			final SchedulerWrapper scheduler = m_scheduler;
-			scheduler.start();
-
-			m_ta.setScheduler(scheduler.unwrap());
+			m_scheduler.start();
 
 			final ChannelAdmin ca = m_ca;
 			try {
 				ca.activate(m_caConf.properties());
 			} catch (Throwable t) {
-				scheduler.stop();
+				m_scheduler.stop();
 				throw t;
 			}
 
@@ -89,9 +87,7 @@ public final class RuyiCoreProvider implements RuyiCore.IRuyiCore {
 
 			ca.deactivate();
 
-			final SchedulerWrapper scheduler = m_scheduler;
-			m_ta.unsetScheduler(scheduler.unwrap());
-			scheduler.stop();
+			m_scheduler.stop();
 		}
 	}
 
