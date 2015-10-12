@@ -41,7 +41,7 @@ final class Timer implements ITimer, ITimerConfiguration, Runnable {
 
 	private IScheduler m_scheduler;
 	private ScheduledFuture<?> m_sf;
-	private boolean m_started;
+	private int m_count;
 
 	// The hand that points to the current timeout list, nodes of which
 	// are between m_wheel[m_hand] and m_wheel[m_hand + 1].
@@ -55,7 +55,8 @@ final class Timer implements ITimer, ITimerConfiguration, Runnable {
 		final ReentrantLock[] locks = new ReentrantLock[capacity];
 		// one more as a tail node for conveniently iterating the timeout list
 		@SuppressWarnings("unchecked")
-		final BiListNode<TimeoutNotifier<?>>[] wheel = (BiListNode<TimeoutNotifier<?>>[]) new BiListNode<?>[capacity + 1];
+		final BiListNode<TimeoutNotifier<?>>[] wheel = (BiListNode<TimeoutNotifier<?>>[]) new BiListNode<?>[capacity
+				+ 1];
 		final TimeoutList list = new TimeoutList();
 		for (int i = 0; i < capacity; ++i) {
 			locks[i] = new ReentrantLock();
@@ -73,24 +74,20 @@ final class Timer implements ITimer, ITimerConfiguration, Runnable {
 
 	@Override
 	public synchronized void start() {
-		if (m_started)
-			return;
-
-		m_started = true;
-
-		if (m_mask == 0) // wheelSize <= 0
-			return;
-
-		startTicking();
+		if (m_count == 0) {
+			if (m_mask != 0) // wheelSize <= 0
+				startTicking();
+		}
+		++m_count;
 	}
 
 	@Override
 	public synchronized void stop() {
-		if (!m_started)
+		if (m_count == 0)
 			return;
 
-		m_started = false;
-		stopTicking();
+		if (--m_count == 0)
+			stopTicking();
 	}
 
 	@Override
@@ -125,7 +122,8 @@ final class Timer implements ITimer, ITimerConfiguration, Runnable {
 		final ReentrantLock[] locks = new ReentrantLock[capacity];
 		System.arraycopy(m_locks, 0, locks, 0, oldCapacity);
 		@SuppressWarnings("unchecked")
-		final BiListNode<TimeoutNotifier<?>>[] wheel = (BiListNode<TimeoutNotifier<?>>[]) new BiListNode<?>[capacity + 1];
+		final BiListNode<TimeoutNotifier<?>>[] wheel = (BiListNode<TimeoutNotifier<?>>[]) new BiListNode<?>[capacity
+				+ 1];
 		System.arraycopy(m_wheel, 0, wheel, 0, oldCapacity + 1);
 		final TimeoutList list = m_list;
 		do {
@@ -136,7 +134,7 @@ final class Timer implements ITimer, ITimerConfiguration, Runnable {
 		m_locks = locks;
 		m_wheel = wheel;
 		m_mask = capacity - 1;
-		if (m_started)
+		if (m_count > 0)
 			startTicking();
 	}
 
