@@ -75,11 +75,12 @@ public final class MuxConnPool<I extends IIdentifiable<?>, O extends IIdentifiab
 
 	@Override
 	public void beforeSendMessage(IChannel channel, O outMsg) {
+		final Object msgId;
 		final int timeout = configuration().readTimeoutInSeconds();
-		if (timeout > 0) {
+		if (timeout > 0 && (msgId = outMsg.id()) != null) {
 			final ITimeoutNotifier<O> tn = createTimeoutNotifier(outMsg);
-			if (m_notifiers.put(outMsg.id(), tn) != null) {
-				c_logger.error("Collision of message ID: {}", outMsg.id());
+			if (m_notifiers.put(msgId, tn) != null) {
+				c_logger.error("Collision of message ID: {}", msgId);
 				channel.close();
 				return;
 			}
