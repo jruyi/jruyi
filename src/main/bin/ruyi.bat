@@ -35,7 +35,7 @@ set JRUYI_HOME=%cd%
 popd
 
 rem Set JRuyi home dir
-set JAVA_OPTS="-Djruyi.home.dir=%JRUYI_HOME%"
+set JAVA_OPTS=%JAVA_OPTS% "-Djruyi.home.dir=%JRUYI_HOME%"
 
 rem JVM memory allocation pool parameters. Modify as appropriate.
 rem set JAVA_OPTS=-Xms128m -Xmx512m %JAVA_OPTS%
