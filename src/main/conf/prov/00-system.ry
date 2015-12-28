@@ -46,8 +46,3 @@ if {not {conf:exists jruyi.tpe}} {
 		queueCapacity=8192 \
 		terminationWaitTimeInSeconds=60
 }
-
-# MessagingEngine
-if {not {conf:exists jruyi.me.mq}} {
-	conf:create jruyi.me.mq msgTimeoutInSeconds=10
-}
