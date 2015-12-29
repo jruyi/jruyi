@@ -23,9 +23,9 @@ class TcpClientConf extends TcpChannelConf {
 
 	private static final String[] M_PROPS = { "addr", "port" };
 	private static final Method[] c_mProps;
-	private Integer m_initialCapacityOfChannelMap;
-	private Integer m_connectTimeoutInSeconds;
-	private Integer m_readTimeoutInSeconds;
+	private int m_initialCapacityOfChannelMap;
+	private int m_connectTimeoutInSeconds;
+	private int m_readTimeoutInSeconds;
 
 	static {
 		c_mProps = new Method[M_PROPS.length];
@@ -60,7 +60,7 @@ class TcpClientConf extends TcpChannelConf {
 		ip(addr);
 	}
 
-	public final Integer initialCapacityOfChannelMap() {
+	public final int initialCapacityOfChannelMap() {
 		return m_initialCapacityOfChannelMap;
 	}
 
@@ -68,7 +68,7 @@ class TcpClientConf extends TcpChannelConf {
 		m_initialCapacityOfChannelMap = initialCapacityOfChannelMap == null ? 512 : initialCapacityOfChannelMap;
 	}
 
-	public final Integer connectTimeoutInSeconds() {
+	public final int connectTimeoutInSeconds() {
 		return m_connectTimeoutInSeconds;
 	}
 
@@ -76,7 +76,7 @@ class TcpClientConf extends TcpChannelConf {
 		m_connectTimeoutInSeconds = connectTimeoutInSeconds == null ? 6 : connectTimeoutInSeconds;
 	}
 
-	public final Integer readTimeoutInSeconds() {
+	public final int readTimeoutInSeconds() {
 		return m_readTimeoutInSeconds;
 	}
 

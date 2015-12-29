@@ -102,7 +102,7 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O>implements IIoTask {
 	@Override
 	public void write(ISession session/* =null */, O msg) {
 		final ConnPoolConf conf = m_conf;
-		if (compareAndIncrement(conf.minPoolSize())) {
+		if (compareAndIncrement(conf.corePoolSize())) {
 			connect(msg);
 			return;
 		}
@@ -300,7 +300,7 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O>implements IIoTask {
 		final ReentrantLock lock = m_channelQueueLock;
 		lock.lock();
 		try {
-			if (m_channelQueueSize < conf.minPoolSize() || keepAliveTime < 0) {
+			if ((m_channelQueueSize < conf.corePoolSize() && !conf.allowsCoreConnectionTimeout()) || keepAliveTime < 0) {
 				putNode(newNode(channel));
 				return;
 			}

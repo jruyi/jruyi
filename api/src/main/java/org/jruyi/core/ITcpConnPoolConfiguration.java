@@ -37,27 +37,30 @@ public interface ITcpConnPoolConfiguration extends ITcpClientConfiguration {
 	 *            the idle timeout in seconds to set
 	 * @return this configuration
 	 * @throws IllegalArgumentException
-	 *             if the specified {@code idleTimeoutInSeconds} is less than -1
+	 *             if the specified {@code idleTimeoutInSeconds} is less than
+	 *             -1, or if it is -1 but allowsCoreConnectionTimeout is true
 	 */
 	ITcpConnPoolConfiguration idleTimeoutInSeconds(int idleTimeoutInSeconds);
 
 	/**
-	 * Returns the minimum size of the connection pool.
+	 * Returns the core number of connections.
 	 * 
-	 * @return the minimum size of the connection pool
+	 * @return the core size of the connection pool
+	 * @since 2.5
 	 */
-	int minPoolSize();
+	int corePoolSize();
 
 	/**
-	 * Sets the minimum size of the connection pool.
+	 * Sets the core number of connections.
 	 * 
-	 * @param minPoolSize
-	 *            the minimum pool size to set
+	 * @param corePoolSize
+	 *            the new core size
 	 * @return this configuration
 	 * @throws IllegalArgumentException
-	 *             if the specified {@code minPoolSize} is negative
+	 *             if the specified {@code corePoolSize} is negative
+	 * @since 2.5
 	 */
-	ITcpConnPoolConfiguration minPoolSize(int minPoolSize);
+	ITcpConnPoolConfiguration corePoolSize(int corePoolSize);
 
 	/**
 	 * Returns the maximum size of the connection pool.
@@ -76,4 +79,26 @@ public interface ITcpConnPoolConfiguration extends ITcpClientConfiguration {
 	 *             if the specified {@code maxPoolSize} is less than 1
 	 */
 	ITcpConnPoolConfiguration maxPoolSize(int maxPoolSize);
+
+	/**
+	 * Returns whether core connections are allowed to time out.
+	 *
+	 * @return true if core connection are allowed to time out, otherwise false
+	 * @since 2.5
+	 */
+	boolean allowsCoreConnectionTimeout();
+
+	/**
+	 * Sets whether core connections should time out or not. If true, then core
+	 * connections will time out when idle for {@code idleTimeoutInSeconds()}.
+	 * 
+	 * @param allowsCoreConnectionTimeout
+	 *            true if should time out, otherwise false
+	 * @return this configuration
+	 * @throws IllegalArgumentException
+	 *             if the given {@code allowsCoreConnectionTimeout} is true but
+	 *             the current idleTimeoutInSeconds is -1
+	 * @since 2.5
+	 */
+	ITcpConnPoolConfiguration allowsCoreConnectionTimeout(boolean allowsCoreConnectionTimeout);
 }

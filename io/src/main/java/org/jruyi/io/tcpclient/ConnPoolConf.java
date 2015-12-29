@@ -20,44 +20,55 @@ final class ConnPoolConf extends TcpClientConf {
 
 	private static final int MAX_POOL_SIZE = 0xFFFF;
 
-	private Integer m_minPoolSize;
-	private Integer m_maxPoolSize;
-	private Integer m_idleTimeoutInSeconds;
+	private int m_corePoolSize;
+	private int m_maxPoolSize;
+	private int m_idleTimeoutInSeconds;
+	private boolean m_allowsCoreConnectionTimeout;
 
 	@Override
 	public void initialize(Map<String, ?> properties) {
 		super.initialize(properties);
 
-		minPoolSize((Integer) properties.get("minPoolSize"));
+		corePoolSize((Integer) properties.get("corePoolSize"));
 		maxPoolSize((Integer) properties.get("maxPoolSize"));
 		idleTimeoutInSeconds((Integer) properties.get("idleTimeoutInSeconds"));
+		allowsCoreConnectionTimeout((Boolean) properties.get("allowsCoreConnectionTimeout"));
+
 		initialCapacityOfChannelMap(maxPoolSize());
 	}
 
-	public Integer minPoolSize() {
-		return m_minPoolSize;
+	public int corePoolSize() {
+		return m_corePoolSize;
 	}
 
-	public void minPoolSize(Integer minPoolSize) {
-		m_minPoolSize = minPoolSize == null || minPoolSize < 0 || minPoolSize > MAX_POOL_SIZE ? 0 : minPoolSize;
+	public void corePoolSize(Integer corePoolSize) {
+		m_corePoolSize = corePoolSize == null || corePoolSize < 0 || corePoolSize > MAX_POOL_SIZE ? 0 : corePoolSize;
 	}
 
-	public Integer maxPoolSize() {
+	public int maxPoolSize() {
 		return m_maxPoolSize;
 	}
 
 	public void maxPoolSize(Integer maxPoolSize) {
-		final Integer minPoolSize = minPoolSize();
+		final Integer corePoolSize = corePoolSize();
 		if (maxPoolSize == null)
 			maxPoolSize = 10;
-		if (maxPoolSize < minPoolSize)
-			maxPoolSize = minPoolSize;
+		if (maxPoolSize < corePoolSize)
+			maxPoolSize = corePoolSize;
 		if (maxPoolSize > MAX_POOL_SIZE)
 			maxPoolSize = MAX_POOL_SIZE;
 		m_maxPoolSize = maxPoolSize;
 	}
 
-	public Integer idleTimeoutInSeconds() {
+	public boolean allowsCoreConnectionTimeout() {
+		return m_allowsCoreConnectionTimeout;
+	}
+
+	public void allowsCoreConnectionTimeout(Boolean allowsCoreConnectionTimeout) {
+		m_allowsCoreConnectionTimeout = allowsCoreConnectionTimeout == null ? false : allowsCoreConnectionTimeout;
+	}
+
+	public int idleTimeoutInSeconds() {
 		return m_idleTimeoutInSeconds;
 	}
 

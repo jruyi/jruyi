@@ -36,28 +36,31 @@ abstract class TcpConnPoolConfiguration extends TcpClientConfiguration implement
 		if (idleTimeoutInSeconds < -1)
 			throw new IllegalArgumentException(
 					StrUtil.join("Illegal idleTimeoutInSeconds: ", idleTimeoutInSeconds, " >= -1"));
+		if (idleTimeoutInSeconds == -1 && allowsCoreConnectionTimeout())
+			throw new IllegalArgumentException(StrUtil.join("Illegal idleTimeoutInSeconds: ", idleTimeoutInSeconds,
+					" > -1 when allowsCoreConnectionTimeout"));
 		properties().put("idleTimeoutInSeconds", idleTimeoutInSeconds);
 		return this;
 	}
 
 	@Override
-	public int minPoolSize() {
-		final Object v = properties().get("minPoolSize");
+	public int corePoolSize() {
+		final Object v = properties().get("corePoolSize");
 		return v == null ? 0 : (Integer) v;
 	}
 
 	@Override
-	public TcpConnPoolConfiguration minPoolSize(int minPoolSize) {
-		if (minPoolSize < 0 || minPoolSize > 65535)
-			throw new IllegalArgumentException(StrUtil.join("Illegal minPoolSize: 0 <= ", minPoolSize, " < 65536"));
-		properties().put("minPoolSize", minPoolSize);
+	public TcpConnPoolConfiguration corePoolSize(int corePoolSize) {
+		if (corePoolSize < 0 || corePoolSize > 65535)
+			throw new IllegalArgumentException(StrUtil.join("Illegal corePoolSize: 0 <= ", corePoolSize, " < 65536"));
+		properties().put("corePoolSize", corePoolSize);
 		return this;
 	}
 
 	@Override
 	public int maxPoolSize() {
 		final Object v = properties().get("maxPoolSize");
-		return v == null ? Math.max(10, minPoolSize()) : (Integer) v;
+		return v == null ? Math.max(10, corePoolSize()) : (Integer) v;
 	}
 
 	@Override
@@ -65,6 +68,21 @@ abstract class TcpConnPoolConfiguration extends TcpClientConfiguration implement
 		if (maxPoolSize < 1 || maxPoolSize > 65535)
 			throw new IllegalArgumentException(StrUtil.join("Illegal maxPoolSize: 0 < ", maxPoolSize, " < 65536"));
 		properties().put("maxPoolSize", maxPoolSize);
+		return this;
+	}
+
+	@Override
+	public boolean allowsCoreConnectionTimeout() {
+		final Object v = properties().get("allowsCoreConnectionTimeout");
+		return v == null ? false : (Boolean) v;
+	}
+
+	@Override
+	public TcpConnPoolConfiguration allowsCoreConnectionTimeout(boolean allowsCoreConnectionTimeout) {
+		if (allowsCoreConnectionTimeout && idleTimeoutInSeconds() < 0)
+			throw new IllegalArgumentException(
+					StrUtil.join("Illegal allowsCoreConnectionTimeout: must be false when idleTimeoutInSeconds() < 0"));
+		properties().put("allowsCoreConnectionTimeout", allowsCoreConnectionTimeout);
 		return this;
 	}
 }
