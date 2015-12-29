@@ -187,15 +187,15 @@ public final class Main {
 
 	private void printHelp() {
 		String programName = System.getProperty("program.name");
-		System.out.println();
 		System.out.println("Usage: " + programName + " [options] [COMMAND | SCRIPT ...]");
 		System.out.println();
-		System.out.println("options:");
+		System.out.println("    Enters JRuyi shell, or executes a JRuyi command, or executes a JRuyi script.");
+		System.out.println();
+		System.out.println("Options:");
 		System.out.println("    -?, --help                print this help message");
 		System.out.println("    -h, --host=<host_name>    the remote host to connect");
 		System.out.println("    -p, --port=<port_num>     the remote port to connect");
 		System.out.println("    -t, --timeout=<seconds>   the time to wait for response");
-		System.out.println("    -f, --file                execute ruyi script file");
-		System.out.println();
+		System.out.println("    -f, --file                execute JRuyi script file");
 	}
 }

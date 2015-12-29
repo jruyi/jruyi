@@ -74,7 +74,7 @@ allprojects {
 		jruyi_core_version = '2.5.0-SNAPSHOT'
 
 		jruyi_api_version = '2.5.0-SNAPSHOT'
-		jruyi_cli_version = '2.0.1'
+		jruyi_cli_version = '2.0.2-SNAPSHOT'
 		jruyi_launcher_version = '2.0.2-SNAPSHOT'
 		org_jruyi_clid_version = '2.3.3'
 		org_jruyi_cmd_version = '2.0.4'
