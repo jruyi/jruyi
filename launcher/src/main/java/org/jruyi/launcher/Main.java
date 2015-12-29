@@ -215,15 +215,15 @@ public final class Main {
 
 	private static void printHelp() {
 		String programName = System.getProperty("program.name");
-		System.out.println();
 		System.out.println("Usage: " + programName + " [options]");
 		System.out.println();
-		System.out.println("options:");
+		System.out.println("    Starts a JRuyi application.");
+		System.out.println();
+		System.out.println("Options:");
 		System.out.println("    -?, --help              print this help message");
 		System.out.println("    -v, --version           print version information");
 		System.out.println("    -D<name>[=<value>]      add a system property");
 		System.out.println("    -r, --run=<instance>    run the specified instance");
-		System.out.println();
 	}
 
 	private static void handleSystemProps(String[] args) {
