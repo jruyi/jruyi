@@ -26,12 +26,6 @@ else
 	JAVA="\$JAVA_HOME/bin/java"
 fi
 
-# Set JRuyi home dir
-JAVA_OPTS="\$JAVA_OPTS -Djruyi.home.dir=\$JRUYI_HOME"
-
-# JVM memory allocation pool parameters. Modify as appropriate.
-# JAVA_OPTS="-Xms128m -Xmx512m \$JAVA_OPTS"
-
 # Check for JVM w/ HotSpot support.
 HAS_HOTSPOT=`"\$JAVA" -version 2>&1 | \$GREP -i HotSpot`
 
