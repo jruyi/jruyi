@@ -35,9 +35,8 @@ final class TcpClientBuilder implements ITcpClientBuilder {
 
 	@Override
 	public TcpClientBuilder serviceId(String serviceId) {
-		if (serviceId == null || (serviceId = serviceId.trim()).isEmpty())
-			throw new IllegalArgumentException("serviceId cannot be null or empty");
-		m_properties.put(IoConstants.SERVICE_ID, serviceId);
+		if (serviceId != null && !(serviceId = serviceId.trim()).isEmpty())
+			m_properties.put(IoConstants.SERVICE_ID, serviceId);
 		return this;
 	}
 

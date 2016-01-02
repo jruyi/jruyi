@@ -14,11 +14,7 @@
 
 package org.jruyi.io.tcpserver;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.SocketAddress;
-import java.net.SocketException;
+import java.net.*;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.ServerSocketChannel;
 import java.util.Arrays;
@@ -27,17 +23,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.jruyi.common.IService;
-import org.jruyi.common.ITimeoutNotifier;
-import org.jruyi.common.ITimer;
-import org.jruyi.common.ITimerAdmin;
-import org.jruyi.common.Service;
-import org.jruyi.common.StrUtil;
-import org.jruyi.io.IBufferFactory;
-import org.jruyi.io.ISession;
-import org.jruyi.io.ISessionListener;
-import org.jruyi.io.ISessionService;
-import org.jruyi.io.IoConstants;
+import org.jruyi.common.*;
+import org.jruyi.io.*;
 import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.channel.IChannelService;
@@ -401,12 +388,11 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 	}
 
 	public void activate(Map<String, ?> properties) throws Exception {
-		final String id = (String) properties.get(IoConstants.SERVICE_ID);
-		m_caption = StrUtil.join("TcpServer[", id, "]");
-
 		final Configuration conf = new Configuration();
 		conf.initialize(properties);
 		updateFilters(conf);
+
+		m_caption = Util.genServiceId(properties, conf.bindAddr(), conf.port(), "TcpServer");
 		m_conf = conf;
 
 		m_channels = new ConcurrentHashMap<>(conf.initCapacityOfChannelMap());

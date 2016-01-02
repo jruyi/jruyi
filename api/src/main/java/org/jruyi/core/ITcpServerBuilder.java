@@ -22,9 +22,8 @@ package org.jruyi.core;
 public interface ITcpServerBuilder {
 
 	/**
-	 * Sets the service ID of the TCP server to be built. This is a mandatory
-	 * property to build a TCP server.
-	 * 
+	 * Sets the service ID of the TCP server to be built.
+	 *
 	 * @param serviceId
 	 *            the service ID to set
 	 * @return this builder

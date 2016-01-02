@@ -14,6 +14,11 @@
 
 package org.jruyi.io.common;
 
+import java.util.Map;
+
+import org.jruyi.common.StringBuilder;
+import org.jruyi.io.IoConstants;
+
 public final class Util {
 
 	private Util() {
@@ -21,5 +26,22 @@ public final class Util {
 
 	public static int max(int m1, int m2) {
 		return m1 > m2 ? m1 : m2;
+	}
+
+	public static String genServiceId(Map<String, ?> properties, String addr, Integer port, String type) {
+		try (StringBuilder builder = StringBuilder.get(64)) {
+			builder.append(type).append('(');
+			String id = (String) properties.get(IoConstants.SERVICE_ID);
+			if (id != null && !(id = id.trim()).isEmpty())
+				builder.append(id);
+			else {
+				if (addr.indexOf(':') >= 0)
+					builder.append('[').append(addr).append(']');
+				else
+					builder.append(addr);
+				builder.append(':').append(port);
+			}
+			return builder.append(')').toString();
+		}
 	}
 }

@@ -23,14 +23,11 @@ import org.jruyi.common.IService;
 import org.jruyi.common.ITimeoutNotifier;
 import org.jruyi.common.Service;
 import org.jruyi.common.StrUtil;
-import org.jruyi.io.IBufferFactory;
-import org.jruyi.io.ISession;
-import org.jruyi.io.ISessionListener;
-import org.jruyi.io.ISessionService;
-import org.jruyi.io.IoConstants;
+import org.jruyi.io.*;
 import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.channel.IChannelService;
+import org.jruyi.io.common.Util;
 import org.jruyi.io.filter.IFilterList;
 import org.jruyi.io.filter.IFilterManager;
 import org.osgi.service.component.annotations.Component;
@@ -276,11 +273,9 @@ public final class UdpClient<I, O> extends Service implements IChannelService<I,
 	}
 
 	public void activate(Map<String, ?> properties) throws Exception {
-		final String id = (String) properties.get(IoConstants.SERVICE_ID);
-		m_caption = StrUtil.join("UdpClient[", id, "]");
-
 		final Configuration conf = createConf(properties);
 		updateFilters(conf);
+		m_caption = Util.genServiceId(properties, conf.ip(), conf.port(), "UdpClient");
 		m_conf = conf;
 	}
 

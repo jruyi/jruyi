@@ -22,8 +22,7 @@ package org.jruyi.core;
 public interface IUdpClientBuilder {
 
 	/**
-	 * Sets the service ID of the UDP client to be built. This is a mandatory
-	 * property to build a UDP client.
+	 * Sets the service ID of the UDP client to be built.
 	 *
 	 * @param serviceId
 	 *            the service ID to set

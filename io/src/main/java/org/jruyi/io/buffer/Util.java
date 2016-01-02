@@ -23,27 +23,27 @@ public final class Util {
 	}
 
 	public static IUnit lastUnit(IUnitChain unitChain) {
-		IUnit unit = unitChain.lastUnit();
+		final IUnit unit = unitChain.lastUnit();
 		if (unit.appendable())
 			return unit;
 		return appendNewUnit(unitChain);
 	}
 
 	public static IUnit appendNewUnit(IUnitChain unitChain) {
-		IUnit unit = unitChain.create();
+		final IUnit unit = unitChain.create();
 		unitChain.append(unit);
 		return unit;
 	}
 
 	public static IUnit firstUnit(IUnitChain unitChain) {
-		IUnit unit = unitChain.firstUnit();
+		final IUnit unit = unitChain.firstUnit();
 		if (unit.prependable())
 			return unit;
 		return prependNewUnit(unitChain);
 	}
 
 	public static IUnit prependNewUnit(IUnitChain unitChain) {
-		IUnit unit = unitChain.create();
+		final IUnit unit = unitChain.create();
 		unit.start(unit.capacity());
 		unitChain.prepend(unit);
 		return unit;

@@ -36,9 +36,8 @@ import org.jruyi.common.IIdentifiable;
 public interface ITcpClientBuilder {
 
 	/**
-	 * Sets the service ID of the TCP client to be built. This is a mandatory
-	 * property to build a TCP client.
-	 * 
+	 * Sets the service ID of the TCP client to be built.
+	 *
 	 * @param serviceId
 	 *            the service ID to set
 	 * @return this builder
