@@ -71,6 +71,9 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 
 	/**
 	 * Sets <i>position</i> to the previously marked position.
+	 * 
+	 * @throws java.nio.InvalidMarkException
+	 *             If the mark has not been set
 	 */
 	void reset();
 
@@ -380,7 +383,7 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 * buffer holds the rest second piece. The two pieces may share some data,
 	 * which means that changes to the content of one of them may be visible to
 	 * another one, though they have independent position, size and mark value.
-	 * So better use them as readonly.
+	 * So better use them as read only.
 	 * 
 	 * @param size
 	 *            number of bytes of the first piece

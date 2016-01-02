@@ -62,12 +62,12 @@ final class SslCodec extends AbstractCodec<IBuffer> {
 	public void write(IBuffer src, IUnitChain appBuf) {
 		ByteBuffer netData = null;
 		if (src instanceof Buffer) {
-			Buffer buffer = (Buffer) src;
-			final IUnit lastUnit = buffer.lastUnit();
-			IUnit unit = buffer.currentUnit();
+			IUnitChain chain = ((Buffer) src).unitChain();
+			final IUnit lastUnit = chain.lastUnit();
+			IUnit unit = chain.currentUnit();
 			if (unit.isEmpty()) {
 				do {
-					unit = buffer.nextUnit();
+					unit = chain.nextUnit();
 					if (unit == null) {
 						unit = lastUnit;
 						break;
@@ -153,18 +153,16 @@ final class SslCodec extends AbstractCodec<IBuffer> {
 		boolean usedBuilder;
 		BytesBuilder builder;
 		ByteBuffer netBuf;
-		final Buffer dstBuf;
+		IUnitChain dstChain = null;
 		final SSLSession session = engine.getSession();
 		int n = session.getPacketBufferSize();
-		if (dst instanceof Buffer && (unit = Util.lastUnit((Buffer) dst)).capacity() >= n) {
-			dstBuf = (Buffer) dst;
+		if (dst instanceof Buffer && (unit = Util.lastUnit(dstChain = ((Buffer) dst).unitChain())).capacity() >= n) {
 			if (unit.available() < n)
-				unit = Util.appendNewUnit(dstBuf);
+				unit = Util.appendNewUnit(dstChain);
 			netBuf = unit.getByteBufferForWrite();
 			builder = null;
 			usedBuilder = false;
 		} else {
-			dstBuf = null;
 			builder = BytesBuilder.get(n);
 			netBuf = builder.getByteBuffer(0, builder.capacity());
 			usedBuilder = true;
@@ -199,10 +197,10 @@ final class SslCodec extends AbstractCodec<IBuffer> {
 				while (len > 0) {
 					if (appData[i].hasRemaining()) {
 						if (!usedBuilder) {
-							unit = Util.lastUnit(dstBuf);
+							unit = Util.lastUnit(dstChain);
 							n = session.getPacketBufferSize();
 							if (unit.available() < n && unit.capacity() >= n)
-								unit = Util.appendNewUnit(dstBuf);
+								unit = Util.appendNewUnit(dstChain);
 							netBuf = unit.getByteBufferForWrite();
 						} else
 							builder.ensureCapacity(session.getPacketBufferSize());

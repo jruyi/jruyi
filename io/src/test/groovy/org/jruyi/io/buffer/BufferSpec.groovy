@@ -429,6 +429,61 @@ class BufferSpec extends Specification {
 		thirdPiece == bytes3
 	}
 
+	def "consumed buffer data should be gone forever after compacting"() {
+		given: "a buffer with unitCapacity = 9 and size = 40"
+		def bf = new BufferFactory()
+		bf.activate([unitCapacity: 9])
+		def buf = bf.create()
+		def bytes1 = createBytes(15)
+		def bytes2 = createBytes(23)
+		def bytes3 = createBytes(2)
+		buf.write(bytes1, Codec.byteArray()).write(bytes2, Codec.byteArray()).write(bytes3, Codec.byteArray())
+
+		when: "consume 15 bytes, compact and then get 23 bytes"
+		buf.read(15, Codec.byteArray())
+		buf.compact()
+		def bytes = buf.get(0, 23, Codec.byteArray())
+		then:
+		bytes == bytes2
+	}
+
+	def "compare 2 buffers"() {
+		given: "buf1 with unitCapacity = 9 and buf2 with unitCapacity = 17"
+		def bf1 = new BufferFactory()
+		def buf1 = bf1.create()
+
+		def bf2 = new BufferFactory()
+		def buf2 = bf2.create()
+
+		def bytes = createBytes(73)
+
+		when: "write the same data into 2 buffers"
+		buf1.write(bytes, Codec.byteArray())
+		buf2.write(bytes, Codec.byteArray())
+		then: "buf1 == buf2"
+		buf1.compareTo(buf2) == 0
+
+		when: "consume 1 byte from buf1"
+		buf1.read()
+		then: "buf1 != buf2"
+		buf1.compareTo(buf2) != 0
+
+		when: "get slice of buf1"
+		def slice = buf1.slice()
+		then: "buf1 == slice"
+		buf1.compareTo(slice) == 0
+
+		when: "get duplicate of buf2"
+		def duplicate = buf2.duplicate()
+		then: "buf2 == duplicate"
+		buf2.compareTo(duplicate) == 0
+
+		when: "compare buf1's slice to buf2's duplciate"
+		def result = slice.compareTo(duplicate)
+		then: "slice != duplicate"
+		result != 0
+	}
+
 	private static def createBytes(int length) {
 		byte[] bytes = new byte[length];
 		for (int i = 0; i < length; ++i)

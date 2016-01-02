@@ -30,13 +30,14 @@ dependencies {
 	compile "org.apache.felix:org.apache.felix.gogo.runtime:0.16.2"
 	compile "org.slf4j:slf4j-api:1.7.12"
 
-	compile project(':api')
+	compile "org.jruyi:jruyi-api:2.3.1"
 
 	testCompile "org.codehaus.groovy:groovy-all:$groovy_version"
 	testCompile "org.spockframework:spock-core:$spock_core_version"
 	testCompile "org.slf4j:slf4j-simple:$slf4j_version"
 	testCompile "org.objenesis:objenesis:$objenesis_version"
 	testCompile "cglib:cglib-nodep:$cglib_nodep_version"
+	testCompile "org.hamcrest:hamcrest-core:$hamcrest_version"
 	testCompile "junit:junit:$junit_version"
 
 	testCompile project(':common')

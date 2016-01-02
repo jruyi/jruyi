@@ -18,158 +18,328 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.BufferUnderflowException;
+import java.nio.InvalidMarkException;
 import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.util.Arrays;
 
 import org.jruyi.common.*;
 import org.jruyi.common.StringBuilder;
 import org.jruyi.io.*;
 
-public final class Buffer implements IBuffer, IUnitChain {
+public final class Buffer implements IBuffer {
 
-	private BufferFactory m_factory;
-	private BiListNode<IUnit> m_positionNode;
-	private BiListNode<IUnit> m_markNode;
-	private BiListNode<IUnit> m_head;
+	private Var m_var;
 
-	private Buffer() {
-		final BiListNode<IUnit> head = BiListNode.create();
-		head.previous(head);
-		head.next(head);
-		m_head = head;
-		m_positionNode = head;
-		m_markNode = head;
+	static final class Var implements ICloseable, IUnitChain {
+
+		private static final IThreadLocalCache<Var> c_cache = ThreadLocalCache.weakLinkedCache();
+
+		private BufferFactory m_factory;
+		private int m_positionIndex = -1;
+		private int m_markIndex = -1;
+		private IUnit[] m_units;
+		private int m_length = 0;
+
+		private Var() {
+			m_units = new IUnit[8];
+		}
+
+		private Var(int initialCapacity) {
+			if (initialCapacity < 8)
+				initialCapacity = 8;
+			m_units = new IUnit[initialCapacity];
+		}
+
+		static Var get() {
+			Var var = c_cache.take();
+			if (var == null)
+				var = new Var();
+			else {
+				var.m_positionIndex = -1;
+				var.m_markIndex = -1;
+				var.m_length = 0;
+			}
+			return var;
+		}
+
+		static Var get(int minCapacity) {
+			Var var = c_cache.take();
+			if (var == null)
+				var = new Var(minCapacity);
+			else {
+				var.m_positionIndex = -1;
+				var.m_markIndex = -1;
+				var.m_length = 0;
+				var.ensureCapacityInternal(minCapacity);
+			}
+			return var;
+		}
+
+		void init(BufferFactory factory) {
+			m_units[0] = factory.getUnit();
+			m_positionIndex = 0;
+			m_length = 1;
+			m_factory = factory;
+		}
+
+		void init(BufferFactory factory, IUnit unit) {
+			m_positionIndex = 0;
+			m_length = 1;
+			m_units[0] = unit;
+			m_factory = factory;
+		}
+
+		void init(BufferFactory factory, IUnit[] units, int offset, int count) {
+			m_positionIndex = 0;
+			m_length = count;
+			System.arraycopy(units, offset, m_units, 0, count);
+			m_factory = factory;
+		}
+
+		BufferFactory factory() {
+			return m_factory;
+		}
+
+		IUnit[] units() {
+			return m_units;
+		}
+
+		int length() {
+			return m_length;
+		}
+
+		void length(int newLength) {
+			m_length = newLength;
+		}
+
+		int positionIndex() {
+			return m_positionIndex;
+		}
+
+		void positionIndex(int positionIndex) {
+			m_positionIndex = positionIndex;
+		}
+
+		int markIndex() {
+			return m_markIndex;
+		}
+
+		void markIndex(int markIndex) {
+			m_markIndex = markIndex;
+		}
+
+		@Override
+		public IUnit create() {
+			return m_factory.getUnit();
+		}
+
+		@Override
+		public IUnit create(int minimumCapacity) {
+			return m_factory.getUnit(minimumCapacity);
+		}
+
+		@Override
+		public IUnit currentUnit() {
+			return m_units[m_positionIndex];
+		}
+
+		@Override
+		public IUnit nextUnit() {
+			int positionIndex = m_positionIndex;
+			if (++positionIndex == m_length)
+				return null;
+			m_positionIndex = positionIndex;
+			return m_units[positionIndex];
+		}
+
+		@Override
+		public IUnit firstUnit() {
+			return m_units[0];
+		}
+
+		@Override
+		public IUnit lastUnit() {
+			return m_units[m_length - 1];
+		}
+
+		@Override
+		public void append(IUnit unit) {
+			final int length = m_length;
+			final int newLength = length + 1;
+			if (newLength > m_units.length)
+				expandCapacityForAppend(newLength);
+
+			m_units[length] = unit;
+			m_length = newLength;
+		}
+
+		@Override
+		public void prepend(IUnit unit) {
+			final IUnit[] units = m_units;
+			final int positionIndex = m_positionIndex;
+			if (positionIndex > 0 || units[positionIndex].position() > 0)
+				throw new UnsupportedOperationException("prepend is not allowed when position() > 0");
+
+			final int length = m_length;
+			final int newLength = length + 1;
+			if (newLength > units.length)
+				expandCapacityForPrepend(newLength);
+			else
+				System.arraycopy(units, 0, units, 1, length);
+
+			m_units[0] = unit;
+			m_length = newLength;
+		}
+
+		@Override
+		public int remaining() {
+			final IUnit[] units = m_units;
+			int i = m_positionIndex;
+			int remaining = units[i].remaining();
+			for (int n = m_length; ++i < n;)
+				remaining += units[i].size();
+			return remaining;
+		}
+
+		void ensureCapacity(int minCapacity) {
+			if (m_units.length < minCapacity)
+				expandCapacityForAppend(minCapacity);
+		}
+
+		private void ensureCapacityInternal(int minCapacity) {
+			int len = m_units.length;
+			if (len < minCapacity)
+				len = (len + 1) << 1;
+			if (len < 0)
+				len = Integer.MAX_VALUE;
+			else if (minCapacity > len)
+				len = minCapacity;
+			m_units = new IUnit[len];
+		}
+
+		private void expandCapacityForAppend(int minCapacity) {
+			int newCapacity = (m_units.length + 1) << 1;
+			if (newCapacity < 0)
+				newCapacity = Integer.MAX_VALUE;
+			else if (minCapacity > newCapacity)
+				newCapacity = minCapacity;
+
+			final IUnit[] units = new IUnit[newCapacity];
+			System.arraycopy(m_units, 0, units, 0, m_length);
+			m_units = units;
+		}
+
+		private void expandCapacityForPrepend(int minCapacity) {
+			int newCapacity = (m_units.length + 1) << 1;
+			if (newCapacity < 0)
+				newCapacity = Integer.MAX_VALUE;
+			else if (minCapacity > newCapacity)
+				newCapacity = minCapacity;
+
+			final IUnit[] units = new IUnit[newCapacity];
+			System.arraycopy(m_units, 0, units, 1, m_length);
+			m_units = units;
+		}
+
+		void drain() {
+			final IUnit[] units = m_units;
+			final int n = m_length;
+			final BufferFactory factory = m_factory;
+			if (factory != null) {
+				for (int i = 1; i < n; ++i) {
+					factory.putUnit(units[i]);
+					units[i] = null;
+				}
+			} else {
+				for (int i = 1; i < n; ++i)
+					units[i] = null;
+			}
+			m_positionIndex = 0;
+			m_markIndex = -1;
+			m_length = 1;
+			units[0].clear();
+		}
+
+		@Override
+		public void close() {
+			final IUnit[] units = m_units;
+			final int n = m_length;
+			final BufferFactory factory = m_factory;
+			if (factory != null) {
+				m_factory = null;
+				for (int i = 0; i < n; ++i) {
+					factory.putUnit(units[i]);
+					units[i] = null;
+				}
+			} else {
+				for (int i = 0; i < n; ++i)
+					units[i] = null;
+			}
+			c_cache.put(this);
+		}
+	}
+
+	private Buffer(Var var) {
+		m_var = var;
 	}
 
 	static Buffer get(BufferFactory factory) {
-		final Buffer buffer = new Buffer();
-		buffer.m_head.set(factory.getUnit());
-		buffer.m_factory = factory;
-		return buffer;
-	}
-
-	@Override
-	public IUnit create() {
-		return m_factory.getUnit();
-	}
-
-	@Override
-	public IUnit create(int minimumCapacity) {
-		return m_factory.getUnit(minimumCapacity);
-	}
-
-	@Override
-	public IUnit currentUnit() {
-		return m_positionNode.get();
-	}
-
-	@Override
-	public IUnit nextUnit() {
-		final BiListNode<IUnit> node = m_positionNode.next();
-		if (node == m_head)
-			return null;
-		m_positionNode = node;
-		return node.get();
-	}
-
-	@Override
-	public IUnit firstUnit() {
-		return m_head.get();
-	}
-
-	@Override
-	public IUnit lastUnit() {
-		return m_head.previous().get();
-	}
-
-	@Override
-	public void append(IUnit unit) {
-		final BiListNode<IUnit> node = BiListNode.create();
-		node.set(unit);
-
-		final BiListNode<IUnit> head = m_head;
-		BiListNode<IUnit> prev = head.previous();
-		node.next(head);
-		node.previous(prev);
-		prev.next(node);
-		head.previous(node);
-	}
-
-	@Override
-	public void prepend(IUnit unit) {
-		final BiListNode<IUnit> head = m_head;
-		if (m_positionNode != head || head.get().position() > 0)
-			throw new UnsupportedOperationException("prepend is not allowed when position() > 0");
-
-		final BiListNode<IUnit> node = BiListNode.create();
-		node.set(unit);
-
-		final BiListNode<IUnit> prev = head.previous();
-		node.next(head);
-		node.previous(prev);
-		prev.next(node);
-		head.previous(node);
-		m_head = node;
-
-		m_positionNode = node;
+		final Var var = Var.get();
+		var.init(factory);
+		return new Buffer(var);
 	}
 
 	@Override
 	public int position() {
-		final BiListNode<IUnit> positionNode = m_positionNode;
-		BiListNode<IUnit> node = m_head;
-		int position = node.get().position();
-		while (node != positionNode) {
-			node = node.next();
-			position += node.get().position();
-		}
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int position = 0;
+		for (int i = 0, n = var.positionIndex(); i <= n; ++i)
+			position += units[i].position();
 		return position;
 	}
 
 	@Override
 	public int size() {
-		final BiListNode<IUnit> head = m_head;
-		BiListNode<IUnit> node = head;
-		int size = node.get().size();
-		while ((node = node.next()) != head)
-			size += node.get().size();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int size = 0;
+		for (int i = 0, n = var.length(); i < n; ++i)
+			size += units[i].size();
 		return size;
 	}
 
 	@Override
 	public int remaining() {
-		final BiListNode<IUnit> head = m_head;
-		BiListNode<IUnit> node = m_positionNode;
-		int remaining = node.get().remaining();
-		while ((node = node.next()) != head)
-			remaining += node.get().size();
-		return remaining;
+		return m_var.remaining();
 	}
 
 	@Override
 	public void reset() {
-		final BiListNode<IUnit> positionNode = m_positionNode;
-		BiListNode<IUnit> node = m_markNode;
-		m_positionNode = node;
-		node.get().reset();
-		while (node != positionNode) {
-			node = node.next();
-			node.get().rewind();
-		}
+		final Var var = m_var;
+		int i = var.markIndex();
+		if (i < 0)
+			throw new InvalidMarkException();
+
+		final IUnit[] units = var.units();
+		final int n = var.positionIndex();
+		var.positionIndex(i);
+		units[i].reset();
+		while (++i <= n)
+			units[i].rewind();
 	}
 
 	@Override
 	public void rewind() {
-		final BiListNode<IUnit> positionNode = m_positionNode;
-		BiListNode<IUnit> node = m_head;
-		m_markNode = node;
-		m_positionNode = node;
-		node.get().rewind();
-		while (node != positionNode) {
-			node = node.next();
-			node.get().rewind();
-		}
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		final int n = var.positionIndex();
+		var.markIndex(-1);
+		var.positionIndex(0);
+		for (int i = 0; i <= n; ++i)
+			units[i].rewind();
 	}
 
 	@Override
@@ -177,41 +347,47 @@ public final class Buffer implements IBuffer, IUnitChain {
 		if (n <= 0)
 			return 0;
 
-		BiListNode<IUnit> node = m_positionNode;
-		IUnit unit = node.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int i = var.positionIndex();
+		IUnit unit = units[i];
 		int size = unit.size();
 		int m = size - unit.position();
 
-		final BiListNode<IUnit> head = m_head;
-		BiListNode<IUnit> next;
-		while (m < n && (next = node.next()) != head) {
+		for (int len = var.length(); m < n && ++i < len;) {
 			unit.position(size);
-			node = next;
-			unit = node.get();
+			unit = units[i];
 			size = unit.size();
 			m += size;
 		}
-
-		unit.position(size - (m - n));
-		m_positionNode = node;
-		return m < n ? m : n;
+		if (m < n) {
+			unit.position(size);
+			var.positionIndex(i - 1);
+			return m;
+		} else {
+			unit.position(size - (m - n));
+			var.positionIndex(i);
+			return n;
+		}
 	}
 
 	@Override
 	public void mark() {
-		m_markNode = m_positionNode;
-		IUnit unit = m_markNode.get();
+		final Var var = m_var;
+		final int i = var.positionIndex();
+		var.markIndex(i);
+		final IUnit unit = var.units()[i];
 		unit.mark(unit.position());
 	}
 
 	@Override
 	public boolean isEmpty() {
-		final BiListNode<IUnit> head = m_head;
-		BiListNode<IUnit> node = m_positionNode;
-		do {
-			if (node.get().remaining() > 0)
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		for (int i = var.positionIndex(), n = var.length(); i < n; ++i) {
+			if (units[i].remaining() > 0)
 				return false;
-		} while ((node = node.next()) != head);
+		}
 		return true;
 	}
 
@@ -227,16 +403,17 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 		int index = fromIndex;
 
-		final BiListNode<IUnit> head = m_head;
-		BiListNode<IUnit> node = head;
-		IUnit unit = node.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		final int len = var.length();
+		int i = 0;
+		IUnit unit = units[i];
 		int n;
 		while (fromIndex >= (n = unit.size())) {
 			fromIndex -= n;
-			node = node.next();
-			if (node == head)
+			if (++i == len)
 				return -1;
-			unit = node.get();
+			unit = units[i];
 		}
 
 		index -= fromIndex;
@@ -247,11 +424,10 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 			index += unit.size();
 
-			node = node.next();
-			if (node == head)
+			if (++i == len)
 				break;
 
-			unit = node.get();
+			unit = units[i];
 			n = indexOf(b, unit, 0);
 		}
 
@@ -263,26 +439,27 @@ public final class Buffer implements IBuffer, IUnitChain {
 		return indexOf(bytes, 0);
 	}
 
-	@SuppressWarnings("resource")
 	@Override
 	public int indexOf(byte[] bytes, int fromIndex) {
 		if (fromIndex < 0)
 			fromIndex = 0;
 
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		final int count = var.length();
+		int i = 0;
+
 		final int length = bytes.length;
 		int index = fromIndex;
-		final BiListNode<IUnit> head = m_head;
-		BiListNode<IUnit> node = head;
-		IUnit unit = node.get();
+		IUnit unit = units[i];
 		int unitSize;
 		int size = 0;
 		while (fromIndex >= (unitSize = unit.size())) {
 			fromIndex -= unitSize;
 			size += unitSize;
-			node = node.next();
-			if (node == head)
+			if (++i == count)
 				return length < 1 ? size - length : -1;
-			unit = node.get();
+			unit = units[i];
 		}
 
 		if (length < 1)
@@ -299,19 +476,17 @@ public final class Buffer implements IBuffer, IUnitChain {
 				if (m >= length)
 					return n;
 
-				BiListNode<IUnit> temp = node.next();
-				while (temp != head && startsWith(bytes, m, unit = temp.get())) {
+				int temp = i;
+				while (++temp != count && startsWith(bytes, m, unit = units[temp])) {
 					if ((m += unit.size()) >= length)
 						return n;
-					temp = temp.next();
 				}
 			}
 
 			index += unitSize;
-			node = node.next();
-			if (node == head)
+			if (++i == count)
 				break;
-			unit = node.get();
+			unit = units[i];
 			unitSize = unit.size();
 			n = indexOf(bytes, unit, 0);
 		}
@@ -329,20 +504,22 @@ public final class Buffer implements IBuffer, IUnitChain {
 		if (fromIndex < 0)
 			fromIndex = 0;
 
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		final int count = var.length();
+		int i = 0;
+
 		final int length = pattern.length();
-		final BiListNode<IUnit> head = m_head;
-		BiListNode<IUnit> node = head;
-		IUnit unit = node.get();
+		IUnit unit = units[i];
 		int index = fromIndex;
 		int size = 0;
 		int unitSize;
 		while (index >= (unitSize = unit.size())) {
 			index -= unitSize;
 			size += unitSize;
-			node = node.next();
-			if (node == head)
+			if (++i == count)
 				return length < 1 ? size - length : -1;
-			unit = node.get();
+			unit = units[i];
 		}
 
 		if (length < 1)
@@ -351,8 +528,8 @@ public final class Buffer implements IBuffer, IUnitChain {
 		final int n;
 		try (Blob blob = Blob.get()) {
 			blob.add(unit, unit.start() + index, unitSize - index);
-			while ((node = node.next()) != head) {
-				unit = node.get();
+			while (++i < count) {
+				unit = units[i];
 				blob.add(unit, unit.start(), unit.size());
 			}
 
@@ -364,14 +541,15 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 	@Override
 	public int lastIndexOf(byte b) {
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int i = var.length();
+
 		int index = size();
 		int fromIndex = index - 1;
-		BiListNode<IUnit> node = m_head.previous();
-		IUnit unit = node.get();
-		while (fromIndex < (index -= unit.size())) {
-			node = node.previous();
-			unit = node.get();
-		}
+		IUnit unit = units[--i];
+		while (fromIndex < (index -= unit.size()))
+			unit = units[--i];
 
 		fromIndex -= index;
 		int n = lastIndexOf(b, unit, fromIndex);
@@ -382,8 +560,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 			if (index <= 0)
 				break;
 
-			node = node.previous();
-			unit = node.get();
+			unit = units[--i];
 			n = unit.size();
 			index -= n;
 			n = lastIndexOf(b, unit, n - 1);
@@ -397,16 +574,17 @@ public final class Buffer implements IBuffer, IUnitChain {
 		if (fromIndex < 0)
 			return -1;
 
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int i = var.length();
+
 		int index = size();
 		if (fromIndex >= index)
 			fromIndex = index - 1;
 
-		BiListNode<IUnit> node = m_head.previous();
-		IUnit unit = node.get();
-		while (fromIndex < (index -= unit.size())) {
-			node = node.previous();
-			unit = node.get();
-		}
+		IUnit unit = units[--i];
+		while (fromIndex < (index -= unit.size()))
+			unit = units[--i];
 
 		fromIndex -= index;
 		int n = lastIndexOf(b, unit, fromIndex);
@@ -417,8 +595,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 			if (index <= 0)
 				break;
 
-			node = node.previous();
-			unit = node.get();
+			unit = units[--i];
 			n = unit.size();
 			index -= n;
 			n = lastIndexOf(b, unit, n - 1);
@@ -427,7 +604,6 @@ public final class Buffer implements IBuffer, IUnitChain {
 		return -1;
 	}
 
-	@SuppressWarnings("resource")
 	@Override
 	public int lastIndexOf(byte[] bytes) {
 		int length = bytes.length;
@@ -442,12 +618,13 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 		fromIndex += length;
 
-		BiListNode<IUnit> node = m_head.previous();
-		IUnit unit = node.get();
-		while (fromIndex < (index -= unit.size())) {
-			node = node.previous();
-			unit = node.get();
-		}
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int i = var.length();
+
+		IUnit unit = units[--i];
+		while (fromIndex < (index -= unit.size()))
+			unit = units[--i];
 
 		// index - base index
 		// fromIndex - right index
@@ -461,11 +638,10 @@ public final class Buffer implements IBuffer, IUnitChain {
 					return n;
 
 				if (n >= 0) {
-					BiListNode<IUnit> temp = node.previous();
-					while (endsWith(bytes, m, unit = temp.get())) {
+					int temp = i;
+					while (endsWith(bytes, m, unit = units[--temp])) {
 						if ((m -= unit.size()) <= 0)
 							return n;
-						temp = temp.previous();
 					}
 				}
 			}
@@ -473,8 +649,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 			if (index <= 0)
 				break;
 
-			node = node.previous();
-			unit = node.get();
+			unit = units[--i];
 			int unitSize = unit.size();
 			index -= unitSize;
 			n = lastIndexOf(bytes, unit, unitSize);
@@ -483,7 +658,6 @@ public final class Buffer implements IBuffer, IUnitChain {
 		return -1;
 	}
 
-	@SuppressWarnings("resource")
 	@Override
 	public int lastIndexOf(byte[] bytes, int fromIndex) {
 		int length = bytes.length;
@@ -500,12 +674,13 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 		fromIndex += length;
 
-		BiListNode<IUnit> node = m_head.previous();
-		IUnit unit = node.get();
-		while (fromIndex < (index -= unit.size())) {
-			node = node.previous();
-			unit = node.get();
-		}
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int i = var.length();
+
+		IUnit unit = units[--i];
+		while (fromIndex < (index -= unit.size()))
+			unit = units[--i];
 
 		// index - base index
 		// fromIndex - right index
@@ -519,11 +694,10 @@ public final class Buffer implements IBuffer, IUnitChain {
 					return n;
 
 				if (n >= 0) {
-					BiListNode<IUnit> temp = node.previous();
-					while (endsWith(bytes, m, unit = temp.get())) {
+					int temp = i;
+					while (endsWith(bytes, m, unit = units[--temp])) {
 						if ((m -= unit.size()) <= 0)
 							return n;
-						temp = temp.previous();
 					}
 				}
 			}
@@ -531,8 +705,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 			if (index <= 0)
 				break;
 
-			node = node.previous();
-			unit = node.get();
+			unit = units[--i];
 			int unitSize = unit.size();
 			index -= unitSize;
 			n = lastIndexOf(bytes, unit, unitSize);
@@ -555,18 +728,18 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 		fromIndex += length;
 
-		BiListNode<IUnit> head = m_head;
-		BiListNode<IUnit> last = head.previous();
-		IUnit unit = last.get();
-		while (fromIndex < (index -= unit.size())) {
-			last = last.previous();
-			unit = last.get();
-		}
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int last = var.length();
+
+		IUnit unit = units[--last];
+		while (fromIndex < (index -= unit.size()))
+			unit = units[--last];
 
 		fromIndex -= index;
 		try (Blob blob = Blob.get()) {
-			for (BiListNode<IUnit> node = head; node != last; node = node.next()) {
-				IUnit temp = node.get();
+			for (int i = 0; i < last; ++i) {
+				final IUnit temp = units[i];
 				blob.add(temp, temp.start(), temp.size());
 			}
 
@@ -591,18 +764,17 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 		fromIndex += length;
 
-		BiListNode<IUnit> head = m_head;
-		BiListNode<IUnit> last = head.previous();
-		IUnit unit = last.get();
-		while (fromIndex < (index -= unit.size())) {
-			last = last.previous();
-			unit = last.get();
-		}
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int last = var.length();
+		IUnit unit = units[--last];
+		while (fromIndex < (index -= unit.size()))
+			unit = units[--last];
 
 		fromIndex -= index;
 		try (Blob blob = Blob.get()) {
-			for (BiListNode<IUnit> node = head; node != last; node = node.next()) {
-				IUnit temp = node.get();
+			for (int i = 0; i < last; ++i) {
+				final IUnit temp = units[i];
 				blob.add(temp, temp.start(), temp.size());
 			}
 
@@ -617,36 +789,38 @@ public final class Buffer implements IBuffer, IUnitChain {
 		if (length < 1)
 			return true;
 
-		final BiListNode<IUnit> head = m_head;
-		BiListNode<IUnit> node = head;
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		final int len = var.length();
+		int i = 0;
+
 		IUnit unit;
 		int n = 0;
-		while (startsWith(bytes, n, unit = node.get())) {
+		while (startsWith(bytes, n, unit = units[i])) {
 			if ((n += unit.size()) >= length)
 				return true;
-			node = node.next();
-			if (node == head)
+			if (++i == len)
 				return false;
 		}
 
 		return false;
 	}
 
-	@SuppressWarnings("resource")
 	@Override
 	public boolean endsWith(byte[] bytes) {
 		int n = bytes.length;
 		if (n < 1)
 			return true;
 
-		final BiListNode<IUnit> last = m_head.previous();
-		BiListNode<IUnit> node = last;
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int last = var.length();
+
 		IUnit unit;
-		while (endsWith(bytes, n, unit = node.get())) {
+		while (endsWith(bytes, n, unit = units[--last])) {
 			if ((n -= unit.size()) <= 0)
 				return true;
-			node = node.previous();
-			if (node == last)
+			if (last == 0)
 				return false;
 		}
 
@@ -655,25 +829,22 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 	@Override
 	public IBuffer compact() {
-		final BiListNode<IUnit> head = m_head;
-		IUnit unit = head.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		IUnit unit = units[0];
 		if (!unit.isEmpty()) {
 			unit.compact();
 			return this;
 		}
 
-		BiListNode<IUnit> next = head.next();
-		if (next != head) {
-			BufferFactory factory = m_factory;
-			BiListNode<IUnit> node = head;
-			BiListNode<IUnit> prev = head.previous();
+		final int len = var.length();
+		int i = 1;
+		if (i < len) {
+			final BufferFactory factory = var.factory();
 			for (;;) {
 				factory.putUnit(unit);
-				node.close();
-				node = next;
-				next = node.next();
-				unit = node.get();
-				if (next == head) {
+				unit = units[i];
+				if (++i == len) {
 					if (unit.isEmpty())
 						unit.clear();
 					else
@@ -686,11 +857,14 @@ public final class Buffer implements IBuffer, IUnitChain {
 					break;
 				}
 			}
-			m_head = node;
-			node.previous(prev);
-			prev.next(node);
-			m_markNode = node;
-			m_positionNode = node;
+			--i;
+			int n = len - i;
+			System.arraycopy(units, i, units, 0, n);
+			var.length(n);
+			while (n < len)
+				units[n++] = null;
+			var.markIndex(0);
+			var.positionIndex(0);
 		} else
 			unit.clear();
 
@@ -699,7 +873,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 	@Override
 	public Buffer newBuffer() {
-		return Buffer.get(m_factory);
+		return Buffer.get(m_var.factory());
 	}
 
 	@Override
@@ -707,102 +881,68 @@ public final class Buffer implements IBuffer, IUnitChain {
 		if (size == 0)
 			return newBuffer();
 
-		final Buffer firstPiece = getForSplit(m_factory);
-		final BiListNode<IUnit> head = m_head;
-		firstPiece.m_head = head;
+		final Var var = m_var;
+		var.markIndex(-1);
 
-		boolean adjustPosNode = false;
-		boolean adjustMarkNode = false;
-		final BiListNode<IUnit> positionNode = m_positionNode;
-		final BiListNode<IUnit> markNode = m_markNode;
-		BiListNode<IUnit> node = head;
+		final int len = var.length();
+		final IUnit[] units = var.units();
+		int i = 0;
+		IUnit unit = units[i];
 		int n;
-		IUnit unit = node.get();
 		while (size > (n = unit.size())) {
 			size -= n;
-			if (node == markNode)
-				adjustMarkNode = true;
-			if (node == positionNode)
-				adjustPosNode = true;
-			node = node.next();
-			if (node == head)
+			if (++i == len)
 				throw new IllegalArgumentException();
-			unit = node.get();
+			unit = units[i];
 		}
 
-		if (node == markNode)
-			adjustMarkNode = true;
-		if (node == positionNode)
-			adjustPosNode = true;
+		int pos = var.positionIndex() - i;
+		if (pos > 0)
+			var.positionIndex(i);
 
-		final BiListNode<IUnit> next = node.next();
+		final Var var2;
 		if (n > size) {
-			final BiListNode<IUnit> temp = BiListNode.create();
-			temp.set(unit.slice(size, n));
-			unit.size(size);
-			m_head = temp;
-			if (next == head) {
-				temp.next(temp);
-				temp.previous(temp);
-			} else {
-				BiListNode<IUnit> tail = head.previous();
-				temp.next(next);
-				temp.previous(tail);
-				next.previous(temp);
-				tail.next(temp);
-				head.previous(node);
-				node.next(head);
+			var2 = Var.get(len - i);
+			final IUnit[] units2 = var2.units();
+			final IUnit slice = unit.slice(size, n);
+			var2.init(var.factory(), slice);
+			if (pos > 0) {
+				var2.positionIndex(pos);
+				slice.position(slice.size());
+			} else if (pos == 0) {
+				pos = unit.position();
+				if (pos > size) {
+					unit.position(size);
+					slice.position(pos - size);
+				}
 			}
-		} else if (next == head) {
-			final BiListNode<IUnit> temp = BiListNode.create();
-			temp.previous(temp);
-			temp.next(temp);
-			temp.set(m_factory.getUnit());
-			m_head = temp;
+			unit.size(size);
+			var.length(++i);
+			n = len - i;
+			System.arraycopy(units, i, units2, 1, n);
+			var2.length(n + 1);
+			Arrays.fill(units, i, len, null);
 		} else {
-			m_head = next;
-			final BiListNode<IUnit> tail = head.previous();
-			head.previous(node);
-			node.next(head);
-			next.previous(tail);
-			tail.next(next);
+			var.length(++i);
+			n = len - i;
+			if (n > 0) {
+				var2 = Var.get(n);
+				var2.init(var.factory(), units, i, n);
+				Arrays.fill(units, i, len, null);
+			} else {
+				var2 = Var.get();
+				var2.init(var.factory());
+			}
+			if (pos > 0)
+				var2.positionIndex(pos - 1);
 		}
-
-		if (adjustMarkNode) {
-			firstPiece.m_markNode = markNode;
-			m_markNode = m_head;
-		}
-
-		if (adjustPosNode) {
-			firstPiece.m_positionNode = positionNode;
-			m_positionNode = m_head;
-		}
-
-		return firstPiece;
+		m_var = var2;
+		return new Buffer(var);
 	}
 
-	@SuppressWarnings("resource")
 	@Override
 	public void drain() {
-		BiListNode<IUnit> head = m_head;
-		m_positionNode = head;
-		m_markNode = head;
-
-		BufferFactory factory = m_factory;
-		BiListNode<IUnit> node = head.next();
-		if (node != head) {
-			do {
-				factory.putUnit(node.get());
-				BiListNode<IUnit> temp = node;
-				node = node.next();
-				temp.close();
-			} while (node != head);
-			head.previous(head);
-			head.next(head);
-		}
-
-		factory.putUnit(head.get());
-		head.set(factory.getUnit());
+		m_var.drain();
 	}
 
 	@Override
@@ -813,37 +953,35 @@ public final class Buffer implements IBuffer, IUnitChain {
 			return;
 		}
 
-		BufferFactory factory = m_factory;
-		BiListNode<IUnit> thisPos = m_positionNode;
-		BiListNode<IUnit> node = m_head;
-		BiListNode<IUnit> thisTail = node.previous();
-		while (node != thisPos) {
-			factory.putUnit(node.get());
-			BiListNode<IUnit> temp = node;
-			node = node.next();
-			temp.close();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		final BufferFactory factory = var.factory();
+		final int positionIndex = var.positionIndex();
+		for (int i = 0; i < positionIndex; ++i) {
+			factory.putUnit(units[i]);
+			units[i] = null;
 		}
+		units[positionIndex].compact();
+		int n = var.length() - positionIndex;
 
-		thisPos.get().compact();
-		node = ((Buffer) dst).m_head;
-		BiListNode<IUnit> thatTail = node.previous();
-		thisPos.previous(thatTail);
-		thatTail.next(thisPos);
-		thisTail.next(node);
-		node.previous(thisTail);
+		final Var dstVar = ((Buffer) dst).m_var;
+		final int dstLen = dstVar.length();
+		final int newDstLen = dstLen + n;
+		dstVar.ensureCapacity(newDstLen);
+		final IUnit[] dstUnits = dstVar.units();
+		System.arraycopy(units, positionIndex, dstUnits, dstLen, n);
+		dstVar.length(newDstLen);
 
-		node = BiListNode.create();
-		node.next(node);
-		node.previous(node);
-		node.set(factory.getUnit());
-		m_head = node;
-		m_positionNode = node;
-		m_markNode = node;
+		Arrays.fill(units, positionIndex, n, null);
+		var.positionIndex(0);
+		var.markIndex(-1);
+		var.length(1);
+		units[0] = factory.getUnit();
 	}
 
 	@Override
 	public int reserveHead(int size) {
-		final IUnit unit = m_head.get();
+		final IUnit unit = m_var.units()[0];
 		if (unit.size() > 0)
 			return unit.start();
 
@@ -861,7 +999,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 	@Override
 	public int headReserved() {
-		return m_head.get().start();
+		return m_var.units()[0].start();
 	}
 
 	@Override
@@ -883,37 +1021,26 @@ public final class Buffer implements IBuffer, IUnitChain {
 			return this;
 		}
 
-		final BiListNode<IUnit> positionNode = m_positionNode;
-		final BiListNode<IUnit> markNode = m_markNode;
-		boolean adjustPosNode = false;
-		boolean adjustMarkNode = false;
-		BufferFactory factory = m_factory;
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		final BufferFactory factory = var.factory();
+		int n = var.length();
 		len = len - newLength;
-		BiListNode<IUnit> node = m_head.previous();
-		IUnit unit = node.get();
-		while ((len -= unit.size()) >= 0) {
-			if (node == positionNode)
-				adjustPosNode = true;
-			if (node == markNode)
-				adjustMarkNode = true;
-			BiListNode<IUnit> next = node.next();
-			BiListNode<IUnit> previous = node.previous();
-			previous.next(next);
-			next.previous(previous);
-			node.close();
+		IUnit unit;
+		while ((len -= (unit = units[--n]).size()) >= 0) {
 			factory.putUnit(unit);
-
-			node = previous;
-			unit = node.get();
+			units[n] = null;
 		}
-
+		var.length(n + 1);
 		unit.size(-len);
 
-		if (adjustPosNode)
-			m_positionNode = node;
+		if (var.positionIndex() > n)
+			var.positionIndex(n);
+		else if (unit.position() > unit.size())
+			unit.position(unit.size());
 
-		if (adjustMarkNode)
-			m_markNode = node;
+		if (var.markIndex() > n || unit.mark() > unit.position())
+			var.markIndex(-1);
 
 		return this;
 	}
@@ -926,7 +1053,8 @@ public final class Buffer implements IBuffer, IUnitChain {
 		if (count < 1)
 			return this;
 
-		IUnit unit = Util.lastUnit(this);
+		final Var var = m_var;
+		IUnit unit = Util.lastUnit(var);
 		for (;;) {
 			int size = unit.size();
 			int index = unit.start() + unit.size();
@@ -940,7 +1068,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 				unit.size(size + n);
 			}
 			count -= n;
-			unit = Util.appendNewUnit(this);
+			unit = Util.appendNewUnit(var);
 		}
 
 		return this;
@@ -951,17 +1079,18 @@ public final class Buffer implements IBuffer, IUnitChain {
 		if (count < 0)
 			throw new IndexOutOfBoundsException();
 
-		final BiListNode<IUnit> head = m_head;
-		BiListNode<IUnit> node = head;
-		IUnit unit = node.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		final int len = var.length();
+		int i = 0;
+		IUnit unit;
 		int size;
-		while (index > (size = unit.size())) {
+		while (index > (size = (unit = units[i]).size())) {
 			index -= size;
-			node = node.next();
-			if (node == head)
+			if (++i == len)
 				throw new IndexOutOfBoundsException();
-			unit = node.get();
 		}
+
 		int n = size - index;
 		index += unit.start();
 		for (;;) {
@@ -971,10 +1100,9 @@ public final class Buffer implements IBuffer, IUnitChain {
 			}
 			unit.setFill(index, b, n);
 			count -= n;
-			node = node.next();
-			if (node == head)
+			if (++i == len)
 				throw new IndexOutOfBoundsException();
-			unit = node.get();
+			unit = units[i];
 			n = unit.size();
 			index = unit.start();
 		}
@@ -989,7 +1117,8 @@ public final class Buffer implements IBuffer, IUnitChain {
 		if (count < 1)
 			return this;
 
-		IUnit unit = Util.firstUnit(this);
+		final Var var = m_var;
+		IUnit unit = Util.firstUnit(var);
 		for (;;) {
 			int n = unit.start();
 			if (n >= count) {
@@ -1003,23 +1132,23 @@ public final class Buffer implements IBuffer, IUnitChain {
 			unit.start(0);
 			unit.size(unit.size() + n);
 			count -= n;
-			unit = Util.prependNewUnit(this);
+			unit = Util.prependNewUnit(var);
 		}
 		return this;
 	}
 
 	@Override
 	public IBuffer set(int index, byte b) {
-		final BiListNode<IUnit> head = m_head;
-		BiListNode<IUnit> node = head;
-		IUnit unit = node.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		final int len = var.length();
+		int i = 0;
+		IUnit unit;
 		int size;
-		while (index >= (size = unit.size())) {
+		while (index >= (size = (unit = units[i]).size())) {
 			index -= size;
-			node = node.next();
-			if (node == head)
+			if (++i == len)
 				throw new IndexOutOfBoundsException();
-			unit = node.get();
 		}
 		unit.set(unit.start() + index, b);
 		return this;
@@ -1027,194 +1156,187 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 	@Override
 	public IBuffer set(int index, char c, ICharCodec codec) {
-		BiListNode<IUnit> temp = m_head;
-		BiListNode<IUnit> node = temp;
-		IUnit unit = node.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int n = var.length();
+		int i = 0;
 		int size;
-		while (index > (size = unit.size())) {
+		while (index > (size = units[i].size())) {
 			index -= size;
-			node = node.next();
-			if (node == temp)
+			if (++i == n)
 				throw new IndexOutOfBoundsException();
-			unit = node.get();
 		}
-		temp = m_positionNode;
-		m_positionNode = node;
+		n = var.positionIndex();
+		var.positionIndex(i);
 		try {
-			codec.set(c, this, index);
+			codec.set(c, var, index);
 		} finally {
-			m_positionNode = temp;
+			var.positionIndex(n);
 		}
 		return this;
 	}
 
 	@Override
 	public IBuffer set(int index, short s, IShortCodec codec) {
-		BiListNode<IUnit> temp = m_head;
-		BiListNode<IUnit> node = temp;
-		IUnit unit = node.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int n = var.length();
+		int i = 0;
 		int size;
-		while (index > (size = unit.size())) {
+		while (index > (size = units[i].size())) {
 			index -= size;
-			node = node.next();
-			if (node == temp)
+			if (++i == n)
 				throw new IndexOutOfBoundsException();
-			unit = node.get();
 		}
-		temp = m_positionNode;
-		m_positionNode = node;
+		n = var.positionIndex();
+		var.positionIndex(i);
 		try {
-			codec.set(s, this, index);
+			codec.set(s, var, index);
 		} finally {
-			m_positionNode = temp;
+			var.positionIndex(n);
 		}
 		return this;
 	}
 
 	@Override
 	public IBuffer set(int index, int i, IIntCodec codec) {
-		BiListNode<IUnit> temp = m_head;
-		BiListNode<IUnit> node = temp;
-		IUnit unit = node.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int n = var.length();
+		int j = 0;
 		int size;
-		while (index > (size = unit.size())) {
+		while (index > (size = units[j].size())) {
 			index -= size;
-			node = node.next();
-			if (node == temp)
+			if (++j == n)
 				throw new IndexOutOfBoundsException();
-			unit = node.get();
 		}
-		temp = m_positionNode;
-		m_positionNode = node;
+		n = var.positionIndex();
+		var.positionIndex(j);
 		try {
-			codec.set(i, this, index);
+			codec.set(i, var, index);
 		} finally {
-			m_positionNode = temp;
+			var.positionIndex(n);
 		}
 		return this;
 	}
 
 	@Override
 	public IBuffer set(int index, long l, ILongCodec codec) {
-		BiListNode<IUnit> temp = m_head;
-		BiListNode<IUnit> node = temp;
-		IUnit unit = node.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int n = var.length();
+		int i = 0;
 		int size;
-		while (index > (size = unit.size())) {
+		while (index > (size = units[i].size())) {
 			index -= size;
-			node = node.next();
-			if (node == temp)
+			if (++i == n)
 				throw new IndexOutOfBoundsException();
-			unit = node.get();
 		}
-		temp = m_positionNode;
-		m_positionNode = node;
+		n = var.positionIndex();
+		var.positionIndex(i);
 		try {
-			codec.set(l, this, index);
+			codec.set(l, var, index);
 		} finally {
-			m_positionNode = temp;
+			var.positionIndex(n);
 		}
 		return this;
 	}
 
 	@Override
 	public IBuffer set(int index, float f, IFloatCodec codec) {
-		BiListNode<IUnit> temp = m_head;
-		BiListNode<IUnit> node = temp;
-		IUnit unit = node.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int n = var.length();
+		int i = 0;
 		int size;
-		while (index > (size = unit.size())) {
+		while (index > (size = units[i].size())) {
 			index -= size;
-			node = node.next();
-			if (node == temp)
+			if (++i == n)
 				throw new IndexOutOfBoundsException();
-			unit = node.get();
 		}
-		temp = m_positionNode;
-		m_positionNode = node;
+		n = var.positionIndex();
+		var.positionIndex(i);
 		try {
-			codec.set(f, this, index);
+			codec.set(f, var, index);
 		} finally {
-			m_positionNode = temp;
+			var.positionIndex(n);
 		}
 		return this;
 	}
 
 	@Override
 	public IBuffer set(int index, double d, IDoubleCodec codec) {
-		BiListNode<IUnit> temp = m_head;
-		BiListNode<IUnit> node = temp;
-		IUnit unit = node.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int n = var.length();
+		int i = 0;
 		int size;
-		while (index > (size = unit.size())) {
+		while (index > (size = units[i].size())) {
 			index -= size;
-			node = node.next();
-			if (node == temp)
+			if (++i == n)
 				throw new IndexOutOfBoundsException();
-			unit = node.get();
 		}
-		temp = m_positionNode;
-		m_positionNode = node;
+		n = var.positionIndex();
+		var.positionIndex(i);
 		try {
-			codec.set(d, this, index);
+			codec.set(d, var, index);
 		} finally {
-			m_positionNode = temp;
+			var.positionIndex(n);
 		}
 		return this;
 	}
 
 	@Override
 	public <T> IBuffer set(int index, T src, ICodec<T> codec) {
-		BiListNode<IUnit> temp = m_head;
-		BiListNode<IUnit> node = temp;
-		IUnit unit = node.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int n = var.length();
+		int i = 0;
 		int size;
-		while (index > (size = unit.size())) {
+		while (index > (size = units[i].size())) {
 			index -= size;
-			node = node.next();
-			if (node == temp)
+			if (++i == n)
 				throw new IndexOutOfBoundsException();
-			unit = node.get();
 		}
-		temp = m_positionNode;
-		m_positionNode = node;
+		n = var.positionIndex();
+		var.positionIndex(i);
 		try {
-			codec.set(src, this, index);
+			codec.set(src, var, index);
 		} finally {
-			m_positionNode = temp;
+			var.positionIndex(n);
 		}
 		return this;
 	}
 
 	@Override
 	public <T> IBuffer set(int index, T src, int offset, int length, ICodec<T> codec) {
-		BiListNode<IUnit> temp = m_head;
-		BiListNode<IUnit> node = temp;
-		IUnit unit = node.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int n = var.length();
+		int i = 0;
 		int size;
-		while (index > (size = unit.size())) {
+		while (index > (size = units[i].size())) {
 			index -= size;
-			node = node.next();
-			if (node == temp)
+			if (++i == n)
 				throw new IndexOutOfBoundsException();
-			unit = node.get();
 		}
-		temp = m_positionNode;
-		m_positionNode = node;
+		n = var.positionIndex();
+		var.positionIndex(i);
 		try {
-			codec.set(src, offset, length, this, index);
+			codec.set(src, offset, length, var, index);
 		} finally {
-			m_positionNode = temp;
+			var.positionIndex(n);
 		}
 		return this;
 	}
 
 	@Override
 	public IBuffer write(byte b) {
-		IUnit unit = lastUnit();
+		final Var var = m_var;
+		IUnit unit = var.lastUnit();
 		if (!unit.appendable()) {
-			unit = create();
-			append(unit);
+			unit = var.create();
+			var.append(unit);
 		}
 		int size = unit.size();
 		unit.set(unit.start() + size, b);
@@ -1224,64 +1346,65 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 	@Override
 	public IBuffer write(char c, ICharCodec codec) {
-		codec.write(c, this);
+		codec.write(c, m_var);
 		return this;
 	}
 
 	@Override
 	public IBuffer write(short s, IShortCodec codec) {
-		codec.write(s, this);
+		codec.write(s, m_var);
 		return this;
 	}
 
 	@Override
 	public IBuffer write(int i, IIntCodec codec) {
-		codec.write(i, this);
+		codec.write(i, m_var);
 		return this;
 	}
 
 	@Override
 	public IBuffer write(long l, ILongCodec codec) {
-		codec.write(l, this);
+		codec.write(l, m_var);
 		return this;
 	}
 
 	@Override
 	public IBuffer write(float f, IFloatCodec codec) {
-		codec.write(f, this);
+		codec.write(f, m_var);
 		return this;
 	}
 
 	@Override
 	public IBuffer write(double d, IDoubleCodec codec) {
-		codec.write(d, this);
+		codec.write(d, m_var);
 		return this;
 	}
 
 	@Override
 	public <T> IBuffer write(T src, ICodec<T> codec) {
-		codec.write(src, this);
+		codec.write(src, m_var);
 		return this;
 	}
 
 	@Override
 	public <T> IBuffer write(T src, int offset, int length, ICodec<T> codec) {
-		codec.write(src, offset, length, this);
+		codec.write(src, offset, length, m_var);
 		return this;
 	}
 
 	@Override
 	public byte byteAt(int index) {
-		final BiListNode<IUnit> head = m_head;
-		BiListNode<IUnit> node = head;
-		IUnit unit = node.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		final int n = var.length();
+		int i = 0;
+		IUnit unit = units[i];
 		int size;
 		while (index >= (size = unit.size())) {
 			index -= size;
-			node = node.next();
-			if (node == head)
+			if (++i == n)
 				throw new IndexOutOfBoundsException();
-			unit = node.get();
+			unit = units[i];
 		}
 		return unit.byteAt(unit.start() + index);
 	}
@@ -1303,234 +1426,225 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 	@Override
 	public int readUnsignedShort(IShortCodec codec) {
-		return codec.read(this) & 0xFFFF;
+		return codec.read(m_var) & 0xFFFF;
 	}
 
 	@Override
 	public char get(int index, ICharCodec codec) {
-		BiListNode<IUnit> temp = m_head;
-		BiListNode<IUnit> node = temp;
-		IUnit unit = node.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int n = var.length();
+		int i = 0;
 		int size;
-		while (index > (size = unit.size())) {
+		while (index > (size = units[i].size())) {
 			index -= size;
-			node = node.next();
-			if (node == temp)
+			if (++i == n)
 				throw new IndexOutOfBoundsException();
-			unit = node.get();
 		}
-		temp = m_positionNode;
-		m_positionNode = node;
+		n = var.positionIndex();
+		var.positionIndex(i);
 		try {
-			return codec.get(this, index);
+			return codec.get(var, index);
 		} finally {
-			m_positionNode = temp;
+			var.positionIndex(n);
 		}
 	}
 
 	@Override
 	public short get(int index, IShortCodec codec) {
-		BiListNode<IUnit> temp = m_head;
-		BiListNode<IUnit> node = temp;
-		IUnit unit = node.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int n = var.length();
+		int i = 0;
 		int size;
-		while (index > (size = unit.size())) {
+		while (index > (size = units[i].size())) {
 			index -= size;
-			node = node.next();
-			if (node == temp)
+			if (++i == n)
 				throw new IndexOutOfBoundsException();
-			unit = node.get();
 		}
-		temp = m_positionNode;
-		m_positionNode = node;
+		n = var.positionIndex();
+		var.positionIndex(i);
 		try {
-			return codec.get(this, index);
+			return codec.get(var, index);
 		} finally {
-			m_positionNode = temp;
+			var.positionIndex(n);
 		}
 	}
 
 	@Override
 	public int get(int index, IIntCodec codec) {
-		BiListNode<IUnit> temp = m_head;
-		BiListNode<IUnit> node = temp;
-		IUnit unit = node.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int n = var.length();
+		int i = 0;
 		int size;
-		while (index > (size = unit.size())) {
+		while (index > (size = units[i].size())) {
 			index -= size;
-			node = node.next();
-			if (node == temp)
+			if (++i == n)
 				throw new IndexOutOfBoundsException();
-			unit = node.get();
 		}
-		temp = m_positionNode;
-		m_positionNode = node;
+		n = var.positionIndex();
+		var.positionIndex(i);
 		try {
-			return codec.get(this, index);
+			return codec.get(var, index);
 		} finally {
-			m_positionNode = temp;
+			var.positionIndex(n);
 		}
 	}
 
 	@Override
 	public long get(int index, ILongCodec codec) {
-		BiListNode<IUnit> temp = m_head;
-		BiListNode<IUnit> node = temp;
-		IUnit unit = node.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int n = var.length();
+		int i = 0;
 		int size;
-		while (index > (size = unit.size())) {
+		while (index > (size = units[i].size())) {
 			index -= size;
-			node = node.next();
-			if (node == temp)
+			if (++i == n)
 				throw new IndexOutOfBoundsException();
-			unit = node.get();
 		}
-		temp = m_positionNode;
-		m_positionNode = node;
+		n = var.positionIndex();
+		var.positionIndex(i);
 		try {
-			return codec.get(this, index);
+			return codec.get(var, index);
 		} finally {
-			m_positionNode = temp;
+			var.positionIndex(n);
 		}
 	}
 
 	@Override
 	public float get(int index, IFloatCodec codec) {
-		BiListNode<IUnit> temp = m_head;
-		BiListNode<IUnit> node = temp;
-		IUnit unit = node.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int n = var.length();
+		int i = 0;
 		int size;
-		while (index > (size = unit.size())) {
+		while (index > (size = units[i].size())) {
 			index -= size;
-			node = node.next();
-			if (node == temp)
+			if (++i == n)
 				throw new IndexOutOfBoundsException();
-			unit = node.get();
 		}
-		temp = m_positionNode;
-		m_positionNode = node;
+		n = var.positionIndex();
+		var.positionIndex(i);
 		try {
-			return codec.get(this, index);
+			return codec.get(var, index);
 		} finally {
-			m_positionNode = temp;
+			var.positionIndex(n);
 		}
 	}
 
 	@Override
 	public double get(int index, IDoubleCodec codec) {
-		BiListNode<IUnit> temp = m_head;
-		BiListNode<IUnit> node = temp;
-		IUnit unit = node.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int n = var.length();
+		int i = 0;
 		int size;
-		while (index > (size = unit.size())) {
+		while (index > (size = units[i].size())) {
 			index -= size;
-			node = node.next();
-			if (node == temp)
+			if (++i == n)
 				throw new IndexOutOfBoundsException();
-			unit = node.get();
 		}
-		temp = m_positionNode;
-		m_positionNode = node;
+		n = var.positionIndex();
+		var.positionIndex(i);
 		try {
-			return codec.get(this, index);
+			return codec.get(var, index);
 		} finally {
-			m_positionNode = temp;
+			var.positionIndex(n);
 		}
 	}
 
 	@Override
 	public <T> T get(int index, ICodec<T> codec) {
-		BiListNode<IUnit> temp = m_head;
-		BiListNode<IUnit> node = temp;
-		IUnit unit = node.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int n = var.length();
+		int i = 0;
 		int size;
-		while (index > (size = unit.size())) {
+		while (index > (size = units[i].size())) {
 			index -= size;
-			node = node.next();
-			if (node == temp)
+			if (++i == n)
 				throw new IndexOutOfBoundsException();
-			unit = node.get();
 		}
-		temp = m_positionNode;
-		m_positionNode = node;
+		n = var.positionIndex();
+		var.positionIndex(i);
 		try {
-			return codec.get(this, index);
+			return codec.get(var, index);
 		} finally {
-			m_positionNode = temp;
+			var.positionIndex(n);
 		}
 	}
 
 	@Override
 	public <T> T get(int index, int length, ICodec<T> codec) {
-		BiListNode<IUnit> temp = m_head;
-		BiListNode<IUnit> node = temp;
-		IUnit unit = node.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int n = var.length();
+		int i = 0;
 		int size;
-		while (index > (size = unit.size())) {
+		while (index > (size = units[i].size())) {
 			index -= size;
-			node = node.next();
-			if (node == temp)
+			if (++i == n)
 				throw new IndexOutOfBoundsException();
-			unit = node.get();
 		}
-		temp = m_positionNode;
-		m_positionNode = node;
+		n = var.positionIndex();
+		var.positionIndex(i);
 		try {
-			return codec.get(this, index, length);
+			return codec.get(var, index, length);
 		} finally {
-			m_positionNode = temp;
+			var.positionIndex(n);
 		}
 	}
 
 	@Override
 	public <T> void get(int index, T dst, ICodec<T> codec) {
-		BiListNode<IUnit> temp = m_head;
-		BiListNode<IUnit> node = temp;
-		IUnit unit = node.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int n = var.length();
+		int i = 0;
 		int size;
-		while (index > (size = unit.size())) {
+		while (index > (size = units[i].size())) {
 			index -= size;
-			node = node.next();
-			if (node == temp)
+			if (++i == n)
 				throw new IndexOutOfBoundsException();
-			unit = node.get();
 		}
-		temp = m_positionNode;
-		m_positionNode = node;
+		n = var.positionIndex();
+		var.positionIndex(i);
 		try {
-			codec.get(dst, this, index);
+			codec.get(dst, var, index);
 		} finally {
-			m_positionNode = temp;
+			var.positionIndex(n);
 		}
 	}
 
 	@Override
 	public <T> void get(int index, T dst, int offset, int length, ICodec<T> codec) {
-		BiListNode<IUnit> temp = m_head;
-		BiListNode<IUnit> node = temp;
-		IUnit unit = node.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int n = var.length();
+		int i = 0;
 		int size;
-		while (index > (size = unit.size())) {
+		while (index > (size = units[i].size())) {
 			index -= size;
-			node = node.next();
-			if (node == temp)
+			if (++i == n)
 				throw new IndexOutOfBoundsException();
-			unit = node.get();
 		}
-		temp = m_positionNode;
-		m_positionNode = node;
+		n = var.positionIndex();
+		var.positionIndex(i);
 		try {
-			codec.get(dst, offset, length, this, index);
+			codec.get(dst, offset, length, var, index);
 		} finally {
-			m_positionNode = temp;
+			var.positionIndex(n);
 		}
 	}
 
 	@Override
 	public byte read() {
-		IUnit unit = currentUnit();
+		final Var var = m_var;
+		IUnit unit = var.currentUnit();
 		while (unit.isEmpty()) {
-			unit = nextUnit();
+			unit = var.nextUnit();
 			if (unit == null)
 				throw new BufferUnderflowException();
 		}
@@ -1542,61 +1656,62 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 	@Override
 	public char read(ICharCodec codec) {
-		return codec.read(this);
+		return codec.read(m_var);
 	}
 
 	@Override
 	public short read(IShortCodec codec) {
-		return codec.read(this);
+		return codec.read(m_var);
 	}
 
 	@Override
 	public int read(IIntCodec codec) {
-		return codec.read(this);
+		return codec.read(m_var);
 	}
 
 	@Override
 	public long read(ILongCodec codec) {
-		return codec.read(this);
+		return codec.read(m_var);
 	}
 
 	@Override
 	public float read(IFloatCodec codec) {
-		return codec.read(this);
+		return codec.read(m_var);
 	}
 
 	@Override
 	public double read(IDoubleCodec codec) {
-		return codec.read(this);
+		return codec.read(m_var);
 	}
 
 	@Override
 	public <T> T read(ICodec<T> codec) {
-		return codec.read(this);
+		return codec.read(m_var);
 	}
 
 	@Override
 	public <T> T read(int length, ICodec<T> codec) {
-		return codec.read(this, length);
+		return codec.read(m_var, length);
 	}
 
 	@Override
 	public <T> int read(T dst, ICodec<T> codec) {
-		return codec.read(dst, this);
+		return codec.read(dst, m_var);
 	}
 
 	@Override
 	public <T> int read(T dst, int offset, int length, ICodec<T> codec) {
-		return codec.read(dst, offset, length, this);
+		return codec.read(dst, offset, length, m_var);
 	}
 
 	@Override
 	public IBuffer prepend(byte b) {
-		IUnit unit = firstUnit();
+		final Var var = m_var;
+		IUnit unit = var.firstUnit();
 		if (!unit.prependable()) {
-			unit = create();
+			unit = var.create();
 			unit.start(unit.capacity());
-			prepend(unit);
+			var.prepend(unit);
 		}
 		int start = unit.start();
 		unit.set(--start, b);
@@ -1607,95 +1722,78 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 	@Override
 	public IBuffer prepend(char c, ICharCodec codec) {
-		codec.prepend(c, this);
+		codec.prepend(c, m_var);
 		return this;
 	}
 
 	@Override
 	public IBuffer prepend(short s, IShortCodec codec) {
-		codec.prepend(s, this);
+		codec.prepend(s, m_var);
 		return this;
 	}
 
 	@Override
 	public IBuffer prepend(int i, IIntCodec codec) {
-		codec.prepend(i, this);
+		codec.prepend(i, m_var);
 		return this;
 	}
 
 	@Override
 	public IBuffer prepend(long l, ILongCodec codec) {
-		codec.prepend(l, this);
+		codec.prepend(l, m_var);
 		return this;
 	}
 
 	@Override
 	public IBuffer prepend(float f, IFloatCodec codec) {
-		codec.prepend(f, this);
+		codec.prepend(f, m_var);
 		return this;
 	}
 
 	@Override
 	public IBuffer prepend(double d, IDoubleCodec codec) {
-		codec.prepend(d, this);
+		codec.prepend(d, m_var);
 		return this;
 	}
 
 	@Override
 	public <T> IBuffer prepend(T src, ICodec<T> codec) {
-		codec.prepend(src, this);
+		codec.prepend(src, m_var);
 		return this;
 	}
 
 	@Override
 	public <T> IBuffer prepend(T src, int offset, int length, ICodec<T> codec) {
-		codec.prepend(src, this);
+		codec.prepend(src, m_var);
 		return this;
 	}
 
 	@Override
 	public void dump(StringBuilder builder) {
-		final BiListNode<IUnit> head = m_head;
-		BiListNode<IUnit> node = head;
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		final int n = var.length();
 		try (Blob blob = Blob.get()) {
-			do {
-				final IUnit unit = node.get();
+			for (int i = 0; i < n; ++i) {
+				final IUnit unit = units[i];
 				blob.add(unit, unit.start(), unit.size());
-				node = node.next();
-			} while (node != head);
+			}
 			blob.dump(builder);
 		}
 	}
 
 	@Override
 	public boolean isClosed() {
-		return m_factory == null;
+		return m_var == null;
 	}
 
 	@Override
-	@SuppressWarnings("resource")
 	public void close() {
-		final BufferFactory factory = m_factory;
-		if (factory == null)
+		final Var var = m_var;
+		if (var == null)
 			return;
-		m_factory = null;
-		final BiListNode<IUnit> head = m_head;
-		m_positionNode = head;
-		m_markNode = head;
-
-		factory.putUnit(head.get());
-		head.set(null);
-		BiListNode<IUnit> node = head.next();
-		if (node != head) {
-			do {
-				factory.putUnit(node.get());
-				BiListNode<IUnit> temp = node;
-				node = node.next();
-				temp.close();
-			} while (node != head);
-			head.previous(head);
-			head.next(head);
-		}
+		m_var = null;
+		var.close();
 	}
 
 	@Override
@@ -1705,46 +1803,47 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 	@Override
 	public byte[] getBytes(int start, int length) {
-		BiListNode<IUnit> temp = m_head;
-		BiListNode<IUnit> node = temp;
-		IUnit unit = node.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int n = var.length();
+		int i = 0;
+		IUnit unit = units[i];
 		int size;
 		while (start > (size = unit.size())) {
 			start -= size;
-			node = node.next();
-			if (node == temp)
+			if (++i == n)
 				throw new IndexOutOfBoundsException();
-			unit = node.get();
+			unit = units[i];
 		}
-		temp = m_positionNode;
-		m_positionNode = node;
+
+		n = var.positionIndex();
+		var.positionIndex(i);
 		try {
-			return Codec.byteArray().get(this, start, length);
+			return Codec.byteArray().get(var, start, length);
 		} finally {
-			m_positionNode = temp;
+			var.positionIndex(n);
 		}
 	}
 
 	@Override
 	public void getBytes(int srcBegin, int srcEnd, byte[] dst, int dstBegin) {
 		int length = srcEnd - srcBegin;
-		BiListNode<IUnit> temp = m_head;
-		BiListNode<IUnit> node = temp;
-		IUnit unit = node.get();
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		int n = var.length();
+		int i = 0;
 		int size;
-		while (srcBegin > (size = unit.size())) {
+		while (srcBegin > (size = units[i].size())) {
 			srcBegin -= size;
-			node = node.next();
-			if (node == temp)
+			if (++i == n)
 				throw new IndexOutOfBoundsException();
-			unit = node.get();
 		}
-		temp = m_positionNode;
-		m_positionNode = node;
+		n = var.positionIndex();
+		var.positionIndex(i);
 		try {
-			Codec.byteArray().get(dst, dstBegin, length, this, srcBegin);
+			Codec.byteArray().get(dst, dstBegin, length, var, srcBegin);
 		} finally {
-			m_positionNode = temp;
+			var.positionIndex(n);
 		}
 	}
 
@@ -1758,9 +1857,12 @@ public final class Buffer implements IBuffer, IUnitChain {
 		if (!(that instanceof Buffer))
 			return compareInternal(that);
 
+		final Var var = m_var;
 		Buffer thatBuf = (Buffer) that;
-		int remaining = remaining();
-		int thatRemaining = thatBuf.remaining();
+		final Var thatVar = thatBuf.m_var;
+
+		int remaining = var.remaining();
+		int thatRemaining = thatVar.remaining();
 		int ret = 0;
 		if (remaining > thatRemaining)
 			ret = 1;
@@ -1770,13 +1872,15 @@ public final class Buffer implements IBuffer, IUnitChain {
 		if (remaining < 1 || thatRemaining < 1)
 			return ret;
 
-		IUnit unit = currentUnit();
-		BiListNode<IUnit> p = m_positionNode;
-		BiListNode<IUnit> s = m_head.previous();
+		final IUnit[] units = var.units();
+		final int s = var.length();
+		int p = var.positionIndex();
+		IUnit unit = units[p];
 
-		IUnit thatUnit = thatBuf.currentUnit();
-		BiListNode<IUnit> q = thatBuf.m_positionNode;
-		BiListNode<IUnit> t = thatBuf.m_head.previous();
+		final IUnit[] thatUnits = thatVar.units();
+		final int t = thatVar.length();
+		int q = thatVar.positionIndex();
+		IUnit thatUnit = thatUnits[q];
 
 		int i = unit.position();
 		int j = thatUnit.position();
@@ -1789,28 +1893,26 @@ public final class Buffer implements IBuffer, IUnitChain {
 				if (n != 0)
 					return n;
 
-				if (q == t)
+				if (++q == t)
 					break;
 
 				i = thatRemaining;
 				remaining -= thatRemaining;
 				j = 0;
-				q = q.next();
-				thatUnit = q.get();
+				thatUnit = thatUnits[q];
 				thatRemaining = thatUnit.size();
 			} else {
 				int n = compare(unit, i, thatUnit, j, remaining);
 				if (n != 0)
 					return n;
 
-				if (p == s)
+				if (++p == s)
 					break;
 
 				j = remaining;
 				thatRemaining -= remaining;
 				i = 0;
-				p = p.next();
-				unit = p.get();
+				unit = units[p];
 				remaining = unit.size();
 			}
 		}
@@ -1820,7 +1922,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 	@Override
 	public int readIn(ReadableByteChannel in) throws IOException {
-		IUnit unit = Util.lastUnit(this);
+		IUnit unit = Util.lastUnit(m_var);
 		int n = in.read(unit.getByteBufferForWrite());
 		if (n > 0)
 			unit.size(unit.size() + n);
@@ -1829,19 +1931,19 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 	@Override
 	public int writeOut(WritableByteChannel out) throws IOException {
-		final BiListNode<IUnit> tail = m_head.previous();
-		BiListNode<IUnit> node = m_positionNode;
-		IUnit unit = node.get();
-		while (unit.isEmpty()) {
-			if (node == tail)
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		final int last = var.length() - 1;
+		int p = var.positionIndex();
+		IUnit unit;
+		while ((unit = units[p]).isEmpty()) {
+			if (p == last)
 				return 0;
-			node = node.next();
-			unit = node.get();
-			m_positionNode = node;
+			var.positionIndex(++p);
 		}
 
 		final int n;
-		if (node == tail || !(out instanceof GatheringByteChannel)) {
+		if (p == last || !(out instanceof GatheringByteChannel)) {
 			n = out.write(unit.getByteBufferForRead());
 			if (n > 0)
 				unit.position(unit.position() + n);
@@ -1849,9 +1951,8 @@ public final class Buffer implements IBuffer, IUnitChain {
 			final ByteBufferArray bba = ByteBufferArray.get();
 			try {
 				bba.add(unit.getByteBufferForRead());
-				while (node != tail) {
-					node = node.next();
-					unit = node.get();
+				while (p != last) {
+					unit = units[++p];
 					bba.add(unit.getByteBufferForRead());
 				}
 				n = (int) ((GatheringByteChannel) out).write(bba.array(), 0, bba.size());
@@ -1861,14 +1962,12 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 			if (n > 0) {
 				int m = n;
-				node = m_positionNode;
-				unit = node.get();
-				while ((m -= unit.skip(m)) > 0) {
-					node = node.next();
-					unit = node.get();
-				}
+				p = var.positionIndex();
+				unit = units[p];
+				while ((m -= unit.skip(m)) > 0)
+					unit = units[++p];
 
-				m_positionNode = node;
+				var.positionIndex(p);
 			}
 		}
 
@@ -1887,62 +1986,53 @@ public final class Buffer implements IBuffer, IUnitChain {
 
 	@Override
 	public IBuffer slice() {
-		final Buffer slice = new Buffer();
-		final BiListNode<IUnit> sliceHead = slice.m_head;
-		BiListNode<IUnit> sliceTail = sliceHead;
-		final BiListNode<IUnit> head = m_head;
-		BiListNode<IUnit> node = m_positionNode;
-		for (;;) {
-			final IUnit unit = node.get();
-			sliceTail.set(unit.slice(unit.position(), unit.size()));
-			node = node.next();
-			if (node == head)
-				break;
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		final int len = var.length();
+		int pos = var.positionIndex();
 
-			sliceTail = BiListNode.create();
-			sliceHead.previous().next(sliceTail);
-			sliceTail.previous(sliceHead.previous());
-			sliceTail.next(sliceHead);
-			sliceHead.previous(sliceTail);
+		final Var sliceVar = Var.get(len - pos);
+		final IUnit[] sliceUnits = sliceVar.units();
+		int slicePos = 0;
+
+		while (pos < len) {
+			final IUnit unit = units[pos++];
+			sliceUnits[slicePos++] = unit.slice(unit.position(), unit.size());
 		}
-		return slice;
+
+		sliceVar.positionIndex(0);
+		sliceVar.length(slicePos);
+
+		return new Buffer(sliceVar);
 	}
 
 	@Override
 	public IBuffer duplicate() {
-		final Buffer dup = new Buffer();
-		final BiListNode<IUnit> dupHead = dup.m_head;
-		BiListNode<IUnit> dupTail = dupHead;
-		final BiListNode<IUnit> head = m_head;
-		final BiListNode<IUnit> positionNode = m_positionNode;
-		final BiListNode<IUnit> markNode = m_markNode;
-		BiListNode<IUnit> node = head;
-		for (;;) {
-			final IUnit unit = node.get();
-			dupTail.set(unit.duplicate());
+		final Var var = m_var;
+		final IUnit[] units = var.units();
+		final int n = var.length();
 
-			if (node == markNode)
-				dup.m_markNode = dupTail;
-			else if (node == positionNode)
-				dup.m_positionNode = dupTail;
+		final Var dupVar = Var.get(n);
+		final IUnit[] dupUnits = dupVar.units();
+		for (int i = 0; i < n; ++i)
+			dupUnits[i] = units[i].duplicate();
 
-			node = node.next();
-			if (node == head)
-				break;
+		dupVar.positionIndex(var.positionIndex());
+		dupVar.markIndex(var.markIndex());
+		dupVar.length(n);
 
-			dupTail = BiListNode.create();
-			dupHead.previous().next(dupTail);
-			dupTail.previous(dupHead.previous());
-			dupTail.next(dupHead);
-			dupHead.previous(dupTail);
-		}
-		return dup;
+		return new Buffer(dupVar);
+	}
+
+	public IUnitChain unitChain() {
+		return m_var;
 	}
 
 	int readByte() {
-		IUnit unit = currentUnit();
+		final Var var = m_var;
+		IUnit unit = var.currentUnit();
 		while (unit.isEmpty()) {
-			unit = nextUnit();
+			unit = var.nextUnit();
 			if (unit == null)
 				return -1;
 		}
@@ -2061,15 +2151,10 @@ public final class Buffer implements IBuffer, IUnitChain {
 		return true;
 	}
 
-	private static Buffer getForSplit(BufferFactory factory) {
-		final Buffer buffer = new Buffer();
-		buffer.m_factory = factory;
-		return buffer;
-	}
-
 	private int compareInternal(IBuffer that) {
+		final Var var = m_var;
 		int n = that.remaining();
-		int remaining = remaining();
+		int remaining = var.remaining();
 		if (n < remaining) {
 			remaining = n;
 			n = 1;
@@ -2079,8 +2164,9 @@ public final class Buffer implements IBuffer, IUnitChain {
 			n = 0;
 
 		if (remaining > 0) {
-			IUnit unit = currentUnit();
-			BiListNode<IUnit> node = m_positionNode;
+			final IUnit[] units = var.units();
+			int positionIndex = var.positionIndex();
+			IUnit unit = units[positionIndex];
 			int size = unit.remaining();
 			int i = that.position();
 			for (;;) {
@@ -2097,8 +2183,7 @@ public final class Buffer implements IBuffer, IUnitChain {
 				if (remaining <= 0)
 					break;
 
-				node = node.next();
-				unit = node.get();
+				unit = units[++positionIndex];
 				size = unit.size();
 			}
 		}
