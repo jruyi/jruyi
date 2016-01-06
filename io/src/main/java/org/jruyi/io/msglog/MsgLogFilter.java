@@ -40,14 +40,14 @@ public final class MsgLogFilter extends Filter<Object, Object> {
 
 	@Override
 	public boolean onMsgArrive(ISession session, Object msg, IFilterOutput output) {
-		c_logger.info(StrUtil.join(session, " inbound >>", StrUtil.getLineSeparator(), msg));
+		c_logger.info(StrUtil.join(session, " << ", session.remoteAddress(), StrUtil.getLineSeparator(), msg));
 		output.add(msg);
 		return true;
 	}
 
 	@Override
 	public boolean onMsgDepart(ISession session, Object msg, IFilterOutput output) {
-		c_logger.info(StrUtil.join(session, " outbound <<", StrUtil.getLineSeparator(), msg));
+		c_logger.info(StrUtil.join(session, " >> ", session.remoteAddress(), StrUtil.getLineSeparator(), msg));
 		output.add(msg);
 		return true;
 	}
