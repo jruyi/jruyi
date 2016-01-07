@@ -35,10 +35,12 @@ public final class Util {
 			if (id != null && !(id = id.trim()).isEmpty())
 				builder.append(id);
 			else {
-				if (addr.indexOf(':') >= 0)
-					builder.append('[').append(addr).append(']');
-				else
-					builder.append(addr);
+				if (addr != null) {
+					if (addr.indexOf(':') >= 0)
+						builder.append('[').append(addr).append(']');
+					else
+						builder.append(addr);
+				}
 				builder.append(':').append(port);
 			}
 			return builder.append(')').toString();

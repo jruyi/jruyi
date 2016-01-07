@@ -99,8 +99,6 @@ final class TcpServerBuilder implements ITcpServerBuilder {
 	@Override
 	public <I, O> INioService<I, O, ? extends ITcpServerConfiguration> build() {
 		final Map<String, Object> properties = m_properties;
-		if (!properties.containsKey(IoConstants.SERVICE_ID))
-			throw new RuntimeException("Missing " + IoConstants.SERVICE_ID);
 		if (!properties.containsKey("port"))
 			throw new RuntimeException("Missing port");
 		return new TcpServerWrapper<>(properties);

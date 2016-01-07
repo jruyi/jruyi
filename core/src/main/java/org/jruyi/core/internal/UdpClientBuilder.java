@@ -53,8 +53,6 @@ final class UdpClientBuilder implements IUdpClientBuilder {
 	@Override
 	public <I, O> INioService<I, O, ? extends IUdpClientConfiguration> build() {
 		final Map<String, Object> properties = m_properties;
-		if (!properties.containsKey(IoConstants.SERVICE_ID))
-			throw new RuntimeException("Missing " + IoConstants.SERVICE_ID);
 		if (!properties.containsKey("addr"))
 			throw new RuntimeException("Missing host");
 		if (!properties.containsKey("port"))

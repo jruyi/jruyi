@@ -95,8 +95,6 @@ final class TcpClientBuilder implements ITcpClientBuilder {
 	}
 
 	private void check(Map<String, ?> properties) {
-		if (!properties.containsKey(IoConstants.SERVICE_ID))
-			throw new RuntimeException("Missing " + IoConstants.SERVICE_ID);
 		if (!properties.containsKey("addr"))
 			throw new RuntimeException("Missing host");
 		if (!properties.containsKey("port"))
