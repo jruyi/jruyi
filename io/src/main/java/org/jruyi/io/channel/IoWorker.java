@@ -14,12 +14,10 @@
 
 package org.jruyi.io.channel;
 
-import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadFactory;
 
 import org.jruyi.common.ICloseable;
-import org.jruyi.common.IThreadLocalCache;
 import org.jruyi.common.StrUtil;
-import org.jruyi.common.ThreadLocalCache;
 import org.jruyi.io.IFilter;
 import org.jruyi.io.common.SyncPutQueue;
 
@@ -29,8 +27,6 @@ import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
 
 final class IoWorker implements ICloseable, EventHandler<IoEvent>, IIoWorker, Runnable {
-
-	private static final IThreadLocalCache<IoEvent> c_cache = ThreadLocalCache.weakLinkedCache();
 
 	private final SyncPutQueue<IoEvent> m_queue = new SyncPutQueue<>();
 	private Disruptor<IoEvent> m_disruptor;
@@ -49,19 +45,19 @@ final class IoWorker implements ICloseable, EventHandler<IoEvent>, IIoWorker, Ru
 		}
 	}
 
-	static final class IoExecutor implements Executor {
+	static final class IoThreadFactory implements ThreadFactory {
 
 		private final int m_id;
 		private final IoWorker m_ioWorker;
 
-		IoExecutor(int id, IoWorker ioWorker) {
+		IoThreadFactory(int id, IoWorker ioWorker) {
 			m_id = id;
 			m_ioWorker = ioWorker;
 		}
 
 		@Override
-		public void execute(Runnable command) {
-			new IoThread(command, StrUtil.join("jruyi-io-", m_id), m_ioWorker).start();
+		public Thread newThread(Runnable command) {
+			return new IoThread(command, StrUtil.join("jruyi-io-", m_id), m_ioWorker);
 		}
 	}
 
@@ -107,7 +103,8 @@ final class IoWorker implements ICloseable, EventHandler<IoEvent>, IIoWorker, Ru
 
 	@SuppressWarnings("unchecked")
 	public void open(int id, int capacity) {
-		final Disruptor<IoEvent> disruptor = new Disruptor<>(IoEventFactory.INST, capacity, new IoExecutor(id, this));
+		final Disruptor<IoEvent> disruptor = new Disruptor<>(IoEventFactory.INST, capacity,
+				new IoThreadFactory(id, this));
 		m_disruptor = disruptor;
 		disruptor.handleEventsWith(this);
 		disruptor.start();
@@ -178,17 +175,13 @@ final class IoWorker implements ICloseable, EventHandler<IoEvent>, IIoWorker, Ru
 	}
 
 	private static IoEvent createEvent(Runnable command) {
-		IoEvent event = c_cache.take();
-		if (event == null)
-			event = new IoEvent();
+		final IoEvent event = IoEvent.create();
 		event.command(command);
 		return event;
 	}
 
 	private static IoEvent createEvent(IIoTask task, Object msg, IFilter<?, ?>[] filters, int filterCount) {
-		IoEvent event = c_cache.take();
-		if (event == null)
-			event = new IoEvent();
+		final IoEvent event = IoEvent.create();
 		event.task(task).msg(msg).filters(filters).filterCount(filterCount);
 		return event;
 	}
