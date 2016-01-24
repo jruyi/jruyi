@@ -20,7 +20,7 @@ import org.jruyi.common.IByteSequence;
 import org.jruyi.io.internal.CodecProvider;
 
 /**
- * This class provides a few useful {@code ICodec}s.
+ * This class provides several useful {@code ICodec}s.
  *
  * @see ShortArrayCodec
  * @see IntArrayCodec

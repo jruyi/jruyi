@@ -14,78 +14,12 @@
 
 package org.jruyi.io;
 
-import java.nio.BufferUnderflowException;
-
 /**
- * This interface defines all the methods a double codec has to implement.
- * 
+ * A double codec used to encode/decode double value to/from a chain of buffer
+ * units.
+ *
  * @see DoubleCodec
  */
-public interface IDoubleCodec {
-
-	/**
-	 * Decodes the bytes from the specified {@code unitChain}, starting at
-	 * <i>position</i> in the current unit, to a {@code double} value and
-	 * returns the resultant {@code double} value.
-	 * 
-	 * @param unitChain
-	 *            the bytes from which to be decoded
-	 * @return the decoded {@code double} value
-	 * @throws BufferUnderflowException
-	 *             if there's not enough data remaining in the {@code unitChain}
-	 */
-	double read(IUnitChain unitChain);
-
-	/**
-	 * Encodes the specified {@code double} value {@code d} and writes the
-	 * resultant bytes to the end of the specified {@code unitChain}.
-	 * 
-	 * @param d
-	 *            the {@code double} value to be encoded
-	 * @param unitChain
-	 *            the unit chain where the encoded bytes to be written to
-	 */
-	void write(double d, IUnitChain unitChain);
-
-	/**
-	 * Decodes the bytes from the specified {@code unitChain}, starting at the
-	 * specified {@code index} in the current unit, to a {@code double} value
-	 * and returns the resultant {@code double} value.
-	 * 
-	 * @param unitChain
-	 *            the bytes from which to be decoded
-	 * @param index
-	 *            the offset of the first byte in the current unit to be decoded
-	 * @return the decoded {@code double} value
-	 * @throws IndexOutOfBoundsException
-	 *             if {@code index} is out of bounds
-	 */
-	double get(IUnitChain unitChain, int index);
-
-	/**
-	 * Encodes the specified {@code double} value {@code d} and sets the
-	 * resultant bytes to the specified {@code unitChain} starting at the
-	 * specified {@code index} in the current unit.
-	 * 
-	 * @param d
-	 *            the {@code double} value to be encoded
-	 * @param unitChain
-	 *            the unit chain where the encoded bytes to be set to
-	 * @param index
-	 *            the offset of the first byte in the current unit to be set
-	 * @throws IndexOutOfBoundsException
-	 *             if {@code index} is out of bounds
-	 */
-	void set(double d, IUnitChain unitChain, int index);
-
-	/**
-	 * Encodes the specified {@code double} value {@code d} and writes the
-	 * resultant bytes to the head of the specified {@code unitChain}.
-	 * 
-	 * @param d
-	 *            the {@code double} value to be encoded
-	 * @param unitChain
-	 *            the unit chain where the encoded bytes to be prepended to
-	 */
-	void prepend(double d, IUnitChain unitChain);
+public interface IDoubleCodec
+		extends IReadDoubleDecoder, IGetDoubleDecoder, IWriteDoubleEncoder, ISetDoubleEncoder, IPrependDoubleEncoder {
 }

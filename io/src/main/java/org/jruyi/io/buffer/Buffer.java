@@ -32,255 +32,6 @@ public final class Buffer implements IBuffer {
 
 	private Var m_var;
 
-	static final class Var implements ICloseable, IUnitChain {
-
-		private static final IThreadLocalCache<Var> c_cache = ThreadLocalCache.weakLinkedCache();
-
-		private BufferFactory m_factory;
-		private int m_positionIndex = -1;
-		private int m_markIndex = -1;
-		private IUnit[] m_units;
-		private int m_length = 0;
-
-		private Var() {
-			m_units = new IUnit[8];
-		}
-
-		private Var(int initialCapacity) {
-			if (initialCapacity < 8)
-				initialCapacity = 8;
-			m_units = new IUnit[initialCapacity];
-		}
-
-		static Var get() {
-			Var var = c_cache.take();
-			if (var == null)
-				var = new Var();
-			else {
-				var.m_positionIndex = -1;
-				var.m_markIndex = -1;
-				var.m_length = 0;
-			}
-			return var;
-		}
-
-		static Var get(int minCapacity) {
-			Var var = c_cache.take();
-			if (var == null)
-				var = new Var(minCapacity);
-			else {
-				var.m_positionIndex = -1;
-				var.m_markIndex = -1;
-				var.m_length = 0;
-				var.ensureCapacityInternal(minCapacity);
-			}
-			return var;
-		}
-
-		void init(BufferFactory factory) {
-			m_units[0] = factory.getUnit();
-			m_positionIndex = 0;
-			m_length = 1;
-			m_factory = factory;
-		}
-
-		void init(BufferFactory factory, IUnit unit) {
-			m_positionIndex = 0;
-			m_length = 1;
-			m_units[0] = unit;
-			m_factory = factory;
-		}
-
-		void init(BufferFactory factory, IUnit[] units, int offset, int count) {
-			m_positionIndex = 0;
-			m_length = count;
-			System.arraycopy(units, offset, m_units, 0, count);
-			m_factory = factory;
-		}
-
-		BufferFactory factory() {
-			return m_factory;
-		}
-
-		IUnit[] units() {
-			return m_units;
-		}
-
-		int length() {
-			return m_length;
-		}
-
-		void length(int newLength) {
-			m_length = newLength;
-		}
-
-		int positionIndex() {
-			return m_positionIndex;
-		}
-
-		void positionIndex(int positionIndex) {
-			m_positionIndex = positionIndex;
-		}
-
-		int markIndex() {
-			return m_markIndex;
-		}
-
-		void markIndex(int markIndex) {
-			m_markIndex = markIndex;
-		}
-
-		@Override
-		public IUnit create() {
-			return m_factory.getUnit();
-		}
-
-		@Override
-		public IUnit create(int minimumCapacity) {
-			return m_factory.getUnit(minimumCapacity);
-		}
-
-		@Override
-		public IUnit currentUnit() {
-			return m_units[m_positionIndex];
-		}
-
-		@Override
-		public IUnit nextUnit() {
-			int positionIndex = m_positionIndex;
-			if (++positionIndex == m_length)
-				return null;
-			m_positionIndex = positionIndex;
-			return m_units[positionIndex];
-		}
-
-		@Override
-		public IUnit firstUnit() {
-			return m_units[0];
-		}
-
-		@Override
-		public IUnit lastUnit() {
-			return m_units[m_length - 1];
-		}
-
-		@Override
-		public void append(IUnit unit) {
-			final int length = m_length;
-			final int newLength = length + 1;
-			if (newLength > m_units.length)
-				expandCapacityForAppend(newLength);
-
-			m_units[length] = unit;
-			m_length = newLength;
-		}
-
-		@Override
-		public void prepend(IUnit unit) {
-			final IUnit[] units = m_units;
-			final int positionIndex = m_positionIndex;
-			if (positionIndex > 0 || units[positionIndex].position() > 0)
-				throw new UnsupportedOperationException("prepend is not allowed when position() > 0");
-
-			final int length = m_length;
-			final int newLength = length + 1;
-			if (newLength > units.length)
-				expandCapacityForPrepend(newLength);
-			else
-				System.arraycopy(units, 0, units, 1, length);
-
-			m_units[0] = unit;
-			m_length = newLength;
-		}
-
-		@Override
-		public int remaining() {
-			final IUnit[] units = m_units;
-			int i = m_positionIndex;
-			int remaining = units[i].remaining();
-			for (int n = m_length; ++i < n;)
-				remaining += units[i].size();
-			return remaining;
-		}
-
-		void ensureCapacity(int minCapacity) {
-			if (m_units.length < minCapacity)
-				expandCapacityForAppend(minCapacity);
-		}
-
-		private void ensureCapacityInternal(int minCapacity) {
-			int len = m_units.length;
-			if (len < minCapacity)
-				len = (len + 1) << 1;
-			if (len < 0)
-				len = Integer.MAX_VALUE;
-			else if (minCapacity > len)
-				len = minCapacity;
-			m_units = new IUnit[len];
-		}
-
-		private void expandCapacityForAppend(int minCapacity) {
-			int newCapacity = (m_units.length + 1) << 1;
-			if (newCapacity < 0)
-				newCapacity = Integer.MAX_VALUE;
-			else if (minCapacity > newCapacity)
-				newCapacity = minCapacity;
-
-			final IUnit[] units = new IUnit[newCapacity];
-			System.arraycopy(m_units, 0, units, 0, m_length);
-			m_units = units;
-		}
-
-		private void expandCapacityForPrepend(int minCapacity) {
-			int newCapacity = (m_units.length + 1) << 1;
-			if (newCapacity < 0)
-				newCapacity = Integer.MAX_VALUE;
-			else if (minCapacity > newCapacity)
-				newCapacity = minCapacity;
-
-			final IUnit[] units = new IUnit[newCapacity];
-			System.arraycopy(m_units, 0, units, 1, m_length);
-			m_units = units;
-		}
-
-		void drain() {
-			final IUnit[] units = m_units;
-			final int n = m_length;
-			final BufferFactory factory = m_factory;
-			if (factory != null) {
-				for (int i = 1; i < n; ++i) {
-					factory.putUnit(units[i]);
-					units[i] = null;
-				}
-			} else {
-				for (int i = 1; i < n; ++i)
-					units[i] = null;
-			}
-			m_positionIndex = 0;
-			m_markIndex = -1;
-			m_length = 1;
-			units[0].clear();
-		}
-
-		@Override
-		public void close() {
-			final IUnit[] units = m_units;
-			final int n = m_length;
-			final BufferFactory factory = m_factory;
-			if (factory != null) {
-				m_factory = null;
-				for (int i = 0; i < n; ++i) {
-					factory.putUnit(units[i]);
-					units[i] = null;
-				}
-			} else {
-				for (int i = 0; i < n; ++i)
-					units[i] = null;
-			}
-			c_cache.put(this);
-		}
-	}
-
 	private Buffer(Var var) {
 		m_var = var;
 	}
@@ -289,6 +40,141 @@ public final class Buffer implements IBuffer {
 		final Var var = Var.get();
 		var.init(factory);
 		return new Buffer(var);
+	}
+
+	/**
+	 * {@code fromIndex} must be less than m_size and non-negative.
+	 */
+	private static int indexOf(byte b, IUnit unit, int fromIndex) {
+		int start = unit.start();
+		int end = start + unit.size();
+		fromIndex += start;
+		while (fromIndex < end) {
+			if (unit.byteAt(fromIndex) == b)
+				return fromIndex - start;
+			++fromIndex;
+		}
+		return -1;
+	}
+
+	private static int indexOf(byte[] bytes, IUnit unit, int leftIndex) {
+		int start = unit.start();
+		int end = start + unit.size();
+		int index = start + leftIndex;
+		int length = bytes.length;
+
+		next: for (; index < end; ++index) {
+			leftIndex = index;
+			int rightIndex = index + length;
+			if (rightIndex > end)
+				rightIndex = end;
+
+			int i = 0;
+			for (; leftIndex < rightIndex; ++leftIndex, ++i) {
+				if (unit.byteAt(leftIndex) != bytes[i])
+					continue next;
+			}
+
+			return index - start;
+		}
+
+		return -1;
+	}
+
+	/**
+	 * {@code fromIndex} must be less than m_size and non-negative.
+	 */
+	private static int lastIndexOf(byte b, IUnit unit, int fromIndex) {
+		int start = unit.start();
+		fromIndex += start;
+		while (fromIndex >= start) {
+			if (unit.byteAt(fromIndex) == b)
+				return fromIndex - start;
+
+			--fromIndex;
+		}
+
+		return -1;
+	}
+
+	private static int lastIndexOf(byte[] bytes, IUnit unit, int rightIndex) {
+		int start = unit.start();
+		int end = start + rightIndex;
+		int length = bytes.length;
+
+		next: for (; end > start; --end) {
+			rightIndex = end;
+			int leftIndex = end - length;
+			if (leftIndex < start)
+				leftIndex = start;
+
+			int i = length;
+			while (rightIndex > leftIndex) {
+				if (unit.byteAt(--rightIndex) != bytes[--i])
+					continue next;
+			}
+
+			return end - start;
+		}
+
+		return -1;
+	}
+
+	private static boolean startsWith(byte[] bytes, int offset, IUnit unit) {
+		int start = unit.start();
+		int end = bytes.length - offset;
+		int size = unit.size();
+		if (end > size)
+			end = size;
+
+		end += start;
+		for (; start < end; ++start, ++offset) {
+			if (unit.byteAt(start) != bytes[offset])
+				return false;
+		}
+
+		return true;
+	}
+
+	private static boolean endsWith(byte[] bytes, int offset, IUnit unit) {
+		int start = unit.start();
+		int size = unit.size();
+		int end = start + size;
+		if (offset < size)
+			start = end - offset;
+
+		while (end > start) {
+			if (unit.byteAt(--end) != bytes[--offset])
+				return false;
+		}
+
+		return true;
+	}
+
+	private static int compare(IUnit unit, IByteSequence sequence, int from, int len) {
+		int i = unit.start() + unit.position();
+		len += i;
+		for (; i < len; ++i, ++from) {
+			byte b1 = unit.byteAt(i);
+			byte b2 = sequence.byteAt(from);
+			if (b1 != b2)
+				return b1 < b2 ? -1 : 1;
+		}
+
+		return 0;
+	}
+
+	private static int compare(IUnit unit1, int i, IUnit unit2, int j, int len) {
+		i += unit1.start();
+		j += unit2.start();
+		for (; len > 0; ++i, ++j, --len) {
+			byte b1 = unit1.byteAt(i);
+			byte b2 = unit2.byteAt(j);
+			if (b1 != b2)
+				return (b1 < b2) ? -1 : 1;
+		}
+
+		return 0;
 	}
 
 	@Override
@@ -1155,7 +1041,7 @@ public final class Buffer implements IBuffer {
 	}
 
 	@Override
-	public IBuffer set(int index, char c, ICharCodec codec) {
+	public IBuffer set(int index, char c, ISetCharEncoder encoder) {
 		final Var var = m_var;
 		final IUnit[] units = var.units();
 		int n = var.length();
@@ -1169,7 +1055,7 @@ public final class Buffer implements IBuffer {
 		n = var.positionIndex();
 		var.positionIndex(i);
 		try {
-			codec.set(c, var, index);
+			encoder.set(c, var, index);
 		} finally {
 			var.positionIndex(n);
 		}
@@ -1177,7 +1063,7 @@ public final class Buffer implements IBuffer {
 	}
 
 	@Override
-	public IBuffer set(int index, short s, IShortCodec codec) {
+	public IBuffer set(int index, short s, ISetShortEncoder encoder) {
 		final Var var = m_var;
 		final IUnit[] units = var.units();
 		int n = var.length();
@@ -1191,7 +1077,7 @@ public final class Buffer implements IBuffer {
 		n = var.positionIndex();
 		var.positionIndex(i);
 		try {
-			codec.set(s, var, index);
+			encoder.set(s, var, index);
 		} finally {
 			var.positionIndex(n);
 		}
@@ -1199,7 +1085,7 @@ public final class Buffer implements IBuffer {
 	}
 
 	@Override
-	public IBuffer set(int index, int i, IIntCodec codec) {
+	public IBuffer set(int index, int i, ISetIntEncoder encoder) {
 		final Var var = m_var;
 		final IUnit[] units = var.units();
 		int n = var.length();
@@ -1213,7 +1099,7 @@ public final class Buffer implements IBuffer {
 		n = var.positionIndex();
 		var.positionIndex(j);
 		try {
-			codec.set(i, var, index);
+			encoder.set(i, var, index);
 		} finally {
 			var.positionIndex(n);
 		}
@@ -1221,7 +1107,7 @@ public final class Buffer implements IBuffer {
 	}
 
 	@Override
-	public IBuffer set(int index, long l, ILongCodec codec) {
+	public IBuffer set(int index, long l, ISetLongEncoder encoder) {
 		final Var var = m_var;
 		final IUnit[] units = var.units();
 		int n = var.length();
@@ -1235,7 +1121,7 @@ public final class Buffer implements IBuffer {
 		n = var.positionIndex();
 		var.positionIndex(i);
 		try {
-			codec.set(l, var, index);
+			encoder.set(l, var, index);
 		} finally {
 			var.positionIndex(n);
 		}
@@ -1243,7 +1129,7 @@ public final class Buffer implements IBuffer {
 	}
 
 	@Override
-	public IBuffer set(int index, float f, IFloatCodec codec) {
+	public IBuffer set(int index, float f, ISetFloatEncoder encoder) {
 		final Var var = m_var;
 		final IUnit[] units = var.units();
 		int n = var.length();
@@ -1257,7 +1143,7 @@ public final class Buffer implements IBuffer {
 		n = var.positionIndex();
 		var.positionIndex(i);
 		try {
-			codec.set(f, var, index);
+			encoder.set(f, var, index);
 		} finally {
 			var.positionIndex(n);
 		}
@@ -1265,7 +1151,7 @@ public final class Buffer implements IBuffer {
 	}
 
 	@Override
-	public IBuffer set(int index, double d, IDoubleCodec codec) {
+	public IBuffer set(int index, double d, ISetDoubleEncoder encoder) {
 		final Var var = m_var;
 		final IUnit[] units = var.units();
 		int n = var.length();
@@ -1279,7 +1165,7 @@ public final class Buffer implements IBuffer {
 		n = var.positionIndex();
 		var.positionIndex(i);
 		try {
-			codec.set(d, var, index);
+			encoder.set(d, var, index);
 		} finally {
 			var.positionIndex(n);
 		}
@@ -1287,7 +1173,7 @@ public final class Buffer implements IBuffer {
 	}
 
 	@Override
-	public <T> IBuffer set(int index, T src, ICodec<T> codec) {
+	public <T> IBuffer set(int index, T src, ISetEncoder<T> encoder) {
 		final Var var = m_var;
 		final IUnit[] units = var.units();
 		int n = var.length();
@@ -1301,7 +1187,7 @@ public final class Buffer implements IBuffer {
 		n = var.positionIndex();
 		var.positionIndex(i);
 		try {
-			codec.set(src, var, index);
+			encoder.set(src, var, index);
 		} finally {
 			var.positionIndex(n);
 		}
@@ -1309,7 +1195,7 @@ public final class Buffer implements IBuffer {
 	}
 
 	@Override
-	public <T> IBuffer set(int index, T src, int offset, int length, ICodec<T> codec) {
+	public <T> IBuffer set(int index, T src, int offset, int length, ISetRangedEncoder<T> encoder) {
 		final Var var = m_var;
 		final IUnit[] units = var.units();
 		int n = var.length();
@@ -1323,7 +1209,7 @@ public final class Buffer implements IBuffer {
 		n = var.positionIndex();
 		var.positionIndex(i);
 		try {
-			codec.set(src, offset, length, var, index);
+			encoder.set(src, offset, length, var, index);
 		} finally {
 			var.positionIndex(n);
 		}
@@ -1345,50 +1231,50 @@ public final class Buffer implements IBuffer {
 	}
 
 	@Override
-	public IBuffer write(char c, ICharCodec codec) {
-		codec.write(c, m_var);
+	public IBuffer write(char c, IWriteCharEncoder encoder) {
+		encoder.write(c, m_var);
 		return this;
 	}
 
 	@Override
-	public IBuffer write(short s, IShortCodec codec) {
-		codec.write(s, m_var);
+	public IBuffer write(short s, IWriteShortEncoder encoder) {
+		encoder.write(s, m_var);
 		return this;
 	}
 
 	@Override
-	public IBuffer write(int i, IIntCodec codec) {
-		codec.write(i, m_var);
+	public IBuffer write(int i, IWriteIntEncoder encoder) {
+		encoder.write(i, m_var);
 		return this;
 	}
 
 	@Override
-	public IBuffer write(long l, ILongCodec codec) {
-		codec.write(l, m_var);
+	public IBuffer write(long l, IWriteLongEncoder encoder) {
+		encoder.write(l, m_var);
 		return this;
 	}
 
 	@Override
-	public IBuffer write(float f, IFloatCodec codec) {
-		codec.write(f, m_var);
+	public IBuffer write(float f, IWriteFloatEncoder encoder) {
+		encoder.write(f, m_var);
 		return this;
 	}
 
 	@Override
-	public IBuffer write(double d, IDoubleCodec codec) {
-		codec.write(d, m_var);
+	public IBuffer write(double d, IWriteDoubleEncoder encoder) {
+		encoder.write(d, m_var);
 		return this;
 	}
 
 	@Override
-	public <T> IBuffer write(T src, ICodec<T> codec) {
-		codec.write(src, m_var);
+	public <T> IBuffer write(T src, IWriteEncoder<T> encoder) {
+		encoder.write(src, m_var);
 		return this;
 	}
 
 	@Override
-	public <T> IBuffer write(T src, int offset, int length, ICodec<T> codec) {
-		codec.write(src, offset, length, m_var);
+	public <T> IBuffer write(T src, int offset, int length, IWriteRangedEncoder<T> encoder) {
+		encoder.write(src, offset, length, m_var);
 		return this;
 	}
 
@@ -1430,7 +1316,7 @@ public final class Buffer implements IBuffer {
 	}
 
 	@Override
-	public char get(int index, ICharCodec codec) {
+	public char get(int index, IGetCharDecoder decoder) {
 		final Var var = m_var;
 		final IUnit[] units = var.units();
 		int n = var.length();
@@ -1444,14 +1330,14 @@ public final class Buffer implements IBuffer {
 		n = var.positionIndex();
 		var.positionIndex(i);
 		try {
-			return codec.get(var, index);
+			return decoder.get(var, index);
 		} finally {
 			var.positionIndex(n);
 		}
 	}
 
 	@Override
-	public short get(int index, IShortCodec codec) {
+	public short get(int index, IGetShortDecoder decoder) {
 		final Var var = m_var;
 		final IUnit[] units = var.units();
 		int n = var.length();
@@ -1465,14 +1351,14 @@ public final class Buffer implements IBuffer {
 		n = var.positionIndex();
 		var.positionIndex(i);
 		try {
-			return codec.get(var, index);
+			return decoder.get(var, index);
 		} finally {
 			var.positionIndex(n);
 		}
 	}
 
 	@Override
-	public int get(int index, IIntCodec codec) {
+	public int get(int index, IGetIntDecoder decoder) {
 		final Var var = m_var;
 		final IUnit[] units = var.units();
 		int n = var.length();
@@ -1486,14 +1372,14 @@ public final class Buffer implements IBuffer {
 		n = var.positionIndex();
 		var.positionIndex(i);
 		try {
-			return codec.get(var, index);
+			return decoder.get(var, index);
 		} finally {
 			var.positionIndex(n);
 		}
 	}
 
 	@Override
-	public long get(int index, ILongCodec codec) {
+	public long get(int index, IGetLongDecoder decoder) {
 		final Var var = m_var;
 		final IUnit[] units = var.units();
 		int n = var.length();
@@ -1507,14 +1393,14 @@ public final class Buffer implements IBuffer {
 		n = var.positionIndex();
 		var.positionIndex(i);
 		try {
-			return codec.get(var, index);
+			return decoder.get(var, index);
 		} finally {
 			var.positionIndex(n);
 		}
 	}
 
 	@Override
-	public float get(int index, IFloatCodec codec) {
+	public float get(int index, IGetFloatDecoder decoder) {
 		final Var var = m_var;
 		final IUnit[] units = var.units();
 		int n = var.length();
@@ -1528,14 +1414,14 @@ public final class Buffer implements IBuffer {
 		n = var.positionIndex();
 		var.positionIndex(i);
 		try {
-			return codec.get(var, index);
+			return decoder.get(var, index);
 		} finally {
 			var.positionIndex(n);
 		}
 	}
 
 	@Override
-	public double get(int index, IDoubleCodec codec) {
+	public double get(int index, IGetDoubleDecoder decoder) {
 		final Var var = m_var;
 		final IUnit[] units = var.units();
 		int n = var.length();
@@ -1549,14 +1435,14 @@ public final class Buffer implements IBuffer {
 		n = var.positionIndex();
 		var.positionIndex(i);
 		try {
-			return codec.get(var, index);
+			return decoder.get(var, index);
 		} finally {
 			var.positionIndex(n);
 		}
 	}
 
 	@Override
-	public <T> T get(int index, ICodec<T> codec) {
+	public <T> T get(int index, IGetDecoder<T> decoder) {
 		final Var var = m_var;
 		final IUnit[] units = var.units();
 		int n = var.length();
@@ -1570,14 +1456,14 @@ public final class Buffer implements IBuffer {
 		n = var.positionIndex();
 		var.positionIndex(i);
 		try {
-			return codec.get(var, index);
+			return decoder.get(var, index);
 		} finally {
 			var.positionIndex(n);
 		}
 	}
 
 	@Override
-	public <T> T get(int index, int length, ICodec<T> codec) {
+	public <T> T get(int index, int length, IGetLimitedDecoder<T> decoder) {
 		final Var var = m_var;
 		final IUnit[] units = var.units();
 		int n = var.length();
@@ -1591,14 +1477,14 @@ public final class Buffer implements IBuffer {
 		n = var.positionIndex();
 		var.positionIndex(i);
 		try {
-			return codec.get(var, index, length);
+			return decoder.get(var, index, length);
 		} finally {
 			var.positionIndex(n);
 		}
 	}
 
 	@Override
-	public <T> void get(int index, T dst, ICodec<T> codec) {
+	public <T> void get(int index, T dst, IGetToDstDecoder<T> decoder) {
 		final Var var = m_var;
 		final IUnit[] units = var.units();
 		int n = var.length();
@@ -1612,14 +1498,14 @@ public final class Buffer implements IBuffer {
 		n = var.positionIndex();
 		var.positionIndex(i);
 		try {
-			codec.get(dst, var, index);
+			decoder.get(dst, var, index);
 		} finally {
 			var.positionIndex(n);
 		}
 	}
 
 	@Override
-	public <T> void get(int index, T dst, int offset, int length, ICodec<T> codec) {
+	public <T> void get(int index, T dst, int offset, int length, IGetToRangedDstDecoder<T> decoder) {
 		final Var var = m_var;
 		final IUnit[] units = var.units();
 		int n = var.length();
@@ -1633,7 +1519,7 @@ public final class Buffer implements IBuffer {
 		n = var.positionIndex();
 		var.positionIndex(i);
 		try {
-			codec.get(dst, offset, length, var, index);
+			decoder.get(dst, offset, length, var, index);
 		} finally {
 			var.positionIndex(n);
 		}
@@ -1655,53 +1541,53 @@ public final class Buffer implements IBuffer {
 	}
 
 	@Override
-	public char read(ICharCodec codec) {
-		return codec.read(m_var);
+	public char read(IReadCharDecoder decoder) {
+		return decoder.read(m_var);
 	}
 
 	@Override
-	public short read(IShortCodec codec) {
-		return codec.read(m_var);
+	public short read(IReadShortDecoder decoder) {
+		return decoder.read(m_var);
 	}
 
 	@Override
-	public int read(IIntCodec codec) {
-		return codec.read(m_var);
+	public int read(IReadIntDecoder decoder) {
+		return decoder.read(m_var);
 	}
 
 	@Override
-	public long read(ILongCodec codec) {
-		return codec.read(m_var);
+	public long read(IReadLongDecoder decoder) {
+		return decoder.read(m_var);
 	}
 
 	@Override
-	public float read(IFloatCodec codec) {
-		return codec.read(m_var);
+	public float read(IReadFloatDecoder decoder) {
+		return decoder.read(m_var);
 	}
 
 	@Override
-	public double read(IDoubleCodec codec) {
-		return codec.read(m_var);
+	public double read(IReadDoubleDecoder decoder) {
+		return decoder.read(m_var);
 	}
 
 	@Override
-	public <T> T read(ICodec<T> codec) {
-		return codec.read(m_var);
+	public <T> T read(IReadDecoder<T> decoder) {
+		return decoder.read(m_var);
 	}
 
 	@Override
-	public <T> T read(int length, ICodec<T> codec) {
-		return codec.read(m_var, length);
+	public <T> T read(int length, IReadLimitedDecoder<T> decoder) {
+		return decoder.read(m_var, length);
 	}
 
 	@Override
-	public <T> int read(T dst, ICodec<T> codec) {
-		return codec.read(dst, m_var);
+	public <T> int read(T dst, IReadToDstDecoder<T> decoder) {
+		return decoder.read(dst, m_var);
 	}
 
 	@Override
-	public <T> int read(T dst, int offset, int length, ICodec<T> codec) {
-		return codec.read(dst, offset, length, m_var);
+	public <T> int read(T dst, int offset, int length, IReadToRangedDstDecoder<T> decoder) {
+		return decoder.read(dst, offset, length, m_var);
 	}
 
 	@Override
@@ -1721,50 +1607,50 @@ public final class Buffer implements IBuffer {
 	}
 
 	@Override
-	public IBuffer prepend(char c, ICharCodec codec) {
-		codec.prepend(c, m_var);
+	public IBuffer prepend(char c, IPrependCharEncoder encoder) {
+		encoder.prepend(c, m_var);
 		return this;
 	}
 
 	@Override
-	public IBuffer prepend(short s, IShortCodec codec) {
-		codec.prepend(s, m_var);
+	public IBuffer prepend(short s, IPrependShortEncoder encoder) {
+		encoder.prepend(s, m_var);
 		return this;
 	}
 
 	@Override
-	public IBuffer prepend(int i, IIntCodec codec) {
-		codec.prepend(i, m_var);
+	public IBuffer prepend(int i, IPrependIntEncoder encoder) {
+		encoder.prepend(i, m_var);
 		return this;
 	}
 
 	@Override
-	public IBuffer prepend(long l, ILongCodec codec) {
-		codec.prepend(l, m_var);
+	public IBuffer prepend(long l, IPrependLongEncoder encoder) {
+		encoder.prepend(l, m_var);
 		return this;
 	}
 
 	@Override
-	public IBuffer prepend(float f, IFloatCodec codec) {
-		codec.prepend(f, m_var);
+	public IBuffer prepend(float f, IPrependFloatEncoder encoder) {
+		encoder.prepend(f, m_var);
 		return this;
 	}
 
 	@Override
-	public IBuffer prepend(double d, IDoubleCodec codec) {
-		codec.prepend(d, m_var);
+	public IBuffer prepend(double d, IPrependDoubleEncoder encoder) {
+		encoder.prepend(d, m_var);
 		return this;
 	}
 
 	@Override
-	public <T> IBuffer prepend(T src, ICodec<T> codec) {
-		codec.prepend(src, m_var);
+	public <T> IBuffer prepend(T src, IPrependEncoder<T> encoder) {
+		encoder.prepend(src, m_var);
 		return this;
 	}
 
 	@Override
-	public <T> IBuffer prepend(T src, int offset, int length, ICodec<T> codec) {
-		codec.prepend(src, m_var);
+	public <T> IBuffer prepend(T src, int offset, int length, IPrependRangedEncoder<T> encoder) {
+		encoder.prepend(src, offset, length, m_var);
 		return this;
 	}
 
@@ -2042,115 +1928,6 @@ public final class Buffer implements IBuffer {
 		return i;
 	}
 
-	/**
-	 * {@code fromIndex} must be less than m_size and non-negative.
-	 */
-	private static int indexOf(byte b, IUnit unit, int fromIndex) {
-		int start = unit.start();
-		int end = start + unit.size();
-		fromIndex += start;
-		while (fromIndex < end) {
-			if (unit.byteAt(fromIndex) == b)
-				return fromIndex - start;
-			++fromIndex;
-		}
-		return -1;
-	}
-
-	private static int indexOf(byte[] bytes, IUnit unit, int leftIndex) {
-		int start = unit.start();
-		int end = start + unit.size();
-		int index = start + leftIndex;
-		int length = bytes.length;
-
-		next: for (; index < end; ++index) {
-			leftIndex = index;
-			int rightIndex = index + length;
-			if (rightIndex > end)
-				rightIndex = end;
-
-			int i = 0;
-			for (; leftIndex < rightIndex; ++leftIndex, ++i) {
-				if (unit.byteAt(leftIndex) != bytes[i])
-					continue next;
-			}
-
-			return index - start;
-		}
-
-		return -1;
-	}
-
-	/**
-	 * {@code fromIndex} must be less than m_size and non-negative.
-	 */
-	private static int lastIndexOf(byte b, IUnit unit, int fromIndex) {
-		int start = unit.start();
-		fromIndex += start;
-		while (fromIndex >= start) {
-			if (unit.byteAt(fromIndex) == b)
-				return fromIndex - start;
-
-			--fromIndex;
-		}
-
-		return -1;
-	}
-
-	private static int lastIndexOf(byte[] bytes, IUnit unit, int rightIndex) {
-		int start = unit.start();
-		int end = start + rightIndex;
-		int length = bytes.length;
-
-		next: for (; end > start; --end) {
-			rightIndex = end;
-			int leftIndex = end - length;
-			if (leftIndex < start)
-				leftIndex = start;
-
-			int i = length;
-			while (rightIndex > leftIndex) {
-				if (unit.byteAt(--rightIndex) != bytes[--i])
-					continue next;
-			}
-
-			return end - start;
-		}
-
-		return -1;
-	}
-
-	private static boolean startsWith(byte[] bytes, int offset, IUnit unit) {
-		int start = unit.start();
-		int end = bytes.length - offset;
-		int size = unit.size();
-		if (end > size)
-			end = size;
-
-		end += start;
-		for (; start < end; ++start, ++offset) {
-			if (unit.byteAt(start) != bytes[offset])
-				return false;
-		}
-
-		return true;
-	}
-
-	private static boolean endsWith(byte[] bytes, int offset, IUnit unit) {
-		int start = unit.start();
-		int size = unit.size();
-		int end = start + size;
-		if (offset < size)
-			start = end - offset;
-
-		while (end > start) {
-			if (unit.byteAt(--end) != bytes[--offset])
-				return false;
-		}
-
-		return true;
-	}
-
 	private int compareInternal(IBuffer that) {
 		final Var var = m_var;
 		int n = that.remaining();
@@ -2191,29 +1968,252 @@ public final class Buffer implements IBuffer {
 		return n;
 	}
 
-	private static int compare(IUnit unit, IByteSequence sequence, int from, int len) {
-		int i = unit.start() + unit.position();
-		len += i;
-		for (; i < len; ++i, ++from) {
-			byte b1 = unit.byteAt(i);
-			byte b2 = sequence.byteAt(from);
-			if (b1 != b2)
-				return b1 < b2 ? -1 : 1;
+	static final class Var implements ICloseable, IUnitChain {
+
+		private static final IThreadLocalCache<Var> c_cache = ThreadLocalCache.weakLinkedCache();
+
+		private BufferFactory m_factory;
+		private int m_positionIndex = -1;
+		private int m_markIndex = -1;
+		private IUnit[] m_units;
+		private int m_length = 0;
+
+		private Var() {
+			m_units = new IUnit[8];
 		}
 
-		return 0;
-	}
-
-	private static int compare(IUnit unit1, int i, IUnit unit2, int j, int len) {
-		i += unit1.start();
-		j += unit2.start();
-		for (; len > 0; ++i, ++j, --len) {
-			byte b1 = unit1.byteAt(i);
-			byte b2 = unit2.byteAt(j);
-			if (b1 != b2)
-				return (b1 < b2) ? -1 : 1;
+		private Var(int initialCapacity) {
+			if (initialCapacity < 8)
+				initialCapacity = 8;
+			m_units = new IUnit[initialCapacity];
 		}
 
-		return 0;
+		static Var get() {
+			Var var = c_cache.take();
+			if (var == null)
+				var = new Var();
+			else {
+				var.m_positionIndex = -1;
+				var.m_markIndex = -1;
+				var.m_length = 0;
+			}
+			return var;
+		}
+
+		static Var get(int minCapacity) {
+			Var var = c_cache.take();
+			if (var == null)
+				var = new Var(minCapacity);
+			else {
+				var.m_positionIndex = -1;
+				var.m_markIndex = -1;
+				var.m_length = 0;
+				var.ensureCapacityInternal(minCapacity);
+			}
+			return var;
+		}
+
+		void init(BufferFactory factory) {
+			m_units[0] = factory.getUnit();
+			m_positionIndex = 0;
+			m_length = 1;
+			m_factory = factory;
+		}
+
+		void init(BufferFactory factory, IUnit unit) {
+			m_positionIndex = 0;
+			m_length = 1;
+			m_units[0] = unit;
+			m_factory = factory;
+		}
+
+		void init(BufferFactory factory, IUnit[] units, int offset, int count) {
+			m_positionIndex = 0;
+			m_length = count;
+			System.arraycopy(units, offset, m_units, 0, count);
+			m_factory = factory;
+		}
+
+		BufferFactory factory() {
+			return m_factory;
+		}
+
+		IUnit[] units() {
+			return m_units;
+		}
+
+		int length() {
+			return m_length;
+		}
+
+		void length(int newLength) {
+			m_length = newLength;
+		}
+
+		int positionIndex() {
+			return m_positionIndex;
+		}
+
+		void positionIndex(int positionIndex) {
+			m_positionIndex = positionIndex;
+		}
+
+		int markIndex() {
+			return m_markIndex;
+		}
+
+		void markIndex(int markIndex) {
+			m_markIndex = markIndex;
+		}
+
+		@Override
+		public IUnit create() {
+			return m_factory.getUnit();
+		}
+
+		@Override
+		public IUnit create(int minimumCapacity) {
+			return m_factory.getUnit(minimumCapacity);
+		}
+
+		@Override
+		public IUnit currentUnit() {
+			return m_units[m_positionIndex];
+		}
+
+		@Override
+		public IUnit nextUnit() {
+			int positionIndex = m_positionIndex;
+			if (++positionIndex == m_length)
+				return null;
+			m_positionIndex = positionIndex;
+			return m_units[positionIndex];
+		}
+
+		@Override
+		public IUnit firstUnit() {
+			return m_units[0];
+		}
+
+		@Override
+		public IUnit lastUnit() {
+			return m_units[m_length - 1];
+		}
+
+		@Override
+		public void append(IUnit unit) {
+			final int length = m_length;
+			final int newLength = length + 1;
+			if (newLength > m_units.length)
+				expandCapacityForAppend(newLength);
+
+			m_units[length] = unit;
+			m_length = newLength;
+		}
+
+		@Override
+		public void prepend(IUnit unit) {
+			final IUnit[] units = m_units;
+			final int positionIndex = m_positionIndex;
+			if (positionIndex > 0 || units[positionIndex].position() > 0)
+				throw new UnsupportedOperationException("prepend is not allowed when position() > 0");
+
+			final int length = m_length;
+			final int newLength = length + 1;
+			if (newLength > units.length)
+				expandCapacityForPrepend(newLength);
+			else
+				System.arraycopy(units, 0, units, 1, length);
+
+			m_units[0] = unit;
+			m_length = newLength;
+		}
+
+		@Override
+		public int remaining() {
+			final IUnit[] units = m_units;
+			int i = m_positionIndex;
+			int remaining = units[i].remaining();
+			for (int n = m_length; ++i < n;)
+				remaining += units[i].size();
+			return remaining;
+		}
+
+		void ensureCapacity(int minCapacity) {
+			if (m_units.length < minCapacity)
+				expandCapacityForAppend(minCapacity);
+		}
+
+		private void ensureCapacityInternal(int minCapacity) {
+			int len = m_units.length;
+			if (len < minCapacity)
+				len = (len + 1) << 1;
+			if (len < 0)
+				len = Integer.MAX_VALUE;
+			else if (minCapacity > len)
+				len = minCapacity;
+			m_units = new IUnit[len];
+		}
+
+		private void expandCapacityForAppend(int minCapacity) {
+			int newCapacity = (m_units.length + 1) << 1;
+			if (newCapacity < 0)
+				newCapacity = Integer.MAX_VALUE;
+			else if (minCapacity > newCapacity)
+				newCapacity = minCapacity;
+
+			final IUnit[] units = new IUnit[newCapacity];
+			System.arraycopy(m_units, 0, units, 0, m_length);
+			m_units = units;
+		}
+
+		private void expandCapacityForPrepend(int minCapacity) {
+			int newCapacity = (m_units.length + 1) << 1;
+			if (newCapacity < 0)
+				newCapacity = Integer.MAX_VALUE;
+			else if (minCapacity > newCapacity)
+				newCapacity = minCapacity;
+
+			final IUnit[] units = new IUnit[newCapacity];
+			System.arraycopy(m_units, 0, units, 1, m_length);
+			m_units = units;
+		}
+
+		void drain() {
+			final IUnit[] units = m_units;
+			final int n = m_length;
+			final BufferFactory factory = m_factory;
+			if (factory != null) {
+				for (int i = 1; i < n; ++i) {
+					factory.putUnit(units[i]);
+					units[i] = null;
+				}
+			} else {
+				for (int i = 1; i < n; ++i)
+					units[i] = null;
+			}
+			m_positionIndex = 0;
+			m_markIndex = -1;
+			m_length = 1;
+			units[0].clear();
+		}
+
+		@Override
+		public void close() {
+			final IUnit[] units = m_units;
+			final int n = m_length;
+			final BufferFactory factory = m_factory;
+			if (factory != null) {
+				m_factory = null;
+				for (int i = 0; i < n; ++i) {
+					factory.putUnit(units[i]);
+					units[i] = null;
+				}
+			} else {
+				for (int i = 0; i < n; ++i)
+					units[i] = null;
+			}
+			c_cache.put(this);
+		}
 	}
 }

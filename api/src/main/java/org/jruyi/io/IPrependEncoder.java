@@ -15,10 +15,23 @@
 package org.jruyi.io;
 
 /**
- * An int codec used to encode/decode int value to/from a chain of buffer units.
- * 
- * @see IntCodec
+ * Encodes data into a chain of buffer units.
+ *
+ * @param <T>
+ *            the type of the data object to be encoded
+ * @since 2.5
+ * @see IPrependRangedEncoder
  */
-public interface IIntCodec
-		extends IReadIntDecoder, IGetIntDecoder, IWriteIntEncoder, ISetIntEncoder, IPrependIntEncoder {
+public interface IPrependEncoder<T> {
+
+	/**
+	 * Encodes the specified {@code src} and writes the resultant bytes to the
+	 * head of the specified {@code unitChain}.
+	 *
+	 * @param src
+	 *            the object to be encoded
+	 * @param unitChain
+	 *            the unit chain where the encoded bytes to be prepended to
+	 */
+	void prepend(T src, IUnitChain unitChain);
 }

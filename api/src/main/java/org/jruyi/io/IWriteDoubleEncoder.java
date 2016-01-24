@@ -15,10 +15,20 @@
 package org.jruyi.io;
 
 /**
- * An int codec used to encode/decode int value to/from a chain of buffer units.
- * 
- * @see IntCodec
+ * Encodes a {@code double} to a chain of buffer units.
+ *
+ * @since 2.5
  */
-public interface IIntCodec
-		extends IReadIntDecoder, IGetIntDecoder, IWriteIntEncoder, ISetIntEncoder, IPrependIntEncoder {
+public interface IWriteDoubleEncoder {
+
+	/**
+	 * Encodes the specified {@code double} value {@code d} and writes the
+	 * resultant bytes to the end of the specified {@code unitChain}.
+	 *
+	 * @param d
+	 *            the {@code double} value to be encoded
+	 * @param unitChain
+	 *            the unit chain where the encoded bytes to be written to
+	 */
+	void write(double d, IUnitChain unitChain);
 }

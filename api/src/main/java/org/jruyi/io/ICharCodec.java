@@ -14,78 +14,12 @@
 
 package org.jruyi.io;
 
-import java.nio.BufferUnderflowException;
-
 /**
- * This interface defines all the methods a char codec has to implement.
+ * A char codec used to encode/decode char value to/from a chain of buffer
+ * units.
  * 
  * @see CharCodec
  */
-public interface ICharCodec {
-
-	/**
-	 * Decodes the bytes from the specified {@code unitChain}, starting at
-	 * <i>position</i> in the current unit, to a {@code char} value and returns
-	 * the resultant {@code char} value.
-	 * 
-	 * @param unitChain
-	 *            the bytes from which to be decoded
-	 * @return the decoded {@code char} value
-	 * @throws BufferUnderflowException
-	 *             if there's not enough data remaining in the {@code unitChain}
-	 */
-	char read(IUnitChain unitChain);
-
-	/**
-	 * Encodes the specified {@code char} value {@code c} and writes the
-	 * resultant bytes to the end of the specified {@code unitChain}.
-	 * 
-	 * @param c
-	 *            the {@code char} value to be encoded
-	 * @param unitChain
-	 *            the unit chain where the encoded bytes to be written to
-	 */
-	void write(char c, IUnitChain unitChain);
-
-	/**
-	 * Decodes the bytes from the specified {@code unitChain}, starting at the
-	 * specified {@code index} in the current unit, to a {@code char} value and
-	 * returns the resultant {@code char} value.
-	 * 
-	 * @param unitChain
-	 *            the bytes from which to be decoded
-	 * @param index
-	 *            the offset of the first byte in the current unit to be decoded
-	 * @return the decoded {@code char} value
-	 * @throws IndexOutOfBoundsException
-	 *             if {@code index} is out of bounds
-	 */
-	char get(IUnitChain unitChain, int index);
-
-	/**
-	 * Encodes the specified {@code char} value {@code c} and sets the resultant
-	 * bytes to the specified {@code unitChain} starting at the specified
-	 * {@code index} in the current unit.
-	 * 
-	 * @param c
-	 *            the {@code char} value to be encoded
-	 * @param unitChain
-	 *            the unit chain where the encoded bytes to be set to
-	 * @param index
-	 *            the offset of the first byte in the current unit to be set
-	 * @throws IndexOutOfBoundsException
-	 *             if {@code index} is out of bounds
-	 */
-	void set(char c, IUnitChain unitChain, int index);
-
-	/**
-	 * Encodes the specified {@code char} value {@code c} and writes the
-	 * resultant bytes to the head of the specified {@code unitChain}.
-	 * 
-	 * @param c
-	 *            the {@code char} value to be encoded
-	 * @param unitChain
-	 *            the unit chain where the encoded bytes to be prepended to
-	 */
-	void prepend(char c, IUnitChain unitChain);
+public interface ICharCodec
+		extends IReadCharDecoder, IGetCharDecoder, IWriteCharEncoder, ISetCharEncoder, IPrependCharEncoder {
 }

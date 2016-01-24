@@ -23,16 +23,12 @@ import javax.net.ssl.SSLEngineResult.Status;
 import javax.net.ssl.SSLSession;
 
 import org.jruyi.common.BytesBuilder;
-import org.jruyi.io.AbstractCodec;
-import org.jruyi.io.Codec;
-import org.jruyi.io.IBuffer;
-import org.jruyi.io.IUnit;
-import org.jruyi.io.IUnitChain;
+import org.jruyi.io.*;
 import org.jruyi.io.buffer.Buffer;
 import org.jruyi.io.buffer.ByteBufferArray;
 import org.jruyi.io.buffer.Util;
 
-final class SslCodec extends AbstractCodec<IBuffer> {
+final class SslCodec implements IWriteEncoder<IBuffer>, IReadToDstDecoder<IBuffer> {
 
 	private final SSLEngine m_engine;
 	private final ArrayList<IUnit> m_writeUnits;

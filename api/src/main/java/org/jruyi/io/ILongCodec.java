@@ -14,78 +14,12 @@
 
 package org.jruyi.io;
 
-import java.nio.BufferUnderflowException;
-
 /**
- * This interface defines all the methods a long codec has to implement.
+ * A long codec used to encode/decode long value to/from a chain of buffer
+ * units.
  * 
  * @see LongCodec
  */
-public interface ILongCodec {
-
-	/**
-	 * Decodes the bytes from the specified {@code unitChain}, starting at
-	 * <i>position</i> in the current unit, to a {@code long} value and returns
-	 * the resultant {@code long} value.
-	 * 
-	 * @param unitChain
-	 *            the bytes from which to be decoded
-	 * @return the decoded {@code long} value
-	 * @throws BufferUnderflowException
-	 *             if there's not enough data remaining in the {@code unitChain}
-	 */
-	long read(IUnitChain unitChain);
-
-	/**
-	 * Encodes the specified {@code long} value {@code l} and writes the
-	 * resultant bytes to the end of the specified {@code unitChain}.
-	 * 
-	 * @param l
-	 *            the {@code long} value to be encoded
-	 * @param unitChain
-	 *            the unit chain where the encoded bytes to be written to
-	 */
-	void write(long l, IUnitChain unitChain);
-
-	/**
-	 * Decodes the bytes from the specified {@code unitChain}, starting at the
-	 * specified {@code index} in the current unit, to a {@code long} value and
-	 * returns the resultant {@code long} value.
-	 * 
-	 * @param unitChain
-	 *            the bytes from which to be decoded
-	 * @param index
-	 *            the offset of the first byte in the current unit to be decoded
-	 * @return the decoded {@code long} value
-	 * @throws IndexOutOfBoundsException
-	 *             if {@code index} is out of bounds
-	 */
-	long get(IUnitChain unitChain, int index);
-
-	/**
-	 * Encodes the specified {@code long} value {@code l} and sets the resultant
-	 * bytes to the specified {@code unitChain} starting from at the specified
-	 * {@code index} in the current unit.
-	 * 
-	 * @param l
-	 *            the {@code long} value to be encoded
-	 * @param unitChain
-	 *            the unit chain where the encoded bytes to be set to
-	 * @param index
-	 *            the offset of the first byte in the current unit to be set
-	 * @throws IndexOutOfBoundsException
-	 *             if {@code index} is out of bounds
-	 */
-	void set(long l, IUnitChain unitChain, int index);
-
-	/**
-	 * Encodes the specified {@code long} value {@code l} and writes the
-	 * resultant bytes to the head of the specified {@code unitChain}.
-	 * 
-	 * @param l
-	 *            the {@code long} value to be encoded
-	 * @param unitChain
-	 *            the unit chain where the encoded bytes to be prepended to
-	 */
-	void prepend(long l, IUnitChain unitChain);
+public interface ILongCodec
+		extends IReadLongDecoder, IGetLongDecoder, IWriteLongEncoder, ISetLongEncoder, IPrependLongEncoder {
 }

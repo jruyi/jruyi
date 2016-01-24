@@ -599,98 +599,103 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	int readUnsignedShort(IShortCodec codec);
 
 	/**
-	 * Uses the specified {@code codec} to decode the bytes starting at the
+	 * Uses the specified {@code decoder} to decode the bytes starting at the
 	 * specified {@code index} from the underlying buffer into a {@code char}
 	 * value and returns the result.
 	 * 
 	 * @param index
 	 *            the index of the first byte to be interpreted
-	 * @param codec
-	 *            the codec to decode
+	 * @param decoder
+	 *            the decoder to decode
 	 * @return the resultant {@code char} value
 	 * @throws IndexOutOfBoundsException
 	 *             if the specified {@code index} is out of bounds
-	 * 
+	 * @since 2.5
 	 */
-	char get(int index, ICharCodec codec);
+	char get(int index, IGetCharDecoder decoder);
 
 	/**
-	 * Uses the specified {@code codec} to decode the bytes starting at the
+	 * Uses the specified {@code decoder} to decode the bytes starting at the
 	 * specified {@code index} from the underlying buffer into a {@code short}
 	 * value and returns the resultant {@code short} value.
 	 * 
 	 * @param index
 	 *            the index of the first byte to be decoded
-	 * @param codec
-	 *            the codec to decode
+	 * @param decoder
+	 *            the decoder to decode
 	 * @return the resultant {@code short} value
 	 * @throws IndexOutOfBoundsException
 	 *             if the specified {@code index} is out of bounds
+	 * @since 2.5
 	 */
-	short get(int index, IShortCodec codec);
+	short get(int index, IGetShortDecoder decoder);
 
 	/**
-	 * Uses the specified {@code codec} to decode the bytes starting at the
+	 * Uses the specified {@code decoder} to decode the bytes starting at the
 	 * specified {@code index} from the underlying buffer into an {@code int}
 	 * value and returns the resultant {@code int} value.
 	 * 
 	 * @param index
 	 *            the index of the first byte to be decoded
-	 * @param codec
-	 *            the codec to decode
+	 * @param decoder
+	 *            the decoder to decode
 	 * @return the resultant {@code int} value
 	 * @throws IndexOutOfBoundsException
 	 *             if the specified {@code index} is out of bounds
+	 * @since 2.5
 	 */
-	int get(int index, IIntCodec codec);
+	int get(int index, IGetIntDecoder decoder);
 
 	/**
-	 * Uses the specified {@code codec} to decode the bytes starting at the
+	 * Uses the specified {@code decoder} to decode the bytes starting at the
 	 * specified {@code index} from the underlying buffer into a {@code long}
 	 * value and returns the resultant {@code long} value.
 	 * 
 	 * @param index
 	 *            the index of the first byte to be decoded
-	 * @param codec
-	 *            the codec to decode
+	 * @param decoder
+	 *            the decoder to decode
 	 * @return the resultant {@code long} value
 	 * @throws IndexOutOfBoundsException
 	 *             if the specified {@code index} is out of bounds
+	 * @since 2.5
 	 */
-	long get(int index, ILongCodec codec);
+	long get(int index, IGetLongDecoder decoder);
 
 	/**
-	 * Uses the specified {@code codec} to decode the bytes starting at the
+	 * Uses the specified {@code decoder} to decode the bytes starting at the
 	 * specified {@code index} from the underlying buffer into a {@code float}
 	 * value and returns the resultant {@code float} value.
 	 * 
 	 * @param index
 	 *            the index of the first byte to be decoded
-	 * @param codec
-	 *            the codec to decode
+	 * @param decoder
+	 *            the decoder to decode
 	 * @return the resultant {@code float} value
 	 * @throws IndexOutOfBoundsException
 	 *             if the specified {@code index} is out of bounds
+	 * @since 2.5
 	 */
-	float get(int index, IFloatCodec codec);
+	float get(int index, IGetFloatDecoder decoder);
 
 	/**
-	 * Uses the specified {@code codec} to decode the bytes starting at the
+	 * Uses the specified {@code decoder} to decode the bytes starting at the
 	 * specified {@code index} from the underlying buffer into a {@code double}
 	 * value and returns the resultant {@code double} value.
 	 * 
 	 * @param index
 	 *            the index of the first byte to be decoded
-	 * @param codec
-	 *            the codec to decode
+	 * @param decoder
+	 *            the decoder to decode
 	 * @return the resultant {@code double} value
 	 * @throws IndexOutOfBoundsException
 	 *             if the specified {@code index} is out of bounds
+	 * @since 2.5
 	 */
-	double get(int index, IDoubleCodec codec);
+	double get(int index, IGetDoubleDecoder decoder);
 
 	/**
-	 * Uses the specified {@code codec} to decode the bytes starting at the
+	 * Uses the specified {@code decoder} to decode the bytes starting at the
 	 * specified {@code index} from the underlying buffer into an object of type
 	 * {@code T} and returns the resultant object.
 	 * 
@@ -698,16 +703,17 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the type of the result to decode to
 	 * @param index
 	 *            the index of the first byte to be decoded
-	 * @param codec
-	 *            the codec to decode
+	 * @param decoder
+	 *            the decoder to decode
 	 * @return the resultant object of type {@code T}
 	 * @throws IndexOutOfBoundsException
 	 *             if the specified {@code index} is out of bounds
+	 * @since 2.5
 	 */
-	<T> T get(int index, ICodec<T> codec);
+	<T> T get(int index, IGetDecoder<T> decoder);
 
 	/**
-	 * Uses the specified {@code codec} to decode the bytes, starting at the
+	 * Uses the specified {@code decoder} to decode the bytes, starting at the
 	 * specified {@code index} and ending at {@code (index + length)}, from the
 	 * underlying buffer into an object of type {@code T} and returns the
 	 * resultant object.
@@ -718,16 +724,17 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the index of the first byte to be decoded
 	 * @param length
 	 *            the number of bytes to be decoded
-	 * @param codec
-	 *            the codec to decode
+	 * @param decoder
+	 *            the decoder to decode
 	 * @return the resultant object of type {@code T}
 	 * @throws IndexOutOfBoundsException
 	 *             if the specified {@code index} is out of bounds
+	 * @since 2.5
 	 */
-	<T> T get(int index, int length, ICodec<T> codec);
+	<T> T get(int index, int length, IGetLimitedDecoder<T> decoder);
 
 	/**
-	 * Uses the specified {@code codec} to decode the bytes starting at the
+	 * Uses the specified {@code decoder} to decode the bytes starting at the
 	 * specified {@code index} from the underlying buffer into the specified
 	 * {@code dst}.
 	 * 
@@ -737,15 +744,16 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the index of the first byte to be decoded
 	 * @param dst
 	 *            the object to hold the decoded result
-	 * @param codec
-	 *            the codec to decode
+	 * @param decoder
+	 *            the decoder to decode
 	 * @throws IndexOutOfBoundsException
 	 *             if the specified {@code index} is out of bounds
+	 * @since 2.5
 	 */
-	<T> void get(int index, T dst, ICodec<T> codec);
+	<T> void get(int index, T dst, IGetToDstDecoder<T> decoder);
 
 	/**
-	 * Uses the specified {@code codec} to decode the bytes starting at the
+	 * Uses the specified {@code decoder} to decode the bytes starting at the
 	 * specified {@code index} from the underlying buffer into the specified
 	 * {@code dst} starting at the specified {@code offset} and ending at
 	 * {@code (offset + length)}.
@@ -760,13 +768,14 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the capacity of the destination
 	 * @param dst
 	 *            the object to hold the decoded result
-	 * @param codec
-	 *            the codec to decode
+	 * @param decoder
+	 *            the decoder to decode
 	 * @throws IndexOutOfBoundsException
 	 *             if the specified {@code index, offset or length} is out of
 	 *             bounds
+	 * @since 2.5
 	 */
-	<T> void get(int index, T dst, int offset, int length, ICodec<T> codec);
+	<T> void get(int index, T dst, int offset, int length, IGetToRangedDstDecoder<T> decoder);
 
 	/**
 	 * Returns the next byte from the underlying buffer. <i>position</i> is
@@ -779,107 +788,114 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	byte read();
 
 	/**
-	 * Uses the specified {@code codec} to decode the bytes starting at
+	 * Uses the specified {@code decoder} to decode the bytes starting at
 	 * <i>position</i> from the underlying buffer into a {@code char} value and
 	 * returns the resultant {@code char} value.
 	 * 
-	 * @param codec
-	 *            the codec to decode
+	 * @param decoder
+	 *            the decoder to decode
 	 * @return the resultant {@code char} value
 	 * @throws BufferUnderflowException
 	 *             if there are not enough bytes remained in the underlying
 	 *             buffer
+	 * @since 2.5
 	 */
-	char read(ICharCodec codec);
+	char read(IReadCharDecoder decoder);
 
 	/**
-	 * Uses the specified {@code codec} to decode the bytes starting at
+	 * Uses the specified {@code decoder} to decode the bytes starting at
 	 * <i>position</i> from the underlying buffer into a {@code short} value and
 	 * returns the resultant {@code short} value.
 	 * 
-	 * @param codec
-	 *            the codec to decode
+	 * @param decoder
+	 *            the decoder to decode
 	 * @return the resultant {@code short} value
 	 * @throws BufferUnderflowException
 	 *             if there are not enough bytes remained in the underlying
 	 *             buffer
+	 * @since 2.5
 	 */
-	short read(IShortCodec codec);
+	short read(IReadShortDecoder decoder);
 
 	/**
-	 * Uses the specified {@code codec} to decode the bytes starting at
+	 * Uses the specified {@code decoder} to decode the bytes starting at
 	 * <i>position</i> from the underlying buffer into an {@code int} value and
 	 * returns the resultant {@code int} value.
 	 * 
-	 * @param codec
-	 *            the codec to decode
+	 * @param decoder
+	 *            the decoder to decode
 	 * @return the resultant {@code int} value
 	 * @throws BufferUnderflowException
 	 *             if there are not enough bytes remained in the underlying
 	 *             buffer
+	 * @since 2.5
 	 */
-	int read(IIntCodec codec);
+	int read(IReadIntDecoder decoder);
 
 	/**
-	 * Uses the specified {@code codec} to decode the bytes starting at
+	 * Uses the specified {@code decoder} to decode the bytes starting at
 	 * <i>position</i> from the underlying buffer into a {@code long} value and
 	 * returns the resultant {@code long} value.
 	 * 
-	 * @param codec
-	 *            the codec to decode
+	 * @param decoder
+	 *            the decoder to decode
 	 * @return the resultant {@code long} value
 	 * @throws BufferUnderflowException
 	 *             if there are not enough bytes remained in the underlying
 	 *             buffer
+	 * @since 2.5
 	 */
-	long read(ILongCodec codec);
+	long read(IReadLongDecoder decoder);
 
 	/**
-	 * Uses the specified {@code codec} to decode the bytes starting at
+	 * Uses the specified {@code decoder} to decode the bytes starting at
 	 * <i>position</i> from the underlying buffer into a {@code float} value and
 	 * returns the resultant {@code float} value.
 	 * 
-	 * @param codec
-	 *            the codec to decode
+	 * @param decoder
+	 *            the decoder to decode
 	 * @return the resultant {@code float} value
 	 * @throws BufferUnderflowException
 	 *             if there are not enough bytes remained in the underlying
 	 *             buffer
+	 * @since 2.5
 	 */
-	float read(IFloatCodec codec);
+	float read(IReadFloatDecoder decoder);
 
 	/**
-	 * Uses the specified {@code codec} to decode the bytes starting at
+	 * Uses the specified {@code decoder} to decode the bytes starting at
 	 * <i>position</i> from the underlying buffer into a {@code double} value
 	 * and returns the resultant {@code double} value.
 	 * 
-	 * @param codec
-	 *            the codec to decode
+	 * @param decoder
+	 *            the decoder to decode
 	 * @return the resultant {@code double} value
 	 * @throws BufferUnderflowException
 	 *             if there are not enough bytes remained in the underlying
 	 *             buffer
+	 * @since 2.5
 	 */
-	double read(IDoubleCodec codec);
+	double read(IReadDoubleDecoder decoder);
 
 	/**
-	 * Uses the specified {@code codec} to decode the bytes starting at
+	 * Uses the specified {@code decoder} to decode the bytes starting at
 	 * <i>position</i> from the underlying buffer into an object of type
 	 * {@code T} and returns the resultant object.
 	 * 
 	 * @param <T>
 	 *            the type of the result to decode to
-	 * @param codec
-	 *            the codec to decode
+	 * @param decoder
+	 *            the decoder to decode
 	 * @return the resultant object of type {@code T}
 	 * @throws BufferUnderflowException
 	 *             if there are not enough bytes remained in the underlying
 	 *             buffer
+	 * @since 2.5
 	 */
-	<T> T read(ICodec<T> codec);
+	<T> T read(IReadDecoder<T> decoder);
 
 	/**
-	 * Uses the specified {@code codec} to decode the bytes, starting at
+	 * Uses the specified {@code decoder} to decode the bytes, starting at
 	 * <i>position</i> and ending at {@code (position() + length)}, from the
 	 * underlying buffer into an object of type {@code T} and returns the
 	 * resultant object.
@@ -888,19 +904,20 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the type of the result to decode to
 	 * @param length
 	 *            the number bytes to be decoded
-	 * @param codec
-	 *            the codec to decode
+	 * @param decoder
+	 *            the decoder to decode
 	 * @return the resultant object of type {@code T}
 	 * @throws IllegalArgumentException
 	 *             if the given {@code length} is negative
 	 * @throws BufferUnderflowException
 	 *             if there are not enough bytes remained in the underlying
 	 *             buffer
+	 * @since 2.5
 	 */
-	<T> T read(int length, ICodec<T> codec);
+	<T> T read(int length, IReadLimitedDecoder<T> decoder);
 
 	/**
-	 * Uses the specified {@code codec} to decode the bytes, starting at
+	 * Uses the specified {@code decoder} to decode the bytes, starting at
 	 * <i>position</i>, from the underlying buffer into the specified
 	 * {@code dst} and returns the actual number of bytes decoded.
 	 * 
@@ -908,14 +925,15 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the type of the result to decode to
 	 * @param dst
 	 *            the object to hold the decoded result
-	 * @param codec
-	 *            the codec to decode
+	 * @param decoder
+	 *            the decoder to decode
 	 * @return the actual number of bytes decoded
+	 * @since 2.5
 	 */
-	<T> int read(T dst, ICodec<T> codec);
+	<T> int read(T dst, IReadToDstDecoder<T> decoder);
 
 	/**
-	 * Uses the specified {@code codec} to decode the bytes, starting at
+	 * Uses the specified {@code decoder} to decode the bytes, starting at
 	 * <i>position</i>, from the underlying buffer into the specified
 	 * {@code dst} starting from {@code offset}(inclusive) to
 	 * {@code (offset + length)}(exclusive) and returns the actual number of
@@ -929,14 +947,15 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the start index of the destination
 	 * @param length
 	 *            the capacity of the destination
-	 * @param codec
-	 *            the codec to decode
+	 * @param decoder
+	 *            the decoder to decode
 	 * @return the actual number of bytes decoded
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code offset} or {@code length} doesn't hold the
 	 *             condition
+	 * @since 2.5
 	 */
-	<T> int read(T dst, int offset, int length, ICodec<T> codec);
+	<T> int read(T dst, int offset, int length, IReadToRangedDstDecoder<T> decoder);
 
 	/**
 	 * Sets the byte at the specified position to the given byte {@code b}.
@@ -955,109 +974,115 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	/**
 	 * Sets the bytes starting at the specified {@code index} to the ones
 	 * encoded from the specified character {@code c} with the specified
-	 * {@code codec}.
+	 * {@code encoder}.
 	 * 
 	 * @param index
 	 *            the index of the first byte to be set
 	 * @param c
 	 *            the character to be encoded
-	 * @param codec
-	 *            the codec to encode
+	 * @param encoder
+	 *            the encoder to encode
 	 * @return this buffer
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
+	 * @since 2.5
 	 */
-	IBuffer set(int index, char c, ICharCodec codec);
+	IBuffer set(int index, char c, ISetCharEncoder encoder);
 
 	/**
 	 * Sets the bytes starting at the specified {@code index} to the ones
 	 * encoded from the specified short value {@code s} with the specified
-	 * {@code codec}.
+	 * {@code encoder}.
 	 * 
 	 * @param index
 	 *            the index of the first byte to be set
 	 * @param s
 	 *            the short value to be encoded
-	 * @param codec
-	 *            the codec to encode
+	 * @param encoder
+	 *            the encoder to encode
 	 * @return this buffer
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
+	 * @since 2.5
 	 */
-	IBuffer set(int index, short s, IShortCodec codec);
+	IBuffer set(int index, short s, ISetShortEncoder encoder);
 
 	/**
 	 * Sets the bytes starting at the specified {@code index} to the ones
 	 * encoded from the specified int value {@code i} with the specified
-	 * {@code codec} .
+	 * {@code encoder} .
 	 * 
 	 * @param index
 	 *            the index of the first byte to be set
 	 * @param i
 	 *            the int value to be encoded
-	 * @param codec
-	 *            the codec to encode
+	 * @param encoder
+	 *            the encoder to encode
 	 * @return this buffer
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
+	 * @since 2.5
 	 */
-	IBuffer set(int index, int i, IIntCodec codec);
+	IBuffer set(int index, int i, ISetIntEncoder encoder);
 
 	/**
 	 * Sets the bytes starting at the specified {@code index} to the ones
 	 * encoded from the specified long value {@code l} with the specified
-	 * {@code codec}.
+	 * {@code encoder}.
 	 * 
 	 * @param index
 	 *            the index of the first byte to be set
 	 * @param l
 	 *            the long value to be encoded
-	 * @param codec
-	 *            the codec to encode
+	 * @param encoder
+	 *            the encoder to encode
 	 * @return this buffer
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
+	 * @since 2.5
 	 */
-	IBuffer set(int index, long l, ILongCodec codec);
+	IBuffer set(int index, long l, ISetLongEncoder encoder);
 
 	/**
 	 * Sets the bytes starting at the specified {@code index} to the ones
 	 * encoded from the specified float value {@code f} with the specified
-	 * {@code codec}.
+	 * {@code encoder}.
 	 * 
 	 * @param index
 	 *            the index of the the first byte to be set
 	 * @param f
 	 *            the float value to be encoded
-	 * @param codec
-	 *            the codec to encode
+	 * @param encoder
+	 *            the encoder to encode
 	 * @return this buffer
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
+	 * @since 2.5
 	 */
-	IBuffer set(int index, float f, IFloatCodec codec);
+	IBuffer set(int index, float f, ISetFloatEncoder encoder);
 
 	/**
 	 * Sets the bytes starting at the specified {@code index} to the ones
 	 * encoded from the specified double value {@code d} with the specified
-	 * {@code codec}.
+	 * {@code encoder}.
 	 * 
 	 * @param index
 	 *            the index of the the first byte to be set
 	 * @param d
 	 *            the double value to be encoded
-	 * @param codec
-	 *            the codec to encode
+	 * @param encoder
+	 *            the encoder to encode
 	 * @return this buffer
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
+	 * @since 2.5
 	 */
-	IBuffer set(int index, double d, IDoubleCodec codec);
+	IBuffer set(int index, double d, ISetDoubleEncoder encoder);
 
 	/**
 	 * Sets the bytes starting at the specified {@code index} to the ones
 	 * encoded from the specified {@code src} of type {@code T} with the
-	 * specified {@code codec}.
+	 * specified {@code encoder}.
 	 * 
 	 * @param <T>
 	 *            the type of the target to be encoded
@@ -1065,19 +1090,20 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the index of the the first byte to be set
 	 * @param src
 	 *            the object of type {@code T} to be encoded
-	 * @param codec
-	 *            the codec to encode
+	 * @param encoder
+	 *            the encoder to encode
 	 * @return this buffer
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
+	 * @since 2.5
 	 */
-	<T> IBuffer set(int index, T src, ICodec<T> codec);
+	<T> IBuffer set(int index, T src, ISetEncoder<T> encoder);
 
 	/**
 	 * Sets the bytes starting at the specified {@code index} to the ones
 	 * encoded from the specified collection {@code src}, starting at the
 	 * specified {@code offset}, ending at {@code (offset + length)} with the
-	 * specified {@code codec}.
+	 * specified {@code encoder}.
 	 * 
 	 * @param <T>
 	 *            the type of the target to be encoded
@@ -1089,13 +1115,14 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the offset of the first element to be encoded
 	 * @param length
 	 *            the number of elements to be encoded
-	 * @param codec
-	 *            the codec to encode
+	 * @param encoder
+	 *            the encoder to encode
 	 * @return this buffer
 	 * @throws IndexOutOfBoundsException
 	 *             if {@code index} is out of bounds
+	 * @since 2.5
 	 */
-	<T> IBuffer set(int index, T src, int offset, int length, ICodec<T> codec);
+	<T> IBuffer set(int index, T src, int offset, int length, ISetRangedEncoder<T> encoder);
 
 	/**
 	 * Writes the given byte {@code b} to the end of this buffer. The
@@ -1109,95 +1136,102 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 
 	/**
 	 * Writes the bytes, encoded from the specified char value {@code c} with
-	 * the specified {@code codec}, to the end of this buffer.
+	 * the specified {@code encoder}, to the end of this buffer.
 	 * 
 	 * @param c
 	 *            the char value to be encoded
-	 * @param codec
-	 *            the codec to encode
+	 * @param encoder
+	 *            the encoder to encode
 	 * @return this buffer
+	 * @since 2.5
 	 */
-	IBuffer write(char c, ICharCodec codec);
+	IBuffer write(char c, IWriteCharEncoder encoder);
 
 	/**
 	 * Writes the bytes, encoded from the specified short value {@code s} with
-	 * the specified {@code codec}, to the end of this buffer.
+	 * the specified {@code encoder}, to the end of this buffer.
 	 * 
 	 * @param s
 	 *            the short value to be encoded
-	 * @param codec
-	 *            the codec to encode
+	 * @param encoder
+	 *            the encoder to encode
 	 * @return this buffer
+	 * @since 2.5
 	 */
-	IBuffer write(short s, IShortCodec codec);
+	IBuffer write(short s, IWriteShortEncoder encoder);
 
 	/**
 	 * Writes the bytes, encoded from the specified int value {@code i} with the
-	 * specified {@code codec}, to the end of this buffer.
+	 * specified {@code encoder}, to the end of this buffer.
 	 * 
 	 * @param i
 	 *            the int value to be encoded
-	 * @param codec
-	 *            the codec to encode
+	 * @param encoder
+	 *            the encoder to encode
 	 * @return this buffer
+	 * @since 2.5
 	 */
-	IBuffer write(int i, IIntCodec codec);
+	IBuffer write(int i, IWriteIntEncoder encoder);
 
 	/**
 	 * Writes the bytes, encoded from the specified long value {@code l} with
-	 * the specified {@code codec}, to the end of this buffer.
+	 * the specified {@code encoder}, to the end of this buffer.
 	 * 
 	 * @param l
 	 *            the long value to be encoded
-	 * @param codec
-	 *            the codec to encode
+	 * @param encoder
+	 *            the encoder to encode
 	 * @return this buffer
+	 * @since 2.5
 	 */
-	IBuffer write(long l, ILongCodec codec);
+	IBuffer write(long l, IWriteLongEncoder encoder);
 
 	/**
 	 * Writes the bytes, encoded from the specified float value {@code f} with
-	 * the specified {@code codec}, to the end of this buffer.
+	 * the specified {@code encoder}, to the end of this buffer.
 	 * 
 	 * @param f
 	 *            the float value to be encoded
-	 * @param codec
-	 *            the codec to encode
+	 * @param encoder
+	 *            the encoder to encode
 	 * @return this buffer
+	 * @since 2.5
 	 */
-	IBuffer write(float f, IFloatCodec codec);
+	IBuffer write(float f, IWriteFloatEncoder encoder);
 
 	/**
 	 * Writes the bytes, encoded from the specified double value {@code d} with
-	 * the specified {@code codec}, to the end of this buffer.
+	 * the specified {@code encoder}, to the end of this buffer.
 	 * 
 	 * @param d
 	 *            the double value to be encoded
-	 * @param codec
-	 *            the codec to encoded
+	 * @param encoder
+	 *            the encoder to encoded
 	 * @return this buffer
+	 * @since 2.5
 	 */
-	IBuffer write(double d, IDoubleCodec codec);
+	IBuffer write(double d, IWriteDoubleEncoder encoder);
 
 	/**
 	 * Writes the bytes, encoded from the specified object {@code src} with the
-	 * specified {@code codec}, to the end of this buffer.
+	 * specified {@code encoder}, to the end of this buffer.
 	 * 
 	 * @param <T>
 	 *            the type of the target to be encoded
 	 * @param src
 	 *            the object to be encoded
-	 * @param codec
-	 *            the codec to encode
+	 * @param encoder
+	 *            the encoder to encode
 	 * @return this buffer
+	 * @since 2.5
 	 */
-	<T> IBuffer write(T src, ICodec<T> codec);
+	<T> IBuffer write(T src, IWriteEncoder<T> encoder);
 
 	/**
 	 * Writes the bytes, encoded from the specified collection {@code src}
 	 * starting at the specified {@code offset} ending at the specified
-	 * {@code (offset + length)} with the specified {@code codec}, to the end of
-	 * this buffer.
+	 * {@code (offset + length)} with the specified {@code encoder}, to the end
+	 * of this buffer.
 	 * 
 	 * @param <T>
 	 *            the type of the target to be encoded
@@ -1207,11 +1241,12 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the offset of the first element to be encoded
 	 * @param length
 	 *            the number of elements to be encoded
-	 * @param codec
-	 *            the codec to encode
+	 * @param encoder
+	 *            the encoder to encode
 	 * @return this buffer
+	 * @since 2.5
 	 */
-	<T> IBuffer write(T src, int offset, int length, ICodec<T> codec);
+	<T> IBuffer write(T src, int offset, int length, IWriteRangedEncoder<T> encoder);
 
 	/**
 	 * Writes the given byte {@code b} to the head of the buffer.
@@ -1227,93 +1262,100 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 
 	/**
 	 * Writes the bytes, encoded from the specified character {@code c} with the
-	 * specified {@code codec}, to the head of this buffer.
+	 * specified {@code encoder}, to the head of this buffer.
 	 * 
 	 * @param c
 	 *            the character to be encoded
-	 * @param codec
-	 *            the codec to encode
+	 * @param encoder
+	 *            the encoder to encode
 	 * @return this buffer
+	 * @since 2.5
 	 */
-	IBuffer prepend(char c, ICharCodec codec);
+	IBuffer prepend(char c, IPrependCharEncoder encoder);
 
 	/**
 	 * Writes the bytes, encoded from the specified short value {@code s} with
-	 * the specified {@code codec}, to the head of this buffer.
+	 * the specified {@code encoder}, to the head of this buffer.
 	 * 
 	 * @param s
 	 *            the short value to be encoded
-	 * @param codec
-	 *            the codec to encode
+	 * @param encoder
+	 *            the encoder to encode
 	 * @return this buffer
+	 * @since 2.5
 	 */
-	IBuffer prepend(short s, IShortCodec codec);
+	IBuffer prepend(short s, IPrependShortEncoder encoder);
 
 	/**
 	 * Writes the bytes, encoded from the specified int value {@code i} with the
-	 * specified {@code codec}, to the head of this buffer.
+	 * specified {@code encoder}, to the head of this buffer.
 	 * 
 	 * @param i
 	 *            the int value to be encoded
-	 * @param codec
-	 *            the codec to encode
+	 * @param encoder
+	 *            the encoder to encode
 	 * @return this buffer
+	 * @since 2.5
 	 */
-	IBuffer prepend(int i, IIntCodec codec);
+	IBuffer prepend(int i, IPrependIntEncoder encoder);
 
 	/**
 	 * Writes the bytes, encoded from the specified long value {@code l} with
-	 * the specified {@code codec}, to the head of this buffer.
+	 * the specified {@code encoder}, to the head of this buffer.
 	 * 
 	 * @param l
 	 *            the long value to be encoded
-	 * @param codec
-	 *            the codec to encode
+	 * @param encoder
+	 *            the encoder to encode
 	 * @return this buffer
+	 * @since 2.5
 	 */
-	IBuffer prepend(long l, ILongCodec codec);
+	IBuffer prepend(long l, IPrependLongEncoder encoder);
 
 	/**
 	 * Writes the bytes, encoded from the specified float value {@code f} with
-	 * the specified {@code codec}, to the head of this buffer.
+	 * the specified {@code encoder}, to the head of this buffer.
 	 * 
 	 * @param f
 	 *            the float value to be encoded
-	 * @param codec
-	 *            the codec to encode
+	 * @param encoder
+	 *            the encoder to encode
 	 * @return this buffer
+	 * @since 2.5
 	 */
-	IBuffer prepend(float f, IFloatCodec codec);
+	IBuffer prepend(float f, IPrependFloatEncoder encoder);
 
 	/**
 	 * Writes the bytes, encoded from the specified double value {@code d} with
-	 * the specified {@code codec}, to the head of this buffer.
+	 * the specified {@code encoder}, to the head of this buffer.
 	 * 
 	 * @param d
 	 *            the double value to be encoded
-	 * @param codec
-	 *            the codec to encode
+	 * @param encoder
+	 *            the encoder to encode
 	 * @return this buffer
+	 * @since 2.5
 	 */
-	IBuffer prepend(double d, IDoubleCodec codec);
+	IBuffer prepend(double d, IPrependDoubleEncoder encoder);
 
 	/**
 	 * Writes the bytes, encoded from the specified object {@code src} with the
-	 * specified {@code codec}, to the head of this buffer.
+	 * specified {@code encoder}, to the head of this buffer.
 	 * 
 	 * @param <T>
 	 *            the type of the target to be encoded
 	 * @param src
 	 *            the object to be encoded
-	 * @param codec
-	 *            the codec to encode
+	 * @param encoder
+	 *            the encoder to encode
 	 * @return this buffer
+	 * @since 2.5
 	 */
-	<T> IBuffer prepend(T src, ICodec<T> codec);
+	<T> IBuffer prepend(T src, IPrependEncoder<T> encoder);
 
 	/**
 	 * Writes the bytes, encoded from the specified collection {@code src} with
-	 * the specified {@code codec} starting at {@code offset} ending at
+	 * the specified {@code encoder} starting at {@code offset} ending at
 	 * {@code (offset + length)}, to the head of this buffer.
 	 * 
 	 * @param <T>
@@ -1324,11 +1366,12 @@ public interface IBuffer extends Comparable<IBuffer>, IByteSequence, IDumpable, 
 	 *            the index of the first element to be encoded
 	 * @param length
 	 *            the number of elements to be encoded
-	 * @param codec
-	 *            the codec to encode
+	 * @param encoder
+	 *            the encoder to encode
 	 * @return this buffer
+	 * @since 2.5
 	 */
-	<T> IBuffer prepend(T src, int offset, int length, ICodec<T> codec);
+	<T> IBuffer prepend(T src, int offset, int length, IPrependRangedEncoder<T> encoder);
 
 	/**
 	 * Returns an {@code OutputStream} object that represents this buffer.
