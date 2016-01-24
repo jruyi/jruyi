@@ -15,15 +15,7 @@
 package org.jruyi.core.internal;
 
 import org.jruyi.common.timer.TimerAdmin;
-import org.jruyi.core.IChannelAdminConfiguration;
-import org.jruyi.core.IFileKeyStoreBuilder;
-import org.jruyi.core.ISslFilterBuilder;
-import org.jruyi.core.ITcpClientBuilder;
-import org.jruyi.core.ITcpServerBuilder;
-import org.jruyi.core.ITextLineFilterBuilder;
-import org.jruyi.core.IUdpClientBuilder;
-import org.jruyi.core.IUdpServerBuilder;
-import org.jruyi.core.RuyiCore;
+import org.jruyi.core.*;
 import org.jruyi.io.IFilter;
 import org.jruyi.io.channel.ChannelAdmin;
 import org.jruyi.io.msglog.MsgLogFilter;
@@ -41,10 +33,6 @@ public final class RuyiCoreProvider implements RuyiCore.IRuyiCore {
 	private final ChannelAdmin m_ca = new ChannelAdmin();
 
 	private int m_count;
-
-	static final class MsgLogFilterHolder {
-		static final IFilter<?, ?> MSGLOG = new MsgLogFilter();
-	}
 
 	private RuyiCoreProvider() {
 		m_ta.setScheduler(m_scheduler.unwrap());
@@ -126,7 +114,7 @@ public final class RuyiCoreProvider implements RuyiCore.IRuyiCore {
 
 	@Override
 	public IFilter<?, ?> getMsgLogFilter() {
-		return MsgLogFilterHolder.MSGLOG;
+		return MsgLogFilter.INST;
 	}
 
 	@Override

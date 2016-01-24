@@ -16,7 +16,9 @@ package org.jruyi.io.internal;
 
 import org.apache.felix.service.command.CommandProcessor;
 import org.jruyi.common.Properties;
+import org.jruyi.io.IFilter;
 import org.jruyi.io.cmd.IoCommand;
+import org.jruyi.io.msglog.MsgLogFilter;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
@@ -28,6 +30,8 @@ public final class Activator implements BundleActivator {
 		properties.put(CommandProcessor.COMMAND_SCOPE, "io");
 		properties.put(CommandProcessor.COMMAND_FUNCTION, IoCommand.commands());
 		context.registerService(IoCommand.class.getName(), new IoCommand(context), properties);
+
+		context.registerService(IFilter.class.getName(), MsgLogFilter.INST, MsgLogFilter.getProperties());
 	}
 
 	@Override
