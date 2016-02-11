@@ -2139,6 +2139,18 @@ public final class Buffer implements IBuffer {
 			return remaining;
 		}
 
+		@Override
+		public int size() {
+			return m_length;
+		}
+
+		@Override
+		public IUnit unitAt(int index) {
+			if (index < 0 || index >= m_length)
+				throw new IndexOutOfBoundsException();
+			return m_units[index];
+		}
+
 		void ensureCapacity(int minCapacity) {
 			if (m_units.length < minCapacity)
 				expandCapacityForAppend(minCapacity);

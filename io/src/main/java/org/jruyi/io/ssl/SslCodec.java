@@ -15,7 +15,6 @@
 package org.jruyi.io.ssl;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
@@ -31,14 +30,12 @@ import org.jruyi.io.buffer.Util;
 final class SslCodec implements IWriteEncoder<IBuffer>, IReadToDstDecoder<IBuffer> {
 
 	private final SSLEngine m_engine;
-	private final ArrayList<IUnit> m_writeUnits;
 	private IBuffer m_inception;
 	private SSLEngineResult m_unwrapResult;
 	private SSLEngineResult m_wrapResult;
 
 	SslCodec(SSLEngine engine) {
 		m_engine = engine;
-		m_writeUnits = new ArrayList<>();
 	}
 
 	/**
@@ -46,11 +43,11 @@ final class SslCodec implements IWriteEncoder<IBuffer>, IReadToDstDecoder<IBuffe
 	 * text application data.
 	 * <p>
 	 * netData =(unwrap)=> appData
-	 * 
+	 *
 	 * <pre>
 	 * appBuffer.write(netData)
 	 * </pre>
-	 * 
+	 *
 	 * @param src
 	 *            netData
 	 */
@@ -84,11 +81,10 @@ final class SslCodec implements IWriteEncoder<IBuffer>, IReadToDstDecoder<IBuffe
 
 		SSLEngineResult result;
 		final ByteBufferArray bba = ByteBufferArray.get();
-		final ArrayList<IUnit> units = m_writeUnits;
 		try {
 			final int pos = netData.position();
 			IUnit unit = Util.lastUnit(appBuf);
-			units.add(unit);
+			final int start = appBuf.size() - 1;
 			bba.add(unit.getByteBufferForWrite());
 			final SSLEngine engine = m_engine;
 			for (;;) {
@@ -98,7 +94,6 @@ final class SslCodec implements IWriteEncoder<IBuffer>, IReadToDstDecoder<IBuffe
 					break;
 
 				unit = Util.appendNewUnit(appBuf);
-				units.add(unit);
 				bba.add(unit.getByteBufferForWrite());
 			}
 
@@ -106,7 +101,7 @@ final class SslCodec implements IWriteEncoder<IBuffer>, IReadToDstDecoder<IBuffe
 			final ByteBuffer[] array = bba.array();
 			final int n = bba.size();
 			for (int i = 0; i < n; ++i) {
-				unit = units.get(i);
+				unit = appBuf.unitAt(start + i);
 				unit.size(array[i].position() - unit.start());
 			}
 		} catch (Throwable t) {
@@ -115,7 +110,6 @@ final class SslCodec implements IWriteEncoder<IBuffer>, IReadToDstDecoder<IBuffe
 			if (builder != null)
 				builder.close();
 
-			units.clear();
 			bba.clear();
 		}
 
@@ -128,11 +122,11 @@ final class SslCodec implements IWriteEncoder<IBuffer>, IReadToDstDecoder<IBuffe
 	 * {@code dst}.
 	 * <p>
 	 * appData =(wrap)=> netData
-	 * 
+	 *
 	 * <pre>
 	 * appData.read(netBuffer)
 	 * </pre>
-	 * 
+	 *
 	 * @param dst
 	 *            netBuffer
 	 */
