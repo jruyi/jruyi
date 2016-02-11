@@ -21,6 +21,7 @@ buildscript {
 
 	dependencies {
 		classpath 'gradle.plugin.org.jruyi.gradle:osgibnd-gradle-plugin:0.5.0'
+		classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.0.0'
 		classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.5'
 	}
 }
@@ -43,8 +44,16 @@ allprojects {
 		organizationName = 'JRuyi.org'
 		organizationUrl = 'http://www.jruyi.org/'
 
+		websiteUrl = 'https://github.com/jruyi/jruyi'
+		issueTrackerUrl = 'https://github.com/jruyi/jruyi/issues'
+		vcsUrl = 'https://github.com/jruyi/jruyi.git'
+
 		licenseName = 'Apache License, Version 2.0'
 		licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+
+		developerId = 'agemocui'
+		developerName = 'Agemo Cui'
+		developerEmail = 'agemocui@jruyi.org'
 
 		createdBy = "${System.getProperty('java.version')} (${System.getProperty('java.vm.vendor')})"
 
@@ -61,7 +70,7 @@ allprojects {
 		org_apache_felix_gogo_runtime_version = '0.16.2'
 		org_apache_felix_metatype_version = '1.1.2'
 		org_apache_felix_scr_version = '2.0.2'
-		slf4j_version = '1.7.13'
+		slf4j_version = '1.7.14'
 
 		cglib_nodep_version = '3.1'
 		groovy_version = '2.4.5'
@@ -74,19 +83,21 @@ allprojects {
 
 		jruyi_core_version = '2.5.0-SNAPSHOT'
 
-		jruyi_api_version = '2.5.0-SNAPSHOT'
 		jruyi_cli_version = '2.0.2-SNAPSHOT'
 		jruyi_launcher_version = '2.0.2-SNAPSHOT'
 		org_jruyi_clid_version = '2.5.0-SNAPSHOT'
-		org_jruyi_cmd_version = '2.0.4'
-		org_jruyi_common_version = '2.4.0'
+		org_jruyi_cmd_version = '2.0.5-SNAPSHOT'
+		org_jruyi_common_version = '2.4.1-SNAPSHOT'
 		org_jruyi_io_version = '2.5.0-SNAPSHOT'
-		org_jruyi_osgi_log_version = '2.0.2'
-		org_jruyi_tpe_version = '2.0.2'
+		org_jruyi_osgi_log_version = '2.0.3-SNAPSHOT'
+		org_jruyi_tpe_version = '2.0.3-SNAPSHOT'
 	}
 
 	repositories {
 		jcenter()
+		maven {
+			url "https://oss.jfrog.org/libs-snapshot"
+		}
 	}
 
 	configurations.all {
@@ -98,6 +109,7 @@ subprojects {
 
 	apply plugin: 'java'
 	apply plugin: 'maven-publish'
+	apply plugin: 'com.jfrog.artifactory'
 	apply plugin: 'com.jfrog.bintray'
 
 	compileJava {
@@ -118,7 +130,7 @@ subprojects {
 		}
 	}
 
-	task sourcesJar(type: Jar, dependsOn: classes) {
+	task sourcesJar(type: Jar) {
 		classifier = 'sources'
 		from sourceSets.main.allSource
 	}
@@ -133,9 +145,9 @@ subprojects {
 			userOrg = 'jruyi'
 			name = archivesBaseName
 			desc = description
-			websiteUrl = 'https://github.com/jruyi/jruyi'
-			issueTrackerUrl = 'https://github.com/jruyi/jruyi/issues'
-			vcsUrl = 'https://github.com/jruyi/jruyi.git'
+			websiteUrl = websiteUrl
+			issueTrackerUrl =issueTrackerUrl
+			vcsUrl = vcsUrl
 			licenses = ['Apache-2.0']
 			labels = ['jruyi', project.name]
 			publicDownloadNumbers = true

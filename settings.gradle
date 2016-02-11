@@ -12,10 +12,11 @@
  * limitations under the License.
  */
 
-include 'api'
+rootProject.name = 'jruyi'
+
 include 'cmd'
-include 'clid'
 include 'cli'
+include 'clid'
 include 'common'
 include 'core'
 include 'io'

@@ -25,7 +25,7 @@ ext {
 dependencies {
 	compile "org.osgi:org.osgi.core:4.3.1"
 	compile "org.osgi:org.osgi.compendium:4.3.1"
-	compile "org.slf4j:slf4j-api:1.7.12"
+	compile "org.slf4j:slf4j-api:1.7.14"
 
 	compile "org.jruyi:jruyi-api:2.0.0"
 }
@@ -48,21 +48,35 @@ publishing {
 			from components.java
 
 			pom.withXml {
-				def projectNode = asNode()
-				projectNode.appendNode('name', title)
-				projectNode.appendNode('description', description)
-				projectNode.appendNode('url', organizationUrl)
+				def node = asNode()
+				node.children().last() + {
+					resolveStrategy = Closure.DELEGATE_FIRST
+					name title
+					description description
+					url websiteUrl
+					inceptionYear '2011'
+					scm {
+						url websiteUrl
+						connection "scm:$vcsUrl"
+						developerConnection "scm:$vcsUrl"
+					}
+					licenses {
+						license {
+							name licenseName
+							url licenseUrl
+							distribution 'repo'
+						}
+					}
+					developers {
+						developer {
+							id developerId
+							name developerName
+							email developerEmail
+						}
+					}
+				}
 
-				def organizationNode = projectNode.appendNode('organization')
-				organizationNode.appendNode('name', organizationName)
-				organizationNode.appendNode('url', organizationUrl)
-
-				def licenseNode = projectNode.appendNode('licenses').appendNode('license')
-				licenseNode.appendNode('name', licenseName)
-				licenseNode.appendNode('url', licenseUrl)
-				licenseNode.appendNode('distribution', 'repo')
-
-				projectNode.dependencies.'*'.findAll() {
+				node.dependencies.'*'.findAll() {
 					it.scope.text() == 'runtime'
 				}.each() {
 					it.scope*.value = 'provided'
