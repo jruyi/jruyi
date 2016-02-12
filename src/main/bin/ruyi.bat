@@ -52,5 +52,3 @@ set EXE_JAR="%JRUYI_HOME%\\main\\jruyi-launcher-${jruyiLauncherVersion}.jar"
 %JAVA% %JAVA_OPTS% -jar %EXE_JAR% %*
 
 :END
-
-pause
