@@ -263,8 +263,26 @@ public final class Ruyi {
 
 		Log.INST.debug("Print all the system properties");
 
-		for (Entry<Object, Object> entry : System.getProperties().entrySet())
-			Log.INST.debug(entry.toString());
+		for (Entry<Object, Object> entry : System.getProperties().entrySet()) {
+			final Object key = entry.getKey();
+			if ("line.separator".equals(key)) {
+				final String v = (String) entry.getValue();
+				StringBuilder builder = new StringBuilder(2);
+				final int n = v.length();
+				for (int i = 0; i < n; ++i) {
+					switch (v.charAt(i)) {
+					case '\r':
+						builder.append("CR");
+						break;
+					case '\n':
+						builder.append("LF");
+						break;
+					}
+				}
+				Log.INST.debug("{}={}", key, builder.toString());
+			} else
+				Log.INST.debug("{}={}", key, entry.getValue());
+		}
 	}
 
 	private Bootstrap loadBootstrap() throws Exception {

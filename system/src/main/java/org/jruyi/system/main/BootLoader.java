@@ -93,8 +93,6 @@ final class BootLoader {
 		for (BundleInfo bundleInfo : bundleInfos)
 			loadBundle(bundleInfo.getBundleUrl(), bundleInfo.getStartLevel());
 
-		// deployBundles();
-
 		m_bundleContext = null;
 		m_installedBundles = null;
 
@@ -144,7 +142,7 @@ final class BootLoader {
 
 	private ArrayList<Bundle> getBundles() {
 		if (m_bundles == null)
-			m_bundles = new ArrayList<>(128);
+			m_bundles = new ArrayList<>(64);
 
 		return m_bundles;
 	}
