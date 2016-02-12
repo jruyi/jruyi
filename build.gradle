@@ -130,9 +130,37 @@ subprojects {
 		}
 	}
 
+	task (checkUploadTask) << {
+		if (project.version.endsWith('-SNAPSHOT')) {
+			def outDir = new File("${rootProject.buildDir}")
+			if (!outDir.exists())
+				outDir.mkdirs()
+			new File(outDir, '.upload-task') << " :${project.name}:artifactoryPublish"
+		}
+	}
+
 	task sourcesJar(type: Jar) {
 		classifier = 'sources'
 		from sourceSets.main.allSource
+	}
+
+	artifactory {
+		contextUrl = 'https://oss.jfrog.org/artifactory'
+		publish {
+			repository {
+				repoKey = 'oss-snapshot-local'
+				username = bintrayUser
+				password = bintrayApiKey
+			}
+			defaults {
+				publications ('mavenJava')
+			}
+		}
+		resolve {
+			repository {
+				repoKey = 'libs-snapshot'
+			}
+		}
 	}
 
 	bintray {
