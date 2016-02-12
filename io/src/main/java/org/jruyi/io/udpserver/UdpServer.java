@@ -99,11 +99,12 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 
 	@Override
 	public void onChannelClosed(IChannel channel) {
-		c_logger.debug("{}: CLOSED", channel);
+		final Object remoteAddr = channel.remoteAddress();
+		c_logger.debug("{}(remoteAddr={}): CLOSED", channel, remoteAddr);
 
 		final ConcurrentHashMap<Object, IChannel> channels = m_channels;
 		if (channels != null)
-			channels.remove(channel.remoteAddress());
+			channels.remove(remoteAddr);
 
 		final ISessionListener<I, O> listener = m_listener;
 		if (listener != null) {
@@ -143,7 +144,7 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 	@Override
 	public void onChannelIdleTimedOut(IChannel channel) {
 		try {
-			c_logger.debug("{}: IDLE_TIMEOUT", channel);
+			c_logger.debug("{}(remoteAddr={}): IDLE_TIMEOUT", channel, channel.remoteAddress());
 
 			final ISessionListener<I, O> listener = m_listener;
 			if (listener != null)
@@ -155,7 +156,7 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 
 	@Override
 	public void onChannelOpened(IChannel channel) {
-		c_logger.debug("{}: OPENED", channel);
+		c_logger.debug("{}(remoteAddr={}): OPENED", channel, channel.remoteAddress());
 
 		final Object key = channel.remoteAddress();
 		final ConcurrentHashMap<Object, IChannel> channels = m_channels;
@@ -214,21 +215,22 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 
 	@Override
 	public void write(ISession session, O msg) {
-		final IChannel channel = m_channels.get(session.remoteAddress());
+		final Object remoteAddr = session.remoteAddress();
+		final IChannel channel = m_channels.get(remoteAddr);
 		if (channel != null) {
 			channel.write(msg);
 			return;
 		}
 
-		c_logger.warn(StrUtil.join(session, "(remoteAddr=", session.remoteAddress(),
-				") failed to send(channel closed): ", StrUtil.getLineSeparator(), msg));
+		c_logger.warn(StrUtil.join(session, "(remoteAddr=", remoteAddr, ") failed to send(channel closed): ",
+				StrUtil.getLineSeparator(), msg));
 
 		if (msg instanceof AutoCloseable) {
 			try {
 				((AutoCloseable) msg).close();
 			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(session, "(remoteAddr=", session.remoteAddress(),
-						") failed to close message: ", StrUtil.getLineSeparator(), msg), t);
+				c_logger.error(StrUtil.join(session, "(remoteAddr=", remoteAddr, ") failed to close message: ",
+						StrUtil.getLineSeparator(), msg), t);
 			}
 		}
 	}

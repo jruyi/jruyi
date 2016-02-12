@@ -144,7 +144,7 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 
 	@Override
 	public void onChannelOpened(IChannel channel) {
-		c_logger.debug("{}: OPENED", channel);
+		c_logger.debug("{}(remoteAddr={}): OPENED", channel, channel.remoteAddress());
 
 		final Long id = channel.id();
 		final ConcurrentHashMap<Long, IChannel> channels = m_channels;
@@ -167,7 +167,7 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 
 	@Override
 	public void onChannelClosed(IChannel channel) {
-		c_logger.debug("{}: CLOSED", channel);
+		c_logger.debug("{}(remoteAddr={}): CLOSED", channel, channel.remoteAddress());
 
 		final ConcurrentHashMap<Long, IChannel> channels = m_channels;
 		if (channels != null)
@@ -231,15 +231,16 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 			return;
 		}
 
-		c_logger.warn(StrUtil.join(session, "(remoteAddr=", session.remoteAddress(),
-				") failed to send(channel closed): ", StrUtil.getLineSeparator(), msg));
+		final Object remoteAddr = session.remoteAddress();
+		c_logger.warn(StrUtil.join(session, "(remoteAddr=", remoteAddr, ") failed to send(channel closed): ",
+				StrUtil.getLineSeparator(), msg));
 
 		if (msg instanceof AutoCloseable) {
 			try {
 				((AutoCloseable) msg).close();
 			} catch (Throwable t) {
-				c_logger.error(StrUtil.join(session, "(remoteAddr=", session.remoteAddress(),
-						") failed to close message: ", StrUtil.getLineSeparator(), msg), t);
+				c_logger.error(StrUtil.join(session, "(remoteAddr=", remoteAddr, ") failed to close message: ",
+						StrUtil.getLineSeparator(), msg), t);
 			}
 		}
 	}

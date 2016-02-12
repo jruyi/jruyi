@@ -20,13 +20,8 @@ if {not {conf:exists jruyi.common.scheduler}} {
 }
 
 # ChannelAdmin
-# Let n be the number of available processors.
-# When numberOfSelectorThreads < 0, the minimum integer which is a power of 2 and not less than n, will be used.
-# When numberOfIoThreads < 1 or >= n, the minimum integer m, power(2, m) >= n, will be used.
 if {not {conf:exists jruyi.io.channeladmin}} {
 	conf:create jruyi.io.channeladmin \
-		numberOfSelectorThreads=0 \
-		numberOfIoThreads=0 \
 		capacityOfIoRingBuffer=4096
 }
 

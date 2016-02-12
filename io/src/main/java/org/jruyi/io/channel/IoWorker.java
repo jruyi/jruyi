@@ -92,7 +92,7 @@ final class IoWorker implements ICloseable, EventHandler<IoEvent>, IIoWorker, Ru
 
 	@Override
 	public void onEvent(IoEvent event, long sequence, boolean endOfBatch) {
-		Runnable command = event.command();
+		final Runnable command = event.command();
 		if (command == null)
 			event.task().run(event.msg(), event.filters(), event.filterCount());
 		else

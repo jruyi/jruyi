@@ -71,12 +71,13 @@ public final class ChannelAdmin implements IChannelAdmin {
 		m_iowMask = count - 1;
 		m_iows = iows;
 
+		final SelectorThread[] sts;
 		try {
 			count = numberOfSelectors(properties);
 			int capacityOfSelectorRingBuffer = capacityOfIoRingBuffer * count
 					/ Runtime.getRuntime().availableProcessors();
 			capacityOfSelectorRingBuffer = Util.ceilingNextPowerOfTwo(capacityOfSelectorRingBuffer);
-			final SelectorThread[] sts = new SelectorThread[count];
+			sts = new SelectorThread[count];
 			for (int i = 0; i < count; ++i) {
 				@SuppressWarnings("resource")
 				final SelectorThread st = new SelectorThread();
@@ -96,7 +97,7 @@ public final class ChannelAdmin implements IChannelAdmin {
 			throw t;
 		}
 
-		c_logger.info("ChannelAdmin activated");
+		c_logger.info("ChannelAdmin activated: numberOfSelectors={}, numberOfIoThreads={}", sts.length, iows.length);
 	}
 
 	public void deactivate() {
