@@ -10,9 +10,9 @@
 *.iml
 .gradle
 .nb-gradle
+*~
 
 /build
-/api/build
 /cli/build
 /clid/build
 /cmd/build
@@ -20,14 +20,11 @@
 /core/build
 /io/build
 /launcher/build
-/me/build
 /osgi-log/build
 /system/build
-/timeoutadmin/build
 /tpe/build
 
 /bin
-/api/bin
 /cli/bin
 /clid/bin
 /cmd/bin
@@ -35,8 +32,6 @@
 /core/bin
 /io/bin
 /launcher/bin
-/me/bin
 /osgi-log/bin
 /system/bin
-/timeoutadmin/bin
 /tpe/bin
