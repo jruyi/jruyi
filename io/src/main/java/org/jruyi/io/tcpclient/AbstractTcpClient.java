@@ -267,7 +267,7 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 		updateFilters(conf);
 		configuration(conf);
 
-		m_caption = StrUtil.join(properties, conf.ip(), conf.port(), "TcpClient");
+		m_caption = Util.genServiceId(properties, conf.ip(), conf.port(), "TcpClient");
 		m_channels = new ConcurrentHashMap<>(conf.initialCapacityOfChannelMap());
 		m_timer = m_ta.createTimer(Util.max(timeout(conf), 0));
 	}
