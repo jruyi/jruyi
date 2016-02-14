@@ -28,7 +28,7 @@ dependencies {
 	compile "org.apache.felix:org.apache.felix.gogo.runtime:0.16.2"
 	compile "org.slf4j:slf4j-api:1.7.14"
 
-	compile "org.jruyi:jruyi-api:2.5.0-SNAPSHOT"
+	compile "org.jruyi:jruyi-api:2.5.0"
 }
 
 jar {

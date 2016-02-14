@@ -26,7 +26,8 @@ dependencies {
 	compile "org.slf4j:slf4j-api:1.7.14"
 	compile "com.lmax:disruptor:3.3.4"
 
-	compile "org.jruyi:jruyi-api:2.5.0-SNAPSHOT"
+	compile "org.jruyi:jruyi-api:2.5.0"
+
 	compile project(':common')
 	compile project(':io')
 }
