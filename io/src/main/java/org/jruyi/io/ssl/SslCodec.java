@@ -158,8 +158,8 @@ final class SslCodec implements IWriteEncoder<IBuffer>, IReadToDstDecoder<IBuffe
 			usedBuilder = true;
 		}
 
-		SSLEngineResult result;
 		try {
+			SSLEngineResult result;
 			final ByteBuffer[] appData = bba.array();
 			final int size = bba.size();
 			int len = size;
@@ -192,8 +192,10 @@ final class SslCodec implements IWriteEncoder<IBuffer>, IReadToDstDecoder<IBuffe
 							if (unit.available() < n && unit.capacity() >= n)
 								unit = Util.appendNewUnit(dstChain);
 							netBuf = unit.getByteBufferForWrite();
-						} else
+						} else {
 							builder.ensureCapacity(session.getPacketBufferSize());
+							netBuf = builder.getByteBuffer(0, builder.capacity());
+						}
 						continue wrap;
 					}
 
