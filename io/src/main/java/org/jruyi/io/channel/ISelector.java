@@ -20,7 +20,11 @@ public interface ISelector {
 
 	Selector selector();
 
-	void onReadRequired(ISelectableChannel channel);
+	Timer createTimer(Channel channel);
 
-	void onWriteRequired(ISelectableChannel channel);
+	void write(IoEvent ioEvent);
+
+	void accept(ISelectableChannel channel);
+
+	void connect(ISelectableChannel channel);
 }

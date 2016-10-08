@@ -14,21 +14,12 @@
 
 package org.jruyi.core.internal;
 
-import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.tcpserver.TcpAcceptor;
 
 final class TcpAcceptorWrapper {
 
 	private final TcpAcceptor m_acceptor = new TcpAcceptor();
 	private int m_count;
-
-	void setChannelAdmin(IChannelAdmin ca) {
-		m_acceptor.setChannelAdmin(ca);
-	}
-
-	void unsetChannelAdmin(IChannelAdmin ca) {
-		m_acceptor.unsetChannelAdmin(ca);
-	}
 
 	TcpAcceptor unwrap() {
 		return m_acceptor;

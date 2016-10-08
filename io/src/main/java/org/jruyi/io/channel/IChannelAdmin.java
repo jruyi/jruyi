@@ -16,11 +16,7 @@ package org.jruyi.io.channel;
 
 public interface IChannelAdmin {
 
-	void onRegisterRequired(ISelectableChannel channel);
-
-	void onConnectRequired(ISelectableChannel channel);
-
-	IIoWorker designateIoWorker(ISelectableChannel channel);
+	ISelector designateSelector(int id);
 
 	void performIoTask(IIoTask task, Object msg);
 }

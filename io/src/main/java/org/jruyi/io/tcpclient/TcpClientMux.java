@@ -40,9 +40,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Component(name = IoConstants.CN_TCPCLIENT_MUX_FACTORY, //
-factory = "tcpclient.mux", //
-service = { IService.class }, //
-xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
+		factory = "tcpclient.mux", //
+		service = { IService.class }, //
+		xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class TcpClientMux<I extends IIdentifiable<?>, O extends IIdentifiable<?>>
 		extends AbstractTcpClient<I, O> {
 
@@ -93,7 +93,6 @@ public final class TcpClientMux<I extends IIdentifiable<?>, O extends IIdentifia
 			@SuppressWarnings("unchecked")
 			final MuxTcpChannel<O> muxTcpChannel = (MuxTcpChannel<O>) channel;
 			tn.listener(muxTcpChannel);
-			tn.executor(channel.ioWorker());
 			tn.schedule(timeout);
 		}
 	}

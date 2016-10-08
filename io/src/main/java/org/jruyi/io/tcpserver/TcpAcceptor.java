@@ -22,33 +22,28 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
+import java.util.List;
 
 import org.jruyi.common.StrUtil;
-import org.jruyi.io.channel.IChannelAdmin;
-import org.jruyi.io.common.IVisitor;
+import org.jruyi.io.common.IoEventQueue;
 import org.jruyi.io.common.StopThread;
-import org.jruyi.io.common.SyncPutQueue;
 import org.jruyi.io.tcp.TcpChannel;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Component(name = "jruyi.io.tcpserver.tcpacceptor", //
-configurationPolicy = ConfigurationPolicy.IGNORE, //
-service = { ITcpAcceptor.class }, //
-xmlns = "http://www.osgi.org/xmlns/scr/v1.2.0")
-public final class TcpAcceptor implements ITcpAcceptor, Runnable, IVisitor<TcpServer<?, ?>> {
+		configurationPolicy = ConfigurationPolicy.IGNORE, //
+		service = { ITcpAcceptor.class }, //
+		xmlns = "http://www.osgi.org/xmlns/scr/v1.2.0")
+public final class TcpAcceptor implements ITcpAcceptor, Runnable {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(TcpAcceptor.class);
 
 	private Selector m_selector;
 	private Thread m_thread;
-	private SyncPutQueue<TcpServer<?, ?>> m_queue;
-
-	private IChannelAdmin m_ca;
+	private IoEventQueue<TcpServer<?, ?>> m_queue;
 
 	@Override
 	public void doAccept(TcpServer<?, ?> server) throws Exception {
@@ -58,8 +53,7 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable, IVisitor<TcpSe
 		m_selector.wakeup();
 	}
 
-	@Override
-	public void visit(TcpServer<?, ?> server) {
+	private void visit(TcpServer<?, ?> server) {
 		final SelectableChannel channel = server.getSelectableChannel();
 		try {
 			channel.register(m_selector, SelectionKey.OP_ACCEPT, server);
@@ -76,7 +70,7 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable, IVisitor<TcpSe
 
 	@Override
 	public void run() {
-		final SyncPutQueue<TcpServer<?, ?>> queue = m_queue;
+		final IoEventQueue<TcpServer<?, ?>> queue = m_queue;
 		final Selector selector = m_selector;
 		final Thread currentThread = Thread.currentThread();
 		for (;;) {
@@ -85,31 +79,35 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable, IVisitor<TcpSe
 				if (currentThread.isInterrupted())
 					break;
 
-				// Register
-				queue.accept(this);
+				if (n > 0) {
+					final Iterator<SelectionKey> iter = selector.selectedKeys().iterator();
+					while (iter.hasNext()) {
+						final SelectionKey key = iter.next();
+						iter.remove();
 
-				if (n < 1)
-					continue;
+						if (!key.isValid())
+							continue;
 
-				final Iterator<SelectionKey> iter = selector.selectedKeys().iterator();
-				while (iter.hasNext()) {
-					final SelectionKey key = iter.next();
-					iter.remove();
-
-					if (!key.isValid())
-						continue;
-
-					@SuppressWarnings("unchecked")
-					final TcpServer<Object, Object> server = (TcpServer<Object, Object>) key.attachment();
-					try {
-						final SocketChannel socketChannel = ((ServerSocketChannel) key.channel()).accept();
-						@SuppressWarnings("resource")
-						final TcpChannel tcpChannel = new TcpChannel(server, socketChannel);
-						tcpChannel.onAccept();
-					} catch (ClosedChannelException e) {
-					} catch (Throwable t) {
-						c_logger.error(StrUtil.join(server, " failed to accept"), t);
+						@SuppressWarnings("unchecked")
+						final TcpServer<Object, Object> server = (TcpServer<Object, Object>) key.attachment();
+						try {
+							final SocketChannel socketChannel = ((ServerSocketChannel) key.channel()).accept();
+							@SuppressWarnings("resource")
+							final TcpChannel tcpChannel = new TcpChannel(server, socketChannel);
+							tcpChannel.onAccept();
+						} catch (ClosedChannelException e) {
+						} catch (Throwable t) {
+							c_logger.error(StrUtil.join(server, " failed to accept"), t);
+						}
 					}
+				}
+
+				// Register
+				final List<TcpServer<?, ?>> servers = queue.elements();
+				if (servers != null) {
+					for (TcpServer<?, ?> server : servers)
+						visit(server);
+					queue.cache(servers);
 				}
 			} catch (ClosedSelectorException e) {
 				break;
@@ -119,21 +117,11 @@ public final class TcpAcceptor implements ITcpAcceptor, Runnable, IVisitor<TcpSe
 		}
 	}
 
-	@Reference(name = "channelAdmin", policy = ReferencePolicy.DYNAMIC)
-	public synchronized void setChannelAdmin(IChannelAdmin ca) {
-		m_ca = ca;
-	}
-
-	public synchronized void unsetChannelAdmin(IChannelAdmin ca) {
-		if (m_ca == ca)
-			m_ca = null;
-	}
-
 	public void activate() throws Exception {
 		c_logger.info("Starting TcpAcceptor...");
 
 		m_selector = Selector.open();
-		m_queue = new SyncPutQueue<>();
+		m_queue = new IoEventQueue<>();
 		m_thread = new Thread(this, "jruyi-acceptor");
 		m_thread.start();
 

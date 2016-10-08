@@ -14,26 +14,7 @@
 
 package org.jruyi.io.channel;
 
-final class SelectorEvent {
+public interface ITimerListener {
 
-	private SelectorOp m_op;
-	private ISelectableChannel m_channel;
-
-	public void op(SelectorOp selectorOp) {
-		m_op = selectorOp;
-	}
-
-	public SelectorOp op() {
-		return m_op;
-	}
-
-	public void channel(ISelectableChannel channel) {
-		m_channel = channel;
-	}
-
-	public ISelectableChannel channel() {
-		final ISelectableChannel channel = m_channel;
-		m_channel = null;
-		return channel;
-	}
+	void onTimeout(Channel channel);
 }

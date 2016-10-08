@@ -27,6 +27,7 @@ public final class Configuration extends TcpChannelConf {
 	private Integer m_backlog;
 	private Integer m_sessionIdleTimeoutInSeconds;
 	private Integer m_initCapacityOfChannelMap;
+	private Integer m_numberOfIoThreads;
 
 	static {
 		c_mProps = new Method[M_PROPS.length];
@@ -74,7 +75,7 @@ public final class Configuration extends TcpChannelConf {
 	}
 
 	public void sessionIdleTimeoutInSeconds(Integer sessionIdleTimeoutInSeconds) {
-		m_sessionIdleTimeoutInSeconds = sessionIdleTimeoutInSeconds == null ? 300 : sessionIdleTimeoutInSeconds;
+		m_sessionIdleTimeoutInSeconds = sessionIdleTimeoutInSeconds == null ? 120 : sessionIdleTimeoutInSeconds;
 	}
 
 	public Integer initCapacityOfChannelMap() {
@@ -83,6 +84,14 @@ public final class Configuration extends TcpChannelConf {
 
 	public void initCapacityOfChannelMap(Integer initCapacityOfChannelMap) {
 		m_initCapacityOfChannelMap = initCapacityOfChannelMap == null ? 2048 : initCapacityOfChannelMap;
+	}
+
+	public final Integer numberOfIoThreads() {
+		return m_numberOfIoThreads;
+	}
+
+	public final void numberOfIoThreads(Integer numberOfIoThreads) {
+		m_numberOfIoThreads = numberOfIoThreads == null ? Runtime.getRuntime().availableProcessors() : numberOfIoThreads;
 	}
 
 	public final boolean isMandatoryChanged(Configuration newConf) throws Exception {

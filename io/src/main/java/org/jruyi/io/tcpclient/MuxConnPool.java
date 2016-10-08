@@ -40,9 +40,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Component(name = IoConstants.CN_TCPCLIENT_MUX_CONNPOOL_FACTORY, //
-factory = "tcpclient.mux.connpool", //
-service = { IService.class }, //
-xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
+		factory = "tcpclient.mux.connpool", //
+		service = { IService.class }, //
+		xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class MuxConnPool<I extends IIdentifiable<?>, O extends IIdentifiable<?>> extends ConnPool<I, O> {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(MuxConnPool.class);
@@ -86,7 +86,6 @@ public final class MuxConnPool<I extends IIdentifiable<?>, O extends IIdentifiab
 			}
 			@SuppressWarnings("unchecked")
 			final PooledMuxChannel<O> pooledChannel = (PooledMuxChannel<O>) channel;
-			tn.executor(channel.ioWorker());
 			tn.listener(pooledChannel);
 			tn.schedule(timeout);
 		}

@@ -34,9 +34,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Component(name = IoConstants.CN_TCPCLIENT_SHORTCONN_FACTORY, //
-factory = "tcpclient.shortconn", //
-service = { IService.class }, //
-xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
+		factory = "tcpclient.shortconn", //
+		service = { IService.class }, //
+		xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class ShortConn<I, O> extends AbstractTcpClient<I, O> {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(ShortConn.class);

@@ -54,7 +54,7 @@ final class TimeoutNotifier<S> implements ITimeoutNotifier<S>, ITimeoutEvent<S>,
 
 			@Override
 			public boolean cancel(TimeoutNotifier<?> notifier) {
-				return true;
+				return false;
 			}
 
 			@Override

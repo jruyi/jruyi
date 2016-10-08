@@ -14,7 +14,11 @@
 
 package org.jruyi.io.udpserver;
 
-import java.net.*;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.net.SocketException;
 import java.nio.channels.DatagramChannel;
 import java.util.Arrays;
 import java.util.Collection;
@@ -22,11 +26,21 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.jruyi.common.*;
-import org.jruyi.io.*;
+import org.jruyi.common.IService;
+import org.jruyi.common.ITimeoutNotifier;
+import org.jruyi.common.ITimer;
+import org.jruyi.common.ITimerAdmin;
+import org.jruyi.common.Service;
+import org.jruyi.common.StrUtil;
+import org.jruyi.io.IBufferFactory;
+import org.jruyi.io.ISession;
+import org.jruyi.io.ISessionListener;
+import org.jruyi.io.ISessionService;
+import org.jruyi.io.IoConstants;
 import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.channel.IChannelService;
+import org.jruyi.io.channel.ISelector;
 import org.jruyi.io.common.Util;
 import org.jruyi.io.filter.IFilterList;
 import org.jruyi.io.filter.IFilterManager;
@@ -37,9 +51,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Component(name = IoConstants.CN_UDPSERVER_FACTORY, //
-factory = "udpserver", //
-service = { IService.class }, //
-xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
+		factory = "udpserver", //
+		service = { IService.class }, //
+		xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class UdpServer<I, O> extends Service implements IChannelService<I, O>, ISessionService<I, O> {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(UdpServer.class);
@@ -298,8 +312,10 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 
 		@SuppressWarnings("unchecked")
 		final UdpServerChannel udpServerChannel = new UdpServerChannel((UdpServer<Object, Object>) this,
-				datagramChannel, localAddr);
-		m_ca.onRegisterRequired(udpServerChannel);
+				datagramChannel, localAddr, m_ca);
+		ISelector selector = m_ca.designateSelector(udpServerChannel.id().intValue());
+		udpServerChannel.selector(selector);
+		selector.accept(udpServerChannel);
 
 		c_logger.info(StrUtil.join(this, " started: ", conf.port()));
 	}

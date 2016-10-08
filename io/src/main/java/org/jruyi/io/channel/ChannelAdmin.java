@@ -15,156 +15,95 @@
 package org.jruyi.io.channel;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.jruyi.io.common.Util;
 import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.lmax.disruptor.util.Util;
 
 @Component(name = "jruyi.io.channeladmin", xmlns = "http://www.osgi.org/xmlns/scr/v1.2.0")
 public final class ChannelAdmin implements IChannelAdmin {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(ChannelAdmin.class);
 
-	private static int s_sequence = -1;
+	private static final AtomicInteger c_sequence = new AtomicInteger(-1);
+	private static final AtomicInteger c_taskSeq = new AtomicInteger(-1);
 
-	private IoWorker[] m_iows;
-	private int m_iowMask;
+	private final int m_id;
+	private int m_mask;
+	private IoThread[] m_ioThreads;
 
-	private SelectorThread[] m_sts;
+	public ChannelAdmin() {
+		m_id = c_sequence.incrementAndGet();
+	}
 
-	@Override
-	public void onRegisterRequired(ISelectableChannel channel) {
-		getSelectorThread(channel.id().intValue()).onRegisterRequired(channel);
+	public ChannelAdmin(Integer numberOfIoThreads) {
+		this();
+		init(numberOfIoThreads);
 	}
 
 	@Override
-	public void onConnectRequired(ISelectableChannel channel) {
-		getSelectorThread(channel.id().intValue()).onConnectRequired(channel);
-	}
-
-	@Override
-	public IIoWorker designateIoWorker(ISelectableChannel channel) {
-		return getIoWorker(channel.id().intValue());
+	public ISelector designateSelector(int id) {
+		return m_ioThreads[id & m_mask];
 	}
 
 	@Override
 	public void performIoTask(IIoTask task, Object msg) {
-		getIoWorker(++s_sequence).perform(task, msg, null, 0);
+		int hash = msg.hashCode() + c_taskSeq.incrementAndGet();
+		m_ioThreads[hash & m_mask].write(new IoEvent(task, msg));
 	}
 
-	public void activate(Map<String, ?> properties) throws Throwable {
-		c_logger.info("Activating ChannelAdmin...");
-
-		final int capacityOfIoRingBuffer = capacityOfIoRingBuffer(properties);
-
-		int count = numberOfIoThreads(properties);
-		final IoWorker[] iows = new IoWorker[count];
-		for (int i = 0; i < count; ++i) {
-			@SuppressWarnings("resource")
-			final IoWorker iow = new IoWorker();
-			iow.open(i, capacityOfIoRingBuffer);
-			iows[i] = iow;
-		}
-
-		m_iowMask = count - 1;
-		m_iows = iows;
-
-		final SelectorThread[] sts;
+	void start() throws Throwable {
+		final int id = m_id;
+		final int numberOfIoThreads = m_mask + 1;
+		final IoThread[] ioThreads;
 		try {
-			count = numberOfSelectors(properties);
-			int capacityOfSelectorRingBuffer = capacityOfIoRingBuffer * count
-					/ Runtime.getRuntime().availableProcessors();
-			capacityOfSelectorRingBuffer = Util.ceilingNextPowerOfTwo(capacityOfSelectorRingBuffer);
-			sts = new SelectorThread[count];
-			for (int i = 0; i < count; ++i) {
+			ioThreads = new IoThread[numberOfIoThreads];
+			for (int i = 0; i < numberOfIoThreads; ++i) {
 				@SuppressWarnings("resource")
-				final SelectorThread st = new SelectorThread();
+				final IoThread ioThread = new IoThread();
 				try {
-					st.open(i, capacityOfSelectorRingBuffer);
-				} catch (Exception e) {
-					st.close();
+					ioThread.open(id, i);
+				} catch (Throwable t) {
+					ioThread.close();
 					while (i > 0)
-						sts[--i].close();
-					throw e;
+						ioThreads[--i].close();
+					throw t;
 				}
-				sts[i] = st;
+				ioThreads[i] = ioThread;
 			}
-			m_sts = sts;
+			m_ioThreads = ioThreads;
 		} catch (Throwable t) {
-			stopIoWorkers();
 			throw t;
 		}
 
-		c_logger.info("ChannelAdmin activated: numberOfSelectors={}, numberOfIoThreads={}", sts.length, iows.length);
+		c_logger.info("ChannelAdmin-{} started: numberOfIoThreads={}", id, numberOfIoThreads);
+	}
+
+	void stop() {
+		final IoThread[] ioThreads = m_ioThreads;
+		m_ioThreads = null;
+		for (IoThread ioThread : ioThreads)
+			ioThread.close();
+
+		c_logger.info("ChannelAdmin-{} stopped", m_id);
+	}
+
+	public void activate(Map<String, ?> properties) throws Throwable {
+		init((Integer) properties.get("numberOfIoThreads"));
+		start();
+		// c_logger.info("Default ChannelAdmin-{} activated", m_id);
 	}
 
 	public void deactivate() {
-		c_logger.info("Deactivating ChannelAdmin...");
-
-		final SelectorThread[] sts = m_sts;
-		m_sts = null;
-		for (SelectorThread st : sts)
-			st.close();
-
-		stopIoWorkers();
-
-		c_logger.info("ChannelAdmin deactivated");
+		// c_logger.info("Default ChannelAdmin-{} deactivated", m_id);
+		stop();
 	}
 
-	private void stopIoWorkers() {
-		final IoWorker[] iows = m_iows;
-		m_iows = null;
-		for (IoWorker iow : iows)
-			iow.close();
-	}
-
-	private SelectorThread getSelectorThread(int id) {
-		final SelectorThread[] sts = m_sts;
-		final int i = (id & ~(1 << 31)) % sts.length;
-		return sts[i];
-	}
-
-	private IoWorker getIoWorker(int id) {
-		return m_iows[id & m_iowMask];
-	}
-
-	private static int capacityOfIoRingBuffer(Map<String, ?> properties) {
-		final Object value = properties.get("capacityOfIoRingBuffer");
-		int capacity;
-		if (value == null || (capacity = (Integer) value) < 1)
-			capacity = 1024 * 4;
-		else
-			capacity = Util.ceilingNextPowerOfTwo(capacity);
-
-		return capacity;
-	}
-
-	private static int numberOfSelectors(Map<String, ?> properties) {
-		final Object value = properties.get("numberOfSelectorThreads");
-		int n;
-		int i = Runtime.getRuntime().availableProcessors();
-		if (value == null || (n = (Integer) value) < 1 || n >= i) {
-			n = 0;
-			while ((i >>>= 1) > 0)
-				++n;
-			if (n < 1)
-				n = 1;
-			int count = Util.ceilingNextPowerOfTwo(n);
-			if (count > n)
-				count >>>= 1;
-			return count;
-		}
-		return n;
-	}
-
-	private static int numberOfIoThreads(Map<String, ?> properties) {
-		final Object value = properties.get("numberOfIoThreads");
-		int n;
-		if (value == null || (n = (Integer) value) < 1)
-			n = Runtime.getRuntime().availableProcessors();
-		n = Util.ceilingNextPowerOfTwo(n);
-		return n;
+	private void init(Integer numberOfIoThreads) {
+		final int n = numberOfIoThreads != null && numberOfIoThreads > 0 ? numberOfIoThreads
+				: Runtime.getRuntime().availableProcessors();
+		m_mask = Util.ceilingNextPowerOfTwo(n) - 1;
 	}
 }

@@ -27,10 +27,9 @@ configurations.all {
 }
 
 dependencies {
-	compile "org.slf4j:slf4j-api:1.7.14"
-	compile "com.lmax:disruptor:3.3.4"
+	compile "org.slf4j:slf4j-api:1.7.21"
 
-	compile "org.jruyi:jruyi-api:2.5.0"
+	compile "org.jruyi:jruyi-api:2.5.1-SNAPSHOT"
 
 	compile project(':common')
 	compile project(':io')
@@ -100,6 +99,16 @@ publishing {
 			}
 
 			artifact sourcesJar
+		}
+	}
+
+	repositories {
+		maven {
+			url 'https://oss.jfrog.org/artifactory/oss-snapshot-local'
+			credentials {
+				username bintrayUser
+				password bintrayApiKey
+			}
 		}
 	}
 }

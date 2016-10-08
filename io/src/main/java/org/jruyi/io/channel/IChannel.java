@@ -21,15 +21,9 @@ public interface IChannel extends ISession, ISelectableChannel {
 
 	IChannelService<Object, Object> channelService();
 
-	IIoWorker ioWorker();
-
 	void connect(int timeout);
 
-	void receive(IBuffer in);
-
 	void write(Object data);
-
-	void onReadRequired();
 
 	boolean scheduleIdleTimeout(int timeout);
 
@@ -38,6 +32,8 @@ public interface IChannel extends ISession, ISelectableChannel {
 	boolean scheduleReadTimeout(int timeout);
 
 	boolean cancelTimeout();
+
+	void receive(IBuffer in);
 
 	/**
 	 * Tests whether this session is closed.

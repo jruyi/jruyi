@@ -32,9 +32,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Component(name = IoConstants.CN_TCPCLIENT_FACTORY, //
-factory = "tcpclient", //
-service = { IService.class }, //
-xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
+		factory = "tcpclient", //
+		service = { IService.class }, //
+		xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class TcpClient<I, O> extends AbstractTcpClient<I, O> {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(TcpClient.class);

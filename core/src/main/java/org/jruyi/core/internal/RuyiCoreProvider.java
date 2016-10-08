@@ -50,15 +50,12 @@ public final class RuyiCoreProvider implements RuyiCore.IRuyiCore {
 		if (m_count == 0) {
 			m_scheduler.start();
 
-			final ChannelAdmin ca = m_ca;
 			try {
-				ca.activate(m_caConf.properties());
+				m_ca.activate(m_caConf.properties());
 			} catch (Throwable t) {
 				m_scheduler.stop();
 				throw t;
 			}
-
-			m_tcpAcceptor.setChannelAdmin(ca);
 
 			m_bf.start();
 		}
@@ -70,10 +67,7 @@ public final class RuyiCoreProvider implements RuyiCore.IRuyiCore {
 			return;
 
 		if (--m_count == 0) {
-			final ChannelAdmin ca = m_ca;
-			m_tcpAcceptor.unsetChannelAdmin(ca);
-
-			ca.deactivate();
+			m_ca.deactivate();
 
 			m_scheduler.stop();
 		}

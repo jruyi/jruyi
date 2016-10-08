@@ -32,5 +32,7 @@ public interface ISelectableChannel extends ICloseable {
 
 	void interestOps(int ops);
 
-	void register(ISelector selector, int ops) throws Throwable;
+	void registerAccept() throws Throwable;
+
+	void registerConnect() throws Throwable;
 }

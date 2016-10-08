@@ -14,18 +14,16 @@
 
 package org.jruyi.io.channel;
 
-import java.nio.channels.CancelledKeyException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.ClosedSelectorException;
-import java.nio.channels.SelectionKey;
 
 enum SelectorOp {
 
-	REGISTER {
+	ACCEPT {
 		@Override
-		public void run(ISelector selector, ISelectableChannel channel) {
+		public void run(ISelectableChannel channel) {
 			try {
-				channel.register(selector, SelectionKey.OP_READ);
+				channel.registerAccept();
 			} catch (ClosedSelectorException | ClosedChannelException e) {
 			} catch (Throwable t) {
 				channel.onException(t);
@@ -34,37 +32,15 @@ enum SelectorOp {
 	},
 	CONNECT {
 		@Override
-		public void run(ISelector selector, ISelectableChannel channel) {
+		public void run(ISelectableChannel channel) {
 			try {
-				channel.register(selector, SelectionKey.OP_CONNECT);
+				channel.registerConnect();
 			} catch (ClosedSelectorException | ClosedChannelException e) {
-			} catch (Throwable t) {
-				channel.onException(t);
-			}
-		}
-	},
-	READ {
-		@Override
-		public void run(ISelector selector, ISelectableChannel channel) {
-			try {
-				channel.interestOps(SelectionKey.OP_READ);
-			} catch (CancelledKeyException e) {
-			} catch (Throwable t) {
-				channel.onException(t);
-			}
-		}
-	},
-	WRITE {
-		@Override
-		public void run(ISelector selector, ISelectableChannel channel) {
-			try {
-				channel.interestOps(SelectionKey.OP_WRITE);
-			} catch (CancelledKeyException e) {
 			} catch (Throwable t) {
 				channel.onException(t);
 			}
 		}
 	};
 
-	public abstract void run(ISelector selector, ISelectableChannel channel);
+	public abstract void run(ISelectableChannel channel);
 }

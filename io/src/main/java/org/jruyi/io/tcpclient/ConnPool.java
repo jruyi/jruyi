@@ -41,10 +41,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Component(name = IoConstants.CN_TCPCLIENT_CONNPOOL_FACTORY, //
-factory = "tcpclient.connpool", //
-service = { IService.class }, //
-xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
-public class ConnPool<I, O> extends AbstractTcpClient<I, O>implements IIoTask {
+		factory = "tcpclient.connpool", //
+		service = { IService.class }, //
+		xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
+public class ConnPool<I, O> extends AbstractTcpClient<I, O> implements IIoTask {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(ConnPool.class);
 
@@ -300,7 +300,8 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O>implements IIoTask {
 		final ReentrantLock lock = m_channelQueueLock;
 		lock.lock();
 		try {
-			if ((m_channelQueueSize < conf.corePoolSize() && !conf.allowsCoreConnectionTimeout()) || keepAliveTime < 0) {
+			if ((m_channelQueueSize < conf.corePoolSize() && !conf.allowsCoreConnectionTimeout())
+					|| keepAliveTime < 0) {
 				putNode(newNode(channel));
 				return;
 			}
@@ -366,7 +367,7 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O>implements IIoTask {
 				lock.unlock();
 			}
 			node.close();
-		} while (!channel.cancelTimeout());
+		} while (channel.isClosed() || !channel.cancelTimeout());
 
 		return channel;
 	}

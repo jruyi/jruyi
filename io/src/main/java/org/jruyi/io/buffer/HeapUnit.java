@@ -17,7 +17,10 @@ package org.jruyi.io.buffer;
 import static org.jruyi.io.buffer.Helper.*;
 import static sun.misc.Unsafe.*;
 
+import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
+import java.security.AccessController;
+import java.security.PrivilegedExceptionAction;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jruyi.common.IByteSequence;
@@ -28,7 +31,23 @@ import sun.nio.ch.DirectBuffer;
 
 final class HeapUnit implements IUnit {
 
-	private static final Unsafe c_unsafe = com.lmax.disruptor.util.Util.getUnsafe();
+	private static final Unsafe c_unsafe;
+
+	static {
+		try {
+			final PrivilegedExceptionAction<Unsafe> action = new PrivilegedExceptionAction<Unsafe>() {
+				public Unsafe run() throws Exception {
+					Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
+					theUnsafe.setAccessible(true);
+					return (Unsafe) theUnsafe.get(null);
+				}
+			};
+
+			c_unsafe = AccessController.doPrivileged(action);
+		} catch (Throwable t) {
+			throw new RuntimeException("Unable to load unsafe", t);
+		}
+	}
 
 	// offset of the next byte to be read
 	private int m_position;

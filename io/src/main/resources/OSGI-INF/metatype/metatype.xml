@@ -24,9 +24,7 @@
 	</OCD>
 
 	<OCD id="channelAdmin" name="Channel Admin">
-		<AD id="numberOfSelectorThreads" name="Number of Selector Threads" type="Integer" required="false" min="0"/>
 		<AD id="numberOfIoThreads" name="Number of IO Threads" type="Integer" required="false" min="0"/>
-		<AD id="capacityOfIoRingBuffer" name="Capacity of IO RingBuffer" type="Integer" default="4096" min="1"/>
 	</OCD>
 
 	<OCD id="textLineFilter" name="Text Line Filter">

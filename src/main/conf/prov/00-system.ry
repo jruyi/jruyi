@@ -21,8 +21,7 @@ if {not {conf:exists jruyi.common.scheduler}} {
 
 # ChannelAdmin
 if {not {conf:exists jruyi.io.channeladmin}} {
-	conf:create jruyi.io.channeladmin \
-		capacityOfIoRingBuffer=4096
+	conf:create jruyi.io.channeladmin numberOfIoThreads=0
 }
 
 # CLI Daemon

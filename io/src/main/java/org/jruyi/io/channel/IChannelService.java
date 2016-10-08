@@ -24,9 +24,9 @@ public interface IChannelService<I, O> {
 
 	Object getConfiguration();
 
-	IChannelAdmin getChannelAdmin();
-
 	IBufferFactory getBufferFactory();
+
+    IChannelAdmin getChannelAdmin();
 
 	long throttle();
 

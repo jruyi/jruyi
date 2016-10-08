@@ -22,18 +22,7 @@ import org.jruyi.core.IChannelAdminConfiguration;
 
 final class ChannelAdminConfiguration implements IChannelAdminConfiguration {
 
-	private Integer m_numberOfSelectorThreads;
 	private Integer m_numberOfIoThreads;
-	private int m_capacityOfIoRingBuffer = 1024 * 4;
-
-	@Override
-	public IChannelAdminConfiguration numberOfSelectorThreads(Integer numberOfSelectorThreads) {
-		if (numberOfSelectorThreads != null && numberOfSelectorThreads < 0)
-			throw new IllegalArgumentException(
-					StrUtil.join("Illegal numberOfSelectorThreads: ", numberOfSelectorThreads, " >= 0"));
-		m_numberOfSelectorThreads = numberOfSelectorThreads;
-		return this;
-	}
 
 	@Override
 	public IChannelAdminConfiguration numberOfIoThreads(Integer numberOfIoThreads) {
@@ -44,34 +33,13 @@ final class ChannelAdminConfiguration implements IChannelAdminConfiguration {
 	}
 
 	@Override
-	public IChannelAdminConfiguration capacityOfIoRingBuffer(int capacityOfIoRingBuffer) {
-		if (capacityOfIoRingBuffer < 1)
-			throw new IllegalArgumentException(
-					StrUtil.join("Illegal capacityOfIoRingBuffer: ", capacityOfIoRingBuffer, " > 0"));
-		m_capacityOfIoRingBuffer = capacityOfIoRingBuffer;
-		return this;
-	}
-
-	@Override
-	public Integer numberOfSelectorThreads() {
-		return m_numberOfSelectorThreads;
-	}
-
-	@Override
 	public Integer numberOfIoThreads() {
 		return m_numberOfIoThreads;
 	}
 
-	@Override
-	public int capacityOfIoRingBuffer() {
-		return m_capacityOfIoRingBuffer;
-	}
-
 	Map<String, ?> properties() {
-		final HashMap<String, Object> properties = new HashMap<>(3);
-		properties.put("numberOfSelectorThreads", m_numberOfSelectorThreads);
+		final HashMap<String, Object> properties = new HashMap<>(1);
 		properties.put("numberOfIoThreads", m_numberOfIoThreads);
-		properties.put("capacityOfIoRingBuffer", m_capacityOfIoRingBuffer);
 		return properties;
 	}
 }

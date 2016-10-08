@@ -181,7 +181,7 @@ final class Timer implements ITimer, ITimerConfiguration, Runnable {
 			if (executor != null) {
 				try {
 					executor.execute(notifier);
-					return;
+					continue;
 				} catch (Throwable t) {
 					c_logger.warn("Failed to execute timeout delivery. Will use tick thread to execute.", t);
 				}

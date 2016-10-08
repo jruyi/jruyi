@@ -26,6 +26,7 @@ class TcpClientConf extends TcpChannelConf {
 	private int m_initialCapacityOfChannelMap;
 	private int m_connectTimeoutInSeconds;
 	private int m_readTimeoutInSeconds;
+	private int m_numberOfIoThreads;
 
 	static {
 		c_mProps = new Method[M_PROPS.length];
@@ -50,6 +51,7 @@ class TcpClientConf extends TcpChannelConf {
 		initialCapacityOfChannelMap((Integer) properties.get("initialCapacityOfChannelMap"));
 		connectTimeoutInSeconds((Integer) properties.get("connectTimeoutInSeconds"));
 		readTimeoutInSeconds((Integer) properties.get("readTimeoutInSeconds"));
+		numberOfIoThreads((Integer) properties.get("numberOfIoThreads"));
 	}
 
 	public final String addr() {
@@ -82,6 +84,14 @@ class TcpClientConf extends TcpChannelConf {
 
 	public final void readTimeoutInSeconds(Integer readTimeoutInSeconds) {
 		m_readTimeoutInSeconds = readTimeoutInSeconds == null ? 30 : readTimeoutInSeconds;
+	}
+
+	public final int numberOfIoThreads() {
+		return m_numberOfIoThreads;
+	}
+
+	public final void numberOfIoThreads(Integer numberOfIoThreads) {
+        m_numberOfIoThreads = numberOfIoThreads == null ? Runtime.getRuntime().availableProcessors() : numberOfIoThreads;
 	}
 
 	public final boolean isMandatoryChanged(TcpClientConf newConf) throws Exception {

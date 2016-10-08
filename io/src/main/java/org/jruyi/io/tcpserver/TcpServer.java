@@ -14,7 +14,11 @@
 
 package org.jruyi.io.tcpserver;
 
-import java.net.*;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.SocketAddress;
+import java.net.SocketException;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.ServerSocketChannel;
 import java.util.Arrays;
@@ -24,7 +28,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.jruyi.common.*;
-import org.jruyi.io.*;
+import org.jruyi.io.IBufferFactory;
+import org.jruyi.io.ISession;
+import org.jruyi.io.ISessionListener;
+import org.jruyi.io.ISessionService;
+import org.jruyi.io.IoConstants;
 import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.channel.IChannelService;
@@ -38,9 +46,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Component(name = IoConstants.CN_TCPSERVER_FACTORY, //
-factory = "tcpserver", //
-service = { IService.class }, //
-xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
+		factory = "tcpserver", //
+		service = { IService.class }, //
+		xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class TcpServer<I, O> extends Service implements IChannelService<I, O>, ISessionService<I, O> {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(TcpServer.class);
@@ -80,13 +88,13 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 	}
 
 	@Override
-	public IChannelAdmin getChannelAdmin() {
-		return m_ca;
+	public IBufferFactory getBufferFactory() {
+		return m_bf;
 	}
 
 	@Override
-	public IBufferFactory getBufferFactory() {
-		return m_bf;
+	public IChannelAdmin getChannelAdmin() {
+		return m_ca;
 	}
 
 	@Override

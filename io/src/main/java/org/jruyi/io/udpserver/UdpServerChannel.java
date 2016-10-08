@@ -28,14 +28,14 @@ import org.jruyi.io.IUnit;
 import org.jruyi.io.IUnitChain;
 import org.jruyi.io.buffer.Util;
 import org.jruyi.io.channel.IChannel;
-import org.jruyi.io.channel.IIoWorker;
+import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.channel.ISelectableChannel;
 import org.jruyi.io.channel.ISelector;
 import org.jruyi.io.udp.UdpChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class UdpServerChannel extends AbstractCodec<SocketAddress> implements ISelectableChannel, Runnable {
+final class UdpServerChannel extends AbstractCodec<SocketAddress> implements ISelectableChannel {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(UdpServerChannel.class);
 
@@ -46,16 +46,15 @@ final class UdpServerChannel extends AbstractCodec<SocketAddress> implements ISe
 	private final UdpServer<Object, Object> m_udpServer;
 	private final DatagramChannel m_datagramChannel;
 	private final SocketAddress m_localAddr;
+	private ISelector m_selector;
 	private SelectionKey m_selectionKey;
-	private final IIoWorker m_ioWorker;
 
 	public UdpServerChannel(UdpServer<Object, Object> udpServer, DatagramChannel datagramChannel,
-			SocketAddress localAddr) {
+			SocketAddress localAddr, IChannelAdmin ca) {
 		m_id = ++s_sequence;
 		m_udpServer = udpServer;
 		m_datagramChannel = datagramChannel;
 		m_localAddr = localAddr;
-		m_ioWorker = udpServer.getChannelAdmin().designateIoWorker(this);
 	}
 
 	@Override
@@ -77,9 +76,23 @@ final class UdpServerChannel extends AbstractCodec<SocketAddress> implements ISe
 		}
 	}
 
-	// runs on read
 	@Override
-	public void run() {
+	public void close() {
+		m_udpServer.stop();
+	}
+
+	@Override
+	public void onConnect() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void onAccept() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void onRead() {
 		final UdpServer<Object, Object> server = m_udpServer;
 		try {
 			final IBuffer in = server.getBufferFactory().create();
@@ -103,26 +116,6 @@ final class UdpServerChannel extends AbstractCodec<SocketAddress> implements ISe
 	}
 
 	@Override
-	public void close() {
-		m_udpServer.stop();
-	}
-
-	@Override
-	public void onConnect() {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void onAccept() {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void onRead() {
-		m_ioWorker.execute(this);
-	}
-
-	@Override
 	public void onWrite() {
 		throw new UnsupportedOperationException();
 	}
@@ -134,13 +127,22 @@ final class UdpServerChannel extends AbstractCodec<SocketAddress> implements ISe
 	}
 
 	@Override
-	public void register(ISelector selector, int ops) throws Throwable {
-		m_selectionKey = m_datagramChannel.register(selector.selector(), ops, this);
+	public void registerAccept() throws Throwable {
+		m_selectionKey = m_datagramChannel.register(m_selector.selector(), SelectionKey.OP_READ, this);
+	}
+
+	@Override
+	public void registerConnect() throws Throwable {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public void interestOps(int ops) {
 		final SelectionKey selectionKey = m_selectionKey;
 		selectionKey.interestOps(selectionKey.interestOps() | ops);
+	}
+
+	void selector(ISelector selector) {
+		m_selector = selector;
 	}
 }

@@ -14,80 +14,36 @@
 
 package org.jruyi.io.channel;
 
-import org.jruyi.common.ICloseable;
-import org.jruyi.common.IThreadLocalCache;
-import org.jruyi.common.ThreadLocalCache;
 import org.jruyi.io.IFilter;
 
-final class IoEvent implements ICloseable {
+final class IoEvent {
 
-	private static final IThreadLocalCache<IoEvent> c_cache = ThreadLocalCache.weakLinkedCache();
+	private final IIoTask m_task;
+	private final Object m_msg;
+	private final IFilter<?, ?>[] m_filters;
+	private final int m_filterCount;
 
-	private Runnable m_command;
-	private IIoTask m_task;
-	private Object m_msg;
-	private IFilter<?, ?>[] m_filters;
-	private int m_filterCount;
-
-	public static IoEvent create() {
-		IoEvent event = c_cache.take();
-		if (event == null)
-			event = new IoEvent();
-		return event;
-	}
-
-	@Override
-	public void close() {
-		c_cache.put(this);
-	}
-
-	public IoEvent command(Runnable command) {
-		m_command = command;
-		return this;
-	}
-
-	public Runnable command() {
-		final Runnable command = m_command;
-		m_command = null;
-		return command;
-	}
-
-	public IoEvent task(IIoTask task) {
+	public IoEvent(IIoTask task, Object msg, IFilter<?, ?>[] filters, int filterCount) {
 		m_task = task;
-		return this;
+		m_msg = msg;
+		m_filters = filters;
+		m_filterCount = filterCount;
+	}
+
+	public IoEvent(IIoTask task, Object msg) {
+		this(task, msg, null, 0);
 	}
 
 	public IIoTask task() {
-		final IIoTask task = m_task;
-		m_task = null;
-		return task;
-	}
-
-	public IoEvent msg(Object msg) {
-		m_msg = msg;
-		return this;
+		return m_task;
 	}
 
 	public Object msg() {
-		final Object msg = m_msg;
-		m_msg = null;
-		return msg;
-	}
-
-	public IoEvent filters(IFilter<?, ?>[] filters) {
-		m_filters = filters;
-		return this;
+		return m_msg;
 	}
 
 	public IFilter<?, ?>[] filters() {
-		final IFilter<?, ?>[] filters = m_filters;
-		m_filters = null;
-		return filters;
-	}
-
-	public IoEvent filterCount(int filterCount) {
-		m_filterCount = filterCount;
-		return this;
+		return m_filters;
 	}
 
 	public int filterCount() {
