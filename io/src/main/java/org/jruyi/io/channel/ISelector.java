@@ -18,9 +18,11 @@ import java.nio.channels.Selector;
 
 public interface ISelector {
 
+	int id();
+
 	Selector selector();
 
-	Timer createTimer(Channel channel);
+	Timer createTimer(Object subject);
 
 	void write(IoEvent ioEvent);
 

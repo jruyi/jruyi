@@ -463,7 +463,8 @@ public abstract class Channel implements IChannel, IDumpable {
 		static final ITimerListener INST = new IdleTimeoutListener();
 
 		@Override
-		public void onTimeout(Channel channel) {
+		public void onTimeout(Object subject) {
+			final IChannel channel = (IChannel) subject;
 			try {
 				channel.channelService().onChannelIdleTimedOut(channel);
 			} catch (Throwable t) {
@@ -477,7 +478,8 @@ public abstract class Channel implements IChannel, IDumpable {
 		static final ITimerListener INST = new ConnectTimeoutListener();
 
 		@Override
-		public void onTimeout(Channel channel) {
+		public void onTimeout(Object subject) {
+			final IChannel channel = (IChannel) subject;
 			try {
 				channel.channelService().onChannelConnectTimedOut(channel);
 			} catch (Throwable t) {
@@ -491,7 +493,8 @@ public abstract class Channel implements IChannel, IDumpable {
 		static final ITimerListener INST = new ReadTimeoutListener();
 
 		@Override
-		public void onTimeout(Channel channel) {
+		public void onTimeout(Object subject) {
+			final IChannel channel = (IChannel) subject;
 			try {
 				channel.channelService().onChannelReadTimedOut(channel);
 			} catch (Throwable t) {
@@ -506,6 +509,14 @@ public abstract class Channel implements IChannel, IDumpable {
 		m_channelService = channelService;
 		m_closed = new AtomicBoolean(false);
 		m_selector = channelService.getChannelAdmin().designateSelector(id.intValue());
+	}
+
+	protected Channel(IChannelService<Object, Object> channelService, int selectorId) {
+		final Long id = channelService.generateId();
+		m_id = id;
+		m_channelService = channelService;
+		m_closed = new AtomicBoolean(false);
+		m_selector = channelService.getChannelAdmin().designateSelector(selectorId);
 	}
 
 	@Override
@@ -730,6 +741,11 @@ public abstract class Channel implements IChannel, IDumpable {
 	@Override
 	public final IChannelService<Object, Object> channelService() {
 		return m_channelService;
+	}
+
+	@Override
+	public ISelector selector() {
+		return m_selector;
 	}
 
 	@Override

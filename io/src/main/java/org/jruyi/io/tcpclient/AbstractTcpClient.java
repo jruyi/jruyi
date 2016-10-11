@@ -21,9 +21,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.jruyi.common.ITimeoutNotifier;
-import org.jruyi.common.ITimer;
-import org.jruyi.common.ITimerAdmin;
 import org.jruyi.common.Service;
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.IBufferFactory;
@@ -50,10 +47,6 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 	private IChannelAdmin m_ca;
 	private IFilterManager m_fm;
 	private IBufferFactory m_bf;
-	private ITimerAdmin m_ta;
-
-	private ITimer m_timer;
-
 	private String m_caption;
 	private IFilterList m_filters;
 	private volatile boolean m_stopped = true;
@@ -102,11 +95,6 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 	@Override
 	public void setSessionListener(ISessionListener<I, O> listener) {
 		m_listener = listener;
-	}
-
-	@Override
-	public <S> ITimeoutNotifier<S> createTimeoutNotifier(S subject) {
-		return m_timer.createNotifier(subject);
 	}
 
 	@Override
@@ -211,7 +199,6 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 		boolean changed = oldConf.isMandatoryChanged(newConf);
 		if (!changed) {
 			final int timeout = timeout(newConf);
-			m_timer.configuration().wheelSize(Util.max(timeout, 0)).apply();
 			if (timeout == 0)
 				closeChannels();
 		}
@@ -222,14 +209,12 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 	@Override
 	protected void startInternal() {
 		m_stopped = false;
-		m_timer.start();
 	}
 
 	@Override
 	protected void stopInternal() {
 		m_stopped = true;
 		closeChannels();
-		m_timer.stop();
 	}
 
 	public void setChannelAdmin(IChannelAdmin cm) {
@@ -257,15 +242,6 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 			m_bf = bf;
 	}
 
-	public synchronized void setTimerAdmin(ITimerAdmin ta) {
-		m_ta = ta;
-	}
-
-	public synchronized void unsetTimerAdmin(ITimerAdmin ta) {
-		if (m_ta == ta)
-			m_ta = null;
-	}
-
 	public void activate(Map<String, ?> properties) throws Exception {
 		final TcpClientConf conf = createConf(properties);
 		updateFilters(conf);
@@ -273,13 +249,10 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 
 		m_caption = Util.genServiceId(properties, conf.ip(), conf.port(), "TcpClient");
 		m_channels = new ConcurrentHashMap<>(conf.initialCapacityOfChannelMap());
-		m_timer = m_ta.createTimer(Util.max(timeout(conf), 0));
 	}
 
 	public void deactivate() {
 		stop();
-
-		m_timer = null;
 
 		updateFilters(null);
 	}
@@ -313,6 +286,12 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 		channel.connect(configuration().connectTimeoutInSeconds());
 	}
 
+	final void connect(Object attachment, int selectorId) {
+		final TcpChannel channel = newChannel(selectorId);
+		channel.attach(attachment);
+		channel.connect(configuration().connectTimeoutInSeconds());
+	}
+
 	final boolean cancelReadTimeout(IChannel channel) {
 		return channel.cancelTimeout();
 	}
@@ -324,6 +303,10 @@ public abstract class AbstractTcpClient<I, O> extends Service implements IChanne
 	@SuppressWarnings({ "unchecked" })
 	TcpChannel newChannel() {
 		return new TcpClientChannel((IChannelService<Object, Object>) this);
+	}
+
+	TcpChannel newChannel(int selectorId) {
+		throw new UnsupportedOperationException();
 	}
 
 	private void updateFilters(TcpChannelConf newConf) {

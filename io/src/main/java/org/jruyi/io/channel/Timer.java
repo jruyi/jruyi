@@ -23,15 +23,15 @@ public final class Timer {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(Timer.class);
 
-	private final Channel m_channel;
+	private final Object m_subject;
 	private final TimingWheel m_wheel;
 	private int m_timeout;
 	private BiListNode<Timer> m_node;
 	private ITimerListener m_listener;
 	private State m_state = State.UNSCHEDULED;
 
-	Timer(Channel channel, TimingWheel wheel) {
-		m_channel = channel;
+	Timer(Object subject, TimingWheel wheel) {
+		m_subject = subject;
 		m_wheel = wheel;
 	}
 
@@ -116,16 +116,16 @@ public final class Timer {
 	}
 
 	void onTimeout() {
-		if (!m_state.onTimeout(this))
-			return;
-		final ITimerListener listener = m_listener;
-		if (listener == null)
-			return;
-
 		try {
-			listener.onTimeout(m_channel);
+			if (!m_state.onTimeout(this))
+				return;
+			final ITimerListener listener = m_listener;
+			if (listener == null)
+				return;
+
+			listener.onTimeout(m_subject);
 		} catch (Throwable t) {
-			c_logger.error(StrUtil.join("Error on timeout: ", m_channel), t);
+			c_logger.error(StrUtil.join("Error on timeout: ", m_subject), t);
 		}
 	}
 

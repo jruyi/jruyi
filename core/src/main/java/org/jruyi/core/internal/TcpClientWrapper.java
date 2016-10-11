@@ -105,7 +105,6 @@ final class TcpClientWrapper<I, O> extends TcpClientConfiguration
 		final AbstractTcpClient<I, O> tcpClient = m_tcpClient;
 		final IBufferFactory bf = m_bf;
 		tcpClient.setBufferFactory(bf instanceof BufferFactoryWrapper ? ((BufferFactoryWrapper) bf).unwrap() : bf);
-		tcpClient.setTimerAdmin(ruyiCore.getTimerAdmin());
 		tcpClient.setChannelAdmin(ruyiCore.channelAdmin());
 		tcpClient.setFilterManager(m_filterChain);
 
@@ -127,7 +126,6 @@ final class TcpClientWrapper<I, O> extends TcpClientConfiguration
 
 		tcpClient.unsetFilterManager(m_filterChain);
 		tcpClient.unsetChannelAdmin(ruyiCore.channelAdmin());
-		tcpClient.unsetTimerAdmin(ruyiCore.getTimerAdmin());
 		final IBufferFactory bf = m_bf;
 		tcpClient.unsetBufferFactory(bf instanceof BufferFactoryWrapper ? ((BufferFactoryWrapper) bf).unwrap() : bf);
 

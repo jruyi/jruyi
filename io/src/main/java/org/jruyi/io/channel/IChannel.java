@@ -21,6 +21,8 @@ public interface IChannel extends ISession, ISelectableChannel {
 
 	IChannelService<Object, Object> channelService();
 
+	ISelector selector();
+
 	void connect(int timeout);
 
 	void write(Object data);

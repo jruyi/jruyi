@@ -16,5 +16,5 @@ package org.jruyi.io.channel;
 
 public interface ITimerListener {
 
-	void onTimeout(Channel channel);
+	void onTimeout(Object subject);
 }

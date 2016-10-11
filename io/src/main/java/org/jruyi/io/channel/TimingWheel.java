@@ -38,8 +38,8 @@ final class TimingWheel {
 		m_mask = capacity - 1;
 	}
 
-	public Timer createTimer(Channel channel) {
-		return new Timer(channel, this);
+	public Timer createTimer(Object subject) {
+		return new Timer(subject, this);
 	}
 
 	public int scheduledTimers() {
@@ -55,8 +55,8 @@ final class TimingWheel {
 		final TimeoutList list = m_list;
 		int scheduled = m_scheduled;
 		for (;;) {
-			final BiListNode<Timer> node = begin.next();
-			if (node == end)
+			final BiListNode<Timer> node = end.previous();
+			if (node == begin)
 				break;
 			final Timer timer = node.get();
 			final int timeout = timer.timeout();
@@ -64,8 +64,10 @@ final class TimingWheel {
 				reschedule(timer, timeout);
 			else {
 				list.remove(node);
-				--scheduled;
 				timer.onTimeout();
+				timer.node(null);
+				node.close();
+				--scheduled;
 			}
 		}
 		m_scheduled = scheduled;
@@ -73,7 +75,7 @@ final class TimingWheel {
 	}
 
 	void schedule(Timer timer, int timeout) {
-		final BiListNode<Timer> newNode = new BiListNode<>();
+		final BiListNode<Timer> newNode = BiListNode.create();
 		if (timeout > m_mask) {
 			final int mask = m_mask;
 			timer.timeout(timeout - mask);
@@ -109,7 +111,9 @@ final class TimingWheel {
 
 	void cancel(Timer timer) {
 		final BiListNode<Timer> node = timer.node();
+		timer.node(null);
 		m_list.remove(node);
+		node.close();
 		--m_scheduled;
 	}
 

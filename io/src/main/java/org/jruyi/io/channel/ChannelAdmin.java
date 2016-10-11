@@ -49,9 +49,9 @@ public final class ChannelAdmin implements IChannelAdmin {
 	}
 
 	@Override
-	public void performIoTask(IIoTask task, Object msg) {
-		int hash = msg.hashCode() + c_taskSeq.incrementAndGet();
-		m_ioThreads[hash & m_mask].write(new IoEvent(task, msg));
+	public ISelector designateSelector(Object id) {
+		int hash = id.hashCode() + c_taskSeq.incrementAndGet();
+		return m_ioThreads[hash & m_mask];
 	}
 
 	void start() throws Throwable {

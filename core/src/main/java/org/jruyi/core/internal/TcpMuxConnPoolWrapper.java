@@ -105,7 +105,6 @@ final class TcpMuxConnPoolWrapper<I extends IIdentifiable<?>, O extends IIdentif
 		final MuxConnPool<I, O> muxConnPool = m_muxConnPool;
 		final IBufferFactory bf = m_bf;
 		muxConnPool.setBufferFactory(bf instanceof BufferFactoryWrapper ? ((BufferFactoryWrapper) bf).unwrap() : bf);
-		muxConnPool.setTimerAdmin(ruyiCore.getTimerAdmin());
 		muxConnPool.setChannelAdmin(ruyiCore.channelAdmin());
 		muxConnPool.setFilterManager(m_filterChain);
 
@@ -127,7 +126,6 @@ final class TcpMuxConnPoolWrapper<I extends IIdentifiable<?>, O extends IIdentif
 
 		muxConnPool.unsetFilterManager(m_filterChain);
 		muxConnPool.unsetChannelAdmin(ruyiCore.channelAdmin());
-		muxConnPool.unsetTimerAdmin(ruyiCore.getTimerAdmin());
 		final IBufferFactory bf = m_bf;
 		muxConnPool.unsetBufferFactory(bf instanceof BufferFactoryWrapper ? ((BufferFactoryWrapper) bf).unwrap() : bf);
 

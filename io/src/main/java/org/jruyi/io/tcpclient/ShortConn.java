@@ -18,7 +18,6 @@ import java.lang.reflect.Method;
 import java.util.Map;
 
 import org.jruyi.common.IService;
-import org.jruyi.common.ITimerAdmin;
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.IBufferFactory;
 import org.jruyi.io.ISession;
@@ -165,12 +164,6 @@ public final class ShortConn<I, O> extends AbstractTcpClient<I, O> {
 	@Override
 	public void setFilterManager(IFilterManager fm) {
 		super.setFilterManager(fm);
-	}
-
-	@Reference(name = "timerAdmin", policy = ReferencePolicy.DYNAMIC)
-	@Override
-	public void setTimerAdmin(ITimerAdmin ta) {
-		super.setTimerAdmin(ta);
 	}
 
 	@Override

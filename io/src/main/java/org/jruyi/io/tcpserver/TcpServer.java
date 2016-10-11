@@ -27,7 +27,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.jruyi.common.*;
+import org.jruyi.common.IService;
+import org.jruyi.common.ITimerAdmin;
+import org.jruyi.common.Service;
+import org.jruyi.common.StrUtil;
 import org.jruyi.io.IBufferFactory;
 import org.jruyi.io.ISession;
 import org.jruyi.io.ISessionListener;
@@ -60,8 +63,6 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 	private IChannelAdmin m_ca;
 	private IFilterManager m_fm;
 	private ITcpAcceptor m_acceptor;
-
-	private ITimer m_timer;
 
 	private String m_caption;
 	private Configuration m_conf;
@@ -105,11 +106,6 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 	@Override
 	public IFilterList getFilterChain() {
 		return m_filters;
-	}
-
-	@Override
-	public <S> ITimeoutNotifier<S> createTimeoutNotifier(S subject) {
-		return m_timer.createNotifier(subject);
 	}
 
 	@Override
@@ -265,8 +261,6 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 		if (host != null)
 			bindAddr = InetAddress.getByName(host);
 
-		m_timer.start();
-
 		final ServerSocketChannel ssc = ServerSocketChannel.open();
 		try {
 			final ServerSocket socket = ssc.socket();
@@ -290,7 +284,6 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 			}
 			c_logger.error(StrUtil.join(this, " failed to start"), e);
 			m_ssc = null;
-			m_timer.stop();
 			throw e;
 		}
 	}
@@ -315,7 +308,6 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 
 		if (options == 0) {
 			closeChannels();
-			m_timer.stop();
 		}
 
 		c_logger.info(StrUtil.join(this, " stopped"));
@@ -341,7 +333,6 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 		final boolean changed = oldConf.isMandatoryChanged(newConf);
 		if (!changed) {
 			final int timeout = newConf.sessionIdleTimeoutInSeconds();
-			m_timer.configuration().wheelSize(Util.max(timeout, 0)).apply();
 			if (timeout == 0)
 				closeChannels();
 		}
@@ -405,12 +396,10 @@ public final class TcpServer<I, O> extends Service implements IChannelService<I,
 		m_conf = conf;
 
 		m_channels = new ConcurrentHashMap<>(conf.initCapacityOfChannelMap());
-		m_timer = m_ta.createTimer(Util.max(conf.sessionIdleTimeoutInSeconds(), 0));
 	}
 
 	public void deactivate() {
 		stop();
-		m_timer = null;
 
 		updateFilters(null);
 		m_conf = null;

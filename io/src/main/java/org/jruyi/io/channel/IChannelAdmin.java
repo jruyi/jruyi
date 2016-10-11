@@ -18,5 +18,5 @@ public interface IChannelAdmin {
 
 	ISelector designateSelector(int id);
 
-	void performIoTask(IIoTask task, Object msg);
+	ISelector designateSelector(Object id);
 }

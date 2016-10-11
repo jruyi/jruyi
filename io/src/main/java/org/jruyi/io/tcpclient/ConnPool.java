@@ -14,13 +14,11 @@
 
 package org.jruyi.io.tcpclient;
 
+import java.util.ArrayDeque;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantLock;
 
-import org.jruyi.common.BiListNode;
 import org.jruyi.common.IService;
-import org.jruyi.common.ITimerAdmin;
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.IBufferFactory;
 import org.jruyi.io.IFilter;
@@ -31,6 +29,8 @@ import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.channel.IChannelService;
 import org.jruyi.io.channel.IIoTask;
+import org.jruyi.io.channel.ISelector;
+import org.jruyi.io.channel.IoEvent;
 import org.jruyi.io.common.Util;
 import org.jruyi.io.filter.IFilterManager;
 import org.jruyi.io.tcp.TcpChannel;
@@ -48,19 +48,18 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O> implements IIoTask {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(ConnPool.class);
 
+	private final ThreadLocal<ArrayDeque<IChannel>> m_channels;
+
 	private ConnPoolConf m_conf;
-	private final BiListNode<IChannel> m_channelQueueHead;
-	private int m_channelQueueSize;
-	private final ReentrantLock m_channelQueueLock;
 	private final AtomicInteger m_poolSize;
+	private final AtomicInteger m_queueSize;
 
 	static class PooledChannel extends TcpChannel {
 
-		private BiListNode<IChannel> m_node;
 		private Object m_request;
 
-		PooledChannel(IChannelService<Object, Object> cs) {
-			super(cs);
+		PooledChannel(IChannelService<Object, Object> cs, int selectorId) {
+			super(cs, selectorId);
 		}
 
 		public void attachRequest(Object request) {
@@ -72,38 +71,27 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O> implements IIoTask {
 			m_request = null;
 			return request;
 		}
-
-		public void node(BiListNode<IChannel> node) {
-			m_node = node;
-		}
-
-		public BiListNode<IChannel> node() {
-			return m_node;
-		}
 	}
 
 	public ConnPool() {
-		final BiListNode<IChannel> node = BiListNode.create();
-		node.previous(node);
-		node.next(node);
-		m_channelQueueHead = node;
+		m_channels = new ThreadLocal<ArrayDeque<IChannel>>() {
+			@Override
+			protected ArrayDeque<IChannel> initialValue() {
+				return new ArrayDeque<>();
+			}
+		};
 
-		m_channelQueueLock = new ReentrantLock();
 		m_poolSize = new AtomicInteger(0);
+		m_queueSize = new AtomicInteger(0);
 	}
 
 	@Override
-	public void run(Object msg, IFilter<?, ?>[] filters, int filterCount) {
+	public void run(Object msg, IFilter<?, ?>[] ignore, int selectorId) {
 		@SuppressWarnings("unchecked")
 		final O out = (O) msg;
-		write(null, out);
-	}
-
-	@Override
-	public void write(ISession session/* =null */, O msg) {
 		final ConnPoolConf conf = m_conf;
 		if (compareAndIncrement(conf.corePoolSize())) {
-			connect(msg);
+			connect(msg, selectorId);
 			return;
 		}
 
@@ -116,11 +104,16 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O> implements IIoTask {
 
 		// No idle channel found
 		if (compareAndIncrement(conf.maxPoolSize())) {
-			connect(msg);
+			connect(msg, selectorId);
 			return;
 		}
+		write(null, out);
+	}
 
-		getChannelAdmin().performIoTask(this, msg);
+	@Override
+	public void write(ISession session/* =null */, O msg) {
+		final ISelector selector = getChannelAdmin().designateSelector(msg);
+		selector.write(new IoEvent(this, msg, null, selector.id()));
 	}
 
 	@Override
@@ -194,27 +187,10 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O> implements IIoTask {
 	public void onChannelIdleTimedOut(IChannel channel) {
 		c_logger.debug("{}: IDLE_TIMEOUT", channel);
 
-		final PooledChannel pooledChannel = (PooledChannel) channel;
-		final BiListNode<IChannel> node;
-		final ReentrantLock lock = m_channelQueueLock;
-		lock.lock();
-		try {
-			// If null, this node has already been removed.
-			// There would be a race condition between fetchChannel and
-			// idleTimedOut.
-			// Both are going to remove the node. So null-check of the element
-			// the node holding is used to tell whether this node has already
-			// been removed.
-			if ((node = pooledChannel.node()) == null)
-				return;
-
-			pooledChannel.node(null);
-			removeNode(node);
-		} finally {
-			lock.unlock();
-		}
+		final ArrayDeque<IChannel> channels = m_channels.get();
+		if (channels.removeFirstOccurrence(channel))
+			m_queueSize.decrementAndGet();
 		channel.close();
-		node.close();
 	}
 
 	@Override
@@ -271,12 +247,6 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O> implements IIoTask {
 		super.setFilterManager(fm);
 	}
 
-	@Reference(name = "timerAdmin", policy = ReferencePolicy.DYNAMIC)
-	@Override
-	public void setTimerAdmin(ITimerAdmin ta) {
-		super.setTimerAdmin(ta);
-	}
-
 	@Override
 	ConnPoolConf configuration() {
 		return m_conf;
@@ -297,22 +267,29 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O> implements IIoTask {
 	void poolChannel(PooledChannel channel) {
 		final ConnPoolConf conf = m_conf;
 		final int keepAliveTime = conf.idleTimeoutInSeconds();
-		final ReentrantLock lock = m_channelQueueLock;
-		lock.lock();
-		try {
-			if ((m_channelQueueSize < conf.corePoolSize() && !conf.allowsCoreConnectionTimeout())
-					|| keepAliveTime < 0) {
-				putNode(newNode(channel));
-				return;
-			}
+		final AtomicInteger queueSize = m_queueSize;
+		final ArrayDeque<IChannel> channels = m_channels.get();
+		if (keepAliveTime < 0) {
+			queueSize.incrementAndGet();
+			channels.addLast(channel);
+			return;
+		}
 
-			if (keepAliveTime > 0) {
-				putNode(newNode(channel));
-				channel.scheduleIdleTimeout(keepAliveTime);
-				return;
+		if (!conf.allowsCoreConnectionTimeout()) {
+			int n;
+			while ((n = queueSize.get()) < conf.corePoolSize()) {
+				if (queueSize.compareAndSet(n, n + 1)) {
+					channels.addLast(channel);
+					return;
+				}
 			}
-		} finally {
-			lock.unlock();
+		}
+
+		if (keepAliveTime > 0) {
+			channels.addLast(channel);
+			queueSize.incrementAndGet();
+			channel.scheduleIdleTimeout(keepAliveTime);
+			return;
 		}
 
 		// keepAliveTime == 0, the channel need be closed immediately
@@ -326,8 +303,8 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O> implements IIoTask {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	TcpChannel newChannel() {
-		return new PooledChannel((IChannelService<Object, Object>) this);
+	TcpChannel newChannel(int selectorId) {
+		return new PooledChannel((IChannelService<Object, Object>) this, selectorId);
 	}
 
 	/**
@@ -346,56 +323,12 @@ public class ConnPool<I, O> extends AbstractTcpClient<I, O> implements IIoTask {
 	}
 
 	private IChannel fetchChannel() {
-		BiListNode<IChannel> node;
-		IChannel channel;
-		final BiListNode<IChannel> head = m_channelQueueHead;
-		final ReentrantLock lock = m_channelQueueLock;
-		do {
-			lock.lock();
-			try {
-				node = head.next();
-				if (node == head)
-					return null;
-
-				removeNode(node);
-				// The attachment of the channel is used to tell whether the
-				// bound node has been removed. So the detach operation has to
-				// be synchronized.
-				channel = node.get();
-				((PooledChannel) channel).node(null);
-			} finally {
-				lock.unlock();
-			}
-			node.close();
-		} while (channel.isClosed() || !channel.cancelTimeout());
-
+		final ArrayDeque<IChannel> channels = m_channels.get();
+		final IChannel channel = channels.pollFirst();
+		if (channel != null) {
+			m_queueSize.decrementAndGet();
+			channel.cancelTimeout();
+		}
 		return channel;
-	}
-
-	private BiListNode<IChannel> newNode(PooledChannel channel) {
-		final BiListNode<IChannel> node = BiListNode.create();
-		node.set(channel);
-		channel.node(node);
-		return node;
-	}
-
-	private void putNode(BiListNode<IChannel> newNode) {
-		final BiListNode<IChannel> head = m_channelQueueHead;
-		final BiListNode<IChannel> headNext = head.next();
-		newNode.previous(head);
-		newNode.next(headNext);
-		head.next(newNode);
-		headNext.previous(newNode);
-
-		++m_channelQueueSize;
-	}
-
-	private void removeNode(BiListNode<IChannel> node) {
-		final BiListNode<IChannel> previousNode = node.previous();
-		final BiListNode<IChannel> nextNode = node.next();
-		previousNode.next(nextNode);
-		nextNode.previous(previousNode);
-
-		--m_channelQueueSize;
 	}
 }

@@ -18,17 +18,15 @@ import org.jruyi.common.BiListNode;
 
 final class TimeoutList {
 
-	//private final WeakReference<BiListNode<Timer>> m_cache;
 	private final BiListNode<Timer> m_head;
-	
+
 	TimeoutList() {
-		//m_cache = new WeakReference<>(null);
-		final BiListNode<Timer> head = new BiListNode<>();
+		final BiListNode<Timer> head = getNode();
 		head.previous(head);
 		head.next(head);
 		m_head = head;
 	}
-	
+
 	BiListNode<Timer> addLast(Timer timer) {
 		final BiListNode<Timer> head = m_head;
 		final BiListNode<Timer> headPrevious = head.previous();
@@ -55,17 +53,8 @@ final class TimeoutList {
 		previous.next(next);
 		next.previous(previous);
 	}
-	
+
 	private BiListNode<Timer> getNode() {
-//		final BiListNode<Timer> head = m_cache.get();
-//		if (head != null) {
-//			BiListNode<Timer> node = head.next();
-//			if (node != null) {
-//				head.next(node.next());
-//				//node.next(null);
-//				return node;
-//			}
-//		}
-		return new BiListNode<>();
+		return BiListNode.create();
 	}
 }

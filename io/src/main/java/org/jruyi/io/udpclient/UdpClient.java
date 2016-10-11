@@ -20,7 +20,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.jruyi.common.IService;
-import org.jruyi.common.ITimeoutNotifier;
 import org.jruyi.common.Service;
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.IBufferFactory;
@@ -91,11 +90,6 @@ public final class UdpClient<I, O> extends Service implements IChannelService<I,
 	@Override
 	public IFilterList getFilterChain() {
 		return m_filters;
-	}
-
-	@Override
-	public <S> ITimeoutNotifier<S> createTimeoutNotifier(S subject) {
-		return null;
 	}
 
 	@Override

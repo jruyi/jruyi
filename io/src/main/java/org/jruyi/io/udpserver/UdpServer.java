@@ -27,9 +27,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.jruyi.common.IService;
-import org.jruyi.common.ITimeoutNotifier;
-import org.jruyi.common.ITimer;
-import org.jruyi.common.ITimerAdmin;
 import org.jruyi.common.Service;
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.IBufferFactory;
@@ -67,9 +64,6 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 	private IBufferFactory m_bf;
 	private IChannelAdmin m_ca;
 	private IFilterManager m_fm;
-	private ITimerAdmin m_ta;
-
-	private ITimer m_timer;
 
 	private IFilterList m_filters;
 	private volatile boolean m_stopped = true;
@@ -104,11 +98,6 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 	@Override
 	public IFilterList getFilterChain() {
 		return m_filters;
-	}
-
-	@Override
-	public <S> ITimeoutNotifier<S> createTimeoutNotifier(S subject) {
-		return m_timer.createNotifier(subject);
 	}
 
 	@Override
@@ -266,7 +255,6 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 		final boolean changed = oldConf.isMandatoryChanged(newConf, Configuration.getMandatoryPropsAccessors());
 		if (!changed) {
 			final int timeout = newConf.sessionIdleTimeoutInSeconds();
-			m_timer.configuration().wheelSize(Util.max(timeout, 0)).apply();
 			if (timeout == 0)
 				closeChannels();
 		}
@@ -286,8 +274,6 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 		if (host != null)
 			bindAddr = InetAddress.getByName(host);
 
-		m_timer.start();
-
 		final SocketAddress localAddr;
 		final DatagramChannel datagramChannel = DatagramChannel.open();
 		try {
@@ -304,7 +290,6 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 			c_logger.error(StrUtil.join(this, " failed to start"), e);
 			m_datagramChannel = null;
 			m_channels = null;
-			m_timer.stop();
 			throw e;
 		}
 
@@ -335,8 +320,6 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 		closeChannels();
 
 		m_datagramChannel = null;
-
-		m_timer.stop();
 
 		c_logger.info(StrUtil.join(this, " stopped"));
 	}
@@ -369,16 +352,6 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 		m_fm = null;
 	}
 
-	@Reference(name = "timerAdmin", policy = ReferencePolicy.DYNAMIC)
-	public synchronized void setTimerAdmin(ITimerAdmin ta) {
-		m_ta = ta;
-	}
-
-	public synchronized void unsetTimerAdmin(ITimerAdmin ta) {
-		if (m_ta == ta)
-			m_ta = null;
-	}
-
 	public void activate(Map<String, ?> properties) throws Exception {
 		final Configuration conf = new Configuration();
 		conf.initialize(properties);
@@ -387,12 +360,10 @@ public final class UdpServer<I, O> extends Service implements IChannelService<I,
 		m_conf = conf;
 
 		m_channels = new ConcurrentHashMap<>(conf.initCapacityOfChannelMap());
-		m_timer = m_ta.createTimer(Util.max(conf.sessionIdleTimeoutInSeconds(), 0));
 	}
 
 	public void deactivate() {
 		stop();
-		m_timer = null;
 
 		updateFilters(null);
 	}

@@ -34,6 +34,7 @@ final class IoThread implements ICloseable, Runnable, ISelector {
 
 	private static final long ONE_SEC = 1000L;
 
+	private int m_id;
 	private TimingWheel m_timingWheel;
 	private Selector m_selector;
 
@@ -45,12 +46,18 @@ final class IoThread implements ICloseable, Runnable, ISelector {
 	private final IoEventQueue<IoEvent> m_writeQueue = new IoEventQueue<>();
 
 	public void open(int channelAdminId, int id) throws Exception {
+		m_id = id;
 		m_timingWheel = new TimingWheel(120);
 		m_selector = Selector.open();
 		m_needWake = true;
 		final Thread thread = new Thread(this, "jruyi-io-" + channelAdminId + "-" + id);
 		m_thread = thread;
 		thread.start();
+	}
+
+	@Override
+	public int id() {
+		return m_id;
 	}
 
 	@Override
@@ -160,8 +167,8 @@ final class IoThread implements ICloseable, Runnable, ISelector {
 	}
 
 	@Override
-	public Timer createTimer(Channel channel) {
-		return m_timingWheel.createTimer(channel);
+	public Timer createTimer(Object subject) {
+		return m_timingWheel.createTimer(subject);
 	}
 
 	@Override

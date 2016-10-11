@@ -32,6 +32,10 @@ public class TcpChannel extends Channel {
 		super(channelService);
 	}
 
+	public TcpChannel(IChannelService<Object, Object> channelService, int selectorId) {
+		super(channelService, selectorId);
+	}
+
 	public TcpChannel(IChannelService<Object, Object> channelService, SocketChannel socketChannel) {
 		super(channelService);
 		m_socketChannel = socketChannel;

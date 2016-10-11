@@ -16,7 +16,7 @@ package org.jruyi.io.channel;
 
 import org.jruyi.io.IFilter;
 
-final class IoEvent {
+public final class IoEvent {
 
 	private final IIoTask m_task;
 	private final Object m_msg;

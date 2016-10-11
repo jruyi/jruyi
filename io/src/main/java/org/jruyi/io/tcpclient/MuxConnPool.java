@@ -20,10 +20,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.jruyi.common.IIdentifiable;
 import org.jruyi.common.IService;
-import org.jruyi.common.ITimeoutEvent;
-import org.jruyi.common.ITimeoutListener;
-import org.jruyi.common.ITimeoutNotifier;
-import org.jruyi.common.ITimerAdmin;
 import org.jruyi.common.StrUtil;
 import org.jruyi.io.IBufferFactory;
 import org.jruyi.io.ISessionListener;
@@ -31,6 +27,8 @@ import org.jruyi.io.IoConstants;
 import org.jruyi.io.channel.IChannel;
 import org.jruyi.io.channel.IChannelAdmin;
 import org.jruyi.io.channel.IChannelService;
+import org.jruyi.io.channel.ITimerListener;
+import org.jruyi.io.channel.Timer;
 import org.jruyi.io.filter.IFilterManager;
 import org.jruyi.io.tcp.TcpChannel;
 import org.osgi.service.component.annotations.Component;
@@ -47,21 +45,21 @@ public final class MuxConnPool<I extends IIdentifiable<?>, O extends IIdentifiab
 
 	private static final Logger c_logger = LoggerFactory.getLogger(MuxConnPool.class);
 
-	private ConcurrentHashMap<Object, ITimeoutNotifier<O>> m_notifiers;
+	private ConcurrentHashMap<Object, Timer> m_timers;
 
-	static final class PooledMuxChannel<O extends IIdentifiable<?>> extends PooledChannel
-			implements ITimeoutListener<O> {
+	static final class PooledMuxChannel<O extends IIdentifiable<?>> extends PooledChannel implements ITimerListener {
 
-		PooledMuxChannel(IChannelService<Object, Object> cs) {
-			super(cs);
+		PooledMuxChannel(IChannelService<Object, Object> cs, int selectorId) {
+			super(cs, selectorId);
 		}
 
 		@Override
-		public void onTimeout(ITimeoutEvent<O> event) {
+		public void onTimeout(Object subject) {
 			@SuppressWarnings({ "unchecked", "rawtypes" })
 			final MuxConnPool<?, O> connPool = (MuxConnPool) channelService();
-			final O outMsg = event.subject();
-			connPool.notifiers().remove(outMsg.id());
+			@SuppressWarnings("unchecked")
+			final O outMsg = (O) subject;
+			connPool.timers().remove(outMsg.id());
 			final ISessionListener<?, O> listener = connPool.listener();
 			if (listener != null) {
 				try {
@@ -78,16 +76,16 @@ public final class MuxConnPool<I extends IIdentifiable<?>, O extends IIdentifiab
 		final Object msgId;
 		final int timeout = configuration().readTimeoutInSeconds();
 		if (timeout > 0 && (msgId = outMsg.id()) != null) {
-			final ITimeoutNotifier<O> tn = createTimeoutNotifier(outMsg);
-			if (m_notifiers.put(msgId, tn) != null) {
+			final Timer timer = channel.selector().createTimer(outMsg);
+			if (m_timers.put(msgId, timer) != null) {
 				c_logger.error("Collision of message ID: {}", msgId);
 				channel.close();
 				return;
 			}
 			@SuppressWarnings("unchecked")
 			final PooledMuxChannel<O> pooledChannel = (PooledMuxChannel<O>) channel;
-			tn.listener(pooledChannel);
-			tn.schedule(timeout);
+			timer.listener(pooledChannel);
+			timer.schedule(timeout);
 		}
 	}
 
@@ -102,8 +100,8 @@ public final class MuxConnPool<I extends IIdentifiable<?>, O extends IIdentifiab
 
 	@Override
 	public void onMessageReceived(IChannel channel, I inMsg) {
-		final ITimeoutNotifier<O> tn = m_notifiers.remove(inMsg.id());
-		if (tn == null || !tn.cancel()) {
+		final Timer timer = m_timers.remove(inMsg.id());
+		if (timer == null || !timer.cancel()) {
 			if (inMsg instanceof AutoCloseable) {
 				try {
 					((AutoCloseable) inMsg).close();
@@ -142,12 +140,6 @@ public final class MuxConnPool<I extends IIdentifiable<?>, O extends IIdentifiab
 		super.setFilterManager(fm);
 	}
 
-	@Reference(name = "timerAdmin", policy = ReferencePolicy.DYNAMIC)
-	@Override
-	public void setTimerAdmin(ITimerAdmin ta) {
-		super.setTimerAdmin(ta);
-	}
-
 	@Override
 	public void activate(Map<String, ?> properties) throws Exception {
 		super.activate(properties);
@@ -155,25 +147,25 @@ public final class MuxConnPool<I extends IIdentifiable<?>, O extends IIdentifiab
 		int initialCapacity = n << 5;
 		if (initialCapacity < 0)
 			initialCapacity = n;
-		m_notifiers = new ConcurrentHashMap<>(initialCapacity);
+		m_timers = new ConcurrentHashMap<>(initialCapacity);
 	}
 
 	@Override
 	public void deactivate() {
 		super.deactivate();
-		final Collection<ITimeoutNotifier<O>> notifiers = m_notifiers.values();
-		m_notifiers = null;
-		for (ITimeoutNotifier<?> notifier : notifiers)
-			notifier.cancel();
+		final Collection<Timer> timers = m_timers.values();
+		m_timers = null;
+		for (Timer timer : timers)
+			timer.cancel();
 	}
 
 	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	TcpChannel newChannel() {
-		return new PooledMuxChannel<O>((IChannelService) this);
+	TcpChannel newChannel(int selectorId) {
+		return new PooledMuxChannel<O>((IChannelService) this, selectorId);
 	}
 
-	ConcurrentHashMap<Object, ITimeoutNotifier<O>> notifiers() {
-		return m_notifiers;
+	ConcurrentHashMap<Object, Timer> timers() {
+		return m_timers;
 	}
 }
