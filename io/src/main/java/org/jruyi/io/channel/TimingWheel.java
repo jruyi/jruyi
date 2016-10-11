@@ -16,7 +16,7 @@ package org.jruyi.io.channel;
 
 import org.jruyi.common.BiListNode;
 
-final class TimerWheel {
+final class TimingWheel {
 
 	private static final int MAX_CAPACITY = 64 * 1024;
 
@@ -26,7 +26,7 @@ final class TimerWheel {
 	private int m_hand;
 	private int m_scheduled;
 
-	public TimerWheel(int wheelSize) {
+	public TimingWheel(int wheelSize) {
 		final int capacity = capacity(wheelSize);
 		@SuppressWarnings("unchecked")
 		final BiListNode<Timer>[] wheel = (BiListNode<Timer>[]) new BiListNode<?>[capacity + 1];
@@ -82,7 +82,6 @@ final class TimerWheel {
 		newNode.set(timer);
 		timer.node(newNode);
 		final int index = getEffectiveIndex(m_hand + timeout);
-		timer.index(index);
 		final BiListNode<Timer> node = m_wheel[index];
 		m_list.insertAfter(node, newNode);
 		++m_scheduled;
@@ -104,7 +103,6 @@ final class TimerWheel {
 
 		// dest list
 		final int index = getEffectiveIndex(m_hand + timeout);
-		timer.index(index);
 		final BiListNode<Timer> destHead = m_wheel[index];
 		list.insertAfter(destHead, node);
 	}

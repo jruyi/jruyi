@@ -24,14 +24,13 @@ public final class Timer {
 	private static final Logger c_logger = LoggerFactory.getLogger(Timer.class);
 
 	private final Channel m_channel;
-	private final TimerWheel m_wheel;
-	private int m_index;
+	private final TimingWheel m_wheel;
 	private int m_timeout;
 	private BiListNode<Timer> m_node;
 	private ITimerListener m_listener;
 	private State m_state = State.UNSCHEDULED;
 
-	Timer(Channel channel, TimerWheel wheel) {
+	Timer(Channel channel, TimingWheel wheel) {
 		m_channel = channel;
 		m_wheel = wheel;
 	}
@@ -134,14 +133,6 @@ public final class Timer {
 		m_timeout = timeout;
 	}
 
-	void index(int index) {
-		m_index = index;
-	}
-
-	int index() {
-		return m_index;
-	}
-
 	void node(BiListNode<Timer> node) {
 		m_node = node;
 	}
@@ -150,7 +141,7 @@ public final class Timer {
 		return m_node;
 	}
 
-	TimerWheel timerWheel() {
+	TimingWheel timerWheel() {
 		return m_wheel;
 	}
 

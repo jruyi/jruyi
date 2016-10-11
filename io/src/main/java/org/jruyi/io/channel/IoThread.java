@@ -34,7 +34,7 @@ final class IoThread implements ICloseable, Runnable, ISelector {
 
 	private static final long ONE_SEC = 1000L;
 
-	private TimerWheel m_timerWheel;
+	private TimingWheel m_timingWheel;
 	private Selector m_selector;
 
 	private volatile boolean m_needWake = true;
@@ -45,7 +45,7 @@ final class IoThread implements ICloseable, Runnable, ISelector {
 	private final IoEventQueue<IoEvent> m_writeQueue = new IoEventQueue<>();
 
 	public void open(int channelAdminId, int id) throws Exception {
-		m_timerWheel = new TimerWheel(120);
+		m_timingWheel = new TimingWheel(120);
 		m_selector = Selector.open();
 		m_needWake = true;
 		final Thread thread = new Thread(this, "jruyi-io-" + channelAdminId + "-" + id);
@@ -74,7 +74,7 @@ final class IoThread implements ICloseable, Runnable, ISelector {
 			m_selector = null;
 		}
 
-		m_timerWheel = null;
+		m_timingWheel = null;
 	}
 
 	@Override
@@ -83,7 +83,7 @@ final class IoThread implements ICloseable, Runnable, ISelector {
 
 		c_logger.info("{} started", currentThread.getName());
 
-		final TimerWheel timerWheel = m_timerWheel;
+		final TimingWheel timingWheel = m_timingWheel;
 		final IoEventQueue<ISelectableChannel> acceptQueue = m_acceptQueue;
 		final IoEventQueue<ISelectableChannel> connectQueue = m_connectQueue;
 		final IoEventQueue<IoEvent> writeQueue = m_writeQueue;
@@ -98,9 +98,9 @@ final class IoThread implements ICloseable, Runnable, ISelector {
 					break;
 
 				long currentTime = System.currentTimeMillis();
-				if (timerWheel.scheduledTimers() > 0) {
+				if (timingWheel.scheduledTimers() > 0) {
 					if (currentTime >= prevTime) {
-						timerWheel.tick();
+						timingWheel.tick();
 						prevTime += ONE_SEC;
 					}
 				} else {
@@ -142,9 +142,9 @@ final class IoThread implements ICloseable, Runnable, ISelector {
 				procIoEvents(connectQueue, SelectorOp.CONNECT);
 				procIoEvents(writeQueue);
 
-				if (timerWheel.scheduledTimers() > 0) {
+				if (timingWheel.scheduledTimers() > 0) {
 					while ((sleepTime = prevTime - System.currentTimeMillis()) <= 0) {
-						timerWheel.tick();
+						timingWheel.tick();
 						prevTime += ONE_SEC;
 					}
 				} else
@@ -161,7 +161,7 @@ final class IoThread implements ICloseable, Runnable, ISelector {
 
 	@Override
 	public Timer createTimer(Channel channel) {
-		return m_timerWheel.createTimer(channel);
+		return m_timingWheel.createTimer(channel);
 	}
 
 	@Override
