@@ -583,7 +583,10 @@ public abstract class Channel implements IChannel, IDumpable {
 		if (closed.get() || !closed.compareAndSet(false, true))
 			return;
 
-		m_selector.write(new IoEvent(m_writeThread, WriteThread.EOF));
+		if (m_writeThread != null)
+			m_selector.write(new IoEvent(m_writeThread, WriteThread.EOF));
+		else
+			onCloseInternal();
 	}
 
 	@Override
