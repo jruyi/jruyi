@@ -49,7 +49,14 @@ public final class IoEventQueue<E> {
         List<E> cachedQueue = m_cachedQueue.get();
         if (cachedQueue == null)
             cachedQueue = new ArrayList<>(queue.size() << 1);
-        m_queue = cachedQueue;
+
+        final ReentrantLock lock = m_lock;
+        lock.lock();
+        try {
+            m_queue = cachedQueue;
+        } finally {
+            lock.unlock();
+        }
         return queue;
     }
 
