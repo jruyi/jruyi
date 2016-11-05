@@ -27,7 +27,7 @@ buildscript {
 
 apply plugin: 'distribution'
 
-version = '2.5.3-SNAPSHOT'
+version = '2.5.3'
 description = 'A Java framework for easily developing highly efficient and highly scalable network applications'
 
 ext {
@@ -79,14 +79,14 @@ allprojects {
 
 		jruyi_system_version = rootProject.version
 
-		jruyi_core_version = '2.5.3-SNAPSHOT'
+		jruyi_core_version = '2.5.3'
 
 		jruyi_cli_version = '2.0.2'
 		jruyi_launcher_version = '2.0.2'
 		org_jruyi_clid_version = '2.5.1'
 		org_jruyi_cmd_version = '2.0.5'
 		org_jruyi_common_version = '2.4.2'
-		org_jruyi_io_version = '2.5.3-SNAPSHOT'
+		org_jruyi_io_version = '2.5.3'
 		org_jruyi_osgi_log_version = '2.0.3'
 		org_jruyi_tpe_version = '2.0.3'
 	}
