@@ -126,14 +126,10 @@ final class IoThread implements ICloseable, Runnable, ISelector {
 								key.interestOps(key.interestOps() & ~SelectionKey.OP_CONNECT);
 								channel.onConnect();
 							} else {
-								if (key.isReadable()) {
-									key.interestOps(key.interestOps() & ~SelectionKey.OP_READ);
+								if (key.isReadable())
 									channel.onRead();
-								}
-								if (key.isWritable()) {
-									key.interestOps(key.interestOps() & ~SelectionKey.OP_WRITE);
+								if (key.isWritable())
 									channel.onWrite();
-								}
 							}
 						} catch (RejectedExecutionException e) {
 						} catch (CancelledKeyException e) {

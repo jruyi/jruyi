@@ -303,7 +303,7 @@ public abstract class Channel implements IChannel, IDumpable {
 				if (data == null)
 					return;
 			}
-			write(data, channel);
+			write(data, channel, filterCount < 0);
 		}
 
 		void writeBackward(Object msg, IFilter<?, ?>[] filters, int filterCount) {
@@ -325,13 +325,13 @@ public abstract class Channel implements IChannel, IDumpable {
 				if (data == null)
 					return;
 			}
-			write(data, channel);
+			write(data, channel, false);
 		}
 
-		private void write(IBuffer data, Channel channel) {
+		private void write(IBuffer data, Channel channel, boolean write_interested) {
 			final IChannelService<Object, Object> cs = channel.channelService();
 			final WritableByteChannel wbc = channel.writableByteChannel();
-			for (;;) {
+			while (data != null) {
 				final Object msg;
 				final IFilter<?, ?>[] filters;
 				final int filterCount;
@@ -339,13 +339,14 @@ public abstract class Channel implements IChannel, IDumpable {
 					data.writeOut(wbc);
 					if (!data.isEmpty()) {
 						m_data = data;
-						channel.interestOps(SelectionKey.OP_WRITE);
+						if (!write_interested)
+							channel.interestOps(channel.interestOps() | SelectionKey.OP_WRITE);
 						return;
 					}
 
 					if (m_indexOfMore >= 0) {
 						clear(data);
-						return;
+						break;
 					}
 
 					cs.onMessageSent(channel, m_originalMsg);
@@ -353,7 +354,7 @@ public abstract class Channel implements IChannel, IDumpable {
 					final OutMsg outMsg = m_queue.poll();
 					if (outMsg == null) {
 						m_originalMsg = null;
-						return;
+						break;
 					}
 
 					msg = outMsg.msg();
@@ -368,7 +369,7 @@ public abstract class Channel implements IChannel, IDumpable {
 					clear(data);
 					if (!channel.isClosed())
 						channel.onException(t);
-					return;
+					break;
 				}
 
 				try {
@@ -379,11 +380,12 @@ public abstract class Channel implements IChannel, IDumpable {
 					m_indexOfMore = -1;
 					if (!channel.isClosed())
 						channel.onException(t);
-					return;
+					break;
 				}
-				if (data == null)
-					return;
 			}
+
+			if (write_interested)
+				channel.interestOps(channel.interestOps() & ~SelectionKey.OP_WRITE);
 		}
 
 		private void clear(IBuffer data) {
@@ -772,14 +774,18 @@ public abstract class Channel implements IChannel, IDumpable {
 		} else {
 			if (timeout > 0)
 				scheduleConnectTimeout(timeout);
-			m_selectionKey = selectableChannel().register(m_selector.selector(), SelectionKey.OP_CONNECT, this);
+			m_selectionKey = selectableChannel().register(m_selector.selector(),
+					SelectionKey.OP_CONNECT | SelectionKey.OP_READ, this);
 		}
 	}
 
 	@Override
 	public final void interestOps(int ops) {
-		final SelectionKey selectionKey = m_selectionKey;
-		selectionKey.interestOps(selectionKey.interestOps() | ops);
+		m_selectionKey.interestOps(ops);
+	}
+
+	final int interestOps() {
+		return m_selectionKey.interestOps();
 	}
 
 	@Override
@@ -836,9 +842,7 @@ public abstract class Channel implements IChannel, IDumpable {
 			if (n < 0) {
 				close();
 				onReadIn(in);
-			} else if (onReadIn(in))
-				interestOps(SelectionKey.OP_READ);
-			else
+			} else if (!onReadIn(in))
 				close();
 		} catch (Throwable t) {
 			onException(t);
@@ -847,7 +851,7 @@ public abstract class Channel implements IChannel, IDumpable {
 
 	@Override
 	public final void onWrite() {
-		m_writeThread.run(null, null, 0);
+		m_writeThread.run(null, null, -1);
 	}
 
 	@Override
@@ -1042,8 +1046,6 @@ public abstract class Channel implements IChannel, IDumpable {
 
 			if (requireRegister)
 				selectableChannel().register(m_selector.selector(), SelectionKey.OP_READ, this);
-			else
-				interestOps(SelectionKey.OP_READ);
 		} catch (Throwable t) {
 			onException(t);
 		}
