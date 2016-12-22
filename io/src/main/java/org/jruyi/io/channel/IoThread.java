@@ -21,6 +21,7 @@ import java.nio.channels.Selector;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.jruyi.common.ICloseable;
 import org.jruyi.common.StrUtil;
@@ -37,9 +38,9 @@ final class IoThread implements ICloseable, Runnable, ISelector {
 	private int m_id;
 	private TimingWheel m_timingWheel;
 	private Selector m_selector;
-
-	private volatile boolean m_needWake = true;
 	private Thread m_thread;
+
+	private final AtomicBoolean m_needWakeup = new AtomicBoolean();
 
 	private final IoEventQueue<ISelectableChannel> m_acceptQueue = new IoEventQueue<>();
 	private final IoEventQueue<ISelectableChannel> m_connectQueue = new IoEventQueue<>();
@@ -49,7 +50,7 @@ final class IoThread implements ICloseable, Runnable, ISelector {
 		m_id = id;
 		m_timingWheel = new TimingWheel(120);
 		m_selector = Selector.open();
-		m_needWake = true;
+		m_needWakeup.set(true);
 		final Thread thread = new Thread(this, "jruyi-io-" + channelAdminId + "-" + id);
 		m_thread = thread;
 		thread.start();
@@ -139,7 +140,7 @@ final class IoThread implements ICloseable, Runnable, ISelector {
 					}
 				}
 
-				m_needWake = true;
+				m_needWakeup.set(true);
 
 				procIoEvents(acceptQueue, SelectorOp.ACCEPT);
 				procIoEvents(connectQueue, SelectorOp.CONNECT);
@@ -186,10 +187,8 @@ final class IoThread implements ICloseable, Runnable, ISelector {
 
 		m_writeQueue.put(ioEvent);
 
-		if (m_needWake) {
-			m_needWake = false;
+		if (m_needWakeup.compareAndSet(true, false))
 			m_selector.wakeup();
-		}
 	}
 
 	@Override
@@ -227,10 +226,8 @@ final class IoThread implements ICloseable, Runnable, ISelector {
 
 		queue.put(channel);
 
-		if (m_needWake) {
-			m_needWake = false;
+		if (m_needWakeup.compareAndSet(true, false))
 			m_selector.wakeup();
-		}
 	}
 
 	private boolean isThisIoThread() {
