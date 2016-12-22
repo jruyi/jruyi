@@ -14,12 +14,21 @@
 
 package org.jruyi.clid;
 
+import java.io.InputStream;
+
 import org.apache.felix.service.command.CommandSession;
 import org.jruyi.common.IntStack;
 import org.jruyi.common.StringBuilder;
 import org.osgi.framework.BundleContext;
 
 final class Util {
+
+	static final InputStream DUMMY_INPUT = new InputStream() {
+		@Override
+		public int read() {
+			return 0;
+		}
+	};
 
 	private Util() {
 	}
@@ -62,10 +71,14 @@ final class Util {
 	}
 
 	private static String getPropValue(String name, CommandSession cs, BundleContext context) {
-		final Object value = cs.get(name);
+		Object value = cs.get(name);
 		if (value != null)
 			return value.toString();
 
-		return context.getProperty(name);
+		value = context.getProperty(name);
+		if (value != null)
+			return value.toString();
+
+		return System.getenv(name);
 	}
 }

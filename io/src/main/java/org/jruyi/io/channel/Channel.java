@@ -592,8 +592,7 @@ public abstract class Channel implements IChannel, IDumpable {
 
 	@Override
 	public final void close() {
-		final AtomicBoolean closed = m_closed;
-		if (closed.get() || !closed.compareAndSet(false, true))
+		if (!m_closed.compareAndSet(false, true))
 			return;
 
 		if (m_writeThread != null)

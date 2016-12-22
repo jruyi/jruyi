@@ -25,7 +25,7 @@ ext {
 dependencies {
 	compile "org.osgi:org.osgi.core:4.3.1"
 	compile "org.osgi:org.osgi.compendium:4.3.1"
-	compile "org.apache.felix:org.apache.felix.gogo.runtime:0.16.2"
+	compile "org.apache.felix:org.apache.felix.gogo.runtime:1.0.2"
 	compile "org.slf4j:slf4j-api:1.7.21"
 
 	compile "org.jruyi:jruyi-api:2.5.0"

@@ -16,7 +16,6 @@ package org.jruyi.clid;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
-import java.io.PrintStream;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.nio.BufferUnderflowException;
@@ -144,21 +143,19 @@ public final class CliServer extends SessionListener<IBuffer, IBuffer> implement
 	public void onSessionOpened(ISession session) {
 		@SuppressWarnings("unchecked")
 		final ISessionService<IBuffer, IBuffer> ss = (ISessionService<IBuffer, IBuffer>) m_tcpServer.getInstance();
-		final OutBufferStream outBufferStream = new OutBufferStream(ss, session);
-		final ErrBufferStream errBufferStream = new ErrBufferStream(outBufferStream);
-		final PrintStream out = new PrintStream(outBufferStream, true);
-		final PrintStream err = new PrintStream(errBufferStream, true);
-		final CommandSession cs = m_cp.createSession(null, out, err);
+		final OutBufferStream out = new OutBufferStream(ss, session);
+		final ErrBufferStream err = new ErrBufferStream(out);
+		final CommandSession cs = m_cp.createSession(Util.DUMMY_INPUT, out, err);
 		cs.put(SCOPE, "builtin:*");
 
-		final Context context = new Context(cs, errBufferStream);
+		final Context context = new Context(cs, err);
 		session.deposit(this, context);
 
-		outBufferStream.write(m_welcome);
-		outBufferStream.write(ClidConstants.CR);
-		outBufferStream.write(ClidConstants.LF);
-		writeCommands(outBufferStream);
-		outBufferStream.writeOut(getPrompt(session));
+		out.write(m_welcome);
+		out.write(ClidConstants.CR);
+		out.write(ClidConstants.LF);
+		writeCommands(out);
+		out.writeOut(getPrompt(session));
 	}
 
 	@Override

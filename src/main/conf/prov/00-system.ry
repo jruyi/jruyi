@@ -13,19 +13,19 @@
 #
 
 # Scheduler
-if {not {conf:exists jruyi.common.scheduler}} {
+if { not { conf:exists jruyi.common.scheduler } } {
 	conf:create jruyi.common.scheduler \
 		numberOfThreads=1 \
 		terminationWaitTimeInSeconds=60
 }
 
 # ChannelAdmin
-if {not {conf:exists jruyi.io.channeladmin}} {
+if { not { conf:exists jruyi.io.channeladmin } } {
 	conf:create jruyi.io.channeladmin numberOfIoThreads=0
 }
 
 # CLI Daemon
-if {not {conf:exists jruyi.clid}} {
+if { not { conf:exists jruyi.clid } } {
 	conf:create jruyi.clid \
 		bindAddr=localhost \
 		port=6060
@@ -34,7 +34,7 @@ if {not {conf:exists jruyi.clid}} {
 # ExecutorService, Thread Pool Executor
 # The default corePoolSize is 2 * Runtime.getRuntime().availableProcessors()
 # The default maxPoolSize = 2 * corePoolSize. If maxPoolSize < 1, then maxPoolSize = corePoolSize.
-if {not {conf:exists jruyi.tpe}} {
+if { not { conf:exists jruyi.tpe } } {
 	conf:create jruyi.tpe \
 		keepAliveTimeInSeconds=10 \
 		queueCapacity=8192 \

@@ -14,6 +14,19 @@
 
 package org.jruyi.clid;
 
+import static org.osgi.framework.Constants.FRAMEWORK_STORAGE;
+
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.felix.service.command.CommandProcessor;
 import org.apache.felix.service.command.CommandSession;
 import org.jruyi.common.BytesBuilder;
@@ -28,24 +41,10 @@ import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.io.RandomAccessFile;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static org.osgi.framework.Constants.FRAMEWORK_STORAGE;
-
 @Component(name = "jruyi.clid.provisioner", //
-immediate = true, //
-configurationPolicy = ConfigurationPolicy.IGNORE, //
-xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
+		immediate = true, //
+		configurationPolicy = ConfigurationPolicy.IGNORE, //
+		xmlns = "http://www.osgi.org/xmlns/scr/v1.1.0")
 public final class Provisioner {
 
 	private static final Logger c_logger = LoggerFactory.getLogger(Provisioner.class);
@@ -107,8 +106,8 @@ public final class Provisioner {
 			final ICharsetCodec codec = CharsetCodec.get("UTF-8");
 			String script = codec.toString(builder.getByteBuffer(0, len));
 			builder.setLength(0);
-			final CommandSession cs = m_cp.createSession(null, new PrintStream(new LoggerOutStream(builder, codec)),
-					new PrintStream(new LoggerErrStream(builder, codec)));
+			final CommandSession cs = m_cp.createSession(Util.DUMMY_INPUT, new LoggerOutStream(builder, codec),
+					new LoggerErrStream(builder, codec));
 			try {
 				script = Util.filterProps(script, cs, context);
 				cs.execute(script);
