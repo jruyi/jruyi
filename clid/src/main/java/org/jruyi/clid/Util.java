@@ -37,7 +37,7 @@ final class Util {
 		if (target.length() < 2)
 			return target;
 
-		try (org.jruyi.common.StringBuilder builder = StringBuilder.get(); IntStack stack = IntStack.get()) {
+		try (final StringBuilder builder = StringBuilder.get(); final IntStack stack = IntStack.get()) {
 			final int j = target.length();
 			String propValue = null;
 			for (int i = 0; i < j; ++i) {
@@ -71,6 +71,14 @@ final class Util {
 	}
 
 	private static String getPropValue(String name, CommandSession cs, BundleContext context) {
+		final int i = name.indexOf(':');
+		final String defaultValue;
+		if (i >= 0) {
+			defaultValue = name.substring(i + 1).trim();
+			name = name.substring(0, i).trim();
+		} else
+			defaultValue = null;
+
 		Object value = cs.get(name);
 		if (value != null)
 			return value.toString();
@@ -79,6 +87,7 @@ final class Util {
 		if (value != null)
 			return value.toString();
 
-		return System.getenv(name);
+		value = System.getenv(name);
+		return (value == null) ? defaultValue : value.toString();
 	}
 }
