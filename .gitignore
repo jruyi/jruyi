@@ -11,6 +11,7 @@
 .gradle
 .nb-gradle
 *~
+.vscode
 
 /build
 /cli/build
