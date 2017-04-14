@@ -251,7 +251,7 @@ public final class Buffer implements IBuffer {
 			var.positionIndex(i - 1);
 			return m;
 		} else {
-			unit.position(size - (m - n));
+			unit.position(unit.position() + size - (m - n));
 			var.positionIndex(i);
 			return n;
 		}

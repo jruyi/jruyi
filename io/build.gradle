@@ -42,12 +42,6 @@ dependencies {
 	testCompile project(':common')
 }
 
-compileJava {
-	options.compilerArgs << '-XDignore.symbol.file'
-	options.fork = true
-	options.forkOptions.executable = javaCompilerExecutable
-}
-
 jar {
 	manifest {
 		attributes(
